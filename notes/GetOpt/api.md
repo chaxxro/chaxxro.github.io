@@ -35,7 +35,6 @@ struct getopt : public std::map<std::string, std::string>
 // 2       ---> --depth=123
 // --depth ---> 123
 // --file  ---> /a/b/c
-
 ```
 
 ### 构造函数

@@ -53,6 +53,16 @@ git config --global i18n.commitEncoding utf-8
 git config --global i18n.logoutputencoding utf-8
 ```
 
+### 大小写敏感性
+
+```
+// 查看是否忽略文件名大小写
+git config --get core.ignorecase
+
+// 设置文件名大小写敏感
+git config core.ignorecase false
+```
+
 ## 基本操作
 
 ### 同步远程代码
