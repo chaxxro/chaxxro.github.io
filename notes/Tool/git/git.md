@@ -1,6 +1,6 @@
 # Git
 
-![](../../../resources/picture/Tool/git/01.png)
+![](../../Picture/Tool/git/01.png)
 
 ## 配置
 
