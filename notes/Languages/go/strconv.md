@@ -3,6 +3,7 @@
 实现了基本数据类型和其字符串表示的相互转换
 
 ## string-int 转换
+
 ```go
 // Atoi()
 // 将字符串类型的整数转换为int类型
@@ -14,7 +15,9 @@ func Itoa(i int) string
 ```
 
 ## Parse 系列函数
+
 用于转换字符串为给定类型的值
+
 ```go
 // 1. ParseBool()
 // 返回字符串表示的bool值
@@ -38,7 +41,9 @@ func ParseFloat(s string, bitSize int) (f float64, err error)
 ```
 
 ## Format 系列函数
+
 实现了将给定类型数据格式化为string类型数据的功能
+
 ```go
 // 1. FormatBool()
 // 返回”true”或”false”
