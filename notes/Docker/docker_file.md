@@ -1,9 +1,5 @@
 # Dockerfile
 
-Docker 在运行时分为 Docker 引擎和客户端工具
-
-Docker 的引擎提供了一组 REST API，被称为 Docker Remote API，而如 docker 命令这样的客户端工具，则是通过这组 API 与 Docker 引擎交互，从而完成各种功能
-
 ## 构建镜像
 
 ```sh
