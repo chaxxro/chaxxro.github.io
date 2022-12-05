@@ -2,7 +2,7 @@
 
 文件所有者（Owner）、用户组（Group）、其它用户（Other Users）；只有文件所有者和超级用户可以修改文件或目录的权限
 
-![](../../Picture/Tool/bash/chmod/01.png)
+![](../../../Picture/OS/Linux/command/chmod/01.png)
 
 ```
 chmod abc file

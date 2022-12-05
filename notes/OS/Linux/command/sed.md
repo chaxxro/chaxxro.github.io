@@ -3,41 +3,44 @@
 `sed` 把当前处理的行存储在临时缓冲区中，接着用 `sed` 脚本处理缓冲区中的内容，处理完成后，把缓冲区的内容送往屏幕，接着处理下一行，直到文件末尾
 
 ```sh
-sed [-inr] [-e '<script>']... [-f '<script 文件>'] [文本文件]
+sed [option]... [-e '<script>']... [-f '<script 文件>'] [文本文件]
 # 选项
 # -i 直接修改原文件
-# -n 关闭默认输出，默认输出全部文本
+# -n 关闭默认输出，即不在屏幕上自动打印
 # -r 使用正则
 # -e 指定脚本，可指定多个脚本
 # -f 指定脚本文件
 
-sed '[address]s/pattern/replacement/flags' fileName
+sed '[address]op[/pattern][/replacement][/flags]' fileName
 
-# 指定地址
-# n 在第 n 行执行脚本
+# address
+# 不给地址时表示对全文进行处理
+# n 在第 n 行执行脚本，$ 表示最后一行
 # n,m 在 n~m 行执行脚本
+# n,+m 在 n~n+m 行执行脚本
 # /RE/ 匹配正则 /RE/ 的行
 # n,/RE/  n~匹配 /RE/ 的行执行脚本
 # /RE/,m  匹配 /RE/ 的行~m 执行脚本
 # /RE1/,/RE2/  匹配 /RE1/ 的行 ~ 匹配 /RE2/ 执行脚本
 
-# 脚本操作符
-# a：在当前行下面追加新的行
+# op
+# p：打印行
+# d：行删除
+# a：在当前行下面追加新的行，使用 \n 追加多行
 # i：在当前行上面插入新的行
 # c：行替换
-# d：行删除
 # s：字符替换
+# w：把行写入文件
 # q：退出
 
-# 脚本替换范围
+# flags
 # g：行内全面替换
-# p：打印行
-# w：把行写入文件
 # num：只替换行内第 num 个匹配项
 # numg：从第 num 处匹配全部
 # \1：子串匹配标记
 # &：已匹配字符串标记
 
+# 字符替换脚本
 sed 's/test/trial/2' data4.txt
 sed 's/test/trial/w test.txt' data5.txt
 sed 's/\/bin\/bash/\/bin\/csh/' /etc/passwd
