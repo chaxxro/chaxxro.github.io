@@ -30,7 +30,7 @@
 
 `recvfrom()` 用于接收 Socket 传来的数据，并复制到应用进程的缓冲区 buf 中
 
-![](../Picture/Server/iomultiplexing/01.png)
+![](../Picture/Network/io_model/01.png)
 
 解决方案：服务器端使用多线程或多进程，让每个连接都拥有独立的线程或进程，但面对成千上万的连接请求，都会严重占据系统资源，降低系统对外界响应效率，而且线程和进程更容易进入假死状态
 
@@ -42,7 +42,7 @@
 
 因为应用进程在数据没有到达之前会不停查询，使 CPU 要处理更多的系统调用，因此这种模型的 CPU 利用率比较低
 
-![](../Picture/Server/iomultiplexing/02.png)
+![](../Picture/Network/io_model/02.png)
 
 非阻塞 I/O 决不被推荐，虽然能够在等待任务完成的时间里干其他活，但轮询将推高 CPU 占用，同时任务完成的响应延迟增大了，因为任务会在轮询间隔之间的任意时间完成，降低整体数据吞吐量
 
@@ -58,7 +58,7 @@
 
 这种模型中，使用非阻塞 I/O，然后使用阻塞 select，用 select 来管理多个 I/O，当没有数据时 select 阻塞，如果在超时时间内数据到来则 select 返回，再调用 recv 进行数据的复制，recv 返回后处理数据
 
-![](../Picture/Server/iomultiplexing/03.png)
+![](../Picture/Network/io_model/03.png)
 
 当用户调用 select，整个进程会被阻塞，当 select 负责的 socket 数据准备好了 select 便会返回，整个过程和阻塞 I/O 并没有太大的不同，其实要更差一些，因为使用了两个系统调用（select 和 recvfrom），但 select 的优势在于可以同时处理多个连接
 
@@ -70,7 +70,7 @@
 
 相比于非阻塞式 I/O 的轮询方式，信号驱动 I/O 的 CPU 利用率更高
 
-![](../Picture/Server/iomultiplexing/04.png)
+![](../Picture/Network/io_model/04.png)
 
 ## 异步 I/O（非阻塞）
 
@@ -78,7 +78,7 @@
 
 异步 I/O 与信号驱动 I/O 的区别在于，异步 I/O 的信号是通知应用进程 I/O 完成，而信号驱动 I/O 的信号是通知应用进程可以开始 I/O
 
-![](../Picture/Server/iomultiplexing/05.png)
+![](../Picture/Network/io_model/05.png)
 
 ## I/O 模型比较
 
@@ -90,7 +90,7 @@
 
 非阻塞式 I/O 、信号驱动 I/O 和异步 I/O 在第一阶段不会阻塞
 
-![](../Picture/Server/iomultiplexing/06.png)
+![](../Picture/Network/io_model/06.png)
 
 ## I/O 复用
 
