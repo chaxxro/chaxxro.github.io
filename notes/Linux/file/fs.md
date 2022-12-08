@@ -1,8 +1,7 @@
 # 文件系统
 
-![](../Picture/OperatingSystem/filesystem/01.png)
-
-![](../Picture/OperatingSystem/filesystem/02.png)
+![](../../Picture/Linux/file/fs/01.png)
+![](../../Picture/Linux/file/fs/02.png)
 
 ## 文件系统
 
@@ -18,14 +17,14 @@ Linux 文件系统会为每个文件分配两个数据结构：索引节点（in
 
 目录也是文件，也是用索引节点唯一标识，和普通文件不同的是，普通文件在磁盘里面保存的是文件数据，而目录文件在磁盘里面保存子目录或文件
 
-![](../Picture/OperatingSystem/filesystem/03.png)
+![](../../Picture/Linux/file/fs/03.png)
 
 ## 硬链接和软连接
 
 硬链接是多个目录项中的索引节点指向一个文件，也就是指向同一个 inode，但是 inode 是不可能跨越文件系统的，每个文件系统都有各自的 inode 数据结构和列表，所以硬链接是不可用于跨文件系统的。由于多个目录项都是指向一个 inode，那么只有删除文件的所有硬链接以及源文件时，系统才会彻底删除该文件
 
-![](../Picture/OperatingSystem/filesystem/04.png)
+![](../../Picture/Linux/file/fs/04.png)
 
 软链接相当于重新创建一个文件，这个文件有独立的 inode，但是这个文件的内容是另外一个文件的路径，所以访问软链接的时候，实际上相当于访问到了另外一个文件，所以软链接是可以跨文件系统的，甚至目标文件被删除了，链接文件还是在的，只不过指向的文件找不到了而已
 
-![](../Picture/OperatingSystem/filesystem/05.png)
+![](../../Picture/Linux/file/fs/05.png)

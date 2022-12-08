@@ -2,7 +2,7 @@
 
 IO 结构模型分为 Direct IO、mmap 和 Buffer IO
 
-![](../Picture/OperatingSystem/diskio/01.png)
+![](../../Picture/Linux/file/io/01.png)
 
 ## 缓存 IO
 
@@ -46,7 +46,7 @@ IO 结构模型分为 Direct IO、mmap 和 Buffer IO
 
 使用 mmap 时，磁盘数据也是先读到 page cache 中，然后会将 mmap 返回的虚拟地址最终对应的页项表内容设定为和前面的 page chache 相同的物理页， 这样一来就免去了第二次的数据拷贝
 
-![](../Picture/OperatingSystem/diskio/02.png)
+![](../../Picture/Linux/file/io/02.png)
 
 内存映射服务的地址空间处在堆栈之间的空余部分
 
