@@ -124,7 +124,7 @@ git rebase master
 
 - merge 是两个分支处理冲突后，新增一个 commit 追加到 master 上
 
-- rebase 是将 someFeature 分支上的 commit 记录追加到主分支上
+- rebase 是将 someFeature 分支上的 commit 记录追加到主分支上：首先 git 会把 A 分支上所有发生在共同祖先 commit 之后的 commit 移除，暂时把他们存在别的地方；然后把 B 分支上所有新的 commit 添加到 A 分支上，此时 A 分支和 B 分支看起来是一模一样的；接着把被暂存起来的 A 分支上的 commit 会被重新添加到 A 分支上，只是这一次这些 commit 会被添加在那些来自于 B 分支的 commit 的后面
 
 merge 处理冲突更直接，rebase 能够保证清晰的 commit 记录
 
