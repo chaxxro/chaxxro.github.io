@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1find [-H | -L | -P] [-EXdsx] [-f path] path ... [expression]  find 命令中的表达式有四种类型  Tests 是最常用的指定查找文件的条件  Actions 对找到的文件可以做的操作  Global Options 全局属性用来限制一些查找的条件，比如常见的目录层次深度的限制  Positional Options 位置属性用来指定">
+<meta property="og:type" content="article">
+<meta property="og:title" content="find">
+<meta property="og:url" content="https://chaxxro.github.io/2023/03/17/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%87%AA%E6%9F%A5-find/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="1find [-H | -L | -P] [-EXdsx] [-f path] path ... [expression]  find 命令中的表达式有四种类型  Tests 是最常用的指定查找文件的条件  Actions 对找到的文件可以做的操作  Global Options 全局属性用来限制一些查找的条件，比如常见的目录层次深度的限制  Positional Options 位置属性用来指定">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-03-17T12:44:37.000Z">
+<meta property="article:modified_time" content="2023-03-27T13:24:42.012Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="命令行工具">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/03/17/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%87%AA%E6%9F%A5-find/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/03/17/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%87%AA%E6%9F%A5-find/","path":"2023/03/17/Linux命令行自查-find/","title":"find"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>find | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#TESTS"><span class="nav-text">TESTS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B9%E6%8D%AE%E6%97%B6%E9%97%B4%E6%9F%A5%E6%89%BE"><span class="nav-text">根据时间查找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B9%E6%8D%AE%E7%94%A8%E6%88%B7%E6%9F%A5%E6%89%BE"><span class="nav-text">根据用户查找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B9%E6%8D%AE%E6%9D%83%E9%99%90%E6%9F%A5%E6%89%BE"><span class="nav-text">根据权限查找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B9%E6%8D%AE%E8%B7%AF%E5%BE%84%E6%9F%A5%E6%89%BE"><span class="nav-text">根据路径查找</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%8A%B6%E6%80%81%E6%9F%A5%E6%89%BE"><span class="nav-text">其他状态查找</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ACTIONS"><span class="nav-text">ACTIONS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E8%BF%90%E7%AE%97%E7%AC%A6"><span class="nav-text">逻辑运算符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-text">例子</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/03/17/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%87%AA%E6%9F%A5-find/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="find | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          find
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-03-17 20:44:37" itemprop="dateCreated datePublished" datetime="2023-03-17T20:44:37+08:00">2023-03-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-03-27 21:24:42" itemprop="dateModified" datetime="2023-03-27T21:24:42+08:00">2023-03-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux/" itemprop="url" rel="index"><span itemprop="name">Linux</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find [-H | -L | -P] [-EXdsx] [-f path] path ... [expression]</span><br></pre></td></tr></table></figure>
+
+<p><code>find</code> 命令中的表达式有四种类型</p>
+<ul>
+<li><p>Tests 是最常用的指定查找文件的条件</p>
+</li>
+<li><p>Actions 对找到的文件可以做的操作</p>
+</li>
+<li><p>Global Options 全局属性用来限制一些查找的条件，比如常见的目录层次深度的限制</p>
+</li>
+<li><p>Positional Options 位置属性用来指定一些查找的位置条件</p>
+</li>
+</ul>
+<h2 id="TESTS"><a href="#TESTS" class="headerlink" title="TESTS"></a>TESTS</h2><p><code>find</code> 命令是通过文件属性查找文件的，比如文件的各种时间，文件权限等</p>
+<p>很多参数中会出现指定一个数字 n，一般会出现三种写法</p>
+<ul>
+<li><p><code>+n</code> 表示大于 [n + 1, …)</p>
+</li>
+<li><p><code>-n</code> 表示[0, n)</p>
+</li>
+<li><p><code>n</code> 表示[n, n + 1)</p>
+</li>
+</ul>
+<h3 id="根据时间查找"><a href="#根据时间查找" class="headerlink" title="根据时间查找"></a>根据时间查找</h3><p><code>-mtime</code> 以天为单位通过 modify time 查找文件</p>
+<p><code>-ctime</code> 以天为单位通过 change time 查找文件</p>
+<p><code>-atime</code> 以天为单位通过 access time 查找文件</p>
+<p><code>-mmin</code> 以分钟为单位通过 modify time 查找文件</p>
+<p><code>-cmin</code> 以分钟单位通过 change time 查找文件</p>
+<p><code>-amin</code> 以分钟为单位通过 access time 查找文件</p>
+<p><code>-anewer file</code> 比较文件的 access time</p>
+<p><code>-cnewer file</code> 比较文件的 change time</p>
+<p><code>-newer file</code> 比较文件的 modify time</p>
+<p><code>-newerXY file</code> 其中 Y 表示的是跟后面 file 的什么时间比较，而 X 表示使用查找文件什么时间进行比较</p>
+<h3 id="根据用户查找"><a href="#根据用户查找" class="headerlink" title="根据用户查找"></a>根据用户查找</h3><p><code>-uid n</code> 文件的所属用户 uid 为 n</p>
+<p><code>-user name</code> 文件的所属用户为 name</p>
+<p><code>-gid n</code> 文件的所属组 gid 为 n</p>
+<p><code>-group name</code> 所属组为 name 的文件</p>
+<p><code>-nogroup</code> 没有所属组的文件</p>
+<p><code>-nouser</code> 没有所属用户的文件</p>
+<h3 id="根据权限查找"><a href="#根据权限查找" class="headerlink" title="根据权限查找"></a>根据权限查找</h3><p><code>-executable</code> 文件可执行</p>
+<p><code>-readable</code> 文件可读</p>
+<p><code>-writable</code> 文件可写</p>
+<p><code>-perm mode</code> 查找权限为 mode 的文件，mode 的写法可以是数字，也可以是 <code>ugo=rwx</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">find /etc/ -perm 644 -<span class="built_in">ls</span></span><br><span class="line"><span class="comment"># 等同于</span></span><br><span class="line">find /etc/ -perm u=rw,g=r,o=r -<span class="built_in">ls</span></span><br></pre></td></tr></table></figure>
+
+<p>mode 指定的是完全符合这个权限的文件，没描述的权限就相当于指定了没有这个权限</p>
+<p>mode 还可以使用 <code>/</code> 或 <code>-</code> 作为前缀进行描述，表示没指定的权限是忽略的</p>
+<h3 id="根据路径查找"><a href="#根据路径查找" class="headerlink" title="根据路径查找"></a>根据路径查找</h3><p><code>-name pattern</code> 文件名为 pattern 指定字符串的文件，注意如果 pattern 中包括 * 等特殊符号的时候，需要加 <code>”“</code></p>
+<p><code>-iname</code> 忽略大小写</p>
+<p><code>-lname pattern</code> 查找符号连接文件名为 pattern 的文件</p>
+<p><code>-ilname</code> 忽略大小写的符号连接</p>
+<p><code>-path pattern</code> 根据完整路径查找文件名为 pattern 的文件</p>
+<p><code>-ipath</code> path 忽略大小写</p>
+<p><code>-regex pattern</code> 用正则表达式匹配包括路径的完整文件名，<code>find . -regex &quot;.*/[0-9]*/.c&quot;</code></p>
+<p><code>-iregex</code> regex 忽略大小写</p>
+<h3 id="其他状态查找"><a href="#其他状态查找" class="headerlink" title="其他状态查找"></a>其他状态查找</h3><p><code>-empty</code> 文件为空而且是一个普通文件或者目录</p>
+<p><code>-size n[cwbkMG]</code> 指定文件长度查找文件，c 字节为单位；b 块为单位，块大小为 512 字节，这个是默认单位；w 表示两个字节；k 以1024字节为单位；M 以 1048576 字节为单位；G 以 1073741824 字节为单位</p>
+<p><code>-type c</code> 以文件类型查找文件，c 可以选择的类型为：b 块设备；c 字符设备；d 目录；p 命名管道；f 普通文件；l 符号连接；s socket</p>
+<h2 id="ACTIONS"><a href="#ACTIONS" class="headerlink" title="ACTIONS"></a>ACTIONS</h2><p>actions 类型参数主要是用来对找到的文件进行操作的参数</p>
+<p><code>-ls</code> 对找到的文件进行长格式显示</p>
+<p><code>-fls file</code> 将信息写入指定的文件，而不是显示在屏幕上</p>
+<p><code>-print</code> 将找到的文件显示在屏幕上，实际上默认 <code>find</code> 命令就会将文件打印出来显示</p>
+<p><code>-delete</code> 可以将找到的文件直接删除</p>
+<h2 id="逻辑运算符"><a href="#逻辑运算符" class="headerlink" title="逻辑运算符"></a>逻辑运算符</h2><p><code>-a</code> 逻辑与</p>
+<p><code>-o</code> 逻辑或</p>
+<p><code>-not</code> 和 <code>!</code> 逻辑非，这里 <code>!</code> 需要使用转义 <code>\!</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">find . -size +2k -a -<span class="built_in">type</span> f</span><br><span class="line">find . -name cangls -o -name bols</span><br></pre></td></tr></table></figure>
+
+<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Print out a list of all the files whose names do not end in .c.</span></span><br><span class="line">find / \! -name <span class="string">&quot;*.c&quot;</span> -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Print out a list of all the files owned by user &quot;wnj&quot; that are</span></span><br><span class="line"><span class="comment"># newer than the file ttt.</span></span><br><span class="line">find / -newer ttt -user wnj -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Print out a list of all the files which are not both newer than ttt</span></span><br><span class="line"><span class="comment"># and owned by &quot;wnj&quot;.</span></span><br><span class="line">find / \! \( -newer ttt -user wnj \) -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Print out a list of all the files that are either owned by &quot;wnj&quot; or</span></span><br><span class="line"><span class="comment"># that are newer than ttt.</span></span><br><span class="line">find / \( -newer ttt -or -user wnj \) -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Print out a list of all the files whose inode change time is more</span></span><br><span class="line"><span class="comment"># recent than the current time minus one minute.</span></span><br><span class="line">find / -newerct <span class="string">&#x27;1 minute ago&#x27;</span> -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Use the echo command to print out a list of all the files.</span></span><br><span class="line">find / -<span class="built_in">type</span> f -<span class="built_in">exec</span> <span class="built_in">echo</span> &#123;&#125; \;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete all broken symbolic links in /usr/ports/packages.</span></span><br><span class="line">find -L /usr/ports/packages -<span class="built_in">type</span> l -<span class="built_in">exec</span> <span class="built_in">rm</span> -- &#123;&#125; +</span><br><span class="line"></span><br><span class="line"><span class="comment"># Find files and directories that are at least seven levels deep in</span></span><br><span class="line"><span class="comment"># the working directory /usr/src.</span></span><br><span class="line">find /usr/src -name CVS -prune -o -depth +6 -<span class="built_in">print</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Is not equivalent to the previous example, since -prune is not</span></span><br><span class="line"><span class="comment"># evaluated below level seven.</span></span><br><span class="line">find /usr/src -name CVS -prune -o -mindepth 7 -<span class="built_in">print</span></span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/" rel="tag"># 命令行工具</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/03/15/cpp-%E8%BF%94%E5%9B%9E%E5%80%BC%E4%BC%98%E5%8C%96/" rel="prev" title="返回值优化">
+                  <i class="fa fa-chevron-left"></i> 返回值优化
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/03/17/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%87%AA%E6%9F%A5-grep/" rel="next" title="grep">
+                  grep <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
