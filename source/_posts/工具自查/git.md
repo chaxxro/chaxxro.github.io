@@ -6,7 +6,7 @@ toc:
 title: git
 date: 2023-04-01 15:29:22
 tags: git
-categories: git
+categories: 工具自查
 ---
 
 {% asset_img 01.png %}

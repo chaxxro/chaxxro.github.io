@@ -6,7 +6,7 @@ toc:
 title: ifconfig
 date: 2023-03-20 15:21:07
 tags: 命令行工具
-categories: Linux
+categories: Linux 命令行
 ---
 
 `ifconfig` 用于查看和设置网络信息

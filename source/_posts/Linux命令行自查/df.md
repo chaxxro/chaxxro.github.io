@@ -6,7 +6,7 @@ toc:
 title: df
 date: 2023-03-22 22:29:57
 tags: 命令行工具
-categories: Linux
+categories: Linux 命令行
 ---
 
 display free disk space，显示目前系统上的文件系统磁盘使用情况统计

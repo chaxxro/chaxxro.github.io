@@ -6,7 +6,7 @@ toc:
 title: grep
 date: 2023-03-17 21:11:47
 tags: 命令行工具
-categories: Linux
+categories: Linux 命令行
 ---
 
 ```sh

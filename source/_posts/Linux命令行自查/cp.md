@@ -6,7 +6,7 @@ toc:
 title: cp
 date: 2023-03-22 11:42:17
 tags: 命令行工具
-categories: Linux
+categories: Linux 命令行
 ---
 
 ```sh

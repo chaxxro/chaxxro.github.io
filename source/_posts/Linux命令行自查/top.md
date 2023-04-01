@@ -6,7 +6,7 @@ toc:
 title: top
 date: 2023-03-21 10:08:42
 tags: 命令行工具
-categories: Linux
+categories: Linux 命令行
 ---
 
 `top` 能够实时显示系统中各个进程的资源占用状况

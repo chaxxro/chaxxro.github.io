@@ -6,7 +6,7 @@ toc:
 title: find
 date: 2023-03-17 20:44:37
 tags: 命令行工具
-categories: Linux
+categories: Linux 命令行
 ---
 
 ```sh
