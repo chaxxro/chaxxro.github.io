@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="概述并查集既是一种数据结构，也是一种算法，支持查找和合并两种操作，不支持分割一个集合 用集合的某个元素来来代表这个集合，这个元素称为集合的代表元，集合内的所有元素组织成以代表元为根的树状结构   对于每个元素都有指针指向其父节点，代表元的父节点是自己 查找操作查找元素所在集合的代表元，在树状结构中向上移动，直到到达根节点 路径压缩每次查找的时候，将查找 x 到代表元路径上的所有点父节点设为根节点，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="并查集">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="概述并查集既是一种数据结构，也是一种算法，支持查找和合并两种操作，不支持分割一个集合 用集合的某个元素来来代表这个集合，这个元素称为集合的代表元，集合内的所有元素组织成以代表元为根的树状结构   对于每个元素都有指针指向其父节点，代表元的父节点是自己 查找操作查找元素所在集合的代表元，在树状结构中向上移动，直到到达根节点 路径压缩每次查找的时候，将查找 x 到代表元路径上的所有点父节点设为根节点，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/02.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/03.png">
+<meta property="article:published_time" content="2023-04-02T08:43:13.000Z">
+<meta property="article:modified_time" content="2023-04-02T09:12:04.145Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="数据结构">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/","path":"2023/04/02/数据结构-并查集/","title":"并查集"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>并查集 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E6%89%BE%E6%93%8D%E4%BD%9C"><span class="nav-text">查找操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%AF%E5%BE%84%E5%8E%8B%E7%BC%A9"><span class="nav-text">路径压缩</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%88%E5%B9%B6%E6%93%8D%E4%BD%9C"><span class="nav-text">合并操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E9%80%94"><span class="nav-text">用途</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">114</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="并查集 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          并查集
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-02 16:43:13 / 修改时间：17:12:04" itemprop="dateCreated datePublished" datetime="2023-04-02T16:43:13+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>并查集既是一种数据结构，也是一种算法，支持查找和合并两种操作，不支持分割一个集合</p>
+<p>用集合的某个元素来来代表这个集合，这个元素称为集合的代表元，集合内的所有元素组织成以代表元为根的树状结构</p>
+<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/01.png" class="">
+
+<p>对于每个元素都有指针指向其父节点，代表元的父节点是自己</p>
+<h2 id="查找操作"><a href="#查找操作" class="headerlink" title="查找操作"></a>查找操作</h2><p>查找元素所在集合的代表元，在树状结构中向上移动，直到到达根节点</p>
+<h3 id="路径压缩"><a href="#路径压缩" class="headerlink" title="路径压缩"></a>路径压缩</h3><p>每次查找的时候，将查找 x 到代表元路径上的所有点父节点设为根节点，使得查找操作平均时间复杂度为 O(1)</p>
+<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/02.png" class="">
+
+<h2 id="合并操作"><a href="#合并操作" class="headerlink" title="合并操作"></a>合并操作</h2><p>把 x 和 y 所在集合合并，其中将秩低的集合合并至秩高的集合，即总是将较矮的树合并至较高的树</p>
+<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/03.png" class="">
+
+<h2 id="用途"><a href="#用途" class="headerlink" title="用途"></a>用途</h2><ul>
+<li>维护无向图的连通性，判断两个点是否在同一连通块内，和判断增加一条边是否产生环</li>
+<li>计算有多少个不相交的集合</li>
+</ul>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">UnionFind</span> &#123;</span><br><span class="line"><span class="keyword">private</span> :</span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; parent;  <span class="comment">// 父节点</span></span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; rank;  <span class="comment">// 秩</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">UnionFind</span>(<span class="type">int</span> n) &#123;</span><br><span class="line">        parent = <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n + <span class="number">1</span>);</span><br><span class="line">        rank = <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n + <span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>; i &lt; parent.<span class="built_in">size</span>(); ++i) &#123;</span><br><span class="line">            parent[i] = i;  <span class="comment">// 初始化时每个结点的父节点都是自己</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">Find</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(x != parent[x]) &#123;</span><br><span class="line">            parent[x] = <span class="built_in">Find</span>(parent[x]);  <span class="comment">// 压缩路径</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> parent[x]; </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">Union</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> px = <span class="built_in">Find</span>(x), py = <span class="built_in">Find</span>(y);</span><br><span class="line">        <span class="keyword">if</span>(px == py) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">if</span>(rank[px] &gt; rank[py]) parent[py] = px;</span><br><span class="line">        <span class="keyword">if</span>(rank[px] &lt; rank[py]) parent[px] = py;</span><br><span class="line">        <span class="keyword">if</span>(rank[px] == rank[py]) &#123;</span><br><span class="line">            parent[py] = px;</span><br><span class="line">            rank[px]++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag"># 数据结构</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%AD%97%E5%85%B8%E6%95%B0/" rel="prev" title="字典树">
+                  <i class="fa fa-chevron-left"></i> 字典树
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/" rel="next" title="字符串匹配">
+                  字符串匹配 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

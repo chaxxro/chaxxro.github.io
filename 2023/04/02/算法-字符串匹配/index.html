@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="在字符串 A 中查找字符串 B，那 A 为主串，长度记为 n，B 为模式串，长度记为 m，n &gt; m BF 算法暴力匹配算法（Brute Force） BF 算法即在主串中，检查起始位置分别是 0、1、2…n-m 且长度为 m 的 n-m+1 个子串，看有没有跟模式串匹配的   BF 的最坏情况时间复杂度是 O(n*m)，但却是实际中运用比较常见的字符串匹配算法，原因：  实际开发中，模式串">
+<meta property="og:type" content="article">
+<meta property="og:title" content="字符串匹配">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="在字符串 A 中查找字符串 B，那 A 为主串，长度记为 n，B 为模式串，长度记为 m，n &gt; m BF 算法暴力匹配算法（Brute Force） BF 算法即在主串中，检查起始位置分别是 0、1、2…n-m 且长度为 m 的 n-m+1 个子串，看有没有跟模式串匹配的   BF 的最坏情况时间复杂度是 O(n*m)，但却是实际中运用比较常见的字符串匹配算法，原因：  实际开发中，模式串">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/01.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/02.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/03.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/04.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/05.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/06.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/07.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/08.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/09.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/10.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/11.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/12.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/13.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/14.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/15.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/16.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/17.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/18.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/19.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/20.jpg">
+<meta property="article:published_time" content="2023-04-02T09:06:16.000Z">
+<meta property="article:modified_time" content="2023-04-02T09:12:04.165Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="algorithm">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/01.jpg">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/","path":"2023/04/02/算法-字符串匹配/","title":"字符串匹配"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>字符串匹配 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#BF-%E7%AE%97%E6%B3%95"><span class="nav-text">BF 算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RK-%E7%AE%97%E6%B3%95"><span class="nav-text">RK 算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BM-%E7%AE%97%E6%B3%95"><span class="nav-text">BM 算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9D%8F%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%A7%84%E5%88%99"><span class="nav-text">坏字符串规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A5%BD%E5%90%8E%E7%BC%80%E8%A7%84%E5%88%99"><span class="nav-text">好后缀规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%84%E5%88%99%E9%80%89%E6%8B%A9"><span class="nav-text">规则选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-text">实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#KMP"><span class="nav-text">KMP</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">114</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="字符串匹配 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          字符串匹配
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-02 17:06:16 / 修改时间：17:12:04" itemprop="dateCreated datePublished" datetime="2023-04-02T17:06:16+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/algorithm/" itemprop="url" rel="index"><span itemprop="name">algorithm</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>在字符串 A 中查找字符串 B，那 A 为主串，长度记为 n，B 为模式串，长度记为 m，n &gt; m</p>
+<h2 id="BF-算法"><a href="#BF-算法" class="headerlink" title="BF 算法"></a>BF 算法</h2><p>暴力匹配算法（Brute Force）</p>
+<p>BF 算法即在主串中，检查起始位置分别是 0、1、2…n-m 且长度为 m 的 n-m+1 个子串，看有没有跟模式串匹配的</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/01.jpg" class="">
+
+<p>BF 的最坏情况时间复杂度是 O(n*m)，但却是实际中运用比较常见的字符串匹配算法，原因：</p>
+<ul>
+<li>实际开发中，模式串和主串的长度都不会太长，而且每次模式串与主串匹配的时候，当中途遇到不能匹配的字符时就停止了</li>
+<li>代码实现简单，不容易出错</li>
+</ul>
+<h2 id="RK-算法"><a href="#RK-算法" class="headerlink" title="RK 算法"></a>RK 算法</h2><p>对 BF 稍加改进，引入哈希算法，时间复杂度就会降低</p>
+<p>RK 算法的思路：通过哈希算法对主串中的 n-m+1 个子串分别求哈希值，然后逐个与模式串的哈希值比较大小。如果某个子串的哈希值与模式串相等，那就说明对应的子串和模式串匹配了（先不考虑哈希冲突的问题）。因为哈希值是一个数字，数字之间比较是否相等是非常快速的，所以模式串和子串比较的效率就提高了</p>
+<p>通过设计哈希算法来提高计算子串哈希值的效率，比如假设要处理的字符串只包含 26 个小写字母，那就可以只用 26 进制表示一个字符串。为了保证将哈希值落在整形数据范围内，可以牺牲一下允许哈希冲突</p>
+<p>当发生哈希冲突，有可能子串和模式串的哈希值相同但本身并不匹配，所以在哈希值相同时再去对比一下子串和模式串本身即可</p>
+<p>RK 算法整体的时间复杂度就是 O(n)，但如果存在大量哈希冲突，将导致时间复杂度退化成 O(n*m)</p>
+<h2 id="BM-算法"><a href="#BM-算法" class="headerlink" title="BM 算法"></a>BM 算法</h2><p>BM 算法包含两部分，分别是坏字符规则和好后缀规则</p>
+<h3 id="坏字符串规则"><a href="#坏字符串规则" class="headerlink" title="坏字符串规则"></a>坏字符串规则</h3><p>BM 算法中的匹配顺序是按照模式串下标从大到小的顺序倒着匹配的，即我们从模式串的末尾往前倒着匹配</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/02.jpg" class="">
+
+<p>当我们发现某个字符没法匹配的时候。我们把这个没有匹配的字符叫作坏字符（主串中的字符）</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/03.jpg" class="">
+
+<p>拿坏字符 c 在模式串中查找，发现模式串中并不存在这个字符，也就是说，字符 c 与模式串中的任何字符都不可能匹配</p>
+<p>这个时候，我们可以将模式串直接往后滑动三位，将模式串滑动到 c 后面的位置，再从模式串的末尾字符开始比较</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/04.jpg" class="">
+
+<p>模式串中最后一个字符 d，还是无法跟主串中的 a 匹配，坏字符 a 在模式串中是存在的，模式串中下标是 0 的位置也是字符 a，可以将模式串往后滑动两位，让两个 a 上下对齐，然后再从模式串的末尾字符开始，重新匹配</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/05.jpg" class="">
+
+<p>当发生不匹配的时候，我们把坏字符对应的模式串中的字符下标记作 si。如果坏字符在模式串中存在，我们把这个坏字符在模式串中的下标记作 xi。如果不存在，我们把 xi 记作 -1。那模式串往后移动的位数就等于 si-xi（下标都是字符在模式串的下标）</p>
+<p>如果坏字符在模式串里多处出现，那我们在计算 xi 的时候，选择最靠后的那个，因为这样不会让模式串滑动过多，导致本来可能匹配的情况被滑动略过</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/06.jpg" class="">
+
+<h3 id="好后缀规则"><a href="#好后缀规则" class="headerlink" title="好后缀规则"></a>好后缀规则</h3><p>当模式串滑动到图中的位置的时候，模式串和主串有 2 个字符是匹配的，倒数第 3 个字符发生了不匹配的情况</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/07.jpg" class="">
+
+<p>把已经匹配的 bc 叫作好后缀，记作 {u}，并拿它在模式串中查找，如果找到了另一个跟 {u} 相匹配的子串 {u*}，那我们就将模式串滑动到子串 {u*} 与主串中 {u} 对齐的位置</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/08.jpg" class="">
+
+<p>如果在模式串中找不到另一个等于 {u} 的子串，我们就直接将模式串，滑动到主串中 {u} 的后面，因为之前的任何一次往后滑动，都没有匹配主串中 {u} 的情况</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/09.jpg" class="">
+
+<p>但这种滑动太过上头，所以不仅要看好后缀在模式串中，是否有另一个匹配的子串，还要考察好后缀的后缀子串，是否存在跟模式串的前缀子串匹配的</p>
+<p>某个字符串 s 的后缀子串，就是最后一个字符跟 s 对齐的子串，比如 abc 的后缀子串就包括 c, bc</p>
+<p>前缀子串，就是起始字符跟 s 对齐的子串，比如 abc 的前缀子串有 a，ab</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/10.jpg" class="">
+
+<p>从好后缀的后缀子串中，找一个最长的并且能跟模式串的前缀子串匹配的</p>
+<h3 id="规则选择"><a href="#规则选择" class="headerlink" title="规则选择"></a>规则选择</h3><p>分别计算好后缀和坏字符往后滑动的位数，然后取两个数中最大的，作为模式串往后滑动的位数</p>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><h4 id="坏字符规则"><a href="#坏字符规则" class="headerlink" title="坏字符规则"></a>坏字符规则</h4><p>如果拿坏字符在模式串中顺序遍历查找，效率比较低</p>
+<p>引入哈希表，将模式串中的每个字符及其下标存进哈希表，这样可以快速找到坏字符在模式串的位置下标</p>
+<p>如果字符串的字符集不是很大，每个字符长度是 1 字节，则可以用大小为 256 的数组来记录每个字符在模式串中出现的位置，数组下标对应字符的 ASCII</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/11.jpg" class="">
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> SIZE = <span class="number">256</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">GenerateHashTable</span><span class="params">(<span class="type">const</span> string &amp; str, <span class="type">int</span> * bc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 初始化</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; SIZE; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        bc[i] = <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 建立</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; str.<span class="built_in">size</span>(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        bc[(<span class="type">int</span>)str[i]] = str[i];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">bm</span><span class="params">(string haystack, string needle)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> * bc = <span class="keyword">new</span> <span class="type">int</span> [SIZE];</span><br><span class="line">    <span class="built_in">GenerateHashTable</span>(needle, bc);</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (i &lt;= n - m)</span><br><span class="line">    &#123;    </span><br><span class="line">        <span class="type">int</span> j; </span><br><span class="line">        <span class="keyword">for</span> (j = m - <span class="number">1</span>; j &gt;= <span class="number">0</span>; --j)  <span class="comment">// 模式串从后往前匹配</span></span><br><span class="line">        &#123;       </span><br><span class="line">            <span class="keyword">if</span> (a[i+j] != b[j])</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">break</span>;  <span class="comment">// 坏字符对应模式串中的下标是j</span></span><br><span class="line">            &#125;    </span><br><span class="line">        &#125;    </span><br><span class="line">        <span class="keyword">if</span> (j &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> i; <span class="comment">// 匹配成功，返回主串与模式串第一个匹配的字符的位置    </span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 这里等同于将模式串往后滑动j-bc[(int)a[i+j]]位    </span></span><br><span class="line">        i = i + (j - bc[(<span class="type">int</span>)a[i+j]]);   <span class="comment">// 没有考虑到为负的情况</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="好后缀规则-1"><a href="#好后缀规则-1" class="headerlink" title="好后缀规则"></a>好后缀规则</h4><ul>
+<li>在模式串中，查找跟好后缀匹配的另一个子串</li>
+</ul>
+<p>因为好后缀也是模式串本身的后缀子串，所以可以在模式串和主串正式匹配之前，通过预处理模式串，预先计算好模式串的每个后缀子串，对应的另一个可匹配子串的位置</p>
+<p>通过长度可以确定一个唯一的后缀子串</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/12.jpg" class="">
+
+<p>引入关键的变量 suffix 数组，suffix 数组的下表 k 表示后缀子串的长度，下标对应的数组值存储的是，在模式串中跟好后缀 {u} 相匹配的子串 {u*} 的起始下标值</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/13.jpg" class="">
+
+<ul>
+<li>在好后缀的后缀子串中，查找最长的、能跟模式串前缀子串匹配的后缀子串</li>
+</ul>
+<p>suffix 只能处理在模式串中查找跟好后缀匹配的另一个子串，所以需要布尔类型数组 prefix，来记录模式串的后缀子串是否能匹配模式串中的前缀子串</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/14.jpg" class="">
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">GenerateGS</span><span class="params">(<span class="type">const</span> string &amp; str, <span class="type">int</span> * suffix, <span class="type">bool</span> * prefix)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 初始化</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; str.<span class="built_in">size</span>(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        suffix[i] = <span class="number">-1</span>;</span><br><span class="line">        prefix[i] = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 建立</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; str.<span class="built_in">size</span>() - <span class="number">1</span>; ++i)  <span class="comment">// str[0, i]</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">int</span> j = i;</span><br><span class="line">        <span class="type">int</span> k = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(j &gt;= <span class="number">0</span> &amp;&amp; str[j] == str[m- <span class="number">1</span> - k])</span><br><span class="line">        &#123;</span><br><span class="line">            suffix[k] == j;</span><br><span class="line">            --j;</span><br><span class="line">            ++k;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(j == <span class="number">-1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            prefix[k] = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>假设好后缀的长度是 k，<code>suffix[k] != -1</code>，则后移 j - suffix[k] + 1 位（j 为坏字符在模式串中的下标）</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/15.jpg" class="">
+
+<p>如果 <code>suffix[k] == -1</code>，表示模式串中不存在另一个跟好后缀匹配的子串片段，好后缀的后缀子串 b[r, m-1]（其中，r 取值从 j+2 到 m-1）的长度 k&#x3D;m-r，如果 prefix[k] 等于 true，表示长度为 k 的后缀子串，有可匹配的前缀子串，这样我们可以把模式串后移 r 位</p>
+<p>如果两条规则都没有找到可以匹配好后缀及其后缀子串的子串，我们就将整个模式串后移 m 位</p>
+<h2 id="KMP"><a href="#KMP" class="headerlink" title="KMP"></a>KMP</h2><p>KMP 核心思想跟 BM 思想非常接近，在模式串与主串匹配的过程中，当遇到不可匹配的字符的时候，我们希望找到一些规律，可以将模式串往后多滑动几位，跳过那些肯定不会匹配的情况</p>
+<p>在模式串和主串匹配的过程中，把不能匹配的那个字符仍然叫作坏字符，把已经匹配的那段字符串叫作好前缀</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/16.jpg" class="">
+
+<p>当遇到坏字符的时候，我们就要把模式串往后滑动，在滑动的过程中，只要模式串和好前缀有上下重合，前面几个字符的比较，就相当于拿好前缀的后缀子串，跟模式串的前缀子串在比较</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/17.jpg" class="">
+
+<p>只需要拿好前缀本身，在它的后缀子串中，查找最长的那个可以跟好前缀的前缀子串匹配的。假设最长的可匹配的那部分前缀子串是{v}，长度是 k。我们把模式串一次性往后滑动 j-k 位，相当于，每次遇到坏字符的时候，我们就把 j 更新为 k，i 不变，然后继续比较</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/18.jpg" class="">
+
+<p>把好前缀的所有后缀子串中，最长的可匹配前缀子串的那个后缀子串，叫作最长可匹配后缀子串；对应的前缀子串，叫作最长可匹配前缀子串</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/19.jpg" class="">
+
+<p>求好前缀的最长可匹配前缀和后缀子串，不涉及主串，只需要通过模式串本身就能求解，先预处理计算好，在模式串和主串匹配的过程中，直接拿过来就用</p>
+<p>KMP 算法可以提前构建一个数组，用来存储模式串中每个前缀（这些前缀都有可能是好前缀）的最长可匹配前缀子串的结尾字符下标，把这个数组定义为 next 数组叫失效函数</p>
+<p>数组的下标是每个前缀结尾字符下标，数组的值是这个前缀的最长可以匹配前缀子串的结尾字符下标</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/20.jpg" class="">
+
+<p>我们按照下标从小到大，依次计算 next 数组的值；当我们要计算 next[i] 的时候，前面的 next[0]，next[1]，……，next[i-1] 应该已经计算出来了，利用已经计算出来的 next 值，可以快速推导出 next[i] 的值</p>
+<p>假设 b[0, i] 的最长可匹配后缀子串是 b[r, i]，如果把最后一个字符去掉，那 b[r, i-1] 肯定是 b[0, i-1] 的可匹配后缀子串，但不一定是最长可匹配后缀子串</p>
+<p>既然 b[0, i-1] 最长可匹配后缀子串对应的模式串的前缀子串的下一个字符并不等于 b[i]，那么就可以考察 b[0, i-1] 的次长可匹配后缀子串 b[x, i-1] 对应的可匹配前缀子串 b[0, i-1-x] 的下一个字符 b[i-x] 是否等于 b[i]，如果等于，那 b[x, i] 就是 b[0, i] 的最长可匹配后缀子串</p>
+<p>次长可匹配后缀子串肯定被包含在最长可匹配后缀子串中，而最长可匹配后缀子串又对应最长可匹配前缀子串 b[0, y]；查找 b[0, i-1] 的次长可匹配后缀子串就是查找 b[0, y] 的最长匹配后缀子串的问题</p>
+<p>按照这个思路，我们可以考察完所有的 b[0, i-1] 的可匹配后缀子串 b[y, i-1]，直到找到一个可匹配的后缀子串，它对应的前缀子串的下一个字符等于 b[i]，那这个 b[y, i] 就是 b[0, i] 的最长可匹配后缀子串</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">GenerteNext</span><span class="params">(string &amp; needle, <span class="type">int</span> * next)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    next[<span class="number">0</span>] = <span class="number">-1</span>;</span><br><span class="line">    <span class="type">int</span> k = <span class="number">-1</span>;  <span class="comment">// 记录上一个的 next</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>; i &lt; needle.<span class="built_in">size</span>(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">while</span> (k != <span class="number">-1</span> &amp;&amp; needle[k + <span class="number">1</span>] != b[i]) </span><br><span class="line">        &#123;</span><br><span class="line">            k = next[k]; </span><br><span class="line">        &#125; </span><br><span class="line">        <span class="keyword">if</span> (needle[k + <span class="number">1</span>] == needle[i])</span><br><span class="line">        &#123; </span><br><span class="line">            ++k;</span><br><span class="line">        &#125; </span><br><span class="line">        next[i] = k;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">KMP</span><span class="params">(string &amp; haystack, string &amp; needle)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> * next = <span class="keyword">new</span> <span class="type">int</span>[needle.<span class="built_in">size</span>()];</span><br><span class="line">    <span class="built_in">GenerteNext</span>(needle, next);</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> j = <span class="number">0</span>;  <span class="comment">// needle 字符串的下标</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; haystack.<span class="built_in">size</span>() - needle.<span class="built_in">size</span>() + <span class="number">1</span>; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 滑动</span></span><br><span class="line">        <span class="keyword">while</span> (j &gt; <span class="number">0</span> &amp;&amp; haystack[i] != needle[j])</span><br><span class="line">        &#123;</span><br><span class="line">             <span class="comment">// 一直找到a[i]和b[j] </span></span><br><span class="line">             j = next[j - <span class="number">1</span>] + <span class="number">1</span>; </span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(haystack[i] == needle[j])</span><br><span class="line">        &#123;</span><br><span class="line">            ++j;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(j == needle.<span class="built_in">size</span>())</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> i - j + <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>空间复杂度是 O(m)，m 表示模式串的长度</p>
+<p>计算 next 数组的时间复杂度是 O(m)，查询部分时间复杂度是 O(n)，n 表示主串长度</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/algorithm/" rel="tag"># algorithm</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/" rel="prev" title="并查集">
+                  <i class="fa fa-chevron-left"></i> 并查集
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
