@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="按照创建与使用方式的不同，Spark 提供了两类共享变量，分别是广播变量和累加器 广播变量通过调用 SparkContext 下的 broadcast API 即可完成广播变量的创建 12345val list: List[String] &#x3D; List(&quot;Apache&quot;, &quot;Spark&quot;)val bc &#x3D; sc.broadcast(list)&#x2F;&#x2F; 读取广播变">
+<meta property="og:type" content="article">
+<meta property="og:title" content="共享变量">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/02/Spark-%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="按照创建与使用方式的不同，Spark 提供了两类共享变量，分别是广播变量和累加器 广播变量通过调用 SparkContext 下的 broadcast API 即可完成广播变量的创建 12345val list: List[String] &#x3D; List(&quot;Apache&quot;, &quot;Spark&quot;)val bc &#x3D; sc.broadcast(list)&#x2F;&#x2F; 读取广播变">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-02T07:31:01.000Z">
+<meta property="article:modified_time" content="2023-04-02T07:36:26.705Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="Spark">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/02/Spark-%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/02/Spark-%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F/","path":"2023/04/02/Spark-共享变量/","title":"共享变量"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>共享变量 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F"><span class="nav-text">广播变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B4%AF%E5%8A%A0%E5%99%A8"><span class="nav-text">累加器</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">97</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="共享变量 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          共享变量
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-02 15:31:01 / 修改时间：15:36:26" itemprop="dateCreated datePublished" datetime="2023-04-02T15:31:01+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>按照创建与使用方式的不同，Spark 提供了两类共享变量，分别是广播变量和累加器</p>
+<h2 id="广播变量"><a href="#广播变量" class="headerlink" title="广播变量"></a>广播变量</h2><p>通过调用 SparkContext 下的 broadcast API 即可完成广播变量的创建</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> list: <span class="type">List</span>[<span class="type">String</span>] = <span class="type">List</span>(<span class="string">&quot;Apache&quot;</span>, <span class="string">&quot;Spark&quot;</span>)</span><br><span class="line"><span class="keyword">val</span> bc = sc.broadcast(list)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读取广播变量内容</span></span><br><span class="line">bc.value</span><br></pre></td></tr></table></figure>
+
+<p>如果变量在 Driver 端创建，且不是分布式数据集，则在分布式计算的过程中，Spark 需要把变量分发给每一个分布式任务</p>
+<p>如果 RDD 并行度较高、或是变量的尺寸较大，那么重复的内容分发就会引入大量的网络开销与存储开销，而这些开销会大幅削弱作业的执行性能</p>
+<p>Driver 端变量的分发是以 Task 为粒度的，系统中有多少个 Task，变量就需要在网络中分发多少次</p>
+<p>在同一个 Executor 内部，多个不同的 Task 多次重复地缓存了同样的内容拷贝，这对内存资源是一种巨大的浪费</p>
+<p>在使用广播变量之后，变量分发的粒度变成了以 Executors 为单位，同一个 Executor 内多个不同的 Tasks 只需访问同一份数据拷贝即可</p>
+<p>换句话说，变量在网络中分发与存储的次数，从 RDD 的分区数量，锐减到了集群中 Executors 的个数</p>
+<p>广播变量由 Driver 端定义并初始化，各个 Executors 以只读（Read only）的方式访问广播变量携带的数据内容</p>
+<h2 id="累加器"><a href="#累加器" class="headerlink" title="累加器"></a>累加器</h2><p>累加器的主要作用是全局计数</p>
+<p>累加器也是在 Driver 端定义的，但它的更新是通过在 RDD 算子中调用 add 函数完成的，在应用执行完毕之后，在 Driver 端调用累加器的 value 函数，就能获取全局计数结果</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义Long类型的累加器</span></span><br><span class="line"><span class="keyword">val</span> ac = sc.longAccumulator(<span class="string">&quot;Empty string&quot;</span>)</span><br><span class="line"></span><br><span class="line">ac.value</span><br></pre></td></tr></table></figure>
+
+<p>SparkContext 提供了 longAccumulator、doubleAccumulator 和 collectionAccumulator</p>
+<p>collectionAccumulator 允许定义集合类型的累加器，相比数值类型，集合类型可以为业务逻辑的实现，提供更多的灵活性和更大的自由度</p>
+<p>累加器也是由 Driver 定义的，但 Driver 并不会向累加器中写入任何数据内容，累加器的内容更新，完全是由各个 Executors 以只写（Write only）的方式来完成，而 Driver 仅以只读的方式对更新后的内容进行访问</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spark/" rel="tag"># Spark</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/02/Spark-%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F/" rel="prev" title="调度系统">
+                  <i class="fa fa-chevron-left"></i> 调度系统
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/02/Spark-Shuffle/" rel="next" title="Shuffle">
+                  Shuffle <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Spark 存储系统负责维护所有暂存在内存与磁盘中的数据，这些数据包括 Shuffle 中间文件、RDD Cache 以及广播变量 BlockManagerDriver 中包含 BlockManagerMaster，Executor 中包含 BlockManager BlockManager 负责向 BlockManagerMaster 汇报 Executor 的内存、磁盘使用情况 BlockMa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="存储系统">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="Spark 存储系统负责维护所有暂存在内存与磁盘中的数据，这些数据包括 Shuffle 中间文件、RDD Cache 以及广播变量 BlockManagerDriver 中包含 BlockManagerMaster，Executor 中包含 BlockManager BlockManager 负责向 BlockManagerMaster 汇报 Executor 的内存、磁盘使用情况 BlockMa">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/02.png">
+<meta property="article:published_time" content="2023-04-02T07:34:26.000Z">
+<meta property="article:modified_time" content="2023-04-02T07:36:26.705Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="Spark">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/","path":"2023/04/02/Spark-存储系统/","title":"存储系统"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>存储系统 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#BlockManager"><span class="nav-text">BlockManager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Block"><span class="nav-text">Block</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MemoryStore"><span class="nav-text">MemoryStore</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DiskStore"><span class="nav-text">DiskStore</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">97</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="存储系统 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          存储系统
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-02 15:34:26 / 修改时间：15:36:26" itemprop="dateCreated datePublished" datetime="2023-04-02T15:34:26+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Spark 存储系统负责维护所有暂存在内存与磁盘中的数据，这些数据包括 Shuffle 中间文件、RDD Cache 以及广播变量</p>
+<h2 id="BlockManager"><a href="#BlockManager" class="headerlink" title="BlockManager"></a>BlockManager</h2><p>Driver 中包含 BlockManagerMaster，Executor 中包含 BlockManager</p>
+<p>BlockManager 负责向 BlockManagerMaster 汇报 Executor 的内存、磁盘使用情况</p>
+<p>BlockManagerMaster 与 BlockManager 之间的信息交换是双向的，但 BlockManager 之间没有信息交换，Executor 之间想交换内存、磁盘的使用情况必须通过 BlockManagerMaster</p>
+<p>BlockManager 的职责，是在 Executors 中管理这 3 类数据的存储、读写与收发</p>
+<h2 id="Block"><a href="#Block" class="headerlink" title="Block"></a>Block</h2><ul>
+<li><p>Shuffle 中间文件消耗的是节点磁盘</p>
+</li>
+<li><p>广播变量主要占用节点的内存空间</p>
+</li>
+<li><p>RDD Cache 既可以消耗内存，也可以消耗磁盘</p>
+</li>
+</ul>
+<p>不管是在内存、还是在磁盘，这些数据都是以数据块（Blocks）为粒度进行存取与访问的</p>
+<p>BlockManager 的核心职责，在于管理数据块的元数据（Meta data），这些元数据记录并维护数据块的地址、位置、尺寸以及状态</p>
+<p>只有借助元数据，BlockManager 才有可能高效地完成数据的存与取、收与发</p>
+<p>BlockManager 借助 MemoryStore 管理内存中的数据存取，借助 DiskStore 管理磁盘中的数据访问</p>
+<h2 id="MemoryStore"><a href="#MemoryStore" class="headerlink" title="MemoryStore"></a>MemoryStore</h2><p>MemoryStore 使用 <code>LinkedHashMap[BlockId, MemoryEntry]</code> 管理内存</p>
+<img src="/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/01.png" class="">
+
+<p>BlockId 用于标记 Block 的身份，它不是一个仅仅记录 Id 的字符串，而是一种记录 Block 元信息的数据结构，包括 Block 名字、所属 RDD、Block 对应的 RDD 数据分区、是否为广播变量、是否为 Shuffle Block 等等</p>
+<p>MemoryEntry 用于承载数据实体，数据实体可以是某个 RDD 的数据分区，也可以是广播变量</p>
+<h2 id="DiskStore"><a href="#DiskStore" class="headerlink" title="DiskStore"></a>DiskStore</h2><p>DiskStore 是通过维护数据块与磁盘文件的对应关系，实现磁盘数据的存取访问</p>
+<p>DiskStore 使用 DiskBlockManager 来维护元数据</p>
+<img src="/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/02.png" class="">
+
+<p>DiskBlockManager 是类对象，它的 <code>getFile</code> 方法以 BlockId 为参数，返回磁盘文件</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spark/" rel="tag"># Spark</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/02/Spark-SparkSQL/" rel="prev" title="SparkSQL">
+                  <i class="fa fa-chevron-left"></i> SparkSQL
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

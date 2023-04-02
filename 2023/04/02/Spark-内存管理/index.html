@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="相比其他大数据计算引擎，Spark 的优势和特点就是合理而充分地使用内存 内存区域划分对于任意一个 Executor 来说，Spark 会把内存分为 4 个区域，分别是 Reserved Memory、User Memory、Execution Memory 和 Storage Memory   Reserved Memory 固定为 300MB，不受开发者控制，它是 Spark 预留的、用来存储">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内存管理">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="相比其他大数据计算引擎，Spark 的优势和特点就是合理而充分地使用内存 内存区域划分对于任意一个 Executor 来说，Spark 会把内存分为 4 个区域，分别是 Reserved Memory、User Memory、Execution Memory 和 Storage Memory   Reserved Memory 固定为 300MB，不受开发者控制，它是 Spark 预留的、用来存储">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/02.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/03.png">
+<meta property="article:published_time" content="2023-04-02T07:21:17.000Z">
+<meta property="article:modified_time" content="2023-04-02T07:36:26.705Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="Spark">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/","path":"2023/04/02/Spark-内存管理/","title":"内存管理"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>内存管理 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%E5%88%92%E5%88%86"><span class="nav-text">内存区域划分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E8%BD%AC%E6%8D%A2"><span class="nav-text">内存转换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E9%85%8D%E7%BD%AE%E9%A1%B9"><span class="nav-text">内存配置项</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RDD-Cache"><span class="nav-text">RDD Cache</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">97</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="内存管理 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          内存管理
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-02 15:21:17 / 修改时间：15:36:26" itemprop="dateCreated datePublished" datetime="2023-04-02T15:21:17+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>相比其他大数据计算引擎，Spark 的优势和特点就是合理而充分地使用内存</p>
+<h2 id="内存区域划分"><a href="#内存区域划分" class="headerlink" title="内存区域划分"></a>内存区域划分</h2><p>对于任意一个 Executor 来说，Spark 会把内存分为 4 个区域，分别是 Reserved Memory、User Memory、Execution Memory 和 Storage Memory</p>
+<img src="/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/01.png" class="">
+
+<p>Reserved Memory 固定为 300MB，不受开发者控制，它是 Spark 预留的、用来存储各种 Spark 内部对象的内存区域</p>
+<p>User Memory 用于存储开发者自定义的数据结构，例如 RDD 算子中引用的数组、列表、映射等等</p>
+<p>Execution Memory 用来执行分布式任务，主要包括数据的转换、过滤、映射、排序、聚合、归并等环节的内存消耗</p>
+<p>Storage Memory 用于缓存分布式数据集，比如 RDD Cache、广播变量等等</p>
+<p>Spark 推出了统一内存管理模式，在这种模式下，Execution Memory 和 Storage Memory 之间可以相互转化</p>
+<h2 id="内存转换"><a href="#内存转换" class="headerlink" title="内存转换"></a>内存转换</h2><p>Execution Memory 和 Storage Memory 之间的转换规则，一共可以总结为 3 条：</p>
+<ul>
+<li><p>如果对方的内存空间有空闲，双方可以互相转换</p>
+</li>
+<li><p>对于 Storage Memory 转换的 Execution Memory 部分，当分布式任务有计算需要时，Storage Memory 必须立即归还内存，涉及的缓存数据要么落盘、要么清除</p>
+</li>
+<li><p>对于 Execution Memory 转换的 Storage Memory 部分，即便 Storage Memory 有收回内存的需要，也必须要等到分布式任务执行完毕才能释放</p>
+</li>
+</ul>
+<h2 id="内存配置项"><a href="#内存配置项" class="headerlink" title="内存配置项"></a>内存配置项</h2><p>Executor JVM Heap 的划分，由 3 个配置项来决定</p>
+<img src="/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/02.png" class="">
+
+<p>spark.executor.memory 是绝对值，它指定了 Executor 进程的 JVM Heap 总大小</p>
+<p>spark.memory.fraction 和 spark.memory.storageFraction 都是比例值，它们指定了划定不同区域的空间占比</p>
+<p>spark.memory.fraction 用于标记 Spark 处理分布式数据集的内存总大小，这部分内存包括 Execution Memory 和 Storage Memory 两部分</p>
+<p>spark.memory.storageFraction 则用来进一步区分 Execution Memory 和 Storage Memory 的初始大小</p>
+<h2 id="RDD-Cache"><a href="#RDD-Cache" class="headerlink" title="RDD Cache"></a>RDD Cache</h2><p>在 RDD 完成定义之后，在这个 RDD 之上依次调用 <code>cache</code> 和 <code>count</code> 即可，<code>cache</code> 算子告知 Spark 对 RDD 加缓存，<code>count</code> 算子将 RDD 缓存到内存</p>
+<p><code>cache</code> 函数实际上会进一步调用 <code>persist(MEMORY_ONLY)</code> 来完成计算</p>
+<p><code>persist</code> 算子具有更多的存储级别，允许开发者灵活地选择 Cache 的存储介质、存储形式以及副本数量</p>
+<img src="/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/03.png" class="">
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spark/" rel="tag"># Spark</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/02/Docker-Dockerfile/" rel="prev" title="Dockerfile">
+                  <i class="fa fa-chevron-left"></i> Dockerfile
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/02/Spark-DataFrame/" rel="next" title="DataFrame">
+                  DataFrame <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

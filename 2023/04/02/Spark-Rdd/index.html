@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="RDD 是构建 Spark 分布式内存计算引擎的基石，很多 Spark 核心概念与核心组件，如 DAG 和调度系统都衍生自 RDD   RDD 是一种抽象，它所囊括的是分布式计算环境中的分布式数据集 RDD 代表的数据集是跨进程、跨节点的，它的活动范围是整个集群 RDD 中承载数据的基本单元是数据分片 在分布式计算环境中，一份完整的数据集，会按照某种规则切割成多份数据分片。这些数据分片被均匀地分发">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rdd">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/02/Spark-Rdd/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="RDD 是构建 Spark 分布式内存计算引擎的基石，很多 Spark 核心概念与核心组件，如 DAG 和调度系统都衍生自 RDD   RDD 是一种抽象，它所囊括的是分布式计算环境中的分布式数据集 RDD 代表的数据集是跨进程、跨节点的，它的活动范围是整个集群 RDD 中承载数据的基本单元是数据分片 在分布式计算环境中，一份完整的数据集，会按照某种规则切割成多份数据分片。这些数据分片被均匀地分发">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/Spark-Rdd/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/Spark-Rdd/02.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/02/Spark-Rdd/03.png">
+<meta property="article:published_time" content="2023-04-02T07:27:27.000Z">
+<meta property="article:modified_time" content="2023-04-02T07:36:26.697Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="Spark">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/02/Spark-Rdd/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/02/Spark-Rdd/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/02/Spark-Rdd/","path":"2023/04/02/Spark-Rdd/","title":"Rdd"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Rdd | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA-RDD"><span class="nav-text">创建 RDD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E5%88%9B%E5%BB%BA"><span class="nav-text">内部数据创建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%96%E9%83%A8%E6%95%B0%E6%8D%AE%E5%88%9B%E5%BB%BA"><span class="nav-text">外部数据创建</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RDD-%E7%AE%97%E5%AD%90"><span class="nav-text">RDD 算子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E9%83%A8%E6%95%B0%E6%8D%AE%E8%BD%AC%E6%8D%A2"><span class="nav-text">内部数据转换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Shuffle-%E8%AE%A1%E7%AE%97"><span class="nav-text">Shuffle 计算</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%87%86%E5%A4%87"><span class="nav-text">数据准备</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E9%A2%84%E5%A4%84%E7%90%86"><span class="nav-text">数据预处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%94%B6%E9%9B%86"><span class="nav-text">数据收集</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">97</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-Rdd/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Rdd | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Rdd
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-02 15:27:27 / 修改时间：15:36:26" itemprop="dateCreated datePublished" datetime="2023-04-02T15:27:27+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>RDD 是构建 Spark 分布式内存计算引擎的基石，很多 Spark 核心概念与核心组件，如 DAG 和调度系统都衍生自 RDD</p>
+<img src="/2023/04/02/Spark-Rdd/01.png" class="">
+
+<p>RDD 是一种抽象，它所囊括的是分布式计算环境中的分布式数据集</p>
+<p>RDD 代表的数据集是跨进程、跨节点的，它的活动范围是整个集群</p>
+<p>RDD 中承载数据的基本单元是数据分片</p>
+<p>在分布式计算环境中，一份完整的数据集，会按照某种规则切割成多份数据分片。这些数据分片被均匀地分发给集群内不同的计算节点和执行进程，从而实现分布式并行计算</p>
+<p>RDD 的四个重要属性：</p>
+<ul>
+<li><p>partitions：数据分片</p>
+</li>
+<li><p>partitioner：分片切割规则</p>
+</li>
+<li><p>dependencies：RDD 依赖</p>
+</li>
+<li><p>compute：转换函数</p>
+</li>
+</ul>
+<p>数据分片的分布，是由 RDD 的 partitioner 决定的，两者是强相关的</p>
+<p>在数据形态的转换过程中，每个 RDD 都会通过 dependencies 属性来记录它所依赖的前一个、或是多个 RDD</p>
+<p>RDD 使用 compute 属性，来记录从父 RDD 到当前 RDD 的转换操作</p>
+<h2 id="创建-RDD"><a href="#创建-RDD" class="headerlink" title="创建 RDD"></a>创建 RDD</h2><h3 id="内部数据创建"><a href="#内部数据创建" class="headerlink" title="内部数据创建"></a>内部数据创建</h3><p>在 Spark 应用中自定义的各类数据结构，如数组、列表、映射等，都属于内部数据</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.rdd.<span class="type">RDD</span></span><br><span class="line"><span class="keyword">val</span> words: <span class="type">Array</span>[<span class="type">String</span>] = <span class="type">Array</span>(<span class="string">&quot;Spark&quot;</span>, <span class="string">&quot;is&quot;</span>, <span class="string">&quot;cool&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>用 <code>parallelize</code> 函数来封装内部数据即可 RDD</p>
+<p>在 Spark 应用内定义体量超大的数据集，其实都是不太合适的，因为数据集完全由 Driver 端创建，且创建完成后，还要在全网范围内跨节点、跨进程地分发到其他 Executors，所以往往会带来性能问题</p>
+<h3 id="外部数据创建"><a href="#外部数据创建" class="headerlink" title="外部数据创建"></a>外部数据创建</h3><p>Spark 系统之外的所有数据形式，如本地文件系统或是分布式文件系统中的数据，再比如来自其他大数据组件（Hive、Hbase、RDBMS 等）的数据，都是外部数据</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> lineRDD: <span class="type">RDD</span>[<span class="type">String</span>] = spark.sparkContext.textFile(file)</span><br></pre></td></tr></table></figure>
+
+<h2 id="RDD-算子"><a href="#RDD-算子" class="headerlink" title="RDD 算子"></a>RDD 算子</h2><p>RDD 代表的是分布式数据形态，RDD 到 RDD 之间的转换，本质上是数据形态上的转换；在 RDD 的编程模型中，一共有两种算子，Transformations 类算子和 Actions 类算子；使用 Transformations 类算子，定义并描述数据形态的转换过程，然后调用 Actions 类算子，将计算结果收集起来、或是物化到磁盘</p>
+<p>调用的各类 Transformations 算子，并不立即执行计算，当且仅当开发者调用 Actions 算子时，之前调用的转换算子才会付诸执行</p>
+<img src="/2023/04/02/Spark-Rdd/02.png" class="">
+
+<h2 id="内部数据转换"><a href="#内部数据转换" class="headerlink" title="内部数据转换"></a>内部数据转换</h2><ul>
+<li><p><code>map</code> 算子：给定映射函数 <code>f</code>，<code>map(f)</code> 以元素为粒度对 RDD 做数据转换；由于以元素为粒度，在某些计算场景下，这个特点会严重影响执行效率</p>
+</li>
+<li><p><code>mapPartitions</code> 算子：以数据分区为粒度的数据转换，使用映射函数 <code>f</code> 对 RDD 进行数据转换；凡是可以共享的操作，都可以用 <code>mapPartitions</code> 算子进行优化，如创建用于连接远端数据库的 Connections 对象等</p>
+</li>
+<li><p><code>mapPartitionsWithIndex</code> 算子：相比 <code>mapPartitions</code>，<code>mapPartitionsWithIndex</code> 仅仅多出了一个数据分区索引，这个数据分区索引可以为获取分区编号</p>
+</li>
+<li><p><code>flatMap</code>：以元素为粒度，对 RDD 进行数据转换，但接受的 <code>f</code> 是元素到集合（如数组、列表等）；在逻辑上分为以元素为单位创建集合和提取集合元素</p>
+</li>
+<li><p><code>filter</code> 算子：对 RDD 进行过滤</p>
+</li>
+</ul>
+<h2 id="Shuffle-计算"><a href="#Shuffle-计算" class="headerlink" title="Shuffle 计算"></a>Shuffle 计算</h2><ul>
+<li><p><code>groupByKey</code>：按照 Key 做分组，包含分组和收集两步；对于元素类型为（Key，Value）键值对的 Paired RDD，groupByKey 的功能就是对 Key 值相同的元素做分组，然后把相应的 Value 值，以集合的形式收集到一起；Shuffle 时以全量原始数据记录的方式消耗磁盘与网络</p>
+</li>
+<li><p><code>reduceByKey</code>：根据聚合函数 f 给出的算法，把 Key 值相同的多个元素，聚合成一个元素；对于 <code>RDD[(Key，Value)]</code>，函数 f 的形参，必须是两个数值，且数值的类型必须与 Value 的类型相同，而 f 的返回值，也必须是 Value 类型的数值；Shuffle 时会在落盘与分发之前的 Map 阶段做初步的聚合计算，称之为 Map 端聚合；局限性在于其 Map 阶段与 Reduce 阶段的计算逻辑必须保持一致，这个计算逻辑统一由聚合函数 f 定义</p>
+</li>
+<li><p><code>aggregateByKey</code>：需要提供一个初始值，一个 Map 端聚合函数 f1，以及一个 Reduce 端聚合函数 f2，初始值类型必须与 f2 的结果类型保持一致，f1 的形参类型，必须与 Paired RDD 的 Value 类型保持一致，f2 的形参类型，必须与 f1 的结果类型保持一致</p>
+</li>
+</ul>
+<img src="/2023/04/02/Spark-Rdd/03.png" class="">
+
+<ul>
+<li><code>sortByKey</code>：以 Key 为准对 RDD 做排序，默认升序排序</li>
+</ul>
+<h3 id="数据准备"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备</h3><p>在数据准备阶段，<code>union</code> 与 <code>sample</code> 用于对不同来源的数据进行合并与拆分</p>
+<ul>
+<li><p><code>union</code> 用于把两个类型一致、但来源不同的 RDD 进行合并，从而构成一个统一的、更大的分布式数据集；<code>union</code> 操作能够成立的前提，就是参与合并的两个 RDD 的类型必须完全一致</p>
+</li>
+<li><p><code>sample(withReplacement, fraction, seed)</code> 用于对 RDD 做随机采样，从而把一个较大的数据集变为一份小数据；<code>withReplacement</code> 的类型是 <code>Boolean</code>，表示采样是否有放回；<code>fraction</code> 类型是 <code>Double</code>，值域为 0 到 1，其含义是采样比例；<code>seed</code> 参数是可选的，它的类型是 <code>Long</code></p>
+</li>
+</ul>
+<h2 id="数据预处理"><a href="#数据预处理" class="headerlink" title="数据预处理"></a>数据预处理</h2><p>较为均衡的数据分布，对后面数据处理阶段提升 CPU 利用率更有帮助，可以整体提升执行效率</p>
+<p><code>coalesce</code> 与 <code>repartition</code> 的作用就是重新调整 RDD 数据分布</p>
+<p><code>repartition</code> 算子随意调整（提升或降低）RDD 的并行度，而 <code>coalesce</code> 算子则只能用于降低 RDD 并行度</p>
+<p>每个 RDD 的数据分区，都对应着一个分布式 Task，而每个 Task 都需要一个 CPU 线程去执行</p>
+<p>RDD 的并行度，很大程度上决定了分布式系统中 CPU 的使用效率，进而还会影响分布式系统并行计算的执行效率</p>
+<p>使用 <code>repartition</code> 调整 RDD 并行度会引入 Shuffle，而 <code>coalesce</code> 则不会</p>
+<p>给定 RDD，如果用 <code>repartition</code> 来调整其并行度，不论增加还是降低，对于 RDD 中的每一条数据记录，<code>repartition</code> 对它们的影响都是无差别的数据分发</p>
+<p><code>coalesce</code> 在降低并行度的计算中，它采取的思路是把同一个 Executor 内的不同数据分区进行合并，这样数据并不需要跨 Executors、跨节点进行分发，因而自然不会引入 Shuffle</p>
+<h2 id="数据收集"><a href="#数据收集" class="headerlink" title="数据收集"></a>数据收集</h2><p><code>take</code>、<code>first</code>、<code>collect</code> 把结果直接收集到 Driver 端</p>
+<p><code>saveAsTextFile</code> 将计算结果持久化到（分布式）文件系统</p>
+<ul>
+<li><p><code>first</code> 用于收集 RDD 数据集中的任意一条数据记录</p>
+</li>
+<li><p><code>take</code> 用于收集多条记录</p>
+</li>
+<li><p><code>collect</code> 收集全部数据到 Driver，但有两处性能隐患，一个是拉取数据过程中引入的网络开销，另一个 Driver 的 OOM</p>
+</li>
+<li><p><code>saveAsTextFile</code> 直接通过 Executors 将 RDD 数据分区物化到文件系统，这个过程并不涉及与 Driver 端的任何交互</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spark/" rel="tag"># Spark</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/02/Spark-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/" rel="prev" title="基础架构">
+                  <i class="fa fa-chevron-left"></i> 基础架构
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/02/Spark-%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F/" rel="next" title="调度系统">
+                  调度系统 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
