@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="通过单例模式可以保证系统中某个类只有一个实例，并提供一个访问它的全局访问点，该实例被所有程序模块共享 单例类只能有一个实例，它必须自行创建这个实例，它必须自行向整个系统提供这个实例 实现：  单例模式的类只提供私有的构造函数  类定义中含有一个该类的静态私有对象  该类提供一个静态的共有的函数用于创建或获取它本身的静态私有对象   优点：  在内存中只有一个对象，节省内存空间  避免频繁的创建销毁">
+<meta property="og:type" content="article">
+<meta property="og:title" content="单例模式">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="通过单例模式可以保证系统中某个类只有一个实例，并提供一个访问它的全局访问点，该实例被所有程序模块共享 单例类只能有一个实例，它必须自行创建这个实例，它必须自行向整个系统提供这个实例 实现：  单例模式的类只提供私有的构造函数  类定义中含有一个该类的静态私有对象  该类提供一个静态的共有的函数用于创建或获取它本身的静态私有对象   优点：  在内存中只有一个对象，节省内存空间  避免频繁的创建销毁">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-13T02:49:20.000Z">
+<meta property="article:modified_time" content="2023-04-13T02:53:29.831Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="设计模式">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/","path":"2023/04/13/设计模式-单例模式/","title":"单例模式"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>单例模式 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A5%BF%E6%B1%89%E5%BC%8F%E5%8D%95%E4%BE%8B%EF%BC%88%E7%A9%BA%E9%97%B4%E6%8D%A2%E6%97%B6%E9%97%B4%EF%BC%89"><span class="nav-text">饿汉式单例（空间换时间）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%89%E7%BC%BA%E9%99%B7%E7%9A%84%E6%87%92%E6%B1%89%E5%BC%8F%E5%8D%95%E4%BE%8B%EF%BC%88%E6%97%B6%E9%97%B4%E6%8D%A2%E7%A9%BA%E9%97%B4%EF%BC%89"><span class="nav-text">有缺陷的懒汉式单例（时间换空间）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B1%80%E9%83%A8%E9%9D%99%E6%80%81%E5%8F%98%E9%87%8F%E5%9E%8B%E6%87%92%E6%B1%89%E5%BC%8F%E5%8D%95%E4%BE%8B"><span class="nav-text">局部静态变量型懒汉式单例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#call-once-%E5%AE%9E%E7%8E%B0"><span class="nav-text">call_once 实现</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">145</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="单例模式 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          单例模式
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-13 10:49:20 / 修改时间：10:53:29" itemprop="dateCreated datePublished" datetime="2023-04-13T10:49:20+08:00">2023-04-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>通过单例模式可以保证系统中某个类只有一个实例，并提供一个访问它的全局访问点，该实例被所有程序模块共享</p>
+<p>单例类只能有一个实例，它必须自行创建这个实例，它必须自行向整个系统提供这个实例</p>
+<p>实现：</p>
+<ul>
+<li><p>单例模式的类只提供私有的构造函数</p>
+</li>
+<li><p>类定义中含有一个该类的静态私有对象</p>
+</li>
+<li><p>该类提供一个静态的共有的函数用于创建或获取它本身的静态私有对象</p>
+</li>
+</ul>
+<p>优点：</p>
+<ul>
+<li><p>在内存中只有一个对象，节省内存空间</p>
+</li>
+<li><p>避免频繁的创建销毁对象，可以提高性能</p>
+</li>
+<li><p>避免对共享资源的多重占用</p>
+</li>
+<li><p>可以全局访问</p>
+</li>
+</ul>
+<p>虽然数量很少，但如果每次对象请求引用时都要检查是否存在类的实例，将仍然需要一些开销，这个问题可以通过静态初始化解决此问题</p>
+<h2 id="饿汉式单例（空间换时间）"><a href="#饿汉式单例（空间换时间）" class="headerlink" title="饿汉式单例（空间换时间）"></a>饿汉式单例（空间换时间）</h2><p>在单例类被加载时就实例化一个对象交给自己的引用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CSingleton</span> &#123;  </span><br><span class="line"><span class="keyword">public</span>:  </span><br><span class="line">    <span class="function"><span class="type">static</span> CSingleton* <span class="title">GetInstance</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">         <span class="keyword">return</span> m_pInstance;  </span><br><span class="line">    &#125;  </span><br><span class="line"><span class="keyword">private</span>:  </span><br><span class="line">    <span class="built_in">CSingleton</span>()&#123;&#125;;  </span><br><span class="line">    <span class="built_in">CSingleton</span>(CSingleton &amp;)&#123;&#125; = <span class="keyword">delete</span>;  <span class="comment">// 禁止拷贝</span></span><br><span class="line">    CSingleton &amp; <span class="keyword">operator</span>=(<span class="type">const</span> CSingleton &amp;)&#123;&#125; = <span class="keyword">delete</span>;  <span class="comment">// 禁止赋值</span></span><br><span class="line">   </span><br><span class="line">    <span class="type">static</span> CSingleton * m_pInstance;  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">CSingleton * CSingleton::m_Instance = <span class="keyword">new</span> CSingleton;</span><br></pre></td></tr></table></figure>
+
+<h2 id="有缺陷的懒汉式单例（时间换空间）"><a href="#有缺陷的懒汉式单例（时间换空间）" class="headerlink" title="有缺陷的懒汉式单例（时间换空间）"></a>有缺陷的懒汉式单例（时间换空间）</h2><p>在调用取得实例方法的时候才会实例化对象</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CSingleton</span> &#123;  </span><br><span class="line"><span class="keyword">public</span>:  </span><br><span class="line">    <span class="function"><span class="type">static</span> CSingleton* <span class="title">GetInstance</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">        <span class="keyword">if</span> ( m_pInstance == <span class="literal">nullptr</span> ) &#123;</span><br><span class="line">            m_pInstance = <span class="keyword">new</span> <span class="built_in">CSingleton</span>(); </span><br><span class="line">        &#125; </span><br><span class="line">        <span class="keyword">return</span> m_pInstance;  </span><br><span class="line">    &#125;  </span><br><span class="line"><span class="keyword">private</span>:  </span><br><span class="line">    <span class="built_in">CSingleton</span>()&#123;&#125;;  </span><br><span class="line">    <span class="built_in">CSingleton</span>(CSingleton &amp;)&#123;&#125; = <span class="keyword">delete</span>;  <span class="comment">// 禁止拷贝</span></span><br><span class="line">    CSingleton &amp; <span class="keyword">operator</span>=(<span class="type">const</span> CSingleton &amp;)&#123;&#125; = <span class="keyword">delete</span>;  <span class="comment">// 禁止赋值</span></span><br><span class="line">   </span><br><span class="line">    <span class="type">static</span> CSingleton * m_pInstance;  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">CSingleton * CSingleton::m_Instance = <span class="literal">nullptr</span>;</span><br></pre></td></tr></table></figure>
+<p><code>GetInstance()</code> 使用懒惰初始化，也就是说它的返回值是当这个函数首次被访问时被创建的</p>
+<p>所有 <code>GetInstance()</code> 之后的调用都返回相同实例的指针</p>
+<p>对 <code>GetInstance()</code> 稍加修改，这个设计模板便可以适用于可变多实例情况，如一个类允许最多五个实例</p>
+<p>缺陷：</p>
+<ul>
+<li><p>线程安全的问题：当多线程获取单例时有可能引发竞态条件；第一个线程在 <code>if</code> 中判断 <code>m_Instance</code> 是空的，于是开始实例化单例；同时第 2 个线程也尝试获取单例，这个时候判断 <code>m_Instance</code> 还是空的，于是也开始实例化单例；这样就会实例化出两个对象,这就是线程安全问题的由来，解决办法：加锁</p>
+</li>
+<li><p>内存泄漏：类中只负责 <code>new</code> 出对象，却没有负责 <code>delete</code> 对象，因此只有构造函数被调用，析构函数却没有被调用；因此会导致内存泄漏；解决办法：使用智能指针</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CSingleton</span> &#123;  </span><br><span class="line"><span class="keyword">public</span>:  </span><br><span class="line">    <span class="function"><span class="type">static</span> std::shared_ptr&lt;CSingleton&gt; <span class="title">GetInstance</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">        <span class="keyword">if</span> ( m_pInstance == <span class="literal">nullptr</span> ) &#123;</span><br><span class="line">            <span class="function">std::lock_guard&lt;std::mutex&gt; <span class="title">lk</span><span class="params">(m_mutex)</span></span>;</span><br><span class="line">            <span class="keyword">if</span>(m_pInstance == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">                m_pInstance = std::<span class="built_in">shared_ptr</span>&lt;CSingleton&gt;(<span class="keyword">new</span> CSingleton); </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> m_pInstance;  </span><br><span class="line">    &#125;  </span><br><span class="line"><span class="keyword">private</span>:  </span><br><span class="line">    <span class="built_in">CSingleton</span>()&#123;&#125;;  </span><br><span class="line">    <span class="built_in">CSingleton</span>(CSingleton &amp;) = <span class="keyword">delete</span>;  <span class="comment">// 禁止拷贝</span></span><br><span class="line">    CSingleton &amp; <span class="keyword">operator</span>=(<span class="type">const</span> CSingleton &amp;) = <span class="keyword">delete</span>;  <span class="comment">// 禁止赋值</span></span><br><span class="line">    </span><br><span class="line">    <span class="type">static</span> std::shared_ptr&lt;CSingleton&gt; m_pInstance;  </span><br><span class="line">    <span class="type">static</span> std::mutex m_mutex;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">std::shared_ptr&lt;CSingleton&gt; CSingleton::m_pInstance = <span class="literal">nullptr</span>;</span><br><span class="line">std::mutex CSingleton::m_mutex;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用互斥量来达到线程安全。这里使用了两个 if 判断语句的技术称为双检锁</span></span><br><span class="line"><span class="comment">// 好处是，只有判断指针为空的时候才加锁，避免每次调用 GetInstance() 都加锁</span></span><br><span class="line"><span class="comment">// 隐患：析构函数是 public 的，能被外界 delete；因为构造函数是私有的，不能使用智能指针</span></span><br><span class="line"><span class="comment">// 因为 CPU 的指令重排，可能会导致对象被 new 出来并赋值给 instance，但还没来得及初始化</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CSingleton</span> &#123;  </span><br><span class="line"><span class="keyword">public</span>:  </span><br><span class="line">    <span class="function"><span class="type">static</span> std::shared_ptr&lt;CSingleton&gt; <span class="title">GetInstance</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">        <span class="keyword">if</span> (m_pInstance == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">                <span class="function">std::lock_guard&lt;std::mutex&gt; <span class="title">lk</span><span class="params">(m_mutex)</span></span>;</span><br><span class="line">                <span class="keyword">if</span>(m_pInstance == <span class="literal">nullptr</span>) &#123;</span><br><span class="line">                    m_pInstance = std::<span class="built_in">shared_ptr</span>&lt;CSingleton&gt;(<span class="keyword">new</span> <span class="built_in">CSingleton</span>(), [](CSingleton * p)&#123;<span class="keyword">delete</span> p&#125;); </span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="keyword">return</span> m_pInstance;  </span><br><span class="line">    &#125;  </span><br><span class="line"><span class="keyword">private</span>:  </span><br><span class="line">    <span class="built_in">CSingleton</span>()&#123;&#125;;  </span><br><span class="line">    ~<span class="built_in">CSingleton</span>()&#123;&#125;;</span><br><span class="line">    <span class="built_in">CSingleton</span>(CSingleton &amp;) = <span class="keyword">delete</span>;  <span class="comment">// 禁止拷贝</span></span><br><span class="line">    CSingleton &amp; <span class="keyword">operator</span>=(<span class="type">const</span> CSingleton &amp;) = <span class="keyword">delete</span>;  <span class="comment">// 禁止赋值</span></span><br><span class="line">    </span><br><span class="line">    <span class="type">static</span> std::shared_ptr&lt;CSingleton&gt; m_pInstance;  </span><br><span class="line">    <span class="type">static</span> std::mutex m_mutex;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">std::shared_ptr&lt;CSingleton&gt; CSingleton::m_pInstance = <span class="literal">nullptr</span>;</span><br><span class="line">std::mutex CSingleton::m_mutex;</span><br></pre></td></tr></table></figure>
+
+<h2 id="局部静态变量型懒汉式单例"><a href="#局部静态变量型懒汉式单例" class="headerlink" title="局部静态变量型懒汉式单例"></a>局部静态变量型懒汉式单例</h2><p>需要 C++11，因为是从 C++11 标准才开始规定 <code>static</code> 变量是线程安全的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CSingleton</span> &#123;  </span><br><span class="line"><span class="keyword">public</span>:  </span><br><span class="line">    <span class="function"><span class="type">static</span> CSingleton &amp; <span class="title">GetInstance</span><span class="params">()</span> </span>&#123;  </span><br><span class="line">        <span class="comment">// 编译器隐式通过 __cxxabiv1::__xca_guard_acquire 保证线程安全</span></span><br><span class="line">        <span class="type">static</span> CSinleton instance;  </span><br><span class="line">        <span class="comment">// 如果当变量在初始化的时候，并发同时进入声明语句，并发线程将会阻塞等待初始化结束</span></span><br><span class="line">        <span class="comment">// 这样保证了并发线程在获取静态局部变量的时候一定是初始化过的，所以具有线程安全性</span></span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;  </span><br><span class="line"><span class="keyword">private</span>:  </span><br><span class="line">    <span class="built_in">CSingleton</span>()&#123;&#125;;  </span><br><span class="line">    ~<span class="built_in">CSingletion</span>()&#123;&#125;;</span><br><span class="line">    <span class="built_in">CSingleton</span>(CSingleton &amp;) = <span class="keyword">delete</span>;  <span class="comment">// 禁止拷贝</span></span><br><span class="line">    CSingleton &amp; <span class="keyword">operator</span>=(<span class="type">const</span> CSingleton &amp;) = <span class="keyword">delete</span>;  <span class="comment">// 禁止赋值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里单例对象是函数的局部静态变量，而不是类的静态变量</p>
+<p>当单例对象是类静态变量时，因为 C++ 只能保证在同一个文件中声明的 <code>static</code> 变量的初始化顺序与其变量声明的顺序一致，不能保证不同的文件中的 <code>static</code> 变量的初始化顺序，所以其他单例对象获取本单例对象时，可能会出现未初始化的问题</p>
+<p>C++ 能保证所有文件内（非函数内）的 <code>static</code> 变量在 <code>main()</code> 函数开始运行之后肯定是都能做完初始化的，所以如果是在 <code>main()</code> 函数运行之后，其他单例对象获取本单例对象，那么其实也是没有问题的</p>
+<p>由于编译器隐式加锁，导致 <code>fork</code> 时这里会可能引入死锁</p>
+<h2 id="call-once-实现"><a href="#call-once-实现" class="headerlink" title="call_once 实现"></a>call_once 实现</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Singleton</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">Singleton</span>();</span><br><span class="line">    ~<span class="built_in">Singleton</span>();</span><br><span class="line">    <span class="built_in">Singleton</span>(<span class="type">const</span> Singleton&amp;) = <span class="keyword">delete</span>;</span><br><span class="line">    Singleton&amp; <span class="keyword">operator</span> = (<span class="type">const</span> Singleton&amp;) = <span class="keyword">delete</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">static</span> std::once_flag of;</span><br><span class="line">    <span class="type">static</span> T * instance;</span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="type">void</span> <span class="title">Create</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        instance = <span class="keyword">new</span> T;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">static</span> T&amp; <span class="title">GetInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        std::<span class="built_in">call_once</span>(&amp;of, &amp;Singleton::Create);</span><br><span class="line">        <span class="keyword">return</span> *instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line">once_flag Singleton&lt;T&gt;::of;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line">T* Singleton&lt;T&gt;::instance = <span class="literal">nullptr</span>;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" rel="tag"># 设计模式</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F/" rel="prev" title="代理模式">
+                  <i class="fa fa-chevron-left"></i> 代理模式
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/13/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F/" rel="next" title="策略模式">
+                  策略模式 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
