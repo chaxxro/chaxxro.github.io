@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="信息隐藏Scala 主构造函数没有现式定义，它是通过类参数和类定义体隐式定义的 可以通过在参数列表前添加 private 来隐藏主构造函数，从而只能在类本身及其伴生对象中访问 1class Queue[T] private (...)  还可以通过私有类来隐藏 12345678910111213trait Queue[T] &amp;#123;&amp;#125;object Queue &amp;#123;    de">
+<meta property="og:type" content="article">
+<meta property="og:title" content="类型参数化">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/13/Scala-%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E5%8C%96/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="信息隐藏Scala 主构造函数没有现式定义，它是通过类参数和类定义体隐式定义的 可以通过在参数列表前添加 private 来隐藏主构造函数，从而只能在类本身及其伴生对象中访问 1class Queue[T] private (...)  还可以通过私有类来隐藏 12345678910111213trait Queue[T] &amp;#123;&amp;#125;object Queue &amp;#123;    de">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-13T03:17:19.000Z">
+<meta property="article:modified_time" content="2023-04-13T03:20:11.356Z">
+<meta property="article:author" content="chaxxro">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/13/Scala-%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E5%8C%96/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/13/Scala-%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E5%8C%96/","path":"2023/04/13/Scala-类型参数化/","title":"类型参数化"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>类型参数化 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%A1%E6%81%AF%E9%9A%90%E8%97%8F"><span class="nav-text">信息隐藏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9E%8B%E5%8F%98%E6%B3%A8%E8%A7%A3"><span class="nav-text">型变注解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9E%8B%E5%8F%98%E6%A3%80%E6%9F%A5"><span class="nav-text">型变检查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E7%95%8C"><span class="nav-text">下界</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8A%E7%95%8C"><span class="nav-text">上界</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">159</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/Scala-%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="类型参数化 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          类型参数化
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-13 11:17:19 / 修改时间：11:20:11" itemprop="dateCreated datePublished" datetime="2023-04-13T11:17:19+08:00">2023-04-13</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="信息隐藏"><a href="#信息隐藏" class="headerlink" title="信息隐藏"></a>信息隐藏</h2><p>Scala 主构造函数没有现式定义，它是通过类参数和类定义体隐式定义的</p>
+<p>可以通过在参数列表前添加 <code>private</code> 来隐藏主构造函数，从而只能在类本身及其伴生对象中访问</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Queue</span>[<span class="type">T</span>] <span class="title">private</span> (<span class="params">...</span>)</span></span><br></pre></td></tr></table></figure>
+
+<p>还可以通过私有类来隐藏</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Queue</span>[<span class="type">T</span>] </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">Queue</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">apply</span></span>(...) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">QueueImpl</span>[<span class="type">T</span>] (<span class="params">...</span>) <span class="keyword">extends</span> <span class="title">Queue</span>[<span class="type">T</span>] </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="型变注解"><a href="#型变注解" class="headerlink" title="型变注解"></a>型变注解</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Queue</span>[<span class="type">T</span>] </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Queue</code> 不是类型，不能创建其对象</p>
+<p><code>Queue[String]</code> 是类型</p>
+<p>对于 <code>Queue[T]</code> 和 <code>Queue[S]</code>，如果 S 是 T 的子类型，<code>Queue[S]</code> 不是 <code>Queue[T]</code> 的 子类型</p>
+<p>Scala 中泛型默认是不可变的，即不是协变的</p>
+<p>在类型形参前添加 <code>+</code> 使这个参数是协变的，即 <code>Queue[S]</code> 同样是 <code>Queue[T]</code> 的子类型</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Queue</span>[+<span class="type">T</span>] </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在类型形参前添加 <code>-</code> 使这个参数是逆变的，即 <code>Queue[T]</code> 是 <code>Queue[S]</code> 的子类型</p>
+<h2 id="型变检查"><a href="#型变检查" class="headerlink" title="型变检查"></a>型变检查</h2><p>不仅可变字段能让协变类型不可靠，而且一旦泛型参数作为方法参数类型，包含这个泛型参数的类或特质就不能以这个类型参数做协变</p>
+<p>被 <code>+</code> 修饰的类型参数不允许用于方法参数的类型</p>
+<p>编译器会检查家在类型参数上的任何型变注解，会检查每次使对类型参数的使用</p>
+<p>编译器将类或特质定义中所有出现类型参数的地方归为协变的、逆变的和不变的</p>
+<p>用 <code>+</code> 修饰的类型只能出现在可协变点，用 <code>-</code> 修饰的类型只能出现在可逆变点</p>
+<p>编译器从类型参数声明开始，逐步深入到更深的嵌套层次</p>
+<h2 id="下界"><a href="#下界" class="headerlink" title="下界"></a>下界</h2><p>可以使用多态的泛化，让类型参数具有下界</p>
+<p><code>&gt;:</code> 定义下界，<code>B &gt;: A</code> 表示类型参数 B 或抽象类型 B 是类型 A 的夫类</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Queue</span>[+<span class="type">T</span>] (<span class="params">...</span>) </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">enqueue</span></span>[<span class="type">U</span> &gt;: <span class="type">T</span>](x: <span class="type">U</span>): <span class="type">Queue</span>[<span class="type">U</span>] = &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义了 U 的下界是 T，即 U 必须是 T 的超类型</p>
+<p>下界的使用，可以使用任意 T 类型的超类型 U</p>
+<h2 id="上界"><a href="#上界" class="headerlink" title="上界"></a>上界</h2><p><code>T &lt;: A</code> 这样声明的类型上界表示类型变量 T 应该是类型 A 的子类</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/13/Scala-List/" rel="prev" title="List">
+                  <i class="fa fa-chevron-left"></i> List
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/13/Scala-%E5%AE%B9%E5%99%A8/" rel="next" title="容器">
+                  容器 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
