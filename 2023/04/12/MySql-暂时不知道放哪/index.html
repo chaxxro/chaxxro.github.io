@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="百万级别的数据删除索引文件是单独存在的文件，所以当我们对数据的增加、修改、删除，都会产生额外的对索引文件的操作，这些操作需要消耗额外的 IO，会降低增改删的执行效率 在删除数据库百万级别数据的时候，删除数据的速度和创建的索引数量是成正比的  先删除索引  删除数据  重新创建索引   InnoDB InnoDB 是聚集索引，数据文件是和索引放在一起，因此必须要有主键  通过主键查询的效率很高，通过">
+<meta property="og:type" content="article">
+<meta property="og:title" content="暂时不知道放哪">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="百万级别的数据删除索引文件是单独存在的文件，所以当我们对数据的增加、修改、删除，都会产生额外的对索引文件的操作，这些操作需要消耗额外的 IO，会降低增改删的执行效率 在删除数据库百万级别数据的时候，删除数据的速度和创建的索引数量是成正比的  先删除索引  删除数据  重新创建索引   InnoDB InnoDB 是聚集索引，数据文件是和索引放在一起，因此必须要有主键  通过主键查询的效率很高，通过">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/02.png">
+<meta property="article:published_time" content="2023-04-12T12:38:03.000Z">
+<meta property="article:modified_time" content="2023-04-13T02:39:56.422Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="MySql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/","path":"2023/04/12/MySql-暂时不知道放哪/","title":"暂时不知道放哪"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>暂时不知道放哪 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%99%BE%E4%B8%87%E7%BA%A7%E5%88%AB%E7%9A%84%E6%95%B0%E6%8D%AE%E5%88%A0%E9%99%A4"><span class="nav-text">百万级别的数据删除</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#InnoDB"><span class="nav-text">InnoDB</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#InnoDB-%E5%8A%A0%E9%94%81%E6%96%B9%E5%BC%8F"><span class="nav-text">InnoDB 加锁方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MyISAM"><span class="nav-text">MyISAM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A0%E9%94%81%E6%96%B9%E6%B3%95"><span class="nav-text">加锁方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BF%AB%E7%85%A7%E8%AF%BB%E5%92%8C%E5%BD%93%E5%89%8D%E8%AF%BB"><span class="nav-text">快照读和当前读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BF%AB%E7%85%A7%E8%AF%BB"><span class="nav-text">快照读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BD%93%E5%89%8D%E8%AF%BB"><span class="nav-text">当前读</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A6%E5%8F%91%E5%99%A8"><span class="nav-text">触发器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5"><span class="nav-text">主从同步</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%E5%8E%9F%E7%90%86"><span class="nav-text">主从复制原理</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">132</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="暂时不知道放哪 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          暂时不知道放哪
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-12 20:38:03" itemprop="dateCreated datePublished" datetime="2023-04-12T20:38:03+08:00">2023-04-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-13 10:39:56" itemprop="dateModified" datetime="2023-04-13T10:39:56+08:00">2023-04-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="百万级别的数据删除"><a href="#百万级别的数据删除" class="headerlink" title="百万级别的数据删除"></a>百万级别的数据删除</h2><p>索引文件是单独存在的文件，所以当我们对数据的增加、修改、删除，都会产生额外的对索引文件的操作，这些操作需要消耗额外的 IO，会降低增改删的执行效率</p>
+<p>在删除数据库百万级别数据的时候，删除数据的速度和创建的索引数量是成正比的</p>
+<ol>
+<li><p>先删除索引</p>
+</li>
+<li><p>删除数据</p>
+</li>
+<li><p>重新创建索引</p>
+</li>
+</ol>
+<h2 id="InnoDB"><a href="#InnoDB" class="headerlink" title="InnoDB"></a>InnoDB</h2><ul>
+<li><p>InnoDB 是聚集索引，数据文件是和索引放在一起，因此必须要有主键</p>
+</li>
+<li><p>通过主键查询的效率很高，通过非主键索引查询因为需要先查询到主键，然后再通过主键查询数据，因此效率较低</p>
+</li>
+<li><p>主键不应该过大，否则其他索引也会很大</p>
+</li>
+<li><p>InnoDB 支持外键</p>
+</li>
+<li><p>InnoDB 锁粒度是行锁</p>
+</li>
+<li><p>InnoDB 支持事务，对于 InnoDB 每一条 SQL 语言都默认封装成事务，自动提交，所以最好把多条 SQL 语言放在 <code>begin</code> 和 <code>commit</code> 之间，组成一个事务</p>
+</li>
+<li><p>InnoDB 不保存表的具体行数</p>
+</li>
+<li><p>InnoDB 支持 MVCC</p>
+</li>
+<li><p>InnoDB 支持 B+ 树索引和自适应哈希索引</p>
+</li>
+<li><p>InnoDB 是原始数据存储，占用存储更大</p>
+</li>
+<li><p>InnoDB不支持全文索引，但可以通过插件实现</p>
+</li>
+</ul>
+<h3 id="InnoDB-加锁方式"><a href="#InnoDB-加锁方式" class="headerlink" title="InnoDB 加锁方式"></a>InnoDB 加锁方式</h3><p>对于普通 <code>select</code> 语句，InnoDB 不会加任何锁，事务可以通过显式方式加共享锁或排他锁</p>
+<p>对于 <code>update</code>、 <code>delete</code> 和 &#96;insert 语句， InnoDB 会自动加排他锁</p>
+<p>InnoDB 在事务执行过程中，使用两阶段锁协议：根据隔离级别在需要的时候自动加锁；在执行 <code>commit</code> 或者 <code>rollback</code> 的时候所有的锁在同一时刻被释放</p>
+<h2 id="MyISAM"><a href="#MyISAM" class="headerlink" title="MyISAM"></a>MyISAM</h2><ul>
+<li><p>MyISAM 是非聚集索引，数据文件是分离的，索引保存的是数据文件的指针，主键索引和辅助索引是独立的</p>
+</li>
+<li><p>MyISAM 不支持外键</p>
+</li>
+<li><p>MyISAM 是表锁</p>
+</li>
+<li><p>MyISAM 不支持事务，但可以在 service 层进行根据自己的业务需求进行相应的控制</p>
+</li>
+<li><p>MyISAM 用一个变量保存了整个表行数</p>
+</li>
+<li><p>MyISAM 不支持 MVCC</p>
+</li>
+<li><p>MyISAM 支持 B+ 树索引</p>
+</li>
+<li><p>MyISAM 实现了前缀压缩技术，占用存储空间更小，但会影响查找</p>
+</li>
+<li><p>MyISAM 支持全文索引</p>
+</li>
+</ul>
+<h3 id="加锁方法"><a href="#加锁方法" class="headerlink" title="加锁方法"></a>加锁方法</h3><p>在执行查询语句前，会自动给涉及的表加读锁，在执行更新操作前，会自动给涉及的表加写锁</p>
+<p>在自动加锁的情况下，MyISAM 总是一次获得 SQL 语句所需要的全部锁</p>
+<p>MyISAM 存储引擎支持并发插入，以减少的读和写操作之间的冲突：如果 MyISAM 表在数据文件中间没有空闲块，则行始终插入数据文件的末尾；可以在其他线程进行读操作的时候，同时将行插入到 MyISAM 表中；文件中间的空闲块可能是从表格中间删除或更新的行而产生的，如果文件中间有空闲块，则并发插入会被禁用，但是当所有空闲块都填充有新数据时，它又会自动重新启用</p>
+<h2 id="快照读和当前读"><a href="#快照读和当前读" class="headerlink" title="快照读和当前读"></a>快照读和当前读</h2><h3 id="快照读"><a href="#快照读" class="headerlink" title="快照读"></a>快照读</h3><p>在 READ COMMITTED 和 REPEATABLE READ 隔离级别下，普通的 SELECT 查询都是读取 MVCC 版本链中的一个版本，相当于读取一个快照，因此称为快照读；这种读取方式不会加锁，因此读操作时非阻塞的，因此也叫非阻塞读</p>
+<h3 id="当前读"><a href="#当前读" class="headerlink" title="当前读"></a>当前读</h3><p>读取的是当前最新版本，称为当前读；当前读不仅会对当前记录加行记录锁，还会对查询范围空间的数据加间隙锁</p>
+<h2 id="触发器"><a href="#触发器" class="headerlink" title="触发器"></a>触发器</h2><p>触发器是与表有关的数据库对象，在满足定义条件时触发，并执行触发器中定义的语句集合，使用触发器可以保证某些操作之间的一致性</p>
+<p>能决定触发器执行某个操作的事件有：insert、update 和 delete</p>
+<p>不能在同一张表上建立 2 种同类型的触发器，一张表最多创建 6 个触发器(6 种类型)：即 BEFORE INSERT、BEFORE UPDATE、BEFORE DELETE、AFTER INSERT、AFTER UPDATE、AFTER DELETE</p>
+<p>在 INSERT 型触发器中，NEW 用来表示将要（BEFORE）或已经（AFTER）插入的新数据</p>
+<p>在 UPDATE 型触发器中，OLD 用来表示将要或已经被修改的原数据，NEW 用来表示将要或已经修改为的新数据</p>
+<p>在 DELETE 型触发器中，OLD 用来表示将要或已经被删除的原数据</p>
+<p>OLD 是只读的，而 NEW 则可以在触发器中使用 SET 赋值，这样不会再次触发触发器，造成循环调用</p>
+<p>多个执行语句则用 BEGIN、END 包围</p>
+<p>触发器基于行触发，当对整个表进行操作时效果较差</p>
+<p>在基于锁的操作中，触发器可能会导致锁等待或死锁；触发器执行失败，原来执行的 SQL 语句也会执行失败</p>
+<h2 id="主从同步"><a href="#主从同步" class="headerlink" title="主从同步"></a>主从同步</h2><p>为了减轻数据库压力，需要对数据库做读写分离和主从同步，写操作走主库，读操作走从库，分散了数据库的访问压力，提升整个系统的性能和可用性</p>
+<img src="/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/01.png" class="">
+
+<h3 id="主从复制原理"><a href="#主从复制原理" class="headerlink" title="主从复制原理"></a>主从复制原理</h3><p>主从复制需要三个线程，master（binlog dump thread）、slave（I&#x2F;O thread 、SQL thread）</p>
+<ul>
+<li><p>master 库 binlog dump 线程：当主库中有数据更新时，会将此次更新的事件类型写入到主库的 binlog 文件中，此时主库会创建 log dump 线程通知 slave 有数据更新，当 I&#x2F;O 线程请求日志内容时，会将此时的 binlog 名称和当前更新的位置同时传给 slave 的 I&#x2F;O 线程</p>
+</li>
+<li><p>slave 库 I&#x2F;0 线程：该线程会连接到 master，向 log dump 线程请求一份指定 binlog 文件位置的副本，并将请求回来的 binlog 存到本地的 relay log 中</p>
+</li>
+<li><p>slave 库 SQL 线程：该线程检测到 relay log 有更新后，会读取并在本地做 redo 操作，将发生在主库的事件在本地重新执行一遍，来保证主从数据同步；如果一个 relay log 文件中的全部事件都执行完毕，那么 SQL 线程会自动将该 relay log 文件删除掉</p>
+</li>
+</ul>
+<img src="/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/02.png" class="">
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MySql/" rel="tag"># MySql</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/11/SQL-%E5%87%BD%E6%95%B0%E5%92%8C%E6%93%8D%E4%BD%9C%E7%AC%A6/" rel="prev" title="函数和操作符">
+                  <i class="fa fa-chevron-left"></i> 函数和操作符
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
