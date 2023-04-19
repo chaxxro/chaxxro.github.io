@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">168</span>
+          <span class="site-state-item-count">195</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,7 +159,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/Scala-%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E5%8C%96/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-set/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/13/Scala-%E7%B1%BB%E5%9E%8B%E5%8F%82%E6%95%B0%E5%8C%96/" class="post-title-link" itemprop="url">类型参数化</a>
+          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-set/" class="post-title-link" itemprop="url">set</a>
         </h2>
 
         <div class="post-meta-container">
@@ -187,15 +187,18 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2023-04-13 11:17:19" itemprop="dateCreated datePublished" datetime="2023-04-13T11:17:19+08:00">2023-04-13</time>
+      <time title="创建时间：2023-04-19 17:26:05 / 修改时间：20:18:01" itemprop="dateCreated datePublished" datetime="2023-04-19T17:26:05+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
+        <i class="far fa-folder"></i>
       </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-18 19:07:12" itemprop="dateModified" datetime="2023-04-18T19:07:12+08:00">2023-04-18</time>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
+        </span>
     </span>
 
   
@@ -208,36 +211,43 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="信息隐藏"><a href="#信息隐藏" class="headerlink" title="信息隐藏"></a>信息隐藏</h2><p>Scala 主构造函数没有现式定义，它是通过类参数和类定义体隐式定义的</p>
-<p>可以通过在参数列表前添加 <code>private</code> 来隐藏主构造函数，从而只能在类本身及其伴生对象中访问</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Queue</span>[<span class="type">T</span>] <span class="title">private</span> (<span class="params">...</span>)</span></span><br></pre></td></tr></table></figure>
+          <h2 id="变量作用域"><a href="#变量作用域" class="headerlink" title="变量作用域"></a>变量作用域</h2><p>在 <code>function</code> 中定义的变量，变量仅在函数内和函数调用中可见</p>
+<p>非 <code>function</code> 内定义变量的默认变量作用域是文件夹作用域，在处理当前文件夹下的 CMakeLists.txt 时，会将父目录中的变量拷贝至当前目录中</p>
+<p>全局变量，仅能被显式修改</p>
+<h2 id="普通变量"><a href="#普通变量" class="headerlink" title="普通变量"></a>普通变量</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(&lt;variable&gt; &lt;value&gt;... [PARENT_SCOPE])</span><br></pre></td></tr></table></figure>
 
-<p>还可以通过私有类来隐藏</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Queue</span>[<span class="type">T</span>] </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">Queue</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">apply</span></span>(...) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">QueueImpl</span>[<span class="type">T</span>] (<span class="params">...</span>) <span class="keyword">extends</span> <span class="title">Queue</span>[<span class="type">T</span>] </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>作用域是当前函数作用域或当前文件夹作用域</p>
+<p>如果使用 <code>PARENT_SCOPE</code> 则会修改父目录中 CMakeLists.txt 的该变量值，而不会修改当前作用域该变量的值</p>
+<h2 id="缓存变量"><a href="#缓存变量" class="headerlink" title="缓存变量"></a>缓存变量</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(&lt;variable&gt; &lt;value&gt;... CACHE &lt;type&gt; &lt;docstring&gt; [FORCE])</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(CACHE_VAL <span class="string">&quot;666&quot;</span> CACHE <span class="keyword">STRING</span> INTERNAL)</span><br></pre></td></tr></table></figure>
 
-<h2 id="型变注解"><a href="#型变注解" class="headerlink" title="型变注解"></a>型变注解</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Queue</span>[<span class="type">T</span>] </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>相当于一个全局变量</p>
+<p>默认情况下，不能覆盖已存在的缓存变量，除非使用 <code>FORCE</code></p>
+<p><code>type</code> 包括：</p>
+<ul>
+<li><p><code>BOOL</code>：<code>ON</code> 和 <code>OFF</code></p>
+</li>
+<li><p><code>FILEPATH</code>：文件地址</p>
+</li>
+<li><p><code>PATH</code>：文件夹地址</p>
+</li>
+<li><p><code>STRING</code>：字符串</p>
+</li>
+<li><p><code>INTERNAL</code>：内部变量，不显示在 cmake-gui</p>
+</li>
+</ul>
+<p><code>doctring</code>：提示文字</p>
+<h2 id="环境变量"><a href="#环境变量" class="headerlink" title="环境变量"></a>环境变量</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(ENV&#123;&lt;variable&gt;&#125; [&lt;value&gt;])</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(ENV&#123;DEFINE&#125; DEFINE)</span><br></pre></td></tr></table></figure>
 
-<p><code>Queue</code> 不是类型，不能创建其对象</p>
-<p><code>Queue[String]</code> 是类型</p>
-<p>对于 <code>Queue[T]</code> 和 <code>Queue[S]</code>，如果 S 是 T 的子类型，<code>Queue[S]</code> 不是 <code>Queue[T]</code> 的 子类型</p>
-<p>Scala 中泛型默认是不可变的，即不是协变的</p>
-<p>在类型形参前添加 <code>+</code> 使这个参数是协变的，即 <code>Queue[S]</code> 同样是 <code>Queue[T]</code> 的子类型</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Queue</span>[+<span class="type">T</span>] </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>使用格式 <code>$ENV&#123;DEFINE&#125;</code></p>
+<h1 id="unset"><a href="#unset" class="headerlink" title="unset"></a>unset</h1><p>复原变量</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unset</span>(&lt;variable&gt; [CACHE | PARENT_SCOPE])</span><br><span class="line"></span><br><span class="line"><span class="keyword">unset</span>(ENV&#123;&lt;variable&gt;&#125;)</span><br></pre></td></tr></table></figure>
 
-<p>在类型形参前添加 <code>-</code> 使这个参数是逆变的，即 <code>Queue[T]</code> 是 <code>Queue[S]</code> 的子类型</p>
-<h2 id="型变检查"><a href="#型变检查" class="headerlink" title="型变检查"></a>型变检查</h2><p>不仅可变字段能让协变类型不可靠，而且一旦泛型参数作为方法参数类型，包含这个泛型参数的类或特质就不能以这个类型参数做协变</p>
-<p>被 <code>+</code> 修饰的类型参数不允许用于方法参数的类型</p>
-<p>编译器会检查家在类型参数上的任何型变注解，会检查每次使对类型参数的使用</p>
-<p>编译器将类或特质定义中所有出现类型参数的地方归为协变的、逆变的和不变的</p>
-<p>用 <code>+</code> 修饰的类型只能出现在可协变点，用 <code>-</code> 修饰的类型只能出现在可逆变点</p>
-<p>编译器从类型参数声明开始，逐步深入到更深的嵌套层次</p>
-<h2 id="下界"><a href="#下界" class="headerlink" title="下界"></a>下界</h2><p>可以使用多态的泛化，让类型参数具有下界</p>
-<p><code>&gt;:</code> 定义下界，<code>B &gt;: A</code> 表示类型参数 B 或抽象类型 B 是类型 A 的夫类</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Queue</span>[+<span class="type">T</span>] (<span class="params">...</span>) </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">enqueue</span></span>[<span class="type">U</span> &gt;: <span class="type">T</span>](x: <span class="type">U</span>): <span class="type">Queue</span>[<span class="type">U</span>] = &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>定义了 U 的下界是 T，即 U 必须是 T 的超类型</p>
-<p>下界的使用，可以使用任意 T 类型的超类型 U</p>
-<h2 id="上界"><a href="#上界" class="headerlink" title="上界"></a>上界</h2><p><code>T &lt;: A</code> 这样声明的类型上界表示类型变量 T 应该是类型 A 的子类</p>
+<ul>
+<li><p><code>CACHE</code>：删除一个 cache 变量而不是普通变量</p>
+</li>
+<li><p><code>PARENT_SCOPE</code>：删除父目录中的当前变量</p>
+</li>
+</ul>
 
       
     </div>
@@ -264,7 +274,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/Scala-List/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-marco/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -282,7 +292,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/13/Scala-List/" class="post-title-link" itemprop="url">List</a>
+          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-marco/" class="post-title-link" itemprop="url">marco</a>
         </h2>
 
         <div class="post-meta-container">
@@ -292,15 +302,9 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2023-04-13 11:16:43" itemprop="dateCreated datePublished" datetime="2023-04-13T11:16:43+08:00">2023-04-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-18 19:07:12" itemprop="dateModified" datetime="2023-04-18T19:07:12+08:00">2023-04-18</time>
+      <time title="创建时间：2023-04-19 15:25:39 / 修改时间：20:18:01" itemprop="dateCreated datePublished" datetime="2023-04-19T15:25:39+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -308,7 +312,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Scala/" itemprop="url" rel="index"><span itemprop="name">Scala</span></a>
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
         </span>
     </span>
 
@@ -322,57 +326,151 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>列表是不可变的，即列表的元素不能通过赋值改变</p>
-<p>列表的结构是递归的</p>
-<h2 id="构建列表"><a href="#构建列表" class="headerlink" title="构建列表"></a>构建列表</h2><p>所有的列表都构建自两个基础单元 <code>:Nil</code> 和 <code>::</code></p>
-<p>中缀操作符 <code>::</code> 表示在列表前追加元素，且由于 <code>::</code> 是右结合，所以 <code>A::B::C</code> 可以翻译成 <code>A::(B::C)</code></p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> nums = <span class="number">1</span> :: <span class="number">2</span> :: <span class="number">3</span> :: <span class="type">Nil</span></span><br></pre></td></tr></table></figure>
+          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">macro</span>(&lt;name&gt; [&lt;arg1&gt; ...])</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">endmacro</span>()</span><br></pre></td></tr></table></figure>
 
-<h2 id="List-协变"><a href="#List-协变" class="headerlink" title="List 协变"></a>List 协变</h2><p>Scala 的列表类型是协变的，即对于 <code>S</code> 和 <code>T</code>，当 <code>S</code> 是 <code>T</code> 的子类型时，<code>List[S]</code> 也是 <code>List[T]</code> 的子类型</p>
-<p>因为 <code>Object</code> 是顶类型，所以 <code>List[Object]</code> 是所有 <code>List[T]</code> 的父类型</p>
-<p>因为 <code>Nothing</code> 是底类型，所以 <code>List[Nothing]</code> 是所有 <code>List[T]</code> 的子类型</p>
-<p>空列表的类型是 <code>List[Nothing]</code></p>
-<h2 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h2><p>对列表的所有操作都可以用三项表示：</p>
-<ul>
-<li><p><code>head</code> 返回列表的第一个元素</p>
-</li>
-<li><p><code>tail</code> 返回除第一个元素外的其他所有元素</p>
-</li>
-<li><p><code>isEmpty</code> 返回是否为空列表</p>
-</li>
-</ul>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 插入排序</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">isort</span></span>(xs: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = &#123;</span><br><span class="line">    <span class="keyword">if</span> (xs.isEmpty) <span class="type">Nil</span></span><br><span class="line">    <span class="keyword">else</span> insert(xs.head, isort(xs.tail))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">insert</span></span>(x: <span class="type">Int</span>, xs: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = &#123;</span><br><span class="line">    <span class="keyword">if</span> (xs.isEmpty || x &lt;= xs.head) x :: xs</span><br><span class="line">    <span class="keyword">else</span> xs.head :: insert(x, xs.tail)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(var <span class="string">&quot;ABC&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">macro</span>(Moo arg)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;arg = $&#123;arg&#125;&quot;</span>)  <span class="comment"># 输出原值 ABC</span></span><br><span class="line">    <span class="keyword">set</span>(arg <span class="string">&quot;abc&quot;</span>)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;# After change the value of arg.&quot;</span>)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;arg = $&#123;arg&#125;&quot;</span>)  <span class="comment"># 输出原值 ABC</span></span><br><span class="line"><span class="keyword">endmacro</span>()</span><br></pre></td></tr></table></figure>
 
-<h2 id="列表模式"><a href="#列表模式" class="headerlink" title="列表模式"></a>列表模式</h2><p>列表可以用模式匹配解开，可以逐一对应到列表表达式</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> <span class="type">List</span>(a, b, c) = nums</span><br><span class="line"><span class="comment">// a == 1</span></span><br><span class="line"><span class="comment">// b == 2</span></span><br><span class="line"><span class="comment">// c == 3</span></span><br><span class="line"><span class="keyword">val</span> d :: e :: f = nums</span><br><span class="line"><span class="comment">// d == 1</span></span><br><span class="line"><span class="comment">// e == 2</span></span><br><span class="line"><span class="comment">// f == 3</span></span><br></pre></td></tr></table></figure>
+<p>调用宏时，cmake 会像 c 的预处理一样将宏命令复制到调用处，然后对宏中的 <code>$&#123;xx&#125;</code> 做字符替换，所以在宏中需要引用参数的话必须写 <code>$&#123;arg&#125;</code></p>
+<p>因为是直接简单粗暴地替换，所以宏定义中的 <code>set</code> 方法试图改变宏定义中传进来的参数 <code>arg</code> 是不可能的</p>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ARGV#</td>
+<td>ARGV0 为第一个参数，ARGV1 为第二个参数，依次类推</td>
+</tr>
+<tr>
+<td>ARGV</td>
+<td>定义宏（函数）时参数为 2 个，实际传了 4 个，则 ARGV 代表实际传入的两个</td>
+</tr>
+<tr>
+<td>ARGN</td>
+<td>定义宏（函数）时参数为 2 个，实际传了 4 个，则ARGN代表剩下的 2 个</td>
+</tr>
+<tr>
+<td>ARGC</td>
+<td>实际传入的参数的个数</td>
+</tr>
+</tbody></table>
+<p>同理，<code>ARGN</code>、<code>ARGV</code> 也是字符串的简单替换，因此不能直接使用这些参数，也需要带 <code>$&#123;xx&#125;</code></p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 错误用法</span></span><br><span class="line"><span class="keyword">if</span>(ARGV1)</span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">DEFINED</span> ARGV2)</span><br><span class="line"><span class="keyword">if</span>(ARGC <span class="keyword">GREATER</span> <span class="number">2</span>)</span><br><span class="line"><span class="keyword">foreach</span>(var IN LISTS ARGN)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正确用法</span></span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$&#123;ARGV1&#125;</span>)</span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">DEFINED</span> <span class="variable">$&#123;ARGV2&#125;</span>)</span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$&#123;ARGC&#125;</span> <span class="keyword">GREATER</span> <span class="number">2</span>)</span><br><span class="line"><span class="keyword">foreach</span>(var IN LISTS <span class="variable">$&#123;ARGN&#125;</span>)</span><br></pre></td></tr></table></figure>
+      
+    </div>
 
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用模式匹配的插入排序</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">isort</span></span>(xs: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = xs <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">List</span>() =&gt; <span class="type">List</span>()</span><br><span class="line">    <span class="keyword">case</span> x :: tail =&gt; insert(x, isort(tail))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">insert</span></span>(x: <span class="type">Int</span>, xs: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">List</span>[<span class="type">Int</span>] = xs <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">List</span>() =&gt; <span class="type">List</span>()</span><br><span class="line">    <span class="keyword">case</span> y :: tail =&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (x &lt;= y) x :: xs</span><br><span class="line">        <span class="keyword">else</span> y :: insert(x, tail)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    
+    
+    
 
-<h2 id="初阶方法"><a href="#初阶方法" class="headerlink" title="初阶方法"></a>初阶方法</h2><p><code>:::</code> 接受两个列表参数</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>) ::: <span class="type">List</span>(<span class="number">3</span>, <span class="number">4</span>)</span><br></pre></td></tr></table></figure>
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
 
-<p><code>length</code> 获取列表长度</p>
-<p><code>last</code> 获取列表最后一个元素，<code>init</code> 获取除最后一个元素的所有元素，<code>init</code> 和 <code>last</code> 需要遍历整个列表，耗时跟长度成正比</p>
-<p><code>reverse</code> 创建一个原列表反转后的新列表</p>
-<p><code>take</code> 获取列表前 n 个元素，<code>drop</code> 获取除前 n 个元素外的所有元素</p>
-<p><code>splitAt</code> 将列表从指定下标位置切开，返回两个列表组成的 <code>Tuple</code>，等价于 <code>(xs.take(n), xs.drop(n))</code></p>
-<p><code>apply</code> 支持从任意位置选取元素，<code>list.apply(2)</code> 等价于 <code>list.drop(n).head</code></p>
-<p><code>indices</code> 返回指定列表所有有效下标的列表</p>
-<p><code>flatten</code> 将列表的列表扁平化，返回单个列表</p>
-<p><code>zip</code> 接受两个列表，返回一个由 <code>Tuple</code> 组成的列表，将两个列表的元素组合起来</p>
-<p><code>zipWithIndex</code> 返回元素与下标组成的列表</p>
-<p><code>unzip</code> 将 <code>Tuple</code> 组成的列表还原成两个列表</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 归并排序</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">msort</span></span>[<span class="type">T</span>](less: (<span class="type">T</span>, <span class="type">T</span>) =&gt; <span class="type">Boolean</span>)(xs: <span class="type">List</span>[<span class="type">T</span>]): <span class="type">List</span>[<span class="type">T</span>] = &#123;</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">merge</span></span>(xs: <span class="type">List</span>[<span class="type">T</span>], ys: <span class="type">List</span>[<span class="type">T</span>]): <span class="type">List</span>[<span class="type">T</span>] = (xs, ys) <span class="keyword">match</span> &#123;</span><br><span class="line">        <span class="keyword">case</span> (<span class="type">Nil</span>, _) =&gt; ys</span><br><span class="line">        <span class="keyword">case</span> (_, <span class="type">Nil</span>) =&gt; xs</span><br><span class="line">        <span class="keyword">case</span> (x :: xs1, y :: ys1) =&gt; &#123;</span><br><span class="line">            <span class="keyword">if</span> (less(x, y)) x :: merge(xs1, ys)</span><br><span class="line">            <span class="keyword">else</span> y :: merge(xs, ys1)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> n = xs.length / <span class="number">2</span></span><br><span class="line">    <span class="keyword">if</span> (n == <span class="number">0</span>) xs</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">val</span> (ys, zs) = xs.splitAt(n)</span><br><span class="line">        merge(msort(less)(ys), msort(less)(zs))</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="高阶方法"><a href="#高阶方法" class="headerlink" title="高阶方法"></a>高阶方法</h2><p><code>map</code> 将 <code>List[T]</code> 转换成 <code>List[f(T)]</code></p>
-<p><code>flatMap</code> 要求入参的操作元返回一个元素列表，并将所有结果拼接成一个列表</p>
-<p><code>filter</code> 接受 <code>T =&gt; Boolean</code> 的前提条件函数，返回满足条件的列表</p>
-<p><code>partition</code> 与 <code>filter</code> 类似，但返回 <code>(List, List)</code>，等价于 <code>(xs.filter(p), xs.filter(!p(_)))</code></p>
-<p><code>find</code> 返回第一个满足条件的元素，返回 <code>Option[T]</code></p>
-<p><code>foldLeft(z)(op)</code>、<code>foldRight(z)(op)</code> 折叠列表，<code>z</code> 为起始值，<code>op</code> 为二元操作符</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 0 + a + b + ...</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sum</span></span>(xs: <span class="type">List</span>[<span class="type">Int</span>]): <span class="type">Int</span> = xs.foldLeft(<span class="number">0</span>)(_ + _)</span><br></pre></td></tr></table></figure>
 
-<p><code>sortWith</code> 对列表进行排序</p>
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-function/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-function/" class="post-title-link" itemprop="url">function</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-19 14:50:32 / 修改时间：20:18:01" itemprop="dateCreated datePublished" datetime="2023-04-19T14:50:32+08:00">2023-04-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>cmake 函数名不区分大小写</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span>(&lt;name&gt; [&lt;arg1&gt; ...])</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">endfunction</span>()</span><br></pre></td></tr></table></figure>
+
+<p>一个函数将新建一个作用域</p>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ARGV#</td>
+<td>ARGV0 为第一个参数，ARGV1 为第二个参数，依次类推</td>
+</tr>
+<tr>
+<td>ARGV</td>
+<td>定义宏（函数）时参数为 2 个，实际传了 4 个，则 ARGV 代表实际传入的两个</td>
+</tr>
+<tr>
+<td>ARGN</td>
+<td>定义宏（函数）时参数为 2 个，实际传了 4 个，则ARGN代表剩下的 2 个</td>
+</tr>
+<tr>
+<td>ARGC</td>
+<td>实际传入的参数的个数</td>
+</tr>
+</tbody></table>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(var <span class="string">&quot;ABC&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span>(Foo arg)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;arg = $&#123;arg&#125;&quot;</span>)  <span class="comment"># 输出原值 ABC</span></span><br><span class="line">    <span class="keyword">set</span>(arg <span class="string">&quot;abc&quot;</span>)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;# After change the value of arg.&quot;</span>)  <span class="comment"># 输出修改后的值 abc</span></span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;arg = $&#123;arg&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">endfunction</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">message</span>(<span class="string">&quot;=== Call function ===&quot;</span>)</span><br><span class="line">Foo(<span class="variable">$&#123;var&#125;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>通过 <code>Foo($&#123;var&#125;)</code> 调用函数时，CMake 会将变量进行展开，依次匹配函数声明中的参数列表，相当于传统函数调用中的值传递</p>
+<p>在 <code>function</code> 中定义的变量，变量仅在函数内和函数调用中可见</p>
+<p><code>CMAKE_CURRENT_FUNCTION</code> 当前函数名称</p>
+<p><code>CMAKE_CURRENT_FUNCTION_LIST_DIR</code> 当前函数路径</p>
+<p><code>CMAKE_CURRENT_FUNCTION_LIST_FILE</code> 当前函数所属文件</p>
+<p><code>CMAKE_CURRENT_FUNCTION_LIST_LINE</code> 当前函数定义的起始行数</p>
 
       
     </div>
@@ -399,7 +497,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/Scala-%E6%A8%A1%E5%BC%8F%E5%8C%B9%E9%85%8D/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-string/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -417,7 +515,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/13/Scala-%E6%A8%A1%E5%BC%8F%E5%8C%B9%E9%85%8D/" class="post-title-link" itemprop="url">模式匹配</a>
+          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-string/" class="post-title-link" itemprop="url">string</a>
         </h2>
 
         <div class="post-meta-container">
@@ -427,15 +525,9 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2023-04-13 11:15:42" itemprop="dateCreated datePublished" datetime="2023-04-13T11:15:42+08:00">2023-04-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-18 19:07:12" itemprop="dateModified" datetime="2023-04-18T19:07:12+08:00">2023-04-18</time>
+      <time title="创建时间：2023-04-19 14:45:28 / 修改时间：20:18:01" itemprop="dateCreated datePublished" datetime="2023-04-19T14:45:28+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -443,7 +535,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Scala/" itemprop="url" rel="index"><span itemprop="name">Scala</span></a>
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
         </span>
     </span>
 
@@ -457,93 +549,33 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="样例类"><a href="#样例类" class="headerlink" title="样例类"></a>样例类</h2><p>样例类用 <code>case</code> 修饰</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Expr</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Var</span>(<span class="params">name: <span class="type">String</span></span>) <span class="keyword">extends</span> <span class="title">Expr</span></span></span><br><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Number</span>(<span class="params">num: <span class="type">Double</span></span>) <span class="keyword">extends</span> <span class="title">Expr</span></span></span><br><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">UnOp</span>(<span class="params">op: <span class="type">String</span>, arg: <span class="type">Expr</span></span>) <span class="keyword">extends</span> <span class="title">Expr</span></span></span><br><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">BinOp</span>(<span class="params">op: <span class="type">String</span>, left: <span class="type">Expr</span>, right: <span class="type">Expr</span></span>) <span class="keyword">extends</span> <span class="title">Expr</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> x = <span class="type">Var</span>(<span class="string">&quot;x&quot;</span>)</span><br><span class="line"><span class="keyword">val</span> operator = <span class="type">BinOp</span>(<span class="string">&quot;+&quot;</span>, <span class="type">Number</span>(<span class="number">1</span>), x)</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> n = operator.copy(op = <span class="string">&quot;-&quot;</span>)</span><br></pre></td></tr></table></figure>
+          <h2 id="查找和替换"><a href="#查找和替换" class="headerlink" title="查找和替换"></a>查找和替换</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(FIND &lt;<span class="keyword">string</span>&gt; &lt;substring&gt; &lt;output_variable&gt; [REVERSE])</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li><p>样例类会自动添加跟类同名的工厂方法</p>
-</li>
-<li><p>样例类的参数列表都会隐式地获得一个 <code>val</code>，从而能被外界访问到</p>
-</li>
-<li><p>编译器会自动处理 <code>toString</code>、<code>hashCode</code> 和 <code>equals</code> 方法，由于 <code>==</code> 总是调用 <code>equals</code>，因此样例类对象总是以结构化的方式做比较</p>
-</li>
-<li><p>编译器会添加 <code>copy</code> 方法用于制作修改过的拷贝，这个方法可以用于制作除一两个属性不同之外其余完全相同的新实例，使用带名字的参数给出想要的修改</p>
-</li>
-<li><p>样例类的最大好处是可以做模式匹配</p>
-</li>
-</ul>
-<h2 id="模式匹配"><a href="#模式匹配" class="headerlink" title="模式匹配"></a>模式匹配</h2><p>模式匹配包含一系列 <code>case</code> 关键字打头的可选分支，每个分支都包括一个模式以及有一个或多个表达式</p>
-<p>模式匹配后表达式会被求值</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">simplifyTop</span></span>(expr: <span class="type">Expr</span>): <span class="type">Expr</span> = expr <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">UnOp</span>(<span class="string">&quot;-&quot;</span>, <span class="type">UnOp</span>(<span class="string">&quot;-&quot;</span>, e)) =&gt; e</span><br><span class="line">    <span class="keyword">case</span> <span class="type">BinOp</span>(<span class="string">&quot;+&quot;</span>, e, <span class="type">Number</span>(<span class="number">0</span>)) =&gt; e</span><br><span class="line">    <span class="keyword">case</span> <span class="type">BinOp</span>(<span class="string">&quot;*&quot;</span>, e, <span class="type">Number</span>(<span class="number">1</span>)) =&gt; e</span><br><span class="line">    <span class="keyword">case</span> _ =&gt; expr</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查找 string 中的 sbustring，将 substring 的索引存储在 output_variable</p>
+<p>未找到 substring 返回 -1</p>
+<p><code>string(FIND)</code> 将 string 当作 ASCII 串处理</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(REPLACE &lt;match_string&gt;</span><br><span class="line">       &lt;replace_string&gt; &lt;output_variable&gt;</span><br><span class="line">       &lt;input&gt; [&lt;input&gt;...])</span><br></pre></td></tr></table></figure>
 
-<p><code>match</code> 是一个表达式，它总会返回一个值</p>
-<p>可选分支是不可穿透的，如果没有一个模式匹配上，则抛出 <code>MatchError</code></p>
-<h2 id="模式种类"><a href="#模式种类" class="headerlink" title="模式种类"></a>模式种类</h2><h3 id="通配模式"><a href="#通配模式" class="headerlink" title="通配模式"></a>通配模式</h3><p>通配模式 <code>_</code> 会匹配任何对象，可以用来忽略某个对象中不关心的局部</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">expr <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">BinOp</span>(_, _, _) =&gt; println(expr)  <span class="comment">// 忽略参数</span></span><br><span class="line">    <span class="keyword">case</span> _ =&gt; println(expr)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>将 input 中所有 match_string 替换成 replace_string，并将结果存储在 output_variable 中 </p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(REGEX MATCH &lt;regular_expression&gt;</span><br><span class="line">       &lt;output_variable&gt; &lt;input&gt; [&lt;input&gt;...])</span><br></pre></td></tr></table></figure>
 
-<h3 id="常量模式"><a href="#常量模式" class="headerlink" title="常量模式"></a>常量模式</h3><p>常量模式只匹配自己，任何字面量都可以作为常量模式使用</p>
-<p>任何 <code>val</code> 和单例对象也可以作为常量模式使用</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">describe</span></span>(x: <span class="type">Any</span>) = x <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">5</span> =&gt; ...</span><br><span class="line">    <span class="keyword">case</span> <span class="literal">true</span> =&gt; ...</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&quot;hello&quot;</span> =&gt; ...</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Nil</span> =&gt; ...  <span class="comment">// Nil 是单例对象且仅能匹配空列表</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用 regular_expression 匹配一次，在匹配前会将所有 input 连接起来，将结果存储在 output_variable</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(REGEX MATCHALL &lt;regular_expression&gt;</span><br><span class="line">       &lt;output_variable&gt; &lt;input&gt; [&lt;input&gt;...])</span><br></pre></td></tr></table></figure>
 
-<h3 id="变量模式"><a href="#变量模式" class="headerlink" title="变量模式"></a>变量模式</h3><p>变量模式匹配任何对象，并将对应的变量绑定匹配上的对象</p>
-<p>因为常量模式也可以用符号形式的名称，所有变量模式下需要区分变量还是常量</p>
-<p>使用 <code>Nil</code> 时就是在用一个符号来引用常量</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">expr <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">0</span> =&gt; <span class="number">0</span></span><br><span class="line">    <span class="keyword">case</span> something =&gt; <span class="string">&quot;not zero&quot;</span> + something</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// something 是变量</span></span><br></pre></td></tr></table></figure>
+<p>使用 regular_expression 尽可能多的匹配，在匹配前会将所有 input 连接起来，将结果存储在 output_variable</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(REGEX REPLACE &lt;regular_expression&gt;</span><br><span class="line">       &lt;replacement_expression&gt; &lt;output_variable&gt;</span><br><span class="line">       &lt;input&gt; [&lt;input&gt;...])```</span><br></pre></td></tr></table></figure>
 
-<p>编译器使用一个简单的词法规则来区分常量模式和变量模式：</p>
-<ul>
-<li><p>一个以小写字母打头的简单名称会被当做变量模式处理</p>
-</li>
-<li><p>所有引用都是常量</p>
-</li>
-</ul>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> math.&#123;<span class="type">E</span>, <span class="type">Pi</span>&#125;</span><br><span class="line"><span class="type">E</span> <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Pi</span> =&gt; <span class="string">&quot; &quot;</span></span><br><span class="line">    <span class="keyword">case</span> _ =&gt; <span class="string">&quot;other&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// res = &quot;other&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> pi = math.<span class="type">Pi</span></span><br><span class="line"><span class="type">E</span> <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> pi =&gt; <span class="string">&quot; &quot;</span>  <span class="comment">// 匹配所有</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// res = &quot; &quot;</span></span><br></pre></td></tr></table></figure>
+<p>使用 regular_expression 尽可能多的匹配，在匹配前会将所有 input 连接起来，使用 replacement_expression 替换后将结果存储在 output_variable</p>
+<h2 id="修改"><a href="#修改" class="headerlink" title="修改"></a>修改</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(APPEND &lt;<span class="keyword">string</span>-var&gt; [&lt;input&gt;...])</span><br><span class="line"><span class="keyword">string</span>(PREPEND &lt;<span class="keyword">string</span>-var&gt; [&lt;input&gt;...])</span><br><span class="line"><span class="keyword">string</span>(CONCAT &lt;out-var&gt; [&lt;input&gt;...])</span><br><span class="line"><span class="keyword">string</span>(JOIN &lt;glue&gt; &lt;out-var&gt; [&lt;input&gt;...])</span><br><span class="line"><span class="keyword">string</span>(TOLOWER &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(TOUPPER &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(LENGTH &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(SUBSTRING &lt;<span class="keyword">string</span>&gt; &lt;begin&gt; &lt;length&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(STRIP &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(GENEX_STRIP &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(REPEAT &lt;<span class="keyword">string</span>&gt; &lt;count&gt; &lt;out-var&gt;)</span><br></pre></td></tr></table></figure>
 
-<p>如果一定要用小写字母来做常量模式，可以：</p>
-<ul>
-<li><p>如果常量是某个对象的字段，可以加上限定词如 <code>this.pi</code></p>
-</li>
-<li><p>还可以用反引号来将名称包起来 <code>`pi`</code></p>
-</li>
-</ul>
-<h3 id="构造方法模式"><a href="#构造方法模式" class="headerlink" title="构造方法模式"></a>构造方法模式</h3><p>构造方法模式由一个名称和一组圆括号中的模式组成，如 <code>BinOp(&quot;+&quot;, e, Numer(0))</code> </p>
-<p>名称指定的是一个样例类，这个模式会首先检查被匹配的对象是否是这个样例类的实例，然后再检查这个对象的构造方法参数是否匹配这些额外给出的模式</p>
-<p>额外给出的模式意味着支持深度匹配，即不仅检查给出的对象的顶层，还会进一步检查对象的内容是否匹配额外的模式要求</p>
-<p>额外的模式也可能是构造方法模式，用它来检查对象内部时可以到任意深度</p>
-<h3 id="序列模式"><a href="#序列模式" class="headerlink" title="序列模式"></a>序列模式</h3><p>可以给序列类型做匹配，如 <code>List</code> 和 <code>Array</code></p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">expr <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">List</span>(<span class="number">0</span>, _, _) =&gt; println(<span class="string">&quot; &quot;</span>)  <span class="comment">// 匹配以 0 开头的三元素列表</span></span><br><span class="line">    <span class="keyword">case</span> <span class="type">List</span>(<span class="number">1</span>, _*) =&gt; ...  <span class="comment">// _* 可以匹配任意数量的元素，包括 0 个元素</span></span><br><span class="line">    <span class="keyword">case</span> _ =&gt; ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="比较"><a href="#比较" class="headerlink" title="比较"></a>比较</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(COMPARE <span class="keyword">LESS</span> &lt;string1&gt; &lt;string2&gt; &lt;output_variable&gt;)</span><br><span class="line"><span class="keyword">string</span>(COMPARE <span class="keyword">GREATER</span> &lt;string1&gt; &lt;string2&gt; &lt;output_variable&gt;)</span><br><span class="line"><span class="keyword">string</span>(COMPARE <span class="keyword">EQUAL</span> &lt;string1&gt; &lt;string2&gt; &lt;output_variable&gt;)</span><br><span class="line"><span class="keyword">string</span>(COMPARE NOTEQUAL &lt;string1&gt; &lt;string2&gt; &lt;output_variable&gt;)</span><br><span class="line"><span class="keyword">string</span>(COMPARE <span class="keyword">LESS_EQUAL</span> &lt;string1&gt; &lt;string2&gt; &lt;output_variable&gt;)</span><br><span class="line"><span class="keyword">string</span>(COMPARE <span class="keyword">GREATER_EQUAL</span> &lt;string1&gt; &lt;string2&gt; &lt;output_variable&gt;)</span><br></pre></td></tr></table></figure>
 
-<h3 id="元组模式"><a href="#元组模式" class="headerlink" title="元组模式"></a>元组模式</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">tupleDemo</span></span>(expr: <span class="type">Any</span>) = &#123;</span><br><span class="line">    <span class="keyword">case</span> (a, b, c) =&gt; println(a)</span><br><span class="line">    <span class="keyword">case</span> _ =&gt; ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="哈希"><a href="#哈希" class="headerlink" title="哈希"></a>哈希</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(&lt;HASH&gt; &lt;out-var&gt; &lt;input&gt;)</span><br></pre></td></tr></table></figure>
 
-<h3 id="带类型的模式"><a href="#带类型的模式" class="headerlink" title="带类型的模式"></a>带类型的模式</h3><p>用带类型的模式来替代类型测试 <code>isInstanceOf[T]</code> 和类型转换 <code>asInstance[T]</code></p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">x <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> s: <span class="type">String</span> =&gt; s.length</span><br><span class="line">    <span class="keyword">case</span> m: <span class="type">Map</span>[_, _] =&gt; m.size  <span class="comment">// 匹配任意 Map 类型</span></span><br><span class="line">    <span class="keyword">case</span> _ =&gt; <span class="number">-1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>支持 MD5、SHA1、SHA224、SHA256、SHA384、SHA512、SHA3_224、SHA3_256、SHA3_384、SHA3_512、</p>
+<h2 id="生成"><a href="#生成" class="headerlink" title="生成"></a>生成</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(ASCII &lt;number&gt;... &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(HEX &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(CONFIGURE &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt; [...])</span><br><span class="line"><span class="keyword">string</span>(MAKE_C_IDENTIFIER &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(RANDOM [&lt;<span class="keyword">option</span>&gt;...] &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(TIMESTAMP &lt;out-var&gt; [&lt;format <span class="keyword">string</span>&gt;] [UTC])</span><br><span class="line"><span class="keyword">string</span>(UUID &lt;out-var&gt; ...)</span><br></pre></td></tr></table></figure>
 
-<p>但由于类型擦除，对于除数组的模板对象都会匹配错误</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Map(&quot;a&quot; -&gt; 1) match &#123;</span><br><span class="line">    case m: Map[Int, Int] =&gt; true</span><br><span class="line">    case _: false</span><br><span class="line">&#125;</span><br><span class="line">// true</span><br></pre></td></tr></table></figure>
-
-<h3 id="变量绑定"><a href="#变量绑定" class="headerlink" title="变量绑定"></a>变量绑定</h3><p>除了独自存在的变量模式，还可以在任何其他模式中绑定变量，只需要写出变量名、<code>@</code> 和模式本身</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">expr <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">UnOp</span>(<span class="string">&quot;abs&quot;</span>, e @ <span class="type">UnOp</span>(<span class="string">&quot;abs&quot;</span>, _)) =&gt; e</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// e == UnOp(&quot;abs&quot;, _)</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="模式守卫"><a href="#模式守卫" class="headerlink" title="模式守卫"></a>模式守卫</h2><p>模式守卫出现在模式之后，并以 <code>if</code> 打头，模式守卫可以是任意的布尔表达式</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">expr <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">BinOp</span>(<span class="string">&quot;+&quot;</span>, x, y) <span class="keyword">if</span> x == y =&gt; ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="密封类"><a href="#密封类" class="headerlink" title="密封类"></a>密封类</h2><p>编写模式匹配时，都需要确保完整地覆盖了所有可能的情况，</p>
-<p>将样例类的超类使用 <code>sealed</code> 标记为密封类，密封类除了在同一个文件中定义的子类之外，不能存在新的子类，这样只需关心那些已知的样例类</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">sealed</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Expr</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Var</span>(<span class="params">name: <span class="type">String</span></span>) <span class="keyword">extends</span> <span class="title">Expr</span></span></span><br><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Number</span>(<span class="params">num: <span class="type">Double</span></span>) <span class="keyword">extends</span> <span class="title">Expr</span></span></span><br><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">UnOp</span>(<span class="params">op: <span class="type">String</span>, arg: <span class="type">Expr</span></span>) <span class="keyword">extends</span> <span class="title">Expr</span></span></span><br><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">BinOp</span>(<span class="params">op: <span class="type">String</span>, left: <span class="type">Expr</span>, right: <span class="type">Expr</span></span>) <span class="keyword">extends</span> <span class="title">Expr</span></span></span><br></pre></td></tr></table></figure>
-
-<p>对 <code>match</code> 表达式的选择部分添加 <code>@unchecked</code> 注解，让编译器不对模式匹配的完整性做检查</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(e <span class="meta">@unchecked</span>) <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Number</span>(_) =&gt; ...</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Var</span>(_) =&gt; ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Option-类型"><a href="#Option-类型" class="headerlink" title="Option 类型"></a>Option 类型</h2><p><code>Option</code> 类型变量表示可选值，有两种形式：</p>
-<ul>
-<li><p><code>Some(x)</code>，其中 <code>x</code> 是实际值</p>
-</li>
-<li><p><code>None</code>，表示没有值</p>
-</li>
-</ul>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span></span>(x: <span class="type">Option</span>[<span class="type">String</span>]) = x <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Some</span>(x) =&gt; s</span><br><span class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="string">&quot;?&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="模式运用"><a href="#模式运用" class="headerlink" title="模式运用"></a>模式运用</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义变量时的模式匹配</span></span><br><span class="line"><span class="comment">// 用模式来解析变量</span></span><br><span class="line"><span class="keyword">val</span> tuple = (<span class="number">123</span>, <span class="string">&quot;abc&quot;</span>)</span><br><span class="line"><span class="keyword">val</span> (num, str) = tuple</span><br><span class="line"></span><br><span class="line"><span class="comment">// for 表达式</span></span><br><span class="line"><span class="keyword">val</span> capitals = <span class="type">List</span>((<span class="number">111</span>, <span class="number">111</span>), (<span class="number">222</span>, <span class="number">222</span>))</span><br><span class="line"><span class="keyword">for</span> ((n1, n2) &lt;- capitals) </span><br><span class="line">    println(n1 + n2)</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> res = <span class="type">List</span>(<span class="type">Some</span>(<span class="number">1</span>), <span class="type">None</span>, <span class="type">List</span>(<span class="number">2</span>))</span><br><span class="line"><span class="keyword">for</span>(<span class="type">Some</span>(x) &lt;- res)</span><br><span class="line">    println(x)</span><br></pre></td></tr></table></figure>
+<h2 id="json"><a href="#json" class="headerlink" title="json"></a>json</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(JSON &lt;out-var&gt; [ERROR_VARIABLE &lt;error-var&gt;]</span><br><span class="line">       &#123;GET | TYPE | LENGTH | <span class="keyword">REMOVE</span>&#125;</span><br><span class="line">       &lt;json-<span class="keyword">string</span>&gt; &lt;member|index&gt; [&lt;member|index&gt; ...])</span><br><span class="line"><span class="keyword">string</span>(JSON &lt;out-var&gt; [ERROR_VARIABLE &lt;error-var&gt;]</span><br><span class="line">       MEMBER &lt;json-<span class="keyword">string</span>&gt;</span><br><span class="line">       [&lt;member|index&gt; ...] &lt;index&gt;)</span><br><span class="line"><span class="keyword">string</span>(JSON &lt;out-var&gt; [ERROR_VARIABLE &lt;error-var&gt;]</span><br><span class="line">       <span class="keyword">SET</span> &lt;json-<span class="keyword">string</span>&gt;</span><br><span class="line">       &lt;member|index&gt; [&lt;member|index&gt; ...] &lt;value&gt;)</span><br><span class="line"><span class="keyword">string</span>(JSON &lt;out-var&gt; [ERROR_VARIABLE &lt;error-var&gt;]</span><br><span class="line">       <span class="keyword">EQUAL</span> &lt;json-string1&gt; &lt;json-string2&gt;)</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -569,7 +601,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/Scala-%E7%89%B9%E8%B4%A8/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-include/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -587,7 +619,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/13/Scala-%E7%89%B9%E8%B4%A8/" class="post-title-link" itemprop="url">特质</a>
+          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-include/" class="post-title-link" itemprop="url">include</a>
         </h2>
 
         <div class="post-meta-container">
@@ -597,15 +629,9 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2023-04-13 11:15:04" itemprop="dateCreated datePublished" datetime="2023-04-13T11:15:04+08:00">2023-04-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-18 19:07:12" itemprop="dateModified" datetime="2023-04-18T19:07:12+08:00">2023-04-18</time>
+      <time title="创建时间：2023-04-19 14:04:49 / 修改时间：20:18:01" itemprop="dateCreated datePublished" datetime="2023-04-19T14:04:49+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -613,7 +639,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Scala/" itemprop="url" rel="index"><span itemprop="name">Scala</span></a>
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
         </span>
     </span>
 
@@ -627,147 +653,17 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>特质将方法和字段封装起来，通过将特质混入类的方式来实现复用</p>
-<p>不同于类继承中要求每个类都继承一个明确的父类，混合特质时可以混合任意数量的特质</p>
-<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">TraitName</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">func</span></span>() = &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <p>用来载入并运行来自于文件或模块的 cmake 代码</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span>(&lt;<span class="keyword">file</span>|module&gt; [OPTIONAL] [RESULT_VARIABLE &lt;var&gt;]</span><br><span class="line">                      [NO_POLICY_SCOPE])</span><br></pre></td></tr></table></figure>
 
-<p>当特质没有明确声明父类时，同类一样有一个默认的父类 <code>AnyRef</code></p>
-<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>可以用 <code>extends</code> 混入一个特质，也可以使用 <code>with</code> 混入多个特质</p>
-<p>使用 <code>extends</code> 混入一个特质时，会隐式地继承特质的父类</p>
-<p>定义类时可以用 <code>extends</code> 显示继承一个超类，使用 <code>with</code> 来混合特质</p>
-<p>当特质继承一个类时，它将只能被混入这个类的父类</p>
-<p>特质也定义了一个类型，可以使用该类型变量引用混入该特质的对象</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Frog</span> <span class="keyword">extends</span> <span class="title">Philosophical</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">val</span> phil: <span class="type">Philosophical</span> = <span class="keyword">new</span> <span class="type">Frog</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Frog</span> <span class="keyword">extends</span> <span class="title">Animal</span> <span class="keyword">with</span> <span class="title">Philosophical</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Frog</span> <span class="keyword">extends</span> <span class="title">Animal</span> <span class="keyword">with</span> <span class="title">Philosophical</span> <span class="keyword">with</span> <span class="title">HasHlegs</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>混入特质的类可以重写特质中的方法，重写语法跟重写父类的方法一样</p>
-<h2 id="与类的不同"><a href="#与类的不同" class="headerlink" title="与类的不同"></a>与类的不同</h2><p>特质跟 Java 中的接口很像，但远不止接口的作用，因为特质可以声明字段并保持状态</p>
-<p>与类的不同：</p>
 <ul>
-<li><p>特质不能有类参数，没有传入主构造方法的参数</p>
+<li><p><code>OPTIONAL</code> 找不到文件不报错</p>
 </li>
-<li><p>父类的 <code>super</code> 是静态绑定的，即每次使用时父类时明确的，但特质的 <code>super</code> 是动态绑定的，在每次将特质混入到具体类时，都会重新判断，从而实现可叠加修改</p>
+<li><p><code>RESULT_VARIABLE</code> 将完整文件名存储在 <code>var</code> 中，如果没找到则设置为 <code>NOTFOUND</code></p>
+</li>
+<li><p><code>module</code> 命名格式是 <code>&lt;modulename&gt;.cmake</code>，加载时先去 <code>CMAKE_MODULE_PATH</code> 中搜索，然后再去 CMake module 目录中搜索</p>
 </li>
 </ul>
-<h2 id="富接口和瘦接口"><a href="#富接口和瘦接口" class="headerlink" title="富接口和瘦接口"></a>富接口和瘦接口</h2><p>特质的一个主要用途是自动给类添加基于已有方法的新方法，即特质可以丰富一个瘦接口，让它成为富接口</p>
-<p>由于特质可以包含具体方法，让其方便于编写富接口</p>
-<p>Scala 中提供给了一个 <code>Ordered</code> 特质来提供完整的比较操作，使用房实现 <code>compare</code> 方法，<code>ordered</code> 特质定义了基于 <code>compare</code> 的 <code>&lt;</code>、<code>&gt;</code>、<code>&lt;=</code> 和 <code>&gt;=</code> 方法</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Rational</span>(<span class="params">n: <span class="type">Int</span>, d: <span class="type">Int</span></span>) <span class="keyword">extends</span> <span class="title">Ordered</span>[<span class="type">Rational</span>] </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">compare</span></span>(that: <span class="type">Rational</span>) = &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="可叠加修改"><a href="#可叠加修改" class="headerlink" title="可叠加修改"></a>可叠加修改</h2><p>特质的另一个主要用途是为类提供可叠加修改</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">IntQueue</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get</span></span>(): <span class="type">Int</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">put</span></span>(x: <span class="type">Int</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BasicIntQueue</span> <span class="keyword">extends</span> <span class="title">IntQueue</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> buf = <span class="keyword">new</span> <span class="type">ArrayBuffer</span>[<span class="type">Int</span>]</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get</span></span>() = buf.remove(<span class="number">0</span>)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">put</span></span>(x: <span class="type">Int</span>) = &#123;buf += x&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 特质 Doubling 继承了 IntQueue</span></span><br><span class="line"><span class="comment">// Doubling 只能被混入继承 IntQueue 的类</span></span><br><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Doubling</span> <span class="keyword">extends</span> <span class="title">IntQueue</span> </span>&#123;</span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">put</span></span>(x: <span class="type">Int</span>) = &#123;<span class="keyword">super</span>.put(<span class="number">2</span> * x)&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment">抽象方法里做了一个 super 调用</span></span><br><span class="line"><span class="comment">对于普通类而言，这样的调用是非法的，因为其在运行时一定会失败</span></span><br><span class="line"><span class="comment">但对于特质来说，由于特质的 super 是动态绑定的，只要在给出了该方法具体定义的特质或类之后混入</span></span><br><span class="line"><span class="comment">这里的 super 调用就可以正常工作</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p>必须使用 <code>abstract override</code> 来标记该行为，且这种修饰符组合只允许用在特质的成员上，不允许用在类的成员上，它的含义是该特质必须混入某个拥有该方法具体的类中</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> queue = <span class="keyword">new</span> <span class="type">BasicIntQueue</span> <span class="keyword">with</span> <span class="type">Doubling</span></span><br><span class="line"><span class="keyword">val</span> queue = (<span class="keyword">new</span> <span class="type">BasicIntQueue</span> <span class="keyword">with</span> <span class="type">Incrementing</span> <span class="keyword">with</span> <span class="type">Filtering</span>)</span><br></pre></td></tr></table></figure>
-
-<p>混入特质的顺序是重要的，其影响特质方法的调用</p>
-<h2 id="线性化"><a href="#线性化" class="headerlink" title="线性化"></a>线性化</h2><p>在多重继承中 <code>super</code> 调用的方法在调用发生的地方已经确定了，但特质中 <code>super</code> 取决于类和混合该类的特质的线性化</p>
-<p>当 <code>new</code> 一个对象时，Scala 会将类及它所有继承的类和特质都拿出来，将它线性排列在一起</p>
-<p>当在某个类中调用 <code>super</code> 时，被调用的方法是在这个链条中向上最近的一个</p>
-<p>除了最后一个方法，所有方法都调用 <code>super</code>，那么最终的结果就是叠加在一起的行为</p>
-<p>在任何线性化中，类总是位于所有它的父类和混入特质之前，因此调用 <code>super</code> 的时候，那个方法绝对是在修改父类和混入特质的行为</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Animal</span></span></span><br><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Furry</span> <span class="keyword">extends</span> <span class="title">Animal</span></span></span><br><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">HasLegs</span> <span class="keyword">extends</span> <span class="title">Animal</span></span></span><br><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">FourLegged</span> <span class="keyword">extends</span> <span class="title">HasLegs</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Cat</span> <span class="keyword">extends</span> <span class="title">Animal</span> <span class="keyword">with</span> <span class="title">Furry</span> <span class="keyword">with</span> <span class="title">FourLegged</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">      Any</span></span><br><span class="line"><span class="comment">       |</span></span><br><span class="line"><span class="comment">     AnyRef</span></span><br><span class="line"><span class="comment">       |</span></span><br><span class="line"><span class="comment">     Animal</span></span><br><span class="line"><span class="comment">       |</span></span><br><span class="line"><span class="comment">  -----|------</span></span><br><span class="line"><span class="comment">  |    |     |</span></span><br><span class="line"><span class="comment">Furry  |  HasLegs</span></span><br><span class="line"><span class="comment">  |    |     |</span></span><br><span class="line"><span class="comment">  |    |  FourLegged</span></span><br><span class="line"><span class="comment">  |    |     |</span></span><br><span class="line"><span class="comment">  --- Cat ----</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Cat 线性化计算过程：</span></span><br><span class="line"><span class="comment">1. Cat 线性化最后的部分是其父类 Animal 的线性化，这个线性化是直接复制过来不加修改的</span></span><br><span class="line"><span class="comment">2. Animal 并不显式继承某个类和混入某个特质，因此其默认继承 AnyRef，所以 Animal 的线性化如下：</span></span><br><span class="line"><span class="comment">Animal ----&gt; AnyRef ----&gt; Any</span></span><br><span class="line"><span class="comment">3. 接着按混入的顺序，从左至右线性化</span></span><br><span class="line"><span class="comment">4. 第一个混入的特质是 Furry，但由于线性化中的类都不能重复出现，所以混入特质 Furry 后的线性化如下：</span></span><br><span class="line"><span class="comment">Furry ----&gt; Animal ----&gt; AnyRef ----&gt; Any</span></span><br><span class="line"><span class="comment">5. 第二个混入的特质是 FourLegged，线性化如下：</span></span><br><span class="line"><span class="comment">FourLegged ----&gt; HasLegs ----&gt; Furry ----&gt; Animal ----&gt; AnyRef ----&gt; Any</span></span><br><span class="line"><span class="comment">6. 最后是 Cat</span></span><br><span class="line"><span class="comment">Cat ----&gt; FourLegged ----&gt; HasLegs ----&gt; Furry ----&gt; Animal ----&gt; AnyRef ----&gt; Any</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">当这些类或特质中调用 `super` 方法时，被调用的是在链条中出现在其右侧的首个实现</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/Scala-%E5%86%85%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E7%9A%84%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/13/Scala-%E5%86%85%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E7%9A%84%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB/" class="post-title-link" itemprop="url">内置数据类型继承关系</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-13 11:13:47" itemprop="dateCreated datePublished" datetime="2023-04-13T11:13:47+08:00">2023-04-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-18 19:07:12" itemprop="dateModified" datetime="2023-04-18T19:07:12+08:00">2023-04-18</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Scala/" itemprop="url" rel="index"><span itemprop="name">Scala</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Scala 中每个类都继承自同一个名为 <code>Any</code> 的父类，<code>Any</code> 中定义的方法时全类型的</p>
-<p>Scala 还在底部定义了 <code>Nothing</code>，它是所有类的子类</p>
-<img src="/2023/04/13/Scala-%E5%86%85%E7%BD%AE%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E7%9A%84%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB/01.png" class="">
-
-<h2 id="Any"><a href="#Any" class="headerlink" title="Any"></a>Any</h2><p><code>Any</code> 包含 <code>AnyVal</code> 和 <code>ValRef</code> 两个子类</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Any 类定义方法</span></span><br><span class="line"><span class="comment">// 比较方法</span></span><br><span class="line"><span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">==</span></span>(that: <span class="type">Any</span>): <span class="type">Boolean</span></span><br><span class="line"><span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">!=</span></span>(that: <span class="type">Any</span>): <span class="type">Boolean</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">equals</span></span>(that: <span class="type">Any</span>): <span class="type">Boolean</span></span><br><span class="line"><span class="comment">// 哈希方法</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">##</span></span>: <span class="type">Int</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hashCode</span></span>: <span class="type">Int</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">toString</span></span>: <span class="type">String</span></span><br></pre></td></tr></table></figure>
-
-<p><code>==</code> 与 <code>equals</code> 本质上是相同的，<code>!=</code> 与 <code>equals</code> 一定相反</p>
-<p>可以重写 <code>equals</code> 方法来定制 <code>==</code> 和 <code>!=</code> 的行为</p>
-<h3 id="AnyVal"><a href="#AnyVal" class="headerlink" title="AnyVal"></a>AnyVal</h3><p><code>AnyVal</code> 是所有值类型的父类，值类型不能用 <code>new</code> 来创建实例</p>
-<p>值类空间是扁平的，各个值类型之间没有继承关系，但存在隐式转换</p>
-<p>隐式转换实现了类型的放宽，如 <code>Int</code> 转 <code>Long</code>，还提供了一些方法，如 <code>abs</code>、<code>max</code>、<code>min</code> 和 <code>to</code> 等，这些都定义在 <code>Scala.runtime、Rich***</code> 中</p>
-<p>存在从普通值类型到 <code>Rich***</code> 类型的隐式转换，当调用普通值类型没有定义的方法，而 <code>Rich***</code> 类型中定义了的方法时，隐式转换就会被自动应用</p>
-<h3 id="AnyRef"><a href="#AnyRef" class="headerlink" title="AnyRef"></a>AnyRef</h3><p><code>AnyRef</code> 是所有引用类的父类</p>
-<h2 id="相等性"><a href="#相等性" class="headerlink" title="相等性"></a>相等性</h2><p>对于值类型，<code>==</code> 表示自然相等性</p>
-<p>对于引用类型，<code>==</code> 会调用 <code>equals</code> 方法，<code>equals</code> 方法默认比较引用相等性，但很多子类都重写了这个方法用于比较元素的相等性</p>
-<p><code>AnyRef</code> 定义了不能被重写的 <code>eq</code>、<code>ne</code> 方法比较引用相等性</p>
-<h2 id="Null"><a href="#Null" class="headerlink" title="Null"></a>Null</h2><p><code>Null</code> 是每个引用类型的子类，并不兼容值类型</p>
-<h2 id="Nothing"><a href="#Nothing" class="headerlink" title="Nothing"></a>Nothing</h2><p><code>Nothing</code> 是所有类型的子类，不存在这个类型的任何值，可以给出非正常终止的信号</p>
 
       
     </div>
@@ -794,7 +690,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/Scala-%E7%BB%84%E5%90%88%E7%BB%A7%E6%89%BF/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-get-filename-component/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -812,7 +708,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/13/Scala-%E7%BB%84%E5%90%88%E7%BB%A7%E6%89%BF/" class="post-title-link" itemprop="url">组合和继承</a>
+          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-get-filename-component/" class="post-title-link" itemprop="url">get_file_component</a>
         </h2>
 
         <div class="post-meta-container">
@@ -822,15 +718,9 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2023-04-13 11:12:53" itemprop="dateCreated datePublished" datetime="2023-04-13T11:12:53+08:00">2023-04-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-18 19:07:12" itemprop="dateModified" datetime="2023-04-18T19:07:12+08:00">2023-04-18</time>
+      <time title="创建时间：2023-04-19 13:53:13 / 修改时间：20:18:01" itemprop="dateCreated datePublished" datetime="2023-04-19T13:53:13+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -838,7 +728,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Scala/" itemprop="url" rel="index"><span itemprop="name">Scala</span></a>
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
         </span>
     </span>
 
@@ -852,45 +742,25 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="抽象类"><a href="#抽象类" class="headerlink" title="抽象类"></a>抽象类</h2><p>一个类中有没有实现的的成员，为抽象成员</p>
-<p>一个方法没有实现就是抽象的</p>
-<p>一个包含抽象成员的类本身也要被声明为抽象，即用 <code>abstract</code> 修饰</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Element</span> ...</span></span><br></pre></td></tr></table></figure>
+          <p>获取完整文件名的特定部分</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">get_filename_component</span>(&lt;var&gt; &lt;FileName&gt; &lt;mode&gt; [CACHE])</span><br></pre></td></tr></table></figure>
 
-<h2 id="无参方法"><a href="#无参方法" class="headerlink" title="无参方法"></a>无参方法</h2><p>一个类成员函数没有参数列表，连空参数列表都没，即无参方法</p>
-<p>带空参数列表的函数为空圆括号方法</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Element</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">contents</span></span>: <span class="type">Array</span>[<span class="type">String</span>]</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">height</span></span>: <span class="type">Int</span> = contents.length</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">width</span></span>: <span class="type">Int</span> = <span class="keyword">if</span> (height == <span class="number">0</span>) <span class="number">0</span> <span class="keyword">else</span> contents(<span class="number">0</span>).length</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>可以用圆括号方法重写无参方法，也可以用无参方法重写空圆括号方法，还可以在调用某个不需要入参的方法时省去空括号</p>
-<p>鼓励对那些不接受参数也没有副作用的方法定义为无参方法，对于有副作用的方法不应该省去空括号，因为省去空括号以后这个方法的调用看上去更像是字段选择</p>
-<h2 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h2><p>扩展使用 <code>extends</code>，继承父类的所有非私有成员</p>
-<p>Scala 自定义类默认继承 <code>scala.AnyRef</code></p>
-<p>如果子类里已经实现了相同名称和参数的成员，那么该成员不会被继承</p>
-<p>如果父类的成员是抽象的，而子类的成员是具体的则是实现或重写了那个抽象成员</p>
-<p>子类的值可以被用在任何需要父类值得场合</p>
-<h2 id="重写方法和字段"><a href="#重写方法和字段" class="headerlink" title="重写方法和字段"></a>重写方法和字段</h2><p>Scala 中字段和方法属于同一个命名空间，使得用字段可以重写无参方法，且在同一个类禁止使用相同名称的字段和方法</p>
-<p>Scala 有两个命名空间：</p>
 <ul>
-<li><p>值：字段、方法、包和单例对象</p>
+<li><p><code>DIRECTORY</code>：文件夹名</p>
 </li>
-<li><p>类型：类和特质名</p>
+<li><p><code>NAME</code>：不带文件夹名的文件名</p>
+</li>
+<li><p><code>EXT</code>：最长后缀名</p>
+</li>
+<li><p><code>NAME_WE</code>：既没有目录也没有最长扩展名的文件名</p>
+</li>
+<li><p><code>LAST_EXT</code>：最后一个后缀名</p>
+</li>
+<li><p><code>NAME_WLE</code>：既没有目录也没有最后一个扩展名的文件名</p>
+</li>
+<li><p><code>ABSOLUTE</code>：完整文件路径</p>
 </li>
 </ul>
-<h2 id="参数化字段"><a href="#参数化字段" class="headerlink" title="参数化字段"></a>参数化字段</h2><p>可以通过将参数和字段合并成参数化字段定义，即在构造方法里定义相关字段</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArrayElement</span> (<span class="params">val contents: <span class="type">Array</span>[<span class="type">String</span>]</span>) <span class="keyword">extends</span> <span class="title">Element</span></span></span><br></pre></td></tr></table></figure>
-
-<p>在参数前放 <code>val</code>，这样同时定义了参数和字段，该字段默认可以被外界访问到，参数默认是不能被外界访问的</p>
-<p>可以在参数化字段前面加上 <code>private</code>、<code>protected</code> 和 <code>override</code>，就像对其他成员一样</p>
-<h2 id="调用超类构造方法"><a href="#调用超类构造方法" class="headerlink" title="调用超类构造方法"></a>调用超类构造方法</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LineElement</span>(<span class="params">s: <span class="type">String</span></span>) <span class="keyword">extends</span> <span class="title">ArrayElement</span>(<span class="params"><span class="type">Array</span>(s</span>)) </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>调用超类的构造方法，只需将打算传入的入参放在超类后面的圆括号里</p>
-<h2 id="override"><a href="#override" class="headerlink" title="override"></a>override</h2><p>当重写父类具体成员时需要使用 <code>override</code></p>
-<h2 id="多态"><a href="#多态" class="headerlink" title="多态"></a>多态</h2><p>父类对象可以指向子类的对象</p>
-<p>对变量和表达式的方法调用是动态绑定的，实际被调用的方法实现是在运行时基于对象的类型决定的，而不是变量或表达式的类型决定</p>
-<h2 id="final"><a href="#final" class="headerlink" title="final"></a>final</h2><p>使用 <code>final</code> 保证某个成员不能被子类重写</p>
-<p><code>final</code> 修饰类可以保证整个类没有子类</p>
-<h2 id="工厂对象"><a href="#工厂对象" class="headerlink" title="工厂对象"></a>工厂对象</h2><p>工厂对象包含创建其他对象的方法，使用该方法来构造对象而不是调用 <code>new</code> 构建对象</p>
-<p>工厂方法应该作为某个单利对象的成员，可以使用伴生对象作为类的工厂对象</p>
 
       
     </div>
@@ -917,7 +787,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/Scala-%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-option/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -935,7 +805,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/13/Scala-%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0/" class="post-title-link" itemprop="url">函数进阶</a>
+          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-option/" class="post-title-link" itemprop="url">option</a>
         </h2>
 
         <div class="post-meta-container">
@@ -945,15 +815,9 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2023-04-13 11:12:21" itemprop="dateCreated datePublished" datetime="2023-04-13T11:12:21+08:00">2023-04-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-18 19:07:12" itemprop="dateModified" datetime="2023-04-18T19:07:12+08:00">2023-04-18</time>
+      <time title="创建时间：2023-04-19 13:46:55 / 修改时间：20:18:01" itemprop="dateCreated datePublished" datetime="2023-04-19T13:46:55+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -961,7 +825,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Scala/" itemprop="url" rel="index"><span itemprop="name">Scala</span></a>
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
         </span>
     </span>
 
@@ -975,23 +839,11 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="高阶函数"><a href="#高阶函数" class="headerlink" title="高阶函数"></a>高阶函数</h2><p>高阶函数即那些接受函数作为参数的函数</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 查找文件</span></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">FileMatcher</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">fileHere</span> </span>= (<span class="keyword">new</span> java.io.<span class="type">File</span>(<span class="string">&quot;.&quot;</span>)).listFiles</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">filesEnding</span></span>(query: <span class="type">String</span>) = &#123;</span><br><span class="line">        <span class="keyword">for</span> (file &lt;- fileHere <span class="keyword">if</span> file.getName.endsWith(query))</span><br><span class="line">            <span class="keyword">yield</span> file</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">filesContain</span></span>(query: <span class="type">String</span>) = &#123;</span><br><span class="line">        <span class="keyword">for</span> (file &lt;- fileHere <span class="keyword">if</span> file.getName.contains(query))</span><br><span class="line">            <span class="keyword">yield</span> file</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">filesRegex</span></span>(query: <span class="type">String</span>) = &#123;</span><br><span class="line">        <span class="keyword">for</span> (file &lt;- fileHere <span class="keyword">if</span> file.getName.matches(query))</span><br><span class="line">            <span class="keyword">yield</span> file</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用高阶函数消除冗余代码</span></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">FileMatcher</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">fileHere</span> </span>= (<span class="keyword">new</span> java.io.<span class="type">File</span>(<span class="string">&quot;.&quot;</span>)).listFiles</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">fileMatching</span></span>(query: <span class="type">String</span>, matcher: (<span class="type">String</span>, <span class="type">String</span>) =&gt; <span class="type">Boolean</span>) = &#123;</span><br><span class="line">        <span class="keyword">for</span> (file &lt;- fileHere <span class="keyword">if</span> matcher(file.getName, query))</span><br><span class="line">            <span class="keyword">yield</span> file</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// fileMatching 接受一个要求两个 String 入参的函数</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fileEnding</span></span>(query: <span class="type">String</span>) = fileMatching(query, (file: <span class="type">String</span>, pattern: <span class="type">String</span>) =&gt; file.endsWith(pattern))</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fileContain</span></span>(query: <span class="type">String</span>) = fileMatching(query, (file: <span class="type">String</span>, pattern: <span class="type">String</span>) =&gt; file.contains(pattern))</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fileRegex</span></span>(query: <span class="type">String</span>) = fileMatching(query, (file: <span class="type">String</span>, pattern: <span class="type">String</span>) =&gt; file.matches(pattern)) &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用占位符消除冗余代码</span></span><br><span class="line"><span class="comment">// 因为两个参数在函数体内都只是用一次</span></span><br><span class="line"><span class="comment">// 第一个参数先被用到，第二个参数后被用到，所以可以使用下划线</span></span><br><span class="line"><span class="comment">// 第一个下划线代表第一个参数，第二个下划线代表第二个参数</span></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">FileMatcher</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">fileHere</span> </span>= (<span class="keyword">new</span> java.io.<span class="type">File</span>(<span class="string">&quot;.&quot;</span>)).listFiles</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">fileMatching</span></span>(query: <span class="type">String</span>, matcher: (<span class="type">String</span>, <span class="type">String</span>) =&gt; <span class="type">Boolean</span>) = &#123;</span><br><span class="line">        <span class="keyword">for</span> (file &lt;- fileHere <span class="keyword">if</span> matcher(file.getName, query))</span><br><span class="line">            <span class="keyword">yield</span> file</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fileEnding</span></span>(query: <span class="type">String</span>) = fileMatching(query, _.endsWith(_))</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fileContain</span></span>(query: <span class="type">String</span>) = fileMatching(query, _.contains(_))</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fileRegex</span></span>(query: <span class="type">String</span>) = fileMatching(query, _.matches(_))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 由于 fileMatching 不对 query 做处理</span></span><br><span class="line"><span class="comment">// 使用闭包捕获 query</span></span><br><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">FileMatcher</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">fileHere</span> </span>= (<span class="keyword">new</span> java.io.<span class="type">File</span>(<span class="string">&quot;.&quot;</span>)).listFiles</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">fileMatching</span></span>(matcher: (<span class="type">String</span>) =&gt; <span class="type">Boolean</span>) = &#123;</span><br><span class="line">        <span class="keyword">for</span> (file &lt;- fileHere <span class="keyword">if</span> matcher(file.getName)</span><br><span class="line">            <span class="keyword">yield</span> file</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fileEnding</span></span>(query: <span class="type">String</span>) = fileMatching(_.endsWith(query))</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fileContain</span></span>(query: <span class="type">String</span>) = fileMatching(_.contains(query))</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">fileRegex</span></span>(query: <span class="type">String</span>) = fileMatching(_.matches(query))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">option</span>(&lt;variable&gt; <span class="string">&quot;&lt;help_text&gt;&quot;</span> [value])</span><br></pre></td></tr></table></figure>
 
-<h2 id="柯里化"><a href="#柯里化" class="headerlink" title="柯里化"></a>柯里化</h2><p>一个经过柯里化的函数在应用时支持多个参数列表，而不是只有一个</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">curriedSum</span></span>(x: <span class="type">Int</span>)(y: <span class="type">Int</span>) = x + y</span><br><span class="line">curriedSum(<span class="number">1</span>)(<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+<p>提供开关选项，<code>value</code> 可取 <code>on</code> 和 <code>off</code>，默认 <code>off</code></p>
+<p>如果 <code>variable</code> 已经设置为普通变量或缓存变量，则该命令不执行任何操作</p>
 
-<p>当调用 <code>curriedSum</code> 时，实际上连着做了两次函数调用；第一次调用接受一个 <code>x: Int</code> 的函数，返回一个用于第二次调用的函数值，这个函数接受一个 <code>y: Int</code></p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 柯里化示意，但实际并不是如此</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">first</span></span>(x: <span class="type">Int</span>) = (y: <span class="type">Int</span>) =&gt; x + y</span><br><span class="line"><span class="keyword">val</span> second = first(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
-
-<p>可以使用部分应用函数的占位符获取第二个函数的引用</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> onePlus = curriedSum(<span class="number">1</span>)_</span><br></pre></td></tr></table></figure>
-
-<p>对于只有一个参数输入的函数，可以使用花括号替代圆括号，这样调用的代码看上去更像是在使用内建控制结构</p>
-<p>但对于多个参数输入时，就不能使用花括号提到圆括号，但可以利用柯里化将参数放入单个括号中</p>
-<h2 id="传名参数"><a href="#传名参数" class="headerlink" title="传名参数"></a>传名参数</h2><p>传名参数需要给参数一个以 <code>=&gt;</code> 开头的类型声明</p>
-<p>对传名类型而言，空的参数列表 <code>()</code> 是去掉的，这样的类型只能用于参数声明，并不存在传名变量或传名字段</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> assertEnabled =<span class="literal">true</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">myAssert</span></span>(pre: () =&gt; <span class="type">Boolean</span>) = &#123;</span><br><span class="line">    <span class="keyword">if</span> (assertEnabled &amp;&amp; !pre()) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">AssertionError</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 调用</span></span><br><span class="line">myAssert(() =&gt; <span class="number">5</span> &gt; <span class="number">3</span>)</span><br><span class="line">myAssert(<span class="number">5</span> &gt; <span class="number">3</span>) <span class="comment">// 编译不过</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">byNameAssert</span></span>(pre: =&gt; <span class="type">Boolean</span>) = &#123;</span><br><span class="line">    <span class="keyword">if</span> (assertEnabled &amp;&amp; !pre) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">AssertionError</span></span><br><span class="line">&#125;</span><br><span class="line">byNameAssert(<span class="number">5</span> &gt; <span class="number">3</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">boolAssert</span></span>(pre: <span class="type">Boolean</span>) = &#123;</span><br><span class="line">    <span class="keyword">if</span> (assertEnabled &amp;&amp; !pre) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">AssertionError</span></span><br><span class="line">&#125;</span><br><span class="line">boolAssert(<span class="number">5</span> &gt; <span class="number">3</span>)</span><br><span class="line"><span class="comment">// byNameAssert 和 boolAssert 区别：</span></span><br><span class="line"><span class="comment">// boolAssert 的 5 &gt; 3 的求值将先于调用</span></span><br><span class="line"><span class="comment">// byNameAssert 的 5 &gt; 3 的求值将在函数中</span></span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1017,7 +869,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/Scala-%E5%87%BD%E6%95%B0/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-message/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1035,7 +887,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/13/Scala-%E5%87%BD%E6%95%B0/" class="post-title-link" itemprop="url">函数</a>
+          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-message/" class="post-title-link" itemprop="url">message</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1045,15 +897,9 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2023-04-13 11:11:41" itemprop="dateCreated datePublished" datetime="2023-04-13T11:11:41+08:00">2023-04-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-18 19:07:12" itemprop="dateModified" datetime="2023-04-18T19:07:12+08:00">2023-04-18</time>
+      <time title="创建时间：2023-04-19 10:34:09 / 修改时间：20:18:01" itemprop="dateCreated datePublished" datetime="2023-04-19T10:34:09+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1061,7 +907,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Scala/" itemprop="url" rel="index"><span itemprop="name">Scala</span></a>
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
         </span>
     </span>
 
@@ -1075,58 +921,43 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><p>对象的函数成员为方法</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">funcName</span></span>(para: <span class="type">Type</span>): returnType = &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <h2 id="一般形式"><a href="#一般形式" class="headerlink" title="一般形式"></a>一般形式</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">message</span>([&lt;mode&gt;] <span class="string">&quot;message text&quot;</span> ...)</span><br></pre></td></tr></table></figure>
 
-<h2 id="局部函数"><a href="#局部函数" class="headerlink" title="局部函数"></a>局部函数</h2><p>可以在函数内部定义局部函数，局部函数可以访问包含它的函数的参数</p>
-<h2 id="函数字面量与函数值"><a href="#函数字面量与函数值" class="headerlink" title="函数字面量与函数值"></a>函数字面量与函数值</h2><p>函数字面量被编译成类，并在运行时实例化成函数值</p>
-<p>函数字面量存在于源码，函数值以对象的形式存在于运行时</p>
-<p>函数值是对象，所以可以将它存放在变量中，同时也是函数，所以可以用常规的圆括号来调用</p>
-<p>每个函数值都是扩展自 <code>FunctionN</code> 中的一个特质，<code>Function0</code> 表示不带参数的函数，<code>Function1</code> 表示带 1 个参数的函数，每个特质都有一个 <code>apply</code> 方法来调用函数值</p>
-<h3 id="函数字面量简写"><a href="#函数字面量简写" class="headerlink" title="函数字面量简写"></a>函数字面量简写</h3><ul>
-<li><p>可以略去参数类型声明</p>
+<p>如果同时打印多条信息，多条信息会被拼接成一条信息输出，拼接时不会隔开</p>
+<ul>
+<li><p><code>FATAL_ERROR</code> 打印信息后停止 CMake 进程和构建</p>
 </li>
-<li><p>省去某个靠类型推导的参数两侧的圆括号</p>
+<li><p><code>SEND_ERROR</code> 打印信息后继续 CMake 进程，但停止构建</p>
+</li>
+<li><p><code>WARNING</code></p>
+</li>
+<li><p><code>AUTHOR_WARNING</code></p>
+</li>
+<li><p><code>DEPRECATION</code></p>
+</li>
+<li><p><code>NOTICE</code> 默认等级</p>
+</li>
+<li><p><code>STATUS</code></p>
+</li>
+<li><p><code>VERBOSE</code></p>
+</li>
+<li><p><code>DEBUG</code></p>
+</li>
+<li><p><code>TRACE</code></p>
 </li>
 </ul>
-<h3 id="占位符"><a href="#占位符" class="headerlink" title="占位符"></a>占位符</h3><p>在函数字面量中，可以使用下划线 <code>_</code> 作为占位符来表示一个或多个参数，只要满足每个参数只在函数字面量中出现一次</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">someNumber.filter(_ &gt; <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<p>CMake 命令行工具在 stdout 上显示 <code>STATUS</code> 至 <code>TRACE</code> 的消息，<code>--log-level</code> 选项可以设置打印等级</p>
+<p>所有其他消息类型都被发送到 stderr</p>
+<h2 id="检查模式"><a href="#检查模式" class="headerlink" title="检查模式"></a>检查模式</h2><p>cmake 中经常会用 <code>message</code> 做一些检查结果的输出提示，类似于下面的例子</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">message</span>(STATUS <span class="string">&quot;Looking for someheader.h&quot;</span>)</span><br><span class="line"><span class="comment">#... do the checks, set checkSuccess with the result</span></span><br><span class="line"><span class="keyword">if</span>(checkSuccess)</span><br><span class="line">  <span class="keyword">message</span>(STATUS <span class="string">&quot;Looking for someheader.h - found&quot;</span>)</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">  <span class="keyword">message</span>(STATUS <span class="string">&quot;Looking for someheader.h - not found&quot;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br></pre></td></tr></table></figure>
 
-<p>当用 <code>_</code> 为参数站位时，编译器可能没有足够的信息推导类型，可以补充类型信息</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> f = (_: <span class="type">Int</span>) + (_: <span class="type">Int</span>)</span><br></pre></td></tr></table></figure>
+<p>cmake 引入检查模式来简化这种情况</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">message</span>(CHECK_START <span class="string">&quot;message&quot;</span> ...)</span><br><span class="line"><span class="keyword">message</span>(CHECK_PASS <span class="string">&quot;message&quot;</span> ...)</span><br><span class="line"><span class="keyword">message</span>(CHECK_FAIL <span class="string">&quot;message&quot;</span> ...)</span><br></pre></td></tr></table></figure>
 
-<h2 id="部分应用函数"><a href="#部分应用函数" class="headerlink" title="部分应用函数"></a>部分应用函数</h2><p>当调用一个函数时，传入任何需要的参数实际上就是应用函数在参数上</p>
-<p>部分应用函数是一个表达式，在表达式中并不需要给出函数需要的全部参数，而是给出部分，或完全不给</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sum</span></span>(a: <span class="type">Int</span>, b: <span class="type">Int</span>, c: <span class="type">Int</span>) = a + b + c</span><br><span class="line"><span class="keyword">val</span> a = sum _</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">编译器将根据部分应用函数 sum _ 实例化一个接受三个整数参数的函数值，并将指向这个函数值的引用赋值给变量 a</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> b = sum(<span class="number">1</span>, _, <span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+<p><code>CHECK_START</code> 必须要 <code>CHECK_PASS</code> 或 <code>CHECK_FAIL</code></p>
+<p>嵌套的 <code>CHECK_START</code> 可以使用 <code>CMAKE_MESSAGE_INDENT</code> 添加缩进</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">message</span>(CHECK_START <span class="string">&quot;Finding my things&quot;</span>)</span><br><span class="line"><span class="keyword">list</span>(APPEND CMAKE_MESSAGE_INDENT <span class="string">&quot;  &quot;</span>)</span><br><span class="line"><span class="keyword">unset</span>(missingComponents)</span><br><span class="line"></span><br><span class="line"><span class="keyword">message</span>(CHECK_START <span class="string">&quot;Finding partA&quot;</span>)</span><br><span class="line"><span class="comment"># ... do check, assume we find A</span></span><br><span class="line"><span class="keyword">message</span>(CHECK_PASS <span class="string">&quot;found&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">message</span>(CHECK_START <span class="string">&quot;Finding partB&quot;</span>)</span><br><span class="line"><span class="comment"># ... do check, assume we don&#x27;t find B</span></span><br><span class="line"><span class="keyword">list</span>(APPEND missingComponents B)</span><br><span class="line"><span class="keyword">message</span>(CHECK_FAIL <span class="string">&quot;not found&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span>(POP_BACK CMAKE_MESSAGE_INDENT)</span><br><span class="line"><span class="keyword">if</span>(missingComponents)</span><br><span class="line">  <span class="keyword">message</span>(CHECK_FAIL <span class="string">&quot;missing components: $&#123;missingComponents&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">  <span class="keyword">message</span>(CHECK_PASS <span class="string">&quot;all components found&quot;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br><span class="line">-- Finding my things</span><br><span class="line">--   Finding partA</span><br><span class="line">--   Finding partA - found</span><br><span class="line">--   Finding partB</span><br><span class="line">--   Finding partB - <span class="keyword">not</span> found</span><br><span class="line">-- Finding my things - missing components: B</span><br></pre></td></tr></table></figure>
 
-<p>这是一种将 <code>def</code> 变成函数值的方法</p>
-<p>虽然不能将方法或嵌套的函数直接赋值给某个变量，或者作为参数传给另一个函数，但可以将方法或嵌套函数打包在一个函数值来完成</p>
-<p>如果部分应用函数表达式并不给出任何参数，可以连 <code>_</code> 都省去</p>
-<h2 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> more = <span class="number">1</span></span><br><span class="line"><span class="keyword">val</span> addMore = (x: <span class="type">Int</span>) =&gt; x + more</span><br><span class="line">addMore(<span class="number">1</span>) = <span class="number">2</span></span><br><span class="line">more = <span class="number">99</span></span><br><span class="line">addMore(<span class="number">1</span>) = <span class="number">100</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">more 是一个自由变量，因为函数字面量并没有给 more 赋予任何含义</span></span><br><span class="line"><span class="comment">x 是一个绑定变量，因为在函数字面量的上下文中有明确定义</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p>运行时，从这个函数字面量创建出来的函数值被称作闭包</p>
-<p>闭包捕获的是变量本身，而不是变量引用的值</p>
-<p>闭包对捕获到的变量的修改也能在闭包外被看到</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">makeIncreaser</span></span>(more: <span class="type">Int</span>) = (x: <span class="type">Int</span>) =&gt; x + more</span><br></pre></td></tr></table></figure>
-
-<p>闭包引用的实例是在闭包被创建时活跃的那一个</p>
-<h2 id="重复参数"><a href="#重复参数" class="headerlink" title="重复参数"></a>重复参数</h2><p>Scala 允许函数最后一个参数是重复参数，需要在最后一个参数类型后加上 <code>*</code></p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">echo</span></span>(args: <span class="type">String</span>*) = <span class="keyword">for</span> (arg &lt;- args) println(arg)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 传入数组</span></span><br><span class="line"><span class="keyword">val</span> arr = <span class="type">Array</span>(<span class="string">&quot;hello&quot;</span>, <span class="string">&quot;world&quot;</span>)</span><br><span class="line">echo(arr: _*)</span><br></pre></td></tr></table></figure>
-
-<p>在函数内部，重复参数的类型是一个声明类型的 <code>Seqs</code></p>
-<h2 id="带名字的参数"><a href="#带名字的参数" class="headerlink" title="带名字的参数"></a>带名字的参数</h2><p>在普通函数中，实参时根据被调用的函数的参数定义，逐个匹配的</p>
-<p>带名字的参数可以用不同的顺序将参数传给函数</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">speed</span></span>(distance: <span class="type">Float</span>, time: <span class="type">Float</span>) = distance / time</span><br><span class="line">speed(time = <span class="number">10</span>, distance = <span class="number">100</span>)</span><br></pre></td></tr></table></figure>
-
-<h2 id="尾递归"><a href="#尾递归" class="headerlink" title="尾递归"></a>尾递归</h2><p>在最后一步调用自己被称作尾递归</p>
-<p>编译器能够检测到尾递归，并把它替换成跳转到函数的最开始，并在跳转前将参数更新为新值</p>
-<p>尾递归函数并不会每次调用时都构建一个新的栈帧，所有的调用都会在一个栈帧中执行</p>
-<h2 id="偏函数"><a href="#偏函数" class="headerlink" title="偏函数"></a>偏函数</h2><p>在 Scala 中的偏函数是通过特质 <code>PartialFunction[-A, +B]</code> 来定义的，是一个将类型 A 转为类型 B 的特质</p>
-<p>偏函数只对部分输入感兴趣，对另外的输入没有反应，仅仅处理输入参数的部分分支</p>
-<p>通过 <code>case</code> 序列可以得到一个偏函数</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> second: <span class="type">List</span>[<span class="type">Int</span>] =&gt; <span class="type">Int</span> = &#123;</span><br><span class="line">    <span class="keyword">case</span> x::y::_ =&gt; y</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 编译器会报错，因为没有覆盖所有情况</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> second: <span class="type">PartialFunction</span>[<span class="type">List</span>[<span class="type">Int</span>]] =&gt; <span class="type">Int</span> = &#123;</span><br><span class="line">    <span class="keyword">case</span> x::y::_ =&gt; y</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 声明 second 为偏函数，则不会报错</span></span><br></pre></td></tr></table></figure>
-
-<p>偏函数定义了 <code>isDefinedAt</code> 方法来检查该偏函数是否对某特定的值有意义</p>
 
       
     </div>
@@ -1153,7 +984,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/Scala-%E6%8E%A7%E5%88%B6%E7%BB%93%E6%9E%84/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-while/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1171,7 +1002,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/13/Scala-%E6%8E%A7%E5%88%B6%E7%BB%93%E6%9E%84/" class="post-title-link" itemprop="url">控制结构</a>
+          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-while/" class="post-title-link" itemprop="url">while</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1181,15 +1012,9 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
+      
 
-      <time title="创建时间：2023-04-13 11:10:45" itemprop="dateCreated datePublished" datetime="2023-04-13T11:10:45+08:00">2023-04-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-18 19:07:12" itemprop="dateModified" datetime="2023-04-18T19:07:12+08:00">2023-04-18</time>
+      <time title="创建时间：2023-04-19 10:33:26 / 修改时间：20:18:01" itemprop="dateCreated datePublished" datetime="2023-04-19T10:33:26+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1197,7 +1022,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Scala/" itemprop="url" rel="index"><span itemprop="name">Scala</span></a>
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
         </span>
     </span>
 
@@ -1211,37 +1036,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="if"><a href="#if" class="headerlink" title="if"></a>if</h2><p><code>if</code> 是一个能返回值的表达式</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> filename = <span class="keyword">if</span>(!args.isEmpty) args(<span class="number">0</span>) <span class="keyword">else</span> <span class="string">&quot;default&quot;</span></span><br></pre></td></tr></table></figure>
+          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(&lt;condition&gt;)</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">endwhile</span>()</span><br></pre></td></tr></table></figure>
 
-<h2 id="while"><a href="#while" class="headerlink" title="while"></a>while</h2><p><code>while</code> 和 <code>do-while</code> 并不会返回一个有意义的值，返回类型是 <code>Unit</code></p>
-<h2 id="for"><a href="#for" class="headerlink" title="for"></a>for</h2><h3 id="遍历集合"><a href="#遍历集合" class="headerlink" title="遍历集合"></a>遍历集合</h3><p>使用 <code>&lt;-</code> 生成器，对集合进行遍历</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// [0, ..., 10]</span></span><br><span class="line"><span class="keyword">for</span> (i &lt;- <span class="number">0</span> to <span class="number">10</span>) println(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">// [0, ..., 9]</span></span><br><span class="line"><span class="keyword">for</span> (i &lt;- <span class="number">0</span> until <span class="number">10</span>) println(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">// [10, ..., 0]</span></span><br><span class="line"><span class="keyword">for</span> (i &lt;- (<span class="number">0</span> to <span class="number">10</span>).reverse) println(i) </span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> fileHere = (<span class="keyword">new</span> java.io.<span class="type">File</span>(<span class="string">&quot;.&quot;</span>)).listFiles</span><br><span class="line"><span class="keyword">for</span> (file &lt;- fileHere) println(file)</span><br></pre></td></tr></table></figure>
+<p><code>condition</code> 同 <code>if</code></p>
 
-<h3 id="过滤"><a href="#过滤" class="headerlink" title="过滤"></a>过滤</h3><p><code>for</code> 表达式可以添加过滤器，即添加 <code>if</code> 子句</p>
-<p>可以包含多个过滤器</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> fileHere = (<span class="keyword">new</span> java.io.<span class="type">File</span>(<span class="string">&quot;.&quot;</span>)).listFiles</span><br><span class="line"><span class="keyword">for</span> (file &lt;- fileHere <span class="keyword">if</span> file.getName.endsWith(<span class="string">&quot;.scala)) </span></span><br><span class="line"><span class="string">    println(file)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">for (file &lt;- fileHere </span></span><br><span class="line"><span class="string">    if file.isFile</span></span><br><span class="line"><span class="string">    if file.getName.endsWith(&quot;</span>.scala)) </span><br><span class="line">    println(file)</span><br></pre></td></tr></table></figure>
-
-<h2 id="嵌套循环"><a href="#嵌套循环" class="headerlink" title="嵌套循环"></a>嵌套循环</h2><p>如果需要添加多个 <code>&lt;-</code>，可以使用嵌套循环</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">gerp</span></span>(pattern: <span class="type">String</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> (</span><br><span class="line">        file &lt;- fileHere</span><br><span class="line">        <span class="keyword">if</span> file.getName.endsWith(<span class="string">&quot;.scala);</span></span><br><span class="line"><span class="string">        line &lt;- file.getLines.toArray</span></span><br><span class="line"><span class="string">        if line.trim.matchs(pattern)</span></span><br><span class="line"><span class="string">    ) println(pattern)</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>也可以使用花括号替代圆括号，可以省略分号 <code>;</code></p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">gerp</span></span>(pattern: <span class="type">String</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        file &lt;- fileHere</span><br><span class="line">        <span class="keyword">if</span> file.getName.endsWith(<span class="string">&quot;.scala)</span></span><br><span class="line"><span class="string">        line &lt;- file.getLines.toArray</span></span><br><span class="line"><span class="string">        if line.trim.matchs(pattern)</span></span><br><span class="line"><span class="string">    &#125; println(pattern)</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="中途变量绑定"><a href="#中途变量绑定" class="headerlink" title="中途变量绑定"></a>中途变量绑定</h3><p>在 <code>for</code> 循环中可以绑定 <code>val</code> 中间变量，可以去掉 <code>val</code> 关键字</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">gerp</span></span>(pattern: <span class="type">String</span>) &#123;</span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        file &lt;- fileHere</span><br><span class="line">        <span class="keyword">if</span> file.getName.endsWith(<span class="string">&quot;.scala)</span></span><br><span class="line"><span class="string">        trimmed = line.trim</span></span><br><span class="line"><span class="string">        line &lt;- file.getLines.toArray</span></span><br><span class="line"><span class="string">        if trimmed.matchs(pattern)</span></span><br><span class="line"><span class="string">    &#125; println(trimmed)</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="产生新的集合"><a href="#产生新的集合" class="headerlink" title="产生新的集合"></a>产生新的集合</h3><p>使用 <code>yield</code> 返回一个新的集合 <code>Array[T]</code></p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">scalaFiles</span> </span>= </span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        file &lt;- fileHere</span><br><span class="line">        <span class="keyword">if</span> file.getName.endsWith(<span class="string">&quot;.scala)</span></span><br><span class="line"><span class="string">    &#125; yield file</span></span><br><span class="line"><span class="string"></span></span><br></pre></td></tr></table></figure>
-
-<h2 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h2><h3 id="throw"><a href="#throw" class="headerlink" title="throw"></a>throw</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalArgumentException</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="捕获"><a href="#捕获" class="headerlink" title="捕获"></a>捕获</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">try &#123;</span><br><span class="line">    val f = new FileReader(&quot;input.txt&quot;)</span><br><span class="line">&#125; catch &#123;</span><br><span class="line">    case ex: FileNotFoundException =&gt; &#123;...&#125;</span><br><span class="line">    case ex: IOException =&gt; &#123;...&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="finally"><a href="#finally" class="headerlink" title="finally"></a>finally</h3><p>可以将无论是否抛出异常都想执行的代码以表达式形式包在 <code>finally</code> 中</p>
-<h2 id="match"><a href="#match" class="headerlink" title="match"></a>match</h2><p><code>match</code> 可以使用任意的模式选择，常量、字符串等都可以作为样例，缺省可以使用 <code>_</code></p>
-<p><code>match</code> 每个分支的 <code>break</code> 是隐含的</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">firstArg <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&quot;salt&quot;</span> =&gt; println(<span class="string">&quot;pepper&quot;</span>)</span><br><span class="line">    <span class="keyword">case</span> <span class="string">&quot;chips&quot;</span> =&gt; println(<span class="string">&quot;salsa)</span></span><br><span class="line"><span class="string">    case _ =&gt; println(&quot;</span><span class="string">default&quot;)</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1267,7 +1065,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/13/Scala-%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/18/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-if/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1285,7 +1083,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/13/Scala-%E5%9F%BA%E7%A1%80%E6%95%B0%E6%8D%AE/" class="post-title-link" itemprop="url">基础类型</a>
+          <a href="/2023/04/18/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-if/" class="post-title-link" itemprop="url">if</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1296,14 +1094,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-13 11:09:59" itemprop="dateCreated datePublished" datetime="2023-04-13T11:09:59+08:00">2023-04-13</time>
+      <time title="创建时间：2023-04-18 21:22:10" itemprop="dateCreated datePublished" datetime="2023-04-18T21:22:10+08:00">2023-04-18</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-18 19:07:12" itemprop="dateModified" datetime="2023-04-18T19:07:12+08:00">2023-04-18</time>
+      <time title="修改时间：2023-04-19 20:18:01" itemprop="dateModified" datetime="2023-04-19T20:18:01+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1311,7 +1109,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Scala/" itemprop="url" rel="index"><span itemprop="name">Scala</span></a>
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
         </span>
     </span>
 
@@ -1325,35 +1123,73 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="值类型"><a href="#值类型" class="headerlink" title="值类型"></a>值类型</h2><p><code>Byte</code> 1 个字节，带符号</p>
-<p><code>Short</code> 2 个字节，带符号</p>
-<p><code>Int</code> 4 个字节，带符号</p>
-<p><code>Long</code> 8 个字节，带符号</p>
-<p><code>Float</code> 4 个字节，带符号</p>
-<p><code>Double</code> 8 个字节，带符号</p>
-<p><code>Char</code> 2 个字节，无符号 Unicode 字符</p>
-<h2 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h2><p><code>String</code> 是 <code>Char</code> 的序列</p>
-<p>Scala 支持用 <code>&quot;&quot;&quot;</code> 三个引号表示原生字符串，不需要转义，支持任何字符包括换行、单双引号等</p>
-<p>Scala 提供了灵活的字符串插值方式</p>
-<ul>
-<li><code>s</code> 插值：可以随时用 <code>$</code> 开始一个表达式，通常跟一个变量名；如果表达式不能直接求值，需要使用花括号 <code>&#123;&#125;</code></li>
-</ul>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> name = <span class="string">&quot;reader&quot;</span></span><br><span class="line">println(<span class="string">s&quot;hello, <span class="subst">$name</span>!&quot;</span>)</span><br><span class="line"></span><br><span class="line">println(<span class="string">s&quot;6 * 7 = <span class="subst">$&#123;6 * 7&#125;</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(&lt;condition&gt;)</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">elseif</span>(&lt;condition&gt;)</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">endif</span>()</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li><code>raw</code> 插值：跟 <code>s</code> 类似，等你不识别转义字符，类似于原生字符串</li>
+<li><p><code>if(&lt;constant&gt;)</code>：当 <code>constant</code> 为 <code>TRUE</code> 、1、<code>ON</code>、<code>YES</code>、<code>Y</code> 和非 0 数时都为 <code>true</code>，当 <code>constant</code> 为 <code>FALSE</code>、<code>0</code>、<code>OFF</code>、<code>NO</code>、<code>N</code>、<code>IGNORE</code>、<code>NOTFOUND</code>、空字符串和以 <code>-NOTFOUND</code> 结尾的字符串时都为 <code>false</code></p>
+</li>
+<li><p><code>if(&lt;variable&gt;)</code>：如果变量被定义且不被定义为 <code>false</code> 的常量时为 <code>true</code>，宏参数、环境变量不能以这种方式进行判断</p>
+</li>
+<li><p><code>if(&lt;string&gt;)</code>：用引号括起来的字符串的计算结果总是为 <code>false</code>，除非字符串是为 <code>true</code> 的常量</p>
+</li>
+<li><p><code>if(NOT &lt;condition&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;cond1&gt; AND &lt;cond2&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;cond1&gt; OR &lt;cond2&gt;)</code></p>
+</li>
+<li><p><code>if((condition) AND (condition OR (condition)))</code></p>
+</li>
+<li><p><code>if(COMMAND command-name)</code>：当 <code>command-name</code> 是可以被调用的命令、宏和函数时为 <code>true</code></p>
+</li>
+<li><p><code>if(TARGET target-name)</code>：当 <code>target-name</code> 已经被 <code>add_executable</code>、<code>add_library</code> 和 <code>add_custom_target</code> 添加时为 <code>true</code></p>
+</li>
+<li><p><code>if(DEFINED &lt;name&gt;|CACHE&#123;&lt;name&gt;&#125;|ENV&#123;&lt;name&gt;&#125;)</code>：当变量、环境变量、全局变量已被定义时为 <code>true</code>，不关系其具体的值</p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; IN_LIST &lt;variable&gt;)</code></p>
+</li>
+<li><p><code>if(EXISTS path-to-file-or-directory)</code>：只适用于绝对地址</p>
+</li>
+<li><p><code>if(file1 IS_NEWER_THAN file2)</code></p>
+</li>
+<li><p><code>if(IS_DIRECTORY path-to-directory)</code></p>
+</li>
+<li><p><code>if(IS_ABSOLUTE path)</code>：空串为 <code>false</code>，</p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; MATCHES regex)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; LESS &lt;variable|string&gt;)</code>：<code>variable|string</code> 必须是数字</p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; GREATER &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; EQUAL &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; LESS_EQUAL &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; GREATER_EQUAL &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; STRLESS &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; STRGREATER &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; STREQUAL &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; STRLESS_EQUAL &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; STRGREATER_EQUAL &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; VERSION_LESS &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; VERSION_GREATER &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; VERSION_EQUAL &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; VERSION_LESS_EQUAL &lt;variable|string&gt;)</code></p>
+</li>
+<li><p><code>if(&lt;variable|string&gt; VERSION_GREATER_EQUAL &lt;variable|string&gt;)</code></p>
+</li>
 </ul>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> escape = <span class="string">&quot;hello&quot;</span></span><br><span class="line">println(<span class="string">raw&quot;\\\\<span class="subst">$escape</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>f</code> 插值：允许对内嵌表达式进行格式化输出，需要将 <code>%</code> 紧跟欲格式化的表达式，默认 <code>%s</code></li>
-</ul>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">println(<span class="string">f&quot;<span class="subst">$&#123;math.Pi&#125;</span>%.5f&quot;</span>)</span><br></pre></td></tr></table></figure>
-
-<h2 id="对象相等性"><a href="#对象相等性" class="headerlink" title="对象相等性"></a>对象相等性</h2><p><code>==</code> 首先检查左侧是否为 <code>null</code>，如果不为 <code>null</code> 则调用 <code>equals</code> 方法</p>
-<p>对于不同对象，只要内容一致切提供了 <code>equals</code> 方法都可以比较相等性</p>
-<p>Scala 提供了用于比较引用相等性的机制，即 <code>eq</code> 和 <code>ne</code> 方法，但只对那些直接映射 Java 对象的对象生效 </p>
-
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(var)</span><br><span class="line"><span class="comment"># 等价于</span></span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$&#123;var&#125;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(var1 <span class="keyword">OFF</span>)</span><br><span class="line"><span class="keyword">set</span>(var2 <span class="string">&quot;var1&quot;</span>)</span><br><span class="line"><span class="keyword">if</span>(var1) <span class="comment"># var1 被定义成 false 常量 -&gt; false</span></span><br><span class="line"><span class="keyword">if</span>(var2) <span class="comment"># var2 被定义，且不是 false 常量 -&gt; true</span></span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$&#123;var1&#125;</span>) <span class="comment"># 等价于 if(OFF) -&gt; false</span></span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$&#123;var2&#125;</span>) <span class="comment"># 等价于 if(var1) -&gt; false</span></span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1372,7 +1208,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/17/">17</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/3/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
