@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="缓存雪崩大量的应用请求无法在 Redis 缓存中进行处理，紧接着，应用将大量请求发送到数据库层，导致数据库层的压力激增   缓存中有大量数据同时过期给数据的过期时间增加一个较小的随机数，不同数据的过期时间有所差别，但差别又不会太大，既避免了大量数据同时过期，同时也保证了这些数据基本在相近的时间失效，仍然能满足业务需求 服务降级，发生缓存雪崩时，针对不同的数据采取不同的处理方式；访问非核心数据时">
+<meta property="og:type" content="article">
+<meta property="og:title" content="缓存异常">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="缓存雪崩大量的应用请求无法在 Redis 缓存中进行处理，紧接着，应用将大量请求发送到数据库层，导致数据库层的压力激增   缓存中有大量数据同时过期给数据的过期时间增加一个较小的随机数，不同数据的过期时间有所差别，但差别又不会太大，既避免了大量数据同时过期，同时也保证了这些数据基本在相近的时间失效，仍然能满足业务需求 服务降级，发生缓存雪崩时，针对不同的数据采取不同的处理方式；访问非核心数据时">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/02.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/03.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/04.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/05.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/06.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/07.png">
+<meta property="article:published_time" content="2023-04-20T12:52:34.000Z">
+<meta property="article:modified_time" content="2023-04-20T13:20:13.907Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/","path":"2023/04/20/Redis-缓存异常/","title":"缓存异常"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>缓存异常 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9"><span class="nav-text">缓存雪崩</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E4%B8%AD%E6%9C%89%E5%A4%A7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%90%8C%E6%97%B6%E8%BF%87%E6%9C%9F"><span class="nav-text">缓存中有大量数据同时过期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis-%E7%BC%93%E5%AD%98%E5%AE%9E%E4%BE%8B%E5%8F%91%E7%94%9F%E6%95%85%E9%9A%9C%E5%AE%95%E6%9C%BA"><span class="nav-text">Redis 缓存实例发生故障宕机</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E5%87%BB%E7%A9%BF"><span class="nav-text">缓存击穿</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%83%AD%E7%82%B9%E6%95%B0%E6%8D%AE%E4%B8%8D%E8%AE%BE%E7%BD%AE%E8%BF%87%E6%9C%9F%E6%97%B6%E9%97%B4"><span class="nav-text">热点数据不设置过期时间</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F"><span class="nav-text">缓存穿透</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E7%A9%BA%E5%80%BC%E6%88%96%E7%BC%BA%E7%9C%81%E5%80%BC"><span class="nav-text">缓存空值或缺省值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="nav-text">布隆过滤器</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">217</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="缓存异常 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          缓存异常
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-20 20:52:34 / 修改时间：21:20:13" itemprop="dateCreated datePublished" datetime="2023-04-20T20:52:34+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/01.png" class="">
+
+<h2 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h2><p>大量的应用请求无法在 Redis 缓存中进行处理，紧接着，应用将大量请求发送到数据库层，导致数据库层的压力激增</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/02.png" class="">
+
+<h3 id="缓存中有大量数据同时过期"><a href="#缓存中有大量数据同时过期" class="headerlink" title="缓存中有大量数据同时过期"></a>缓存中有大量数据同时过期</h3><p>给数据的过期时间增加一个较小的随机数，不同数据的过期时间有所差别，但差别又不会太大，既避免了大量数据同时过期，同时也保证了这些数据基本在相近的时间失效，仍然能满足业务需求</p>
+<p>服务降级，发生缓存雪崩时，针对不同的数据采取不同的处理方式；访问非核心数据时，暂时停止从缓存中查询这些数据，而是直接返回预定义信息、空值或是错误信息；访问核心数据时，允许查询缓存，如果缓存缺失，也可以继续通过数据库读取</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/03.png" class="">
+
+<h3 id="Redis-缓存实例发生故障宕机"><a href="#Redis-缓存实例发生故障宕机" class="headerlink" title="Redis 缓存实例发生故障宕机"></a>Redis 缓存实例发生故障宕机</h3><p>在业务系统中实现服务熔断或请求限流机制：在发生缓存雪崩时，为了防止引发连锁的数据库雪崩，甚至是整个系统的崩溃，我们暂停业务应用对缓存系统的接口访问</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/04.png" class="">
+
+<p>服务熔断虽然可以保证数据库的正常运行，但是暂停了整个缓存系统的访问，对业务应用的影响范围大。为了尽可能减少这种影响，我们也可以进行请求限流；在业务系统的请求入口前端控制每秒进入系统的请求数，避免过多的请求被发送到数据库</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/05.png" class="">
+
+<p>通过主从节点的方式构建 Redis 缓存高可靠集群，主节点故障宕机，从节点还可以切换成为主节点，继续提供缓存服务，避免了由于缓存实例宕机而导致的缓存雪崩问题</p>
+<h2 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h2><p>缓存击穿是指，针对某个访问非常频繁的热点数据的请求，无法在缓存中进行处理，紧接着，访问该数据的大量请求，一下子都发送到了后端数据库，导致了数据库压力激增，会影响数据库处理其他请求</p>
+<p>缓存击穿的情况，经常发生在热点数据过期失效时</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/06.png" class="">
+
+<h3 id="热点数据不设置过期时间"><a href="#热点数据不设置过期时间" class="headerlink" title="热点数据不设置过期时间"></a>热点数据不设置过期时间</h3><p>对于访问特别频繁的热点数据，就不设置过期时间了</p>
+<h2 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h2><p>缓存穿透是指要访问的数据既不在 Redis 缓存中，也不在数据库中，导致请求在访问缓存时，发生缓存缺失，再去访问数据库时，发现数据库中也没有要访问的数据；应用无法从数据库中读取数据再写入缓存来服务后续请求，这样一来缓存也就成了摆设，如果应用持续有大量请求访问数据，就会同时给缓存和数据库带来巨大压力</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/07.png" class="">
+
+<p>原因：</p>
+<ul>
+<li><p>业务层误操作：缓存中的数据和数据库中的数据被误删除了，所以缓存和数据库中都没有数据</p>
+</li>
+<li><p>恶意攻击：专门访问数据库中没有的数据</p>
+</li>
+</ul>
+<h3 id="缓存空值或缺省值"><a href="#缓存空值或缺省值" class="headerlink" title="缓存空值或缺省值"></a>缓存空值或缺省值</h3><p>一旦发生缓存穿透，可以针对查询的数据，在 Redis 中缓存一个空值或是和业务层协商确定的缺省值；应用发送的后续请求再进行查询时，就可以直接从 Redis 中读取空值或缺省值，返回给业务应用了，避免了把大量请求发送给数据库处理，保持了数据库的正常运行</p>
+<h3 id="布隆过滤器"><a href="#布隆过滤器" class="headerlink" title="布隆过滤器"></a>布隆过滤器</h3><p>使用布隆过滤器快速判断数据是否存在，避免从数据库中查询数据是否存在，减轻数据库压力</p>
+<p>工作原理：</p>
+<ul>
+<li><p>布隆过滤器由一个初值都为 0 的 bit 数组和 N 个哈希函数组成，可以用来快速判断某个数据是否存在</p>
+</li>
+<li><p>标记某个数据存在时，使用 N 个哈希函数，分别计算这个数据的哈希值，得到 N 个哈希值</p>
+</li>
+<li><p>把这 N 个哈希值对 bit 数组的长度取模，得到每个哈希值在数组中的对应位置</p>
+</li>
+<li><p>把对应位置的 bit 位设置为 1，这就完成了在布隆过滤器中标记数据的操作</p>
+</li>
+<li><p>如果数据不存在，也就没有用布隆过滤器标记过数据，那么，bit 数组对应 bit 位的值仍然为 0</p>
+</li>
+</ul>
+<p>当需要查询某个数据时，就执行刚刚说的计算过程，先得到这个数据在 bit 数组中对应的 N 个位置；查看 bit 数组中这 N 个位置上的 bit 值；只要这 N 个 bit 值有一个不为 1，这就表明布隆过滤器没有对该数据做过标记，所以，查询的数据一定没有在数据库中保存</p>
+<p>基于布隆过滤器的快速检测特性，可以在把数据写入数据库时，使用布隆过滤器做个标记。当缓存缺失后，应用查询数据库时，可以通过查询布隆过滤器快速判断数据是否存在。如果不存在，就不用再去数据库中查询了。这样一来，即使发生缓存穿透了，大量请求只会查询 Redis 和布隆过滤器，而不会积压到数据库，也就不会影响数据库的正常运行。布隆过滤器可以使用 Redis 实现，本身就能承担较大的并发访问压力</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/redis/" rel="tag"># redis</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/20/Redis-%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F/" rel="prev" title="编码方式">
+                  <i class="fa fa-chevron-left"></i> 编码方式
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/" rel="next" title="全局哈希表">
+                  全局哈希表 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

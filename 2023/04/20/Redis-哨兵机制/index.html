@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="如果从库发生故障了，客户端可以继续向主库或其他从库发送请求，进行相关的操作，但是如果主库发生故障了，那就直接会影响到从库的同步，因为从库没有相应的主库可以进行数据复制操作了 在 Redis 主从集群中，哨兵机制是实现主从库自动切换的关键机制，它有效地解决了主从复制模式下故障转移 基本流程哨兵其实就是一个运行在特殊模式下的 Redis 进程，主从库实例运行的同时它也在运行 哨兵主要负责的就是三个任务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="哨兵机制">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="如果从库发生故障了，客户端可以继续向主库或其他从库发送请求，进行相关的操作，但是如果主库发生故障了，那就直接会影响到从库的同步，因为从库没有相应的主库可以进行数据复制操作了 在 Redis 主从集群中，哨兵机制是实现主从库自动切换的关键机制，它有效地解决了主从复制模式下故障转移 基本流程哨兵其实就是一个运行在特殊模式下的 Redis 进程，主从库实例运行的同时它也在运行 哨兵主要负责的就是三个任务">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/02.png">
+<meta property="article:published_time" content="2023-04-20T13:04:31.000Z">
+<meta property="article:modified_time" content="2023-04-20T13:20:13.839Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/","path":"2023/04/20/Redis-哨兵机制/","title":"哨兵机制"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>哨兵机制 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%B5%81%E7%A8%8B"><span class="nav-text">基本流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%91%E6%8E%A7%E6%9C%BA%E5%88%B6"><span class="nav-text">监控机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%89%E4%B8%BB%E6%9C%BA%E5%88%B6"><span class="nav-text">选主机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AD%9B%E9%80%89"><span class="nav-text">筛选</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E5%88%86"><span class="nav-text">打分</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">217</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="哨兵机制 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          哨兵机制
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-20 21:04:31 / 修改时间：21:20:13" itemprop="dateCreated datePublished" datetime="2023-04-20T21:04:31+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>如果从库发生故障了，客户端可以继续向主库或其他从库发送请求，进行相关的操作，但是如果主库发生故障了，那就直接会影响到从库的同步，因为从库没有相应的主库可以进行数据复制操作了</p>
+<p>在 Redis 主从集群中，哨兵机制是实现主从库自动切换的关键机制，它有效地解决了主从复制模式下故障转移</p>
+<h2 id="基本流程"><a href="#基本流程" class="headerlink" title="基本流程"></a>基本流程</h2><p>哨兵其实就是一个运行在特殊模式下的 Redis 进程，主从库实例运行的同时它也在运行</p>
+<p>哨兵主要负责的就是三个任务：监控、选主（选择主库）和通知</p>
+<ul>
+<li><p>监控是指哨兵进程在运行时，周期性地给所有的主从库发送 PING 命令，检测它们是否仍然在线运行；如果从库没有在规定时间内响应哨兵的 PING 命令，哨兵就会把它标记为下线状态；果主库也没有在规定时间内响应哨兵的 PING 命令，哨兵就会判定主库下线，然后开始自动切换主库的流程</p>
+</li>
+<li><p>选主是主库挂了以后，哨兵就需要从很多个从库里，按照一定的规则选择一个从库实例，把它作为新的主库</p>
+</li>
+<li><p>通知是哨兵会把新主库的连接信息发给其他从库，让它们执行 replicaof 命令，和新主库建立连接，并进行数据复制；哨兵会把新主库的连接信息通知给客户端，让它们把请求操作发到新主库上</p>
+</li>
+</ul>
+<h2 id="监控机制"><a href="#监控机制" class="headerlink" title="监控机制"></a>监控机制</h2><p>哨兵进程会使用 PING 命令检测它自己和主、从库的网络连接情况，用来判断实例的状态；如果哨兵发现主库或从库对 PING 命令的响应超时了，哨兵就会先把它标记为主观下线</p>
+<p>如果检测的是从库，那么哨兵简单地把它标记为主观下线就行了，因为从库的下线影响一般不太大，集群的对外服务不会间断</p>
+<p>如果检测的是主库，那么哨兵还不能简单地把它标记为主观下线，因为如果哨兵误判了，其实主库并没有故障，一旦启动了主从切换，后续的选主和通知操作都会带来额外的计算和通信开销</p>
+<p>误判一般会发生在集群网络压力较大、网络拥塞，或者是主库本身压力较大的情况下</p>
+<p>哨兵机制通常会采用多实例组成的集群模式进行部署，组成哨兵集群。引入多个哨兵实例一起来判断，就可以避免单个哨兵因为自身网络状况不好，而误判主库下线的情况。同时，多个哨兵的网络同时不稳定的概率较小，由它们一起做决策，误判率也能降低</p>
+<p>只有大多数的哨兵实例都判断主库已经主观下线了，主库才会被标记为客观下线</p>
+<img src="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/01.png" class="">
+
+<p>客观下线的标准就是，当有 N 个哨兵实例时，最好要有 N&#x2F;2 + 1 个实例判断主库为主观下线，才能最终判定主库为客观下线。这样一来，就可以减少误判的概率，也能避免误判带来的无谓的主从库切换</p>
+<h2 id="选主机制"><a href="#选主机制" class="headerlink" title="选主机制"></a>选主机制</h2><p>哨兵选择新主库的过程为筛选 + 打分。简单来说，在多个从库中，先按照一定的筛选条件，把不符合条件的从库去掉。然后，再按照一定的规则，给剩下的从库逐个打分，将得分最高的从库选为新主库</p>
+<img src="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/02.png" class="">
+
+<h3 id="筛选"><a href="#筛选" class="headerlink" title="筛选"></a>筛选</h3><ul>
+<li><p>保证所选的从库仍然在线运行</p>
+</li>
+<li><p>判断从库之前的网络连接状态</p>
+</li>
+</ul>
+<h3 id="打分"><a href="#打分" class="headerlink" title="打分"></a>打分</h3><p>按照三个规则依次进行三轮打分，打分标准为：</p>
+<ul>
+<li><p>从库优先级</p>
+</li>
+<li><p>从库复制进度</p>
+</li>
+<li><p>从库 ID 号</p>
+</li>
+</ul>
+<p>只要在某一轮中，有从库得分最高，那么它就是主库了，选主过程到此结束；如果没有出现得分最高的从库，那么就继续进行下一轮</p>
+<p>第一轮：优先级最高的从库得分高；通过 slave-priority 配置项，给不同的从库设置不同优先级</p>
+<p>第二轮：和旧主库同步程度最接近的从库得分高；如果选择和旧主库同步最接近的那个从库作为主库，那么这个新主库上就有最新的数据；在主从库同步的命令传播的过程中，主库会用 master_repl_offset 记录当前的最新写操作在 repl_backlog_buffer 中的位置，而从库会用 slave_repl_offset 这个值记录当前的复制进度；从库的 slave_repl_offset 最接近 master_repl_offset，那么它的得分就最高，可以作为新主库</p>
+<p>第三轮：ID 号小的从库得分高；每个实例都会有一个 ID，在优先级和复制进度都相同的情况下，ID 号最小的从库得分最高，会被选为新主库</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/redis/" rel="tag"># redis</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/" rel="prev" title="缓存淘汰">
+                  <i class="fa fa-chevron-left"></i> 缓存淘汰
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/" rel="next" title="哨兵集群">
+                  哨兵集群 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

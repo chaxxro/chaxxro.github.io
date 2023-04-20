@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="缓存淘汰应用 Redis 缓存时，如果能缓存会被反复访问的数据，那就能加速业务应用的访问 在一些场景下，有些数据被访问的次数非常少，甚至只会被访问一次。当这些数据服务完访问请求后，如果还继续留存在缓存中的话，就只会白白占用缓存空间 为了保证较高的性价比，缓存的空间容量必然要小于后端数据库的数据总量。不过，内存大小毕竟有限，随着要缓存的数据量越来越大，有限的缓存空间不可避免地会被写满 淘汰机制包括两">
+<meta property="og:type" content="article">
+<meta property="og:title" content="缓存淘汰">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="缓存淘汰应用 Redis 缓存时，如果能缓存会被反复访问的数据，那就能加速业务应用的访问 在一些场景下，有些数据被访问的次数非常少，甚至只会被访问一次。当这些数据服务完访问请求后，如果还继续留存在缓存中的话，就只会白白占用缓存空间 为了保证较高的性价比，缓存的空间容量必然要小于后端数据库的数据总量。不过，内存大小毕竟有限，随着要缓存的数据量越来越大，有限的缓存空间不可避免地会被写满 淘汰机制包括两">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/02.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/03.png">
+<meta property="article:published_time" content="2023-04-20T13:02:47.000Z">
+<meta property="article:modified_time" content="2023-04-20T13:20:13.931Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/","path":"2023/04/20/Redis-缓存淘汰/","title":"缓存淘汰"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>缓存淘汰 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0"><span class="nav-text">缓存淘汰</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E7%BC%93%E5%AD%98%E5%AE%B9%E9%87%8F"><span class="nav-text">设置缓存容量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%95%BF%E5%B0%BE%E6%95%88%E5%BA%94"><span class="nav-text">长尾效应</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%8D%E5%B0%BE%E6%95%88%E5%BA%94"><span class="nav-text">重尾效应</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%8F%E9%AA%8C"><span class="nav-text">经验</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5"><span class="nav-text">淘汰策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#noevction"><span class="nav-text">noevction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#volatile-ttl"><span class="nav-text">volatile-ttl</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#volatile-random"><span class="nav-text">volatile-random</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#volatile-lru"><span class="nav-text">volatile-lru</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#volatile-lfu"><span class="nav-text">volatile-lfu</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#allkeys-random"><span class="nav-text">allkeys-random</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#allkeys-lru"><span class="nav-text">allkeys-lru</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#allkeys-lfu"><span class="nav-text">allkeys-lfu</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#random"><span class="nav-text">random</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ttl"><span class="nav-text">ttl</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LRU"><span class="nav-text">LRU</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LFU"><span class="nav-text">LFU</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%98%E6%B1%B0%E6%93%8D%E4%BD%9C"><span class="nav-text">淘汰操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%BB%BA%E8%AE%AE"><span class="nav-text">使用建议</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">217</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="缓存淘汰 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          缓存淘汰
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-20 21:02:47 / 修改时间：21:20:13" itemprop="dateCreated datePublished" datetime="2023-04-20T21:02:47+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="缓存淘汰"><a href="#缓存淘汰" class="headerlink" title="缓存淘汰"></a>缓存淘汰</h2><p>应用 Redis 缓存时，如果能缓存会被反复访问的数据，那就能加速业务应用的访问</p>
+<p>在一些场景下，有些数据被访问的次数非常少，甚至只会被访问一次。当这些数据服务完访问请求后，如果还继续留存在缓存中的话，就只会白白占用缓存空间</p>
+<p>为了保证较高的性价比，缓存的空间容量必然要小于后端数据库的数据总量。不过，内存大小毕竟有限，随着要缓存的数据量越来越大，有限的缓存空间不可避免地会被写满</p>
+<p>淘汰机制包括两步：第一，根据一定的策略，筛选出对应用访问来说不重要的数据；第二，将这些数据从缓存中删除，为新来的数据腾出空间</p>
+<h2 id="设置缓存容量"><a href="#设置缓存容量" class="headerlink" title="设置缓存容量"></a>设置缓存容量</h2><h3 id="长尾效应"><a href="#长尾效应" class="headerlink" title="长尾效应"></a>长尾效应</h3><p>20% 的数据贡献了 80% 的访问</p>
+<h3 id="重尾效应"><a href="#重尾效应" class="headerlink" title="重尾效应"></a>重尾效应</h3><p>20% 的数据可能贡献不了 80% 的访问，而剩余的 80% 数据反而贡献了更多的访问量</p>
+<h3 id="经验"><a href="#经验" class="headerlink" title="经验"></a>经验</h3><p>把缓存容量设置为总数据量的 15% 到 30%，兼顾访问性能和内存空间开销</p>
+<h2 id="淘汰策略"><a href="#淘汰策略" class="headerlink" title="淘汰策略"></a>淘汰策略</h2><img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/01.png" class="">
+
+<p>volatie-* 四种淘汰策略，筛选的候选数据范围，被限制在已经设置了过期时间的键值对上，即使缓存没有写满，这些数据如果过期了，也会被删除</p>
+<p>allkeys-* 三种淘汰策略，筛选的候选数据范围，扩大到了所有键值对，无论这些键值对是否设置了过期时间</p>
+<h3 id="noevction"><a href="#noevction" class="headerlink" title="noevction"></a>noevction</h3><p>默认情况下，Redis 在使用的内存空间超过 maxmemory 值时，并不会淘汰数据；一旦缓存被写满了，再有写请求来时，Redis 不再提供服务，而是直接返回错误</p>
+<p>Redis 用作缓存时，实际的数据集通常都是大于缓存容量的，总会有新的数据要写入缓存，这个策略本身不淘汰数据，也就不会腾出新的缓存空间，因此不能把它用在 Redis 缓存中</p>
+<h3 id="volatile-ttl"><a href="#volatile-ttl" class="headerlink" title="volatile-ttl"></a>volatile-ttl</h3><p>针对设置了过期时间的键值对，根据过期时间的先后进行删除，越早过期的越先被删除</p>
+<h3 id="volatile-random"><a href="#volatile-random" class="headerlink" title="volatile-random"></a>volatile-random</h3><p>在设置了过期时间的键值对中，进行随机删除</p>
+<h3 id="volatile-lru"><a href="#volatile-lru" class="headerlink" title="volatile-lru"></a>volatile-lru</h3><p>使用 LRU 算法筛选设置了过期时间的键值对</p>
+<h3 id="volatile-lfu"><a href="#volatile-lfu" class="headerlink" title="volatile-lfu"></a>volatile-lfu</h3><p>使用 LFU 算法选择设置了过期时间的键值对</p>
+<h3 id="allkeys-random"><a href="#allkeys-random" class="headerlink" title="allkeys-random"></a>allkeys-random</h3><p>从所有键值对中随机选择并删除数据</p>
+<h3 id="allkeys-lru"><a href="#allkeys-lru" class="headerlink" title="allkeys-lru"></a>allkeys-lru</h3><p>使用 LRU 算法在所有数据中进行筛选</p>
+<h3 id="allkeys-lfu"><a href="#allkeys-lfu" class="headerlink" title="allkeys-lfu"></a>allkeys-lfu</h3><p>使用 LFU 算法在所有数据中进行筛选</p>
+<h2 id="random"><a href="#random" class="headerlink" title="random"></a>random</h2><p>volatile-random 和 allkeys-random 这两种策略，它们都是采用随机挑选数据的方式，来筛选即将被淘汰的数据</p>
+<p>随机挑选，那么 Redis 就不会根据数据的访问情况来筛选数据，在避免缓存污染这个问题上的效果非常有限</p>
+<h2 id="ttl"><a href="#ttl" class="headerlink" title="ttl"></a>ttl</h2><p>volatile-ttl 针对的是设置了过期时间的数据，把这些数据中剩余存活时间最短的筛选出来并淘汰掉；虽然 volatile-ttl 策略不再是随机选择淘汰数据了，但是剩余存活时间并不能直接反映数据再次访问的情况，所以和按随机方式淘汰数据类似，也可能出现数据被淘汰后，被再次访问导致的缓存缺失问题</p>
+<h2 id="LRU"><a href="#LRU" class="headerlink" title="LRU"></a>LRU</h2><p>LRU 算法的全称是 Least Recently Used，按照最近最少使用的原则来筛选数据，最不常用的数据会被筛选出来，而最近频繁使用的数据会留在缓存中</p>
+<p>LRU 会把所有的数据组织成一个链表，链表的头和尾分别表示 MRU 端和 LRU 端，分别代表最近最常使用的数据和最近最不常用的数据</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/02.png" class="">
+
+<p>LRU 算法选择删除数据时，都是从 LRU 端开始，所以把刚刚被访问的数据移到 MRU 端，就可以让它们尽可能地留在缓存中</p>
+<p>LRU 算法背后的想法非常朴素：它认为刚刚被访问的数据，肯定还会被再次访问，所以就把它放在 MRU 端；长久不访问的数据，肯定就不会再被访问了，所以就让它逐渐后移到 LRU 端，在缓存满时，就优先删除它</p>
+<p>LRU 算法在实际实现时，需要用链表管理所有的缓存数据，会带来额外的空间开销。而且，当有数据被访问时，需要在链表上把该数据移动到 MRU 端，如果有大量数据被访问，就会带来很多链表移动操作，会很耗时，进而会降低 Redis 缓存性能</p>
+<p>在 Redis 中，LRU 算法被做了简化，以减轻数据淘汰对缓存性能的影响：Redis 默认会记录每个数据的最近一次访问的时间戳（由键值对数据结构 RedisObject 中的 lru 字段记录）；Redis 在决定淘汰的数据时，第一次会随机选出 N 个数据，把它们作为一个候选集合；Redis 会比较这 N 个数据的 lru 字段，把 lru 字段值最小的数据从缓存中淘汰出去；不用为所有的数据维护一个大链表，也不用在每次数据访问时都移动链表项，提升了缓存的性能</p>
+<p>因为只看数据的访问时间，使用 LRU 策略在处理扫描式单次查询操作时，无法解决缓存污染</p>
+<p>应用对大量的数据进行一次全体读取，每个数据都会被读取，而且只会被读取一次。此时，因为这些被查询的数据刚刚被访问过，所以 lru 字段值都很大；在使用 LRU 策略淘汰数据时，这些数据会留存在缓存中很长一段时间，造成缓存污染</p>
+<h2 id="LFU"><a href="#LFU" class="headerlink" title="LFU"></a>LFU</h2><p>LFU 缓存策略是在 LRU 策略基础上，为每个数据增加了一个计数器，来统计这个数据的访问次数。当使用 LFU 策略筛选淘汰数据时，首先会根据数据的访问次数进行筛选，把访问次数最低的数据淘汰出缓存。如果两个数据的访问次数相同，LFU 策略再比较这两个数据的访问时效性，把距离上一次访问时间更久的数据淘汰出缓存</p>
+<p>Redis 在实现 LFU 策略的时候，只是把原来 24bit 大小的 lru 字段，又进一步拆分成了两部分</p>
+<ol>
+<li><p>ldt 值：lru 字段的前 16bit，表示数据的访问时间戳</p>
+</li>
+<li><p>counter 值：lru 字段的后 8bit，表示数据的访问次数，最大值是 255</p>
+</li>
+</ol>
+<p>在实现 LFU 策略时，Redis 并没有采用数据每被访问一次，就给对应的 counter 值加 1 的计数规则，而是采用了一个更优化的计数规则：使用配置项 lfu_log_factor、衰减因子配置项 lfu_decay_time 来统计计数</p>
+<p>当 LFU 策略筛选数据时，Redis 会在候选集合中，根据数据 lru 字段的后 8bit 选择访问次数最少的数据进行淘汰。当访问次数相同时，再根据 lru 字段的前 16bit 值大小，选择访问时间最久远的数据进行淘汰</p>
+<h2 id="淘汰操作"><a href="#淘汰操作" class="headerlink" title="淘汰操作"></a>淘汰操作</h2><img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/03.png" class="">
+
+<p>干净数据和脏数据的区别就在于，和最初从后端数据库里读取时的值相比，有没有被修改过。干净数据一直没有被修改，所以后端数据库里的数据也是最新值。在替换时，它可以被直接删除</p>
+<p>脏数据就是曾经被修改过的，已经和后端数据库中保存的数据不一致了。此时，如果不把脏数据写回到数据库中，这个数据的最新值就丢失了，就会影响应用的正常使用</p>
+<h2 id="使用建议"><a href="#使用建议" class="headerlink" title="使用建议"></a>使用建议</h2><ul>
+<li><p>优先使用 allkeys-lru 策略，充分利用 LRU 的优势，把最近最常访问的数据留在缓存中，提升应用的访问性能</p>
+</li>
+<li><p>如果业务应用中的数据访问频率相差不大，没有明显的冷热数据区分，建议使用 allkeys-random 策略</p>
+</li>
+<li><p>有置顶的需求，可以使用 volatile-lru 策略，同时不给这些置顶数据设置过期时间</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/redis/" rel="tag"># redis</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/20/Redis-redisObject/" rel="prev" title="RedisObject">
+                  <i class="fa fa-chevron-left"></i> RedisObject
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/" rel="next" title="哨兵机制">
+                  哨兵机制 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

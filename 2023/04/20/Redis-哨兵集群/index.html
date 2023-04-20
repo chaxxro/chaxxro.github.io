@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="多个实例组成哨兵集群，即使有哨兵实例出现故障挂掉了，其他哨兵还能继续协作完成主从库切换的工作，包括判定主库是不是处于下线状态，选择新主库，以及通知从库和客户端 在配置哨兵的信息时，只需要用到主库的 IP 和端口，并没有配置其他哨兵的连接信息 基于主库的 pub&#x2F;sub 机制的哨兵集群哨兵实例之间可以相互发现，要归功于 Redis 提供的 pub&#x2F;sub 机制 哨兵只要和主库建立">
+<meta property="og:type" content="article">
+<meta property="og:title" content="哨兵集群">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="多个实例组成哨兵集群，即使有哨兵实例出现故障挂掉了，其他哨兵还能继续协作完成主从库切换的工作，包括判定主库是不是处于下线状态，选择新主库，以及通知从库和客户端 在配置哨兵的信息时，只需要用到主库的 IP 和端口，并没有配置其他哨兵的连接信息 基于主库的 pub&#x2F;sub 机制的哨兵集群哨兵实例之间可以相互发现，要归功于 Redis 提供的 pub&#x2F;sub 机制 哨兵只要和主库建立">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/02.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/03.png">
+<meta property="article:published_time" content="2023-04-20T13:05:46.000Z">
+<meta property="article:modified_time" content="2023-04-20T13:20:13.847Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/","path":"2023/04/20/Redis-哨兵集群/","title":"哨兵集群"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>哨兵集群 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E4%B8%BB%E5%BA%93%E7%9A%84-pub-x2F-sub-%E6%9C%BA%E5%88%B6%E7%9A%84%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4"><span class="nav-text">基于主库的 pub&#x2F;sub 机制的哨兵集群</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#INFO-%E5%91%BD%E4%BB%A4"><span class="nav-text">INFO 命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E5%93%A8%E5%85%B5%E8%87%AA%E8%BA%AB%E7%9A%84-pub-x2F-sub-%E6%9C%BA%E5%88%B6%E7%9A%84%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BA%8B%E4%BB%B6%E9%80%9A%E7%9F%A5"><span class="nav-text">基于哨兵自身的 pub&#x2F;sub 机制的客户端事件通知</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%A2%E8%A7%82%E4%B8%8B%E7%BA%BF%E4%BB%B2%E8%A3%81%E8%BF%87%E7%A8%8B"><span class="nav-text">客观下线仲裁过程</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">217</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="哨兵集群 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          哨兵集群
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-20 21:05:46 / 修改时间：21:20:13" itemprop="dateCreated datePublished" datetime="2023-04-20T21:05:46+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>多个实例组成哨兵集群，即使有哨兵实例出现故障挂掉了，其他哨兵还能继续协作完成主从库切换的工作，包括判定主库是不是处于下线状态，选择新主库，以及通知从库和客户端</p>
+<p>在配置哨兵的信息时，只需要用到主库的 IP 和端口，并没有配置其他哨兵的连接信息</p>
+<h2 id="基于主库的-pub-x2F-sub-机制的哨兵集群"><a href="#基于主库的-pub-x2F-sub-机制的哨兵集群" class="headerlink" title="基于主库的 pub&#x2F;sub 机制的哨兵集群"></a>基于主库的 pub&#x2F;sub 机制的哨兵集群</h2><p>哨兵实例之间可以相互发现，要归功于 Redis 提供的 pub&#x2F;sub 机制</p>
+<p>哨兵只要和主库建立起了连接，就可以在主库上发布消息了，比如说发布它自己的连接信息（IP 和端口）。同时，它也可以从主库上订阅消息，获得其他哨兵发布的连接信息。当多个哨兵实例都在主库上做了发布和订阅操作后，它们之间就能知道彼此的 IP 地址和端口</p>
+<p>除了哨兵实例，编写的应用程序也可以通过 Redis 进行消息的发布和订阅。为了区分不同应用的消息，Redis 会以频道的形式，对这些消息进行分门别类的管理。所谓的频道，就是消息的类别。当消息类别相同时，它们就属于同一个频道。反之，就属于不同的频道。只有订阅了同一个频道的应用，才能通过发布的消息进行信息交换</p>
+<p>在主从集群中，主库上有一个名为 <strong>sentinel</strong>:hello 的频道，不同哨兵就是通过它来相互发现，实现互相通信的</p>
+<p>通过 pub&#x2F;sub 机制，哨兵之间可以组成集群</p>
+<h2 id="INFO-命令"><a href="#INFO-命令" class="headerlink" title="INFO 命令"></a>INFO 命令</h2><p>哨兵除了彼此之间建立起连接形成集群外，还需要和从库建立连接。在哨兵的监控任务中，它需要对主从库都进行心跳判断，而且在主从库切换完成后，它还需要通知从库，让它们和新主库进行同步</p>
+<p>哨兵向主库发送 INFO 命令来获取从库的 IP 地址和端口</p>
+<img src="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/01.png" class="">
+
+<p>哨兵 2 给主库发送 INFO 命令，主库接受到这个命令后，就会把从库列表返回给哨兵。接着，哨兵就可以根据从库列表中的连接信息，和每个从库建立连接，并在这个连接上持续地对从库进行监控。哨兵 1 和 3 可以通过相同的方法和从库建立连接</p>
+<p>通过 INFO 命令，获得了从库连接信息，也能和从库建立连接，并进行监控</p>
+<h2 id="基于哨兵自身的-pub-x2F-sub-机制的客户端事件通知"><a href="#基于哨兵自身的-pub-x2F-sub-机制的客户端事件通知" class="headerlink" title="基于哨兵自身的 pub&#x2F;sub 机制的客户端事件通知"></a>基于哨兵自身的 pub&#x2F;sub 机制的客户端事件通知</h2><p>哨兵需要在完成主从切换后，把新主库的信息告诉客户端，如客户端能够获取到哨兵集群在监控、选主、切换这个过程中发生的各种事件</p>
+<p>可以使用 pub&#x2F;sub 机制，来帮助完成哨兵和客户端间的信息同步</p>
+<p>从本质上说，哨兵就是一个运行在特定模式下的 Redis 实例，只不过它并不服务请求操作，只是完成监控、选主和通知的任务。所以，每个哨兵实例也提供 pub&#x2F;sub 机制，客户端可以从哨兵订阅消息。哨兵提供的消息订阅频道有很多，不同频道包含了主从库切换过程中的不同关键事件</p>
+<img src="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/02.png" class="">
+
+<p>客户端读取哨兵的配置文件后，可以获得哨兵的地址和端口，和哨兵建立网络连接。然后可以在客户端执行订阅命令，来获取不同的事件消息</p>
+<p>有了这些事件通知，客户端不仅可以在主从切换后得到新主库的连接信息，还可以监控到主从库切换过程中发生的各个重要事件。这样客户端就可以知道主从切换进行到哪一步了，有助于了解切换进度</p>
+<h2 id="客观下线仲裁过程"><a href="#客观下线仲裁过程" class="headerlink" title="客观下线仲裁过程"></a>客观下线仲裁过程</h2><ul>
+<li><p>任何一个实例只要自身判断主库主观下线后，就会给其他实例发送 is-master-down-by-addr 命令</p>
+</li>
+<li><p>其他实例会根据自己和主库的连接情况，做出 Y 或 N 的响应，Y 相当于赞成票，N 相当于反对票</p>
+</li>
+</ul>
+<img src="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/03.png" class="">
+
+<ul>
+<li><p>一个哨兵获得了仲裁所需的赞成票数后，就可以标记主库为客观下线。这个所需的赞成票数是通过哨兵配置文件中的 quorum 配置项设定的。例如，现在有 5 个哨兵，quorum 配置的是 3，那么，一个哨兵需要 3 张赞成票，就可以标记主库为客观下线了。这 3 张赞成票包括哨兵自己的一张赞成票和另外两个哨兵的赞成票</p>
+</li>
+<li><p>这个哨兵就可以再给其他哨兵发送命令，表明希望由自己来执行主从切换，并让所有其他哨兵进行投票。这个投票过程称为Leader 选举。因为最终执行主从切换的哨兵称为 Leader，投票过程就是确定 Leader</p>
+</li>
+<li><p>在投票过程中，任何一个想成为 Leader 的哨兵，要满足两个条件：第一，拿到半数以上的赞成票；第二，拿到的票数同时还需要大于等于哨兵配置文件中的 quorum 值</p>
+</li>
+<li><p>投票过程中，未投过票的哨兵会给第一个向它发送投票请求的哨兵回复 Y，给后续再发送投票请求的哨兵回复 N</p>
+</li>
+<li><p>Leader 开始执行选主操作，而且在选定新主库后，会给其他从库和客户端通知新主库的信息</p>
+</li>
+<li><p>此轮如果没有产生 Leader，哨兵集群会等待一段时间（也就是哨兵故障转移超时时间的 2 倍），再重新选举。哨兵集群能够进行成功投票，很大程度上依赖于选举命令的正常网络传播。如果网络压力较大或有短时堵塞，就可能导致没有一个哨兵能拿到半数以上的赞成票。所以，等到网络拥塞好转之后，再进行投票选举，成功的概率就会增加</p>
+</li>
+</ul>
+<p>通常我们至少会配置 3 个哨兵实例</p>
+<p>要保证所有哨兵实例的配置是一致的，尤其是主观下线的判断值 down-after-milliseconds</p>
+<p>哨兵在判定主观下线和选举哨兵领导者时，都需要和其他节点进行通信，交换信息，哨兵实例越多，通信的次数也就越多，而且部署多个哨兵时，会分布在不同机器上，节点越多带来的机器故障风险也会越大，这些问题都会影响到哨兵的通信和选举，出问题时也就意味着选举时间会变长，切换主从的时间变久</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/redis/" rel="tag"># redis</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/" rel="prev" title="哨兵机制">
+                  <i class="fa fa-chevron-left"></i> 哨兵机制
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/" rel="next" title="切片集群">
+                  切片集群 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

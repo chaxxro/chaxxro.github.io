@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Redis 实例在运行时，要和许多对象进行交互，这些不同的交互就会涉及不同的操作  客户端：网络 IO，键值对增删改查操作，数据库操作  磁盘：生成 RDB 快照，记录 AOF 日志，AOF 日志重写  主从节点：主库生成、传输 RDB 文件，从库接收 RDB 文件、清空数据库、加载 RDB 文件  切片集群实例：向其他实例传输哈希槽信息，数据迁移     阻塞风险客户端交互网络 IORedis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="异步机制">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/19/Redis-%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="Redis 实例在运行时，要和许多对象进行交互，这些不同的交互就会涉及不同的操作  客户端：网络 IO，键值对增删改查操作，数据库操作  磁盘：生成 RDB 快照，记录 AOF 日志，AOF 日志重写  主从节点：主库生成、传输 RDB 文件，从库接收 RDB 文件、清空数据库、加载 RDB 文件  切片集群实例：向其他实例传输哈希槽信息，数据迁移     阻塞风险客户端交互网络 IORedis">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-19T13:24:38.000Z">
+<meta property="article:modified_time" content="2023-04-20T13:20:13.855Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/19/Redis-%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/19/Redis-%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6/","path":"2023/04/19/Redis-异步机制/","title":"异步机制"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>异步机制 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%BB%E5%A1%9E%E9%A3%8E%E9%99%A9"><span class="nav-text">阻塞风险</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BA%A4%E4%BA%92"><span class="nav-text">客户端交互</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A3%81%E7%9B%98%E4%BA%A4%E4%BA%92"><span class="nav-text">磁盘交互</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E4%BB%8E%E8%8A%82%E7%82%B9%E4%BA%A4%E4%BA%92"><span class="nav-text">主从节点交互</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4%E4%BA%A4%E4%BA%92"><span class="nav-text">切片集群交互</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5"><span class="nav-text">异步</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E8%B7%AF%E5%BE%84%E6%93%8D%E4%BD%9C"><span class="nav-text">关键路径操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6"><span class="nav-text">异步机制</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">217</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="异步机制 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          异步机制
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-19 21:24:38" itemprop="dateCreated datePublished" datetime="2023-04-19T21:24:38+08:00">2023-04-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Redis 实例在运行时，要和许多对象进行交互，这些不同的交互就会涉及不同的操作</p>
+<ul>
+<li><p>客户端：网络 IO，键值对增删改查操作，数据库操作</p>
+</li>
+<li><p>磁盘：生成 RDB 快照，记录 AOF 日志，AOF 日志重写</p>
+</li>
+<li><p>主从节点：主库生成、传输 RDB 文件，从库接收 RDB 文件、清空数据库、加载 RDB 文件</p>
+</li>
+<li><p>切片集群实例：向其他实例传输哈希槽信息，数据迁移</p>
+</li>
+</ul>
+
+
+<h2 id="阻塞风险"><a href="#阻塞风险" class="headerlink" title="阻塞风险"></a>阻塞风险</h2><h3 id="客户端交互"><a href="#客户端交互" class="headerlink" title="客户端交互"></a>客户端交互</h3><h4 id="网络-IO"><a href="#网络-IO" class="headerlink" title="网络 IO"></a>网络 IO</h4><p>Redis 使用了 IO 多路复用机制，避免了主线程一直处在等待网络连接或请求到来的状态</p>
+<h4 id="键值对操作"><a href="#键值对操作" class="headerlink" title="键值对操作"></a>键值对操作</h4><p>键值对的增删改查操作是 Redis 和客户端交互的主要部分，也是 Redis 主线程执行的主要任务。所以，复杂度高的增删改查操作肯定会阻塞 Redis，复杂度标准为 O(N)</p>
+<p>Redis 中涉及集合的操作复杂度通常为 O(N)，所以集合全量查询和聚合操作在使用时需要重视</p>
+<p>集合自身的删除操作同样也有潜在的阻塞风险：删除操作的本质是要释放键值对占用的内存空间；为了更加高效地管理内存空间，在应用程序释放内存时，操作系统需要把释放掉的内存块插入一个空闲内存块的链表，以便后续进行管理和再分配，这个过程需要一定时间，而且会阻塞当前释放内存的应用程序</p>
+<p>在删除大量键值对数据的时候，最典型的就是删除包含了大量元素的集合，也称为 bigkey 删除</p>
+<p>清空数据库因为涉及到删除和释放所有的键值对，因此也会带来阻塞</p>
+<h3 id="磁盘交互"><a href="#磁盘交互" class="headerlink" title="磁盘交互"></a>磁盘交互</h3><p>磁盘 IO 一般都是比较费时费力的，Redis 因此采用子进程的方式生成 RDB 快照文件，以及执行 AOF 日志重写操作</p>
+<p>Redis 直接记录 AOF 日志时，会根据不同的写回策略对数据做落盘保存；如果有大量的写操作需要记录在 AOF 日志中，并同步写回的话，就会阻塞主线程了</p>
+<h3 id="主从节点交互"><a href="#主从节点交互" class="headerlink" title="主从节点交互"></a>主从节点交互</h3><p>在主从集群中，主库需要生成 RDB 文件，并传输给从库。主库在复制的过程中，创建和传输 RDB 文件都是由子进程来完成的，不会阻塞主线程</p>
+<p>对于从库来说，它在接收了 RDB 文件后，需要使用 FLUSHDB 命令清空当前数据库，因此会阻塞</p>
+<p>从库在清空当前数据库后，还需要把 RDB 文件加载到内存，这个过程的快慢和 RDB 文件的大小密切相关，RDB 文件越大，加载过程越慢，因此会带来阻塞</p>
+<h3 id="切片集群交互"><a href="#切片集群交互" class="headerlink" title="切片集群交互"></a>切片集群交互</h3><p>切片集群在迁移 bigkey 时，由于使用同步迁移，因此会带来阻塞</p>
+<h2 id="异步"><a href="#异步" class="headerlink" title="异步"></a>异步</h2><p>为了避免阻塞式操作，Redis 提供了异步线程机制</p>
+<p>Redis 会启动一些子线程，然后把一些任务交给这些子线程，让它们在后台完成，而不再由主线程来执行这些任务。使用异步线程机制执行操作，可以避免阻塞主线程</p>
+<h3 id="关键路径操作"><a href="#关键路径操作" class="headerlink" title="关键路径操作"></a>关键路径操作</h3><p>如果一个操作能被异步执行，则它不是 Redis 主线程的关键路径上的操作</p>
+<p>主线程接收到操作后不需要给客户端返回具体的数据则可以交给后台子线程，因此不是关键路径操作</p>
+<p>主线程接收到操作后需要给客户端返回具体数据则不能交给后台子线程，因此是关键路径操作</p>
+<ul>
+<li><p>读操作是典型的关键路径操作</p>
+</li>
+<li><p>删除操作不是关键路径操作</p>
+</li>
+<li><p>AOF 日志同步写需要保证操作记录落盘，可以让子线程同步写，不是关键路径操作</p>
+</li>
+<li><p>从库加载 RDB 文件是关键路径操作，因为加载完 RDB 文件才能提供服务</p>
+</li>
+</ul>
+<p>除了集合全量查询和聚合操作和从库加载 RDB 文件，其他三个阻塞点涉及的操作都不在关键路径上，所以可以使用 Redis 的异步子线程机制来实现 bigkey 删除，清空数据库，以及 AOF 日志同步写</p>
+<p>集合全量查询和聚合操作：可以使用 SCAN 命令，分批读取数据，再在客户端进行聚合计算</p>
+<p>从库加载 RDB 文件：把主库的数据量大小控制在 2~4GB 左右，以保证 RDB 文件能以较快的速度加载</p>
+<h3 id="异步机制"><a href="#异步机制" class="headerlink" title="异步机制"></a>异步机制</h3><p>Redis 主线程启动后，会使用操作系统提供的 pthread_create 函数创建 3 个子线程，分别由它们负责 AOF 日志写操作、键值对删除以及文件关闭的异步执行</p>
+<p>主线程通过一个链表形式的任务队列和子线程进行交互</p>
+<p>当收到键值对删除和清空数据库的操作时，主线程会把这个操作封装成一个任务，放入到任务队列中，然后给客户端返回一个完成信息，表明删除已经完成；异步删除也称为惰性删除（lazy free），删除或清空操作不会阻塞主线程，这就避免了对主线程的性能影响</p>
+<p>当 AOF 日志配置成 everysec 选项后，主线程会把 AOF 写日志操作封装成一个任务，也放到任务队列中。后台子线程读取任务后，开始自行写入 AOF 日志，这样主线程就不用一直等待 AOF 日志写完了</p>
+<p>当 AOF 日志配置成 always 时，Redis 需要确保每个操作记录日志都写回磁盘，如果用后台子线程异步完成，主线程就无法及时地知道每个操作是否已经完成了，所以 always 策略并不使用后台子线程来执行</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/redis/" rel="tag"># redis</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/19/Redis-%E4%BA%8B%E5%8A%A1/" rel="prev" title="事务">
+                  <i class="fa fa-chevron-left"></i> 事务
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/19/Redis-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" rel="next" title="原子操作">
+                  原子操作 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

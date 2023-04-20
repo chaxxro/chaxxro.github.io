@@ -122,18 +122,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">195</span>
+          <span class="site-state-item-count">217</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-count">18</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-count">22</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -159,7 +159,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%A0%86/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E6%8E%92%E5%BA%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%A0%86/" class="post-title-link" itemprop="url">堆</a>
+          <a href="/2023/04/09/MySql-%E6%8E%92%E5%BA%8F/" class="post-title-link" itemprop="url">排序</a>
         </h2>
 
         <div class="post-meta-container">
@@ -188,14 +188,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-02 16:21:33" itemprop="dateCreated datePublished" datetime="2023-04-02T16:21:33+08:00">2023-04-02</time>
+      <time title="创建时间：2023-04-09 15:16:18" itemprop="dateCreated datePublished" datetime="2023-04-09T15:16:18+08:00">2023-04-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-19 20:18:01" itemprop="dateModified" datetime="2023-04-19T20:18:01+08:00">2023-04-19</time>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -203,7 +203,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
         </span>
     </span>
 
@@ -217,29 +217,15 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="堆和堆排序"><a href="#堆和堆排序" class="headerlink" title="堆和堆排序"></a>堆和堆排序</h1><p>堆排序是一种原地的、时间复杂度 O(nlogn)、非稳定的排序</p>
-<p>堆是一种特殊的树</p>
-<ol>
-<li><p>堆是一个完全二叉树；除了最后一层，其他层的节点个数都是满的，最后一层的节点都靠左排列</p>
-</li>
-<li><p>堆中每一个节点的值都大于等于（或小于等于）其子树中每个节点的值；每个节点的值都大于等于子树中每个节点值的堆为“大顶堆”，每个节点都小于等于子节点的堆为“小顶堆”</p>
-</li>
-</ol>
-<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>完全二叉树比较适合用数组来存储，不需要存储左右节点的指针，单纯通过数组的下标就可以找到一个节点的左右子节点和父节点<br>数组下标为 i 的节点，左子节点下标为 2 * i，右子节点下标为 2 * i + 1，父节点下标为 i &#x2F; 2</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%A0%86/01.jpg" class="">
+          <h2 id="全字段排序"><a href="#全字段排序" class="headerlink" title="全字段排序"></a>全字段排序</h2><p>MySQL 会给每个线程分配一块内存用于排序，称为 sort_buffer，对 sort_buffer 中的数据按照 <code>order by</code> 字段做快速排序</p>
+<p>按字段排序这个动作，可能在内存中完成，也可能需要使用外部排序，这取决于排序所需的内存和参数 sort_buffer_size</p>
+<p>sort_buffer_size 就是 MySQL 为排序开辟的内存（sort_buffer）的大小。如果要排序的数据量小于 sort_buffer_size，排序就在内存中完成。但如果排序数据量太大，内存放不下，则不得不利用磁盘临时文件辅助排序</p>
+<p>内存放不下时，就需要使用外部排序，外部排序一般使用归并排序算法，将需要排序的数据分成 number_of_tmp_files 份，每一份单独排序后存在这些临时文件中，然后把这 nnumber_of_tmp_files 个有序文件再合并成一个有序的大文件</p>
+<p>sort_buffer_size 越小，需要分成的份数越多，number_of_tmp_files 的值就越大</p>
+<h2 id="rowid-排序"><a href="#rowid-排序" class="headerlink" title="rowid 排序"></a>rowid 排序</h2><p>如果查询要返回的字段很多的话，那么 sort_buffer 里面要放的字段数太多，这样内存里能够同时放下的行数很少，要分成很多个临时文件，排序的性能会很差</p>
+<p>如果排序的单行长度太大，放入 sort_buffer 的字段就只有要排序的列和主键 id，但此时排序的结果就因为少了字段的值，不能直接返回，而是排序后再根据主键 id 从原表中取出所有字段并返回</p>
+<p>MySQL 服务端从排序后的 sort_buffer 中依次取出 id，然后到原表查到相应字段的结果，不需要在服务端再耗费内存存储结果，是直接返回给客户端的</p>
 
-<h3 id="插入"><a href="#插入" class="headerlink" title="插入"></a>插入</h3><p>往堆中插入一个元素后，需要进行调整让其满足堆的特性，叫做堆化</p>
-<p>顺着节点所在路径向上或向下，对比然后交换</p>
-<p>从下往上的堆化：</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%A0%86/02.jpg" class="">
-
-<h3 id="删除堆顶元素"><a href="#删除堆顶元素" class="headerlink" title="删除堆顶元素"></a>删除堆顶元素</h3><p>把最后一个节点放到堆顶，然后利用父子节点对比方法，互换两个节点，直到父子节点之间满足大小关系为止</p>
-<p>从上往下的堆化：</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%A0%86/03.jpg" class="">
-
-<h3 id="复杂度"><a href="#复杂度" class="headerlink" title="复杂度"></a>复杂度</h3><p>堆化的时间复杂度 O(logn)，插入和删除堆顶元素的主要逻辑是堆化所以时间复杂度也是 O(logn)</p>
-<p>堆排序的建堆过程时间复杂度 O(n)</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">heap</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	vector&lt;<span class="type">int</span>&gt; h;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">heap</span>() : <span class="built_in">h</span>(<span class="number">1</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(<span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">		h.<span class="built_in">push_back</span>(n);</span><br><span class="line">		<span class="type">int</span> pos = h.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br><span class="line">		<span class="keyword">while</span> (pos / <span class="number">2</span> &gt; <span class="number">0</span>) &#123;</span><br><span class="line">			<span class="keyword">if</span> (h[pos] &gt; h[pos / <span class="number">2</span>]) <span class="built_in">swap</span>(h[pos], h[pos / <span class="number">2</span>]);</span><br><span class="line">			pos /= <span class="number">2</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">pop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="type">int</span> pos = h.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br><span class="line">		<span class="built_in">swap</span>(h[pos], h[<span class="number">1</span>]);</span><br><span class="line">		h.<span class="built_in">pop_back</span>();</span><br><span class="line">		pos = <span class="number">1</span>;</span><br><span class="line">		<span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">			<span class="keyword">if</span> (<span class="number">2</span> * pos &gt;= h.<span class="built_in">size</span>()) &#123;</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> <span class="keyword">if</span> (<span class="number">2</span> * pos + <span class="number">1</span> &gt;= h.<span class="built_in">size</span>()) &#123;</span><br><span class="line">				<span class="keyword">if</span> (h[pos] &lt; h[pos * <span class="number">2</span>]) &#123;</span><br><span class="line">					<span class="built_in">swap</span>(h[pos], h[<span class="number">2</span> * pos]);</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> &#123;</span><br><span class="line">				<span class="keyword">if</span> (h[<span class="number">2</span> * pos] &gt; h[<span class="number">2</span> * pos + <span class="number">1</span>]) &#123;</span><br><span class="line">					<span class="keyword">if</span> (h[pos] &lt; h[<span class="number">2</span> * pos]) &#123;</span><br><span class="line">						<span class="built_in">swap</span>(h[pos], h[<span class="number">2</span> * pos]);</span><br><span class="line">						pos = <span class="number">2</span> * pos;</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span> <span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">else</span> &#123;</span><br><span class="line">					<span class="keyword">if</span> (h[pos] &lt; h[<span class="number">2</span> * pos + <span class="number">1</span>]) &#123;</span><br><span class="line">						<span class="built_in">swap</span>(h[pos], h[<span class="number">2</span> * pos + <span class="number">1</span>]);</span><br><span class="line">						pos = <span class="number">2</span> * pos + <span class="number">1</span>;</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span> <span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -265,7 +251,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-mvcc/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -283,7 +269,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/" class="post-title-link" itemprop="url">哈希表</a>
+          <a href="/2023/04/09/MySql-mvcc/" class="post-title-link" itemprop="url">mvcc</a>
         </h2>
 
         <div class="post-meta-container">
@@ -294,14 +280,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-02 16:19:24" itemprop="dateCreated datePublished" datetime="2023-04-02T16:19:24+08:00">2023-04-02</time>
+      <time title="创建时间：2023-04-09 15:14:20" itemprop="dateCreated datePublished" datetime="2023-04-09T15:14:20+08:00">2023-04-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-19 20:18:01" itemprop="dateModified" datetime="2023-04-19T20:18:01+08:00">2023-04-19</time>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -309,7 +295,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
         </span>
     </span>
 
@@ -323,617 +309,112 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>哈希表用的是数组支持按照下标随机访问数据特性，所以哈希表其实就是数组的一种扩展，由数组演化而来</p>
-<p>数组存储的值与数组下标形成映射，所以利用数组支持根据下标随机访问时间复杂度 O(1) 的特性，可以快速查找</p>
-<p>存储的值为哈希键（key）<br>将哈希键转换为数组下标的映射方法为哈希函数（hash function），得到的值为哈希值（value)</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/01.png" class="">
-
-<p>我们通过哈希函数把元素的键值映射为下标，然后将数据存储在数组中对应下标的位置</p>
-<p>当我们按照键值查询数据时，可以用同样的哈希函数将键值转化为数组下标，从对应的数组下标的位置获取数据</p>
-<h2 id="哈希函数"><a href="#哈希函数" class="headerlink" title="哈希函数"></a>哈希函数</h2><p>把它定义成 hash(key)，key 表示元素的键值，经过哈希函数计算得到哈希值</p>
-<p>哈希函数设计的基本要求：</p>
+          <p>MVCC 是一种多版本读写并发控制机制，是 InnoDB 存储引擎实现隔离级别的一种具体方式，用于实现 READ COMMIITTED 和 REPEATABLE READ 这两种隔离级别</p>
+<p>MVCC 通过保存数据在某个时间点的快照来实现的；每行数据都存在一个版本，对数据库的任何修改的提交都不会直接覆盖之前的数据，而是产生一个新的版本与老版本共存，使得读取时可以不加锁（除非使用 <code>SELECT ... FOR UPDATE</code> 强行加锁）</p>
 <ul>
-<li><p>哈希函数计算得到的哈希值是一个非负整数；因为数组下标从 0 开始，所以散列值必须是非负整数</p>
+<li><p>通过 MVCC 可以让读写互相不阻塞，读不相互阻塞，写不阻塞读，这样可以提升数据并发处理能力</p>
 </li>
-<li><p>如果 key1 &#x3D; key2，那 hash(key1) &#x3D;&#x3D; hash(key2)；相同的 key，经过哈希函数得到的值也应该相同</p>
+<li><p>降低了死锁的概率，因为 MVCC 采用了乐观锁的方式，读取数据时，不需要加锁，写操作，只需要锁定必要的行</p>
 </li>
-<li><p>如果 key1 !&#x3D; key2，那 hash(key1) !&#x3D; hash(key2)；无法避免哈希冲突</p>
-</li>
-</ul>
-<h2 id="哈希冲突"><a href="#哈希冲突" class="headerlink" title="哈希冲突"></a>哈希冲突</h2><p>再好的哈希函数也无法避免哈希冲突，常用开放寻址法和链表法来解决</p>
-<h3 id="开放寻址法"><a href="#开放寻址法" class="headerlink" title="开放寻址法"></a>开放寻址法</h3><p>核心思想是如果出现了哈希冲突，我们就重新探测一个空闲位置将其插入；插入方法有：线性探测、二次探测和双重哈希</p>
-<ol>
-<li>线性探测：当我们往哈希表中插入数据时，如果某个数据经过哈希函数之后，存储位置已经被占用了，我们就从当前位置开始，依次往后查找，看是否有空闲位置，直到找到为止</li>
-</ol>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/02.png" class="">
-<p>从图中可以看出，哈希表大小为 10，已经有 6 个元素插入到哈希表中；x 经过哈希函数得到哈希值 7，但这个位置已经有数据了，所以产生了冲突；我们按顺序一个一个往后找，看有没有空闲位置，遍历到尾部都没有找到空闲位置，于是再从表头开始找，直到找到空位 2，于是将其值插入到这个位置</p>
-<p>在哈希表中查找元素的过程类似于插入过程；我们通过哈希函数求出查找元素的键值对应的哈希值，然后比较数组中下标为哈希值的元素和要查找的元素；如果相等，说明是要查找的元素，如果不是，则按顺序往后依次查找，如果遍历到数组中的空位位置，还没找到，则说明查找到的元素不在哈希表中</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/03.png" class="">
-
-<p>哈希表跟数组一样，不仅支持插入、查找，还支持删除，对于使用线性探测的哈希表，删除操作有些不同，不能单纯地把要删除的元素设置为空，因为在查找的时候，我们通过找到一个空闲位置来判定数据在不在哈希表中，如果这个空闲位置是我们后来删除的，就会导致原来的查找算法失败，本来存在数据会被认为不存在；为解决这个问题，我们可以将删除的元素特殊标记为 deleteed，当线性探测查找的时候，遇到标记为 deleted 的空间，并不停下来而是继续探测</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/04.png" class="">
-<p>线性探测存在很大的问题，当散列表插入的数据越来越多时，哈希冲突发生的可能性就越来越大，空闲位置会越来越少，线性探测的时间就会越来越久；极端情况下可能需要探测整个哈希表，所以最坏的时间复杂度是 O(n)；同理，删除和查找时也有可能会线性探测整张哈希表才能查找或删除数据</p>
-<ol start="2">
-<li>二次探测：线性探测每次探测的步长是 1，二次探测步长是线性探测的二次方</li>
-</ol>
-<p>线性探测的下标序列：hash(key)+0、hash(key)+1、hash(key)+2、…</p>
-<p>二次探测的下标序列是：hash(key)+0^2、hash(key)+1^2、hash(key)+2^2、…</p>
-<ol start="3">
-<li>双重哈希：我们先用一个哈希函数，如果计算得到的存储位置被占用，再用第二个哈希函数，以此类推直到找到空闲的存储位置</li>
-</ol>
-<h3 id="链表法"><a href="#链表法" class="headerlink" title="链表法"></a>链表法</h3><p>在每一个表格元素中维护一个 <code>list</code>，哈希函数为元素分配一个 <code>list</code>，然后在 <code>list</code> 上执行元素的插入、搜寻、删除等操作</p>
-<p>使用链表法，装载因子将大于 1</p>
-<p>但不管采用哪种探测方法，当哈希表中位置不多时，哈希冲突的概率大大提高；为了保证哈希表的操作效率，一般情况下尽可能保证哈希表中有一定比例的空闲槽位，用装载因子来表示空位的多少</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">装载因子 = 填入表中的元素个数 / 散列表长度</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE/" class="post-title-link" itemprop="url">图</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 16:15:03" itemprop="dateCreated datePublished" datetime="2023-04-02T16:15:03+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-19 20:18:01" itemprop="dateModified" datetime="2023-04-19T20:18:01+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>图是非线性表数据结构，涉及到图的搜索、最短路径、最小生成树、二分图等</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE/01.jpg" class="">
-
-<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><ul>
-<li><p>图中的元素称作顶点（vertex）</p>
-</li>
-<li><p>图中的一个顶点可以与任意其他顶点建立连接关系，建立的关系叫作边（edge）</p>
-</li>
-<li><p>跟顶点相连接的边的条数为顶点的度（degree）</p>
-</li>
-<li><p>边有方向则为有向图，没方向则为无向图</p>
-</li>
-<li><p>无向图中顶点有度，有向图中顶点有入度（In-degree，表示有多少条边指向这个顶点）和出度（Out-degree，表示有多少条边以这个顶点为起点指向其他顶点）</p>
-</li>
-<li><p>带权图（weighted graph）每条边都有一个权重（weight）</p>
+<li><p>解决了一致性读的问题，MVCC 都是快照读，只能看到这个时间点之前事务提交更新的结果，不能看到时间点之后事务提交的更新结果</p>
 </li>
 </ul>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE/02.jpg" class="">
-
-<h2 id="存储"><a href="#存储" class="headerlink" title="存储"></a>存储</h2><h3 id="领接矩阵存储"><a href="#领接矩阵存储" class="headerlink" title="领接矩阵存储"></a>领接矩阵存储</h3><p>底层依赖一个二维数组</p>
+<h2 id="事务版本号"><a href="#事务版本号" class="headerlink" title="事务版本号"></a>事务版本号</h2><p>每次事务开启前都会从数据库获得一个自增长的事务 ID，可以从事务 ID 判断事务的执行先后顺序</p>
+<h2 id="Undo-log"><a href="#Undo-log" class="headerlink" title="Undo log"></a>Undo log</h2><p>Undo log 主要用于记录数据被修改之前的日志，在表信息修改之前先会把数据拷贝到 Undo log 里，当事务进行回滚时可以通过 Undo log 里的日志进行数据还原</p>
 <ul>
-<li><p>无向图：如果顶点 i 与顶点 j 之间有边，则将 <code>A[i][j]</code> 和 <code>A[j][i]</code> 标记为 1</p>
+<li><p>保证事务进行 rollback 时的原子性和一致性，当事务进行回滚的时候可以用 Undo log 的数据进行恢复</p>
 </li>
-<li><p>有向图：如果顶点 i 指向顶点 j ，则将 <code>A[i][j]</code> 标记为 1；</p>
-</li>
-<li><p>带权图： <code>A[i][j]</code> 存储相应权值</p>
+<li><p>通过读取 Undo log 的历史版本数据可以实现不同事务版本号都拥有自己独立的快照数据版本</p>
 </li>
 </ul>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE/03.jpg" class="">
-
-
-<p>用领接矩阵表示图，虽然简单、直观，因为基于数组所以在获取两个顶点关系时非常高效，同时可以将很多图的运算转换成矩阵的运算，但比较浪费存储空间</p>
-<p>对于无向图，如果 <code>A[i][j]</code> 等于 1，那么 <code>A[j][i]</code> 也肯定等于1，则只需要存储一个就可以了，所以浪费了一半的存储空间</p>
-<p>对于稀疏图（Sparse Matrix），即顶点很多但每个顶点的边并不多，用领接矩阵存储更加浪费空间</p>
-<h3 id="邻接表存储"><a href="#邻接表存储" class="headerlink" title="邻接表存储"></a>邻接表存储</h3><p>每个顶点对应一个链表，链表中存储的是与这个顶点相连接的其他顶点</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE/04.jpg" class="">
-
-<p>领接矩阵存储起来浪费空间，但使用节省时间；领接表存储节省空间，但使用浪费时间</p>
-<h2 id="搜索"><a href="#搜索" class="headerlink" title="搜索"></a>搜索</h2><p>深度优先搜索算法和广度优先搜索算法都是基于图这种数据结构</p>
-<p>图上的搜索算法就是，在图中找出从一个顶点出发到另一个顶点的路径；具体方法包括：深度优先、广度优先、 A* 等</p>
-<p>深度优先搜索和广度优先搜索既可用在无向图，也可用在有向图</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Graph</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	<span class="type">int</span> v;  <span class="comment">// 边数</span></span><br><span class="line">	std::list&lt;<span class="type">int</span>&gt; * edge;  <span class="comment">// 领接表</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>：</span><br><span class="line">	<span class="built_in">Graph</span>(<span class="type">int</span> nums)</span><br><span class="line">	&#123;</span><br><span class="line">		v = nums;</span><br><span class="line">		edge = <span class="keyword">new</span> std::list&lt;<span class="type">int</span>&gt;[v];</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	~<span class="built_in">Graph</span>()</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span>(edge != <span class="literal">nullptr</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">delete</span> [] edge;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">add</span><span class="params">(<span class="type">int</span> s, <span class="type">int</span> e)</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		edge[s].<span class="built_in">push_back</span>(e);</span><br><span class="line">		edge[e].<span class="built_in">push_back</span>(s);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="广度优先搜索"><a href="#广度优先搜索" class="headerlink" title="广度优先搜索"></a>广度优先搜索</h3><p>一种“地毯式”层层推进的搜索策略，即先查找离起始顶点最近的，然后是次近的，依次往外搜索</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE/05.jpg" class="">
-
-<p>广度搜索的路径是最短路径</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">CGraph::Printf</span><span class="params">(<span class="type">int</span> * pt, <span class="type">int</span> start, <span class="type">int</span> end)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (start != end &amp;&amp; pt[end] != <span class="number">-1</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">Printf</span>(pt, start, pt[end]);</span><br><span class="line">	&#125;</span><br><span class="line">	std::cout &lt;&lt; end &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">CGraph::BFS</span><span class="params">(<span class="type">int</span> start, <span class="type">int</span> end)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (start == end)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="type">bool</span> * visited = <span class="keyword">new</span> <span class="type">bool</span> [v];</span><br><span class="line">	<span class="type">int</span> * prev = <span class="keyword">new</span> <span class="type">int</span>[v];</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; v; ++i)</span><br><span class="line">	&#123;</span><br><span class="line">		prev[i] = <span class="number">-1</span>;</span><br><span class="line">		visited[i] = <span class="literal">false</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	visited[start] = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">	std::queue&lt;<span class="type">int</span>&gt; queue;</span><br><span class="line">	queue.<span class="built_in">push</span>(start);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">while</span> (queue.<span class="built_in">size</span>() != <span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="type">int</span> top = queue.<span class="built_in">front</span>();</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">auto</span> ite = edge[top].<span class="built_in">begin</span>(); ite != edge[top].<span class="built_in">end</span>(); ite++)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span> (end != *ite)</span><br><span class="line">			&#123;</span><br><span class="line">				<span class="keyword">if</span> (!visited[*ite])</span><br><span class="line">				&#123;</span><br><span class="line">					queue.<span class="built_in">push</span>(*ite);</span><br><span class="line">					visited[*ite] = <span class="literal">true</span>;</span><br><span class="line">					prev[*ite] = top;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span></span><br><span class="line">			&#123;</span><br><span class="line">				prev[*ite] = top;</span><br><span class="line">				<span class="built_in">Printf</span>(prev, start, end);</span><br><span class="line">				<span class="keyword">delete</span>[] prev;</span><br><span class="line">				<span class="keyword">delete</span>[] visited;</span><br><span class="line">				<span class="keyword">return</span>;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		queue.<span class="built_in">pop</span>();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">delete</span>[] prev;</span><br><span class="line">	<span class="keyword">delete</span>[] visited;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><code>visited</code> 用来记录已经被访问的顶点，用来避免顶点被重复访问</p>
-<p><code>queue</code> 用来存储已经被访问、但相连的顶点还没有被访问的顶点</p>
-<p><code>prev</code> 用来记录搜索路径</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE/06.jpg" class="">
-
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE/07.jpg" class="">
-
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE/08.jpg" class="">
-
-<p>最坏情况下，终止顶点 t 离起始顶点 s 很远，需要遍历完整个图才能找到，所以广度优先搜索的时间复杂度是 O(V+E)，其中，V 表示顶点的个数，E 表示边的个数；对于一个连通图来说，也就是说一个图中的所有顶点都是连通的，E 肯定要大于等于 V - 1，所以，广度优先搜索的时间复杂度也可以简写为 O(E)</p>
-<p>空间复杂度是 O(V)</p>
-<h3 id="深度优先搜索"><a href="#深度优先搜索" class="headerlink" title="深度优先搜索"></a>深度优先搜索</h3><p>深度优先搜索用的是回溯思想，这种思想解决问题的过程，非常适合用递归来实现</p>
-<p>深度优先搜索找出来的路径并不是最短路径</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE/09.jpg" class="">
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">CGraph::DFS</span><span class="params">(<span class="type">int</span> start, <span class="type">int</span> end)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="type">bool</span> found = <span class="literal">false</span>;</span><br><span class="line">	<span class="type">bool</span> * visited = <span class="keyword">new</span> <span class="type">bool</span>[v];</span><br><span class="line">	<span class="type">int</span> * prev = <span class="keyword">new</span> <span class="type">int</span>[v];</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; v; ++i)</span><br><span class="line">	&#123;</span><br><span class="line">		visited[i] = <span class="literal">false</span>;</span><br><span class="line">		prev[i] = <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">RDFS</span>(start, end, visited, prev, found);</span><br><span class="line">	<span class="built_in">Printf</span>(prev, start, end);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">CGraph::RDFS</span><span class="params">(<span class="type">int</span> start, <span class="type">int</span> end, <span class="type">bool</span> * v, <span class="type">int</span> * pr, <span class="type">bool</span> &amp; found)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (found)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	v[start] = <span class="literal">true</span>;</span><br><span class="line">	<span class="keyword">if</span> (start == end)</span><br><span class="line">	&#123;</span><br><span class="line">		found = <span class="literal">true</span>;</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">auto</span> ite = edge[start].<span class="built_in">begin</span>(); ite != edge[start].<span class="built_in">end</span>(); ++ite)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span> (!v[*ite])</span><br><span class="line">		&#123;</span><br><span class="line">			pr[*ite] = start;</span><br><span class="line">			<span class="built_in">RDFS</span>(*ite, end, v, pr, found);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>图上的深度优先搜索算法的时间复杂度是 O(E)，空间复杂度就是 O(V)</p>
-<h2 id="有权图最短路径算法"><a href="#有权图最短路径算法" class="headerlink" title="有权图最短路径算法"></a>有权图最短路径算法</h2><p>图结构中一个显而易见的定理：最短路径的子路径仍然是最短路径</p>
-<p>对于有权图，如果权边有负数，则分两种情况：</p>
-<ol>
-<li><p>如果从某点出发，可以到达一个权值和为负数的环，那么这个点到其他点的最短距离就是负无穷了</p>
-</li>
-<li><p>如果说不存在一个这样的负环，那么就和没有负权边一样了</p>
-</li>
-</ol>
-<h3 id="Floyd-算法"><a href="#Floyd-算法" class="headerlink" title="Floyd 算法"></a>Floyd 算法</h3><p>Floyd 算法一种基于动态规划的多源最短路算法，只能在不存在负权环的情况下使用，因为其并不能判断负权环</p>
-<p>定义状态：<code>f[k][i][j]</code> 为经过前 k 个节点，从 i 到 j 所能得到的最短路径，可以从 <code>f[k - 1][i][j]</code> 转移过来（即不经过第 k 个节点）；也可以从 <code>f[k - 1][i][k] + f[k - 1][k][j]</code> 转移过来，即经过第 k 个节点；</p>
-<p>状态转移方程：<code>f[k][i][j] = min(f[k-1][i][j], f[k-1][i][k] + f[k-1][k][j]) </code>，降维后为：<code>f[i][j] = min(f[i][j], f[i][k] + f[k][j]) </code></p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 初始化为一个比较大的值</span></span><br><span class="line">vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">graph</span>(n, <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n, INT_MAX / <span class="number">2</span>));  </span><br><span class="line"><span class="built_in">initGraph</span>(graph);  <span class="comment">// 给图中的边赋值</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">0</span>; k &lt; n; ++k) &#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">		<span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>; j &lt; n; ++j) &#123;</span><br><span class="line">			graph[i][j] = <span class="built_in">min</span>(graph[i][j], graph[i][k] + graph[k][j]);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">// 记录路径</span></span><br><span class="line"><span class="comment">vector&lt;vector&lt;int&gt;&gt; path(n, vector&lt;int&gt;(n, -1));</span></span><br><span class="line"><span class="comment">for(int k = 0; k &lt; n; ++k) &#123;</span></span><br><span class="line"><span class="comment">	for(int i = 0; i &lt; n; ++i) &#123;</span></span><br><span class="line"><span class="comment">		for(int j = 0; j &lt; n; ++j) &#123;</span></span><br><span class="line"><span class="comment">			if(graph[i][j] &gt; graph[i][k] + graph[k][j]) &#123;</span></span><br><span class="line"><span class="comment">				graph[i][j] = graph[i][k] + graph[k][j];</span></span><br><span class="line"><span class="comment">				path[i][j] = k;</span></span><br><span class="line"><span class="comment">			&#125;</span></span><br><span class="line"><span class="comment">		&#125;</span></span><br><span class="line"><span class="comment">	&#125;</span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">function&lt;string(int, int)&gt; helper = [&amp;](int i, int j)-&gt;string &#123;</span></span><br><span class="line"><span class="comment">	if(path[i][j] == -1) &#123;</span></span><br><span class="line"><span class="comment">		return to_string(i) + &quot; -&gt; &quot; + to_string(j);</span></span><br><span class="line"><span class="comment">	&#125;</span></span><br><span class="line"><span class="comment">	else &#123;</span></span><br><span class="line"><span class="comment">		int k = path[i][j];</span></span><br><span class="line"><span class="comment">		return helper(i, k) + &quot; -&gt; &quot; + helper(k, j);</span></span><br><span class="line"><span class="comment">	&#125;</span></span><br><span class="line"><span class="comment">&#125;;</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p>维护路径矩阵使得空间复杂度达到了 O(n^2)，时间复杂度达到了 O(n^3)</p>
-<h3 id="Dijkstra-算法"><a href="#Dijkstra-算法" class="headerlink" title="Dijkstra 算法"></a>Dijkstra 算法</h3><p>Dijkstra 算法适用于求单源最短路径，主要特点是以起始点为中心向外层层拓展（广度优先搜索思想），直到拓展到终点为止，要求图中的边全部非负</p>
-<p>维护两个点集 A，B，A 点集代表已经求出源点到该点的最短路的点的集合，B 代表未求出源点到该点的最短路径的点的集合。维护一个向量 d，d[i] 代表源点到点 i 的最短路径长度；不断进行以下操作：找出点集 B 中 d[i] i∈B 最小的点，这个点为进入点集A的候选节点，然后通过该点松弛点集 B 中其他的点，更新向量 d，然后将该候选点放入点集 A，直到点集 B 为空</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">graph</span>(n, <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n, INT_MAX));</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">dijkstra</span><span class="params">(<span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">dist</span><span class="params">(n, INT_MAX / <span class="number">2</span>)</span></span>;</span><br><span class="line">	unordered_set&lt;<span class="type">int</span>&gt; A, B;</span><br><span class="line">	A.<span class="built_in">insert</span>(start);</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">		dist[i] = (i == start ? <span class="number">0</span> : graph[start][i]);</span><br><span class="line">		<span class="keyword">if</span> (i != start) B.<span class="built_in">insert</span>(i);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 在 B 中找 dist 里最小的值加入 A</span></span><br><span class="line">	<span class="keyword">while</span> (B.<span class="built_in">size</span>()) &#123;</span><br><span class="line">		<span class="type">int</span> pos = <span class="number">0</span>;</span><br><span class="line">		<span class="type">int</span> INF = INT_MAX;</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">			<span class="keyword">if</span> (B.<span class="built_in">count</span>(i) &amp;&amp; dist[i] &lt; INF) &#123;</span><br><span class="line">				pos = i;</span><br><span class="line">				INF = dist[i];</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		B.<span class="built_in">erase</span>(pos);</span><br><span class="line">		A.<span class="built_in">insert</span>(pos);</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">			<span class="keyword">if</span> (B.<span class="built_in">count</span>(i)) &#123;</span><br><span class="line">				dist[i] = <span class="built_in">min</span>(dist[i], dist[pos] + graph[pos][i]);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> dist[end];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>算法的时间复杂度为 O(n^2)，若通过这个算法求所有的点的最短路，即调用 n 次，那么算法复杂度为 O(n^3)；对于集合 B 可使用优先队列进行优化，时间复杂度为 O(nlogn)</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">dijkstra</span><span class="params">(<span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">dist</span><span class="params">(n, INT_MAX / <span class="number">2</span>)</span></span>;</span><br><span class="line">	vector&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt; B;</span><br><span class="line">	<span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">path</span><span class="params">(n, start)</span></span>;  <span class="comment">// 存储前驱节点</span></span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">		dist[i] = (i == start ? <span class="number">0</span> : roads[start][i]);</span><br><span class="line">		<span class="keyword">if</span> (i != start) B.<span class="built_in">emplace_back</span>(<span class="built_in">make_pair</span>(dist[i], i));</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">make_heap</span>(B.<span class="built_in">begin</span>(), B.<span class="built_in">end</span>(), greater&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt;());</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 在 B 中找 dist 里最小的值加入 A</span></span><br><span class="line">	<span class="keyword">while</span> (B.<span class="built_in">size</span>()) &#123;</span><br><span class="line">		<span class="comment">// 取出最小值</span></span><br><span class="line">		<span class="built_in">pop_heap</span>(B.<span class="built_in">begin</span>(), B.<span class="built_in">end</span>());</span><br><span class="line">		<span class="keyword">auto</span> pos = B.<span class="built_in">back</span>();</span><br><span class="line">		B.<span class="built_in">pop_back</span>();</span><br><span class="line">		</span><br><span class="line">		<span class="comment">// 更新</span></span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; B.<span class="built_in">size</span>(); ++i) &#123;			</span><br><span class="line">			<span class="keyword">if</span> (dist[B[i].second] &gt; dist[pos.second] + roads[pos.second][B[i].second]) &#123;</span><br><span class="line">				dist[B[i].second] = dist[pos.second] + roads[pos.second][B[i].second];</span><br><span class="line">				path[B[i].second] = pos.second;</span><br><span class="line">			&#125;</span><br><span class="line">			B[i].first = dist[B[i].second];</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">make_heap</span>(B.<span class="built_in">begin</span>(), B.<span class="built_in">end</span>(), greater&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt;());</span><br><span class="line">	&#125;</span><br><span class="line">	function&lt;<span class="type">void</span>(<span class="type">int</span>, <span class="type">int</span>)&gt; print = [&amp;](<span class="type">int</span> s, <span class="type">int</span> e) &#123;</span><br><span class="line">		<span class="keyword">if</span>(s == e) <span class="keyword">return</span>;</span><br><span class="line">		<span class="built_in">print</span>(s, path[e]);</span><br><span class="line">		cout &lt;&lt; s &lt;&lt; <span class="string">&quot; -&gt; &quot;</span> &lt;&lt; path[e];</span><br><span class="line">	&#125;;</span><br><span class="line">	<span class="built_in">print</span>(start, end);</span><br><span class="line">	<span class="keyword">return</span> dist[end];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Bellman-Ford-算法"><a href="#Bellman-Ford-算法" class="headerlink" title="Bellman-Ford 算法"></a>Bellman-Ford 算法</h3><p>用于计算出起点到各个节点的最短距离，支持存在负权重的情况</p>
-<p>与 Dijkstra 最大的不同是每次都是从源点 s 重新出发进行松弛更新操作，而 Dijkstra 则是从源点出发向外扩逐个处理相邻的节点，不会去重复处理节点</p>
-<p>流程：</p>
-<ol>
-<li><p>初始化时将起点 s 到各个顶点 v 的距离 dist(s-&gt;v) 赋值为无穷大，dist(s-&gt;s) 赋值为 0</p>
-</li>
-<li><p>后续进行最多 n-1 次遍历操作，对所有的边进行松弛操作，因为在一个含有 n 个顶点的图中，任意两点之间的最短路径最多包含 n-1 边；第 i 轮在对所有边进行松弛后，得到的是源点最多经过 i 条边到达其他顶点的最短距离</p>
-</li>
-<li><p>遍历都结束后，若再进行一次遍历，还能得到s到某些节点更短的路径的话，则说明存在负环路</p>
-</li>
-</ol>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">g</span>(n, <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n, INT_MAX));</span><br><span class="line"><span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">dist</span><span class="params">(n, INT_MAX / <span class="number">2</span>)</span></span>;</span><br><span class="line"><span class="built_in">InitGraph</span>(g);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>; i &lt; n; ++i) &#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>; j &lt; n ; ++j) &#123;</span><br><span class="line">		<span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">0</span>; k &lt; n; ++k) &#123;</span><br><span class="line">			<span class="comment">// 因为只是求最短路径，所以可以使用本次最外层循环更新过的数据</span></span><br><span class="line">			dist[k] = <span class="built_in">min</span>(dist[k], dist[j] + g[j][k]);</span><br><span class="line">			<span class="comment">// 如果有要求最多经过几条边，则不能使用本次最外层循环更新过的数据</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">bool</span> loop = <span class="literal">false</span>;</span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>; j &lt; n ; ++j) &#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">0</span>; k &lt; n; ++k) &#123;</span><br><span class="line">		<span class="keyword">if</span>(dist[k] &lt; dist[j] + g[j][k]) &#123;</span><br><span class="line">			loop = <span class="literal">true</span>;  <span class="comment">// 有负环</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="模板"><a href="#模板" class="headerlink" title="模板"></a>模板</h2><h3 id="广度单向搜索"><a href="#广度单向搜索" class="headerlink" title="广度单向搜索"></a>广度单向搜索</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">q.<span class="built_in">push</span>(start)</span><br><span class="line"><span class="keyword">while</span>(!q.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">	size = q.<span class="built_in">size</span>();</span><br><span class="line">	<span class="comment">// 层次遍历完</span></span><br><span class="line">	<span class="keyword">while</span>(size-- &gt; <span class="number">0</span>) &#123;</span><br><span class="line">		node = q.<span class="built_in">top</span>();</span><br><span class="line">		q.<span class="built_in">pop</span>();</span><br><span class="line">		new_node = <span class="built_in">fun</span>(node);</span><br><span class="line">		<span class="keyword">if</span>(<span class="built_in">g</span>(new_node)) <span class="keyword">return</span>;</span><br><span class="line">		q.<span class="built_in">push</span>(new_node);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="双向广度搜索"><a href="#双向广度搜索" class="headerlink" title="双向广度搜索"></a>双向广度搜索</h3><p>适用于已知初始点和目标点，对初始点和目标点分别进行广度搜索，提高搜索效率</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">unordered_set&lt;string&gt; s1, s2;  <span class="comment">// 初始点和目标点的搜索集合</span></span><br><span class="line">s1.<span class="built_in">insert</span>(start);</span><br><span class="line">s2.<span class="built_in">insert</span>(end);</span><br><span class="line"><span class="type">int</span> step = <span class="number">0</span>;  <span class="comment">// 搜索步长</span></span><br><span class="line"><span class="keyword">while</span>(!s1.<span class="built_in">empty</span>() &amp;&amp; !s2.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">	++step;</span><br><span class="line">	<span class="comment">// 每步只搜索较小集合</span></span><br><span class="line">	<span class="keyword">if</span>(s1.<span class="built_in">size</span>() &gt; s2.<span class="built_in">size</span>()) <span class="built_in">swap</span>(s1, s2);</span><br><span class="line">	unordered_set&lt;string&gt; s;</span><br><span class="line">	<span class="keyword">for</span>(string str : s1) &#123;</span><br><span class="line">		<span class="comment">// str 能扩展的所有节点</span></span><br><span class="line">		<span class="keyword">for</span>(string new_str : <span class="built_in">expand</span>(str)) &#123;</span><br><span class="line">			<span class="keyword">if</span>(s2.<span class="built_in">count</span>(new_str)) <span class="keyword">return</span> step + <span class="number">1</span>;</span><br><span class="line">			s.<span class="built_in">insert</span>(new_str);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">swap</span>(s1, s);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="拓扑排序"><a href="#拓扑排序" class="headerlink" title="拓扑排序"></a>拓扑排序</h3><p>拓扑排序适用于单向无环图，可以判断单向图是否有环，也可以用来记录访问的过程</p>
-<h4 id="DFS-实现"><a href="#DFS-实现" class="headerlink" title="DFS 实现"></a>DFS 实现</h4><p>与传统 DFS 不同，一个节点有三个状态：未访问过、访问中、访问过，但无法控制相同级别节点的访问顺序</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; graph;</span><br><span class="line">vector&lt;<span class="type">int</span>&gt; vis;  <span class="comment">// 0 未访问, 1 visiting, 2 visited</span></span><br><span class="line">vector&lt;<span class="type">int</span>&gt; path;</span><br><span class="line">function&lt;<span class="type">bool</span>(<span class="type">int</span>)&gt; dfs = [&amp;](<span class="type">int</span> n)-&gt;<span class="type">bool</span> &#123;</span><br><span class="line">	<span class="keyword">if</span>(vis[n] == <span class="number">2</span>) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">	<span class="keyword">if</span>(vis[n] == <span class="number">1</span>) <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">	vis[n] = <span class="number">1</span>;</span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; graph[n].<span class="built_in">size</span>(); ++i) &#123;</span><br><span class="line">		<span class="keyword">if</span>(<span class="built_in">dfs</span>(graph[n][i])) <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	vis[n] = <span class="number">2</span>;</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	add node to the head of ordered_list</span></span><br><span class="line"><span class="comment">	先被标记为 visited 的节点是最后被访问的</span></span><br><span class="line"><span class="comment">	*/</span></span><br><span class="line">	path.<span class="built_in">push_back</span>(n);</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; graph.<span class="built_in">size</span>(); ++i) &#123;</span><br><span class="line">	<span class="keyword">if</span>(<span class="built_in">dfs</span>(i)) <span class="keyword">return</span> <span class="literal">true</span>;  <span class="comment">// 有环</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="literal">false</span>;</span><br></pre></td></tr></table></figure>
-
-<h4 id="BFS-实现"><a href="#BFS-实现" class="headerlink" title="BFS 实现"></a>BFS 实现</h4><p>记录每个点的入度，将入度为 0 的顶点加入队列，每次从该集合中取出(没有特殊的取出规则，随机取出也行，使用队列&#x2F;栈也行)一个顶点，将该节点放入保存结果的容器中，紧接着循环遍历由该顶点引出的所有边，从图中移除这条边，同时获取该边的另外一个顶点，如果该顶点的入度在减去本条边之后为 0，那么也将这个顶点放到入度为 0 的集合中</p>
-<p>当出队的个数等于图节点个数的时候是无环图，相反便是有环图</p>
-<p>与 DFS 相比可以控制相同级别节点的控制顺序</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// n 节点个数</span></span><br><span class="line"><span class="comment">// vector&lt;vector&lt;int&gt;&gt; input 输入边</span></span><br><span class="line"></span><br><span class="line">vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">graph</span>(n);</span><br><span class="line"><span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">indegree</span><span class="params">(n, <span class="number">0</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">auto</span> i : input) &#123;</span><br><span class="line">	graph[i[<span class="number">0</span>]].<span class="built_in">push_back</span>(i[<span class="number">1</span>]);</span><br><span class="line">	indegree[i[<span class="number">1</span>]] += <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这里可以根据顺序规则选择相关的容器保存入度为 0 的节点</span></span><br><span class="line"><span class="comment">// 这里以节点数值大小为顺序，小的排前面</span></span><br><span class="line">priority_queue&lt;<span class="type">int</span>, vector&lt;<span class="type">int</span>&gt;, greater&lt;<span class="type">int</span>&gt;&gt; pq;</span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">	<span class="keyword">if</span>(indegree[i] == <span class="number">0</span>) pq.<span class="built_in">push</span>(i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> cnt = <span class="number">0</span>;</span><br><span class="line"><span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">path</span><span class="params">(n)</span></span>;</span><br><span class="line"><span class="keyword">while</span>(!pq.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">	<span class="type">int</span> u = pq.<span class="built_in">top</span>();</span><br><span class="line">	pq.<span class="built_in">pop</span>();</span><br><span class="line">	path[cnt++] = u;</span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>; j &lt; graph[u].<span class="built_in">size</span>(); ++j) &#123;</span><br><span class="line">		<span class="type">int</span> w = graph[u][j];</span><br><span class="line">		indegree[w] -= <span class="number">1</span>;</span><br><span class="line">		<span class="keyword">if</span>(indegree[w] == <span class="number">0</span>) pq.<span class="built_in">push</span>(w);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span>(cnt == n) <span class="keyword">return</span> <span class="literal">false</span>;  <span class="comment">// 无环</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">return</span> <span class="literal">true</span>;  <span class="comment">// 有环 </span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%BE%AA%E7%8E%AF%E9%98%9F%E5%88%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%BE%AA%E7%8E%AF%E9%98%9F%E5%88%97/" class="post-title-link" itemprop="url">循环队列</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 16:13:41" itemprop="dateCreated datePublished" datetime="2023-04-02T16:13:41+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-19 20:18:01" itemprop="dateModified" datetime="2023-04-19T20:18:01+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>对于长度一定的数组，存储的空间是确认的，在队列的入队和出队的过程中，数组中的存储空间需要不断的重复使用，那么这里的“不断重复使用”，就需要循环来实现，否则会出现空间的浪费</p>
-<p>使用两个参数：front、rear，front 代表的是队列第一个元素的下标，而 rear 代表的是队列最后一个有效元素的下一个元素的下标</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%BE%AA%E7%8E%AF%E9%98%9F%E5%88%97/01.png" class="">
-
-<p>入队算法：rear &#x3D; (rear + 1) % 数组长度</p>
-<p>出队算法：front &#x3D; (front + 1) % 数组长度</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">CQ</span> &#123;</span><br><span class="line">    <span class="type">int</span> * pt;</span><br><span class="line">    <span class="type">int</span> size;</span><br><span class="line">    <span class="type">int</span> front;</span><br><span class="line">    <span class="type">int</span> rear;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">CQ</span>(<span class="type">int</span> n) : <span class="built_in">size</span>(n) &#123;</span><br><span class="line">        pt = <span class="keyword">new</span> <span class="type">int</span> [size];</span><br><span class="line">        front = <span class="number">0</span>;</span><br><span class="line">        rear = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ~<span class="built_in">CQ</span> () &#123;</span><br><span class="line">        <span class="keyword">if</span>(pt) <span class="keyword">delete</span> [] pt;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">empty</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(rear == front) <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">full</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(rear + <span class="number">1</span> / size == front) <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">push</span><span class="params">(<span class="type">int</span> ele)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">full</span>()) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        pt[rear] = ele;</span><br><span class="line">        rear = (rear + <span class="number">1</span>) % size;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">pop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">empty</span>()) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        front = (front + <span class="number">1</span>) % size;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/" class="post-title-link" itemprop="url">布隆过滤器</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 16:12:20" itemprop="dateCreated datePublished" datetime="2023-04-02T16:12:20+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-19 20:18:01" itemprop="dateModified" datetime="2023-04-19T20:18:01+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>布隆过滤器是一个很长的二进制向量和一系列随机映射函数，用于检索一个元素是否在一个集合中</p>
-<p>优点是空间效率和查询时间都比一般的算法要好的多，缺点是有一定的误识别率和删除困难</p>
-<p>布隆过滤器可以检查值是可能在集合中还是绝对不在集合中，可能”表示有一定的概率，也就是说可能存在一定为误判率</p>
-<p>布隆过滤器（Bloom Filter）本质上是由长度为 m 的位向量或位列表（仅包含 0 或 1 位值的列表）组成，最初所有的值均设置为 0</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/01.png" class="">
-
-<p>提供 K 个不同的哈希函数，并将结果位置上对应位的值置为 1，使用多个哈希函数产生多个索引值</p>
-<p>应用：</p>
+<p>存储数据表的 B+ 树节点总是只保留最新的数据，而老版本的数据被放在 Undo log 里，并且以指针的形式关联起来，形成一个链表；查询时会在 B+ 树查找后多引入一个链表查询，但是清理废弃数据时会比较简单，只要把 Undo log 找到一个合适的位置一刀切了即可</p>
+<h2 id="隐藏字段"><a href="#隐藏字段" class="headerlink" title="隐藏字段"></a>隐藏字段</h2><p>MySQL 会为每一行真实数据记录添加两三个隐藏的字段，分别为 row_id、transaction_id 和 roll_pointer</p>
 <ul>
-<li><p>网页爬虫对 URL 去重，避免爬取相同的 URL 地址</p>
+<li><p>row_id：非必需隐藏字段；如果表中有自定义的主键或者有 Unique 键，就不会添加 row_id 字段，如果两者都没有，MySQL 会自动添加 row_id 字段</p>
 </li>
-<li><p>反垃圾邮件，从数十亿个垃圾邮件列表中判断某邮箱是否垃圾邮箱</p>
+<li><p>transaction_id：必需隐藏字段；代表这一行数据由哪个事务 id 创建</p>
 </li>
-</ul>
-<p>利用布隆过滤器我们可以预先把数据查询的主键，比如用户 ID 或文章 ID 缓存到过滤器中。当根据 ID 进行数据查询的时候，我们先判断该 ID 是否存在，若存在的话，则进行下一步处理。若不存在的话，直接返回，这样就不会触发后续的数据库查询。需要注意的是缓存穿透不能完全解决，我们只能将其控制在一个可以容忍的范围内</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/" class="post-title-link" itemprop="url">二叉树</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 15:39:46" itemprop="dateCreated datePublished" datetime="2023-04-02T15:39:46+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-19 20:18:01" itemprop="dateModified" datetime="2023-04-19T20:18:01+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="树"><a href="#树" class="headerlink" title="树"></a>树</h2><p>树的每个元素叫做节点，用来连线相领节点之间的关系叫做父子关系</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/01.jpg" class="">
-
-<p>A 是 B 的父节点，B 是 A 的子节点，B、C、D 是兄弟节点，没有父节点的节点为根节点，没有子节点的节点为叶节点</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/02.jpg" class="">
-
-<p>节点的高度：节点到叶节点的最大路径（边数）</p>
-<p>节点的深度：根节点到这个节点所经历的边的个数</p>
-<p>节点的层数：节点的深度 +1</p>
-<p>树的高度：根节点的高度</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/03.jpg" class="">
-
-<h2 id="二叉树"><a href="#二叉树" class="headerlink" title="二叉树"></a>二叉树</h2><p>每个节点最多有两个叉，即两个子节点，分别是左子节点和右子节点；并不要求每个节点都有两个子节点，有的子节点只有左节点，有的只有右节点</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/04.jpg" class="">
-
-<p>编号 2 的二叉树，叶节点全部在最底层，除了叶节点之外，每个节点都有左右两个子节点，为满二叉树</p>
-<p>编号 3 的二叉树，叶节点在最底下两层，最后一层叶节点靠左排列，并且除了最后一层其他层的节点个数都要达到最大，为完全二叉树</p>
-<h2 id="存储一个树"><a href="#存储一个树" class="headerlink" title="存储一个树"></a>存储一个树</h2><ul>
-<li><p>基于指针或引用的二叉链式存储法</p>
-</li>
-<li><p>基于数组的顺序存储法</p>
+<li><p>roll_pointer：必需隐藏字段；回滚指针，指向这行数据上一个版本在 Undo log 的地址</p>
 </li>
 </ul>
-<h3 id="链式存储法"><a href="#链式存储法" class="headerlink" title="链式存储法"></a>链式存储法</h3><p>每个节点有三个字段，一个存储数据，另外两个指向左右节点的指针</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/05.jpg" class="">
+<img src="/2023/04/09/MySql-mvcc/01.png" class="">
 
-<h3 id="顺序存储法："><a href="#顺序存储法：" class="headerlink" title="顺序存储法："></a>顺序存储法：</h3><p>把根节点存储在下标 <code>i = 1</code> 的位置，左子节点存储在 <code>2 * i = 2</code> 的位置，右子节点存储在 <code>2 * i + 1 = 3</code> 的位置</p>
-<p>如果节点 X 存储在数组中下标 i 的位置，它的右节点存储在 2 * i 的位置，左节点存储在 2 * i + 1 的位置；反之，下标 i &#x2F; 2 的位置是它的父节点</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/06.jpg" class="">
+<p>对于事务 id，只有执行 insert&#x2F;update&#x2F;delete 才会产生事务 id，只执行 select 则没有事务 id</p>
+<img src="/2023/04/09/MySql-mvcc/02.png" class="">
 
-<p>完全二叉树的顺序存储法，只会浪费一个下标0的存储位置；如果是非完全二叉树，会浪费比较多的存储空间</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/07.jpg" class="">
-
-<p>完全二叉树用数组存储是最节省空间的一种方式，它不需要额外的左右子节点的指针，也没有浪费多余的存储空间</p>
-<h2 id="二叉树的遍历"><a href="#二叉树的遍历" class="headerlink" title="二叉树的遍历"></a>二叉树的遍历</h2><ul>
-<li><p>前序遍历：对于树中的任意节点来说，先打印这个节点，然后打印它的左子树，再打印它的右子树</p>
+<h2 id="ReadView"><a href="#ReadView" class="headerlink" title="ReadView"></a>ReadView</h2><p>READ COMMITTED 和 REPEATABLE READ 这两个事务隔离级别都要保证读到的数据是其他事务已经提交的，但是还是有一定的区别，最核心的问题就在于到底可以读取这个数据的哪个版本</p>
+<p>ReadView 机制只在 Read Committed 和 Repeatable Read 隔离级别下生效，所以只有这两种隔离级别才有 MVCC</p>
+<h3 id="ReadView-组成"><a href="#ReadView-组成" class="headerlink" title="ReadView 组成"></a>ReadView 组成</h3><p>ReadView 包含四个比较重要的内容：</p>
+<ul>
+<li><p>m_ids：表示在生成 ReadView 时，系统中活跃的事务 id 集合</p>
 </li>
-<li><p>中序遍历：先打印它的左子树，然后打印它自己，再打印它的右子树</p>
+<li><p>min_trx_id：表示在生成 ReadView 时，系统中活跃的最小事务 id，也就是 m_ids 中的最小值</p>
 </li>
-<li><p>后序遍历：先打印它的右子树，然后打印左子树，再打印它自己</p>
+<li><p>max_trx_id：表示在生成 ReadView 时，系统应该分配给下一个事务的 id</p>
+</li>
+<li><p>creator_trx_id：表示生成该 ReadView 的事务 id</p>
 </li>
 </ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 递推形式遍历</span></span><br><span class="line"><span class="comment">// 前序遍历的递推公式：</span></span><br><span class="line"><span class="built_in">preOrder</span>(r) = print r-&gt;<span class="built_in">preOrder</span>(r-&gt;left)-&gt;<span class="built_in">preOrder</span>(r-&gt;right)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 中序遍历的递推公式：</span></span><br><span class="line"><span class="built_in">inOrder</span>(r) = <span class="built_in">inOrder</span>(r-&gt;left)-&gt;print r-&gt;<span class="built_in">inOrder</span>(r-&gt;right)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 后序遍历的递推公式：</span></span><br><span class="line"><span class="built_in">postOrder</span>(r) = <span class="built_in">postOrder</span>(r-&gt;left)-&gt;<span class="built_in">postOrder</span>(r-&gt;right)-&gt;print r</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用栈遍历</span></span><br><span class="line"><span class="comment">/*https://blog.csdn.net/Monster_ii/article/details/82115772?depth_1-utm_source=distribute.pc_relevant.none-task&amp;utm_source=distribute.pc_relevant.none-task*/</span></span><br><span class="line"><span class="comment">// 前序</span></span><br><span class="line">stack&lt;TreeNode *&gt; s;</span><br><span class="line">s.<span class="built_in">push</span>(root);</span><br><span class="line"><span class="keyword">while</span>(!s.<span class="built_in">empty</span>())</span><br><span class="line">&#123;</span><br><span class="line">    TreeNode * node = s.<span class="built_in">top</span>();</span><br><span class="line">    s.<span class="built_in">pop</span>();</span><br><span class="line">    cout&lt;&lt;node-&gt;val&lt;&lt;endl;</span><br><span class="line">    <span class="keyword">if</span>(node-&gt;right) s.<span class="built_in">push</span>(node-&gt;right);</span><br><span class="line">    <span class="keyword">if</span>(node-&gt;left)  s.<span class="built_in">push</span>(node-&gt;left);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 中序</span></span><br><span class="line">std::stack&lt;TreeNode *&gt; sta;</span><br><span class="line">sta.<span class="built_in">push</span>(root);</span><br><span class="line"><span class="keyword">while</span> (!sta.<span class="built_in">empty</span>())</span><br><span class="line">&#123;</span><br><span class="line">	TreeNode * temp = sta.<span class="built_in">top</span>();</span><br><span class="line">	<span class="keyword">while</span> (temp-&gt;left)</span><br><span class="line">	&#123;</span><br><span class="line">		sta.<span class="built_in">push</span>(temp-&gt;left);</span><br><span class="line">		temp = temp-&gt;left;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">while</span> (!sta.<span class="built_in">empty</span>())</span><br><span class="line">	&#123;</span><br><span class="line">		TreeNode * node = sta.<span class="built_in">top</span>();</span><br><span class="line">		sta.<span class="built_in">pop</span>();</span><br><span class="line">		std::cout &lt;&lt; node-&gt;val &lt;&lt; std::endl;</span><br><span class="line">		<span class="keyword">if</span> (node-&gt;right)</span><br><span class="line">		&#123;</span><br><span class="line">			sta.<span class="built_in">push</span>(node-&gt;right);</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 逆序</span></span><br><span class="line">std::stack&lt;TreeNode *&gt; sta;</span><br><span class="line">sta.<span class="built_in">push</span>(root);</span><br><span class="line">TreeNode * last = <span class="literal">nullptr</span>;</span><br><span class="line"><span class="keyword">while</span> (!sta.<span class="built_in">empty</span>())</span><br><span class="line">&#123;</span><br><span class="line">	TreeNode * node = sta.<span class="built_in">top</span>();</span><br><span class="line">	<span class="keyword">while</span> (node-&gt;left)</span><br><span class="line">	&#123;</span><br><span class="line">		sta.<span class="built_in">push</span>(node-&gt;left);</span><br><span class="line">		temp = node-&gt;left;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">while</span> (!sta.<span class="built_in">empty</span>())</span><br><span class="line">	&#123;</span><br><span class="line">		node = sta.<span class="built_in">top</span>();</span><br><span class="line">        <span class="keyword">if</span>(!node-&gt;right || last == node-&gt;right)</span><br><span class="line">        &#123;</span><br><span class="line">            last = node;</span><br><span class="line">            std::cout&lt;&lt;node-&gt;val&lt;&lt;std::endl;</span><br><span class="line">            sta.<span class="built_in">pop</span>();</span><br><span class="line">        &#125;</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (node-&gt;right)</span><br><span class="line">		&#123;</span><br><span class="line">			sta.<span class="built_in">push</span>(node-&gt;right);</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="ReadView-用法"><a href="#ReadView-用法" class="headerlink" title="ReadView 用法"></a>ReadView 用法</h3><p>有了 ReadView，根据相关信息则可以判断版本信息：</p>
+<ul>
+<li><p>如果被访问的版本的 trx_id 和 ReadView 中的 creator_trx_id 相同，就意味着当前版本就是由当前事务创建的，可以读出来</p>
+</li>
+<li><p>如果被访问的版本的 trx_id 小于 ReadView 中的 min_trx_id，表示生成该版本的事务在创建 ReadView 的时候已经提交了，所以该版本可以读出来</p>
+</li>
+<li><p>如果被访问版本的 trx_id 大于或等于 ReadView 中的 max_trx_id 值，说明生成该版本的事务在当前事务生成 ReadView 后才开启，所以该版本不可以被读出来</p>
+</li>
+<li><p>如果生成被访问版本的 trx_id 在 min_trx_id 和 max_trx_id 之间，那就需要判断下 trx_id 在不在 m_ids 中；如果在，说明创建 ReadView 的时候，生成该版本的事务还是活跃的（没有被提交），该版本不可以被读出来；如果不在，说明创建 ReadView 的时候，生成该版本的事务已经被提交了，该版本可以被读出来</p>
+</li>
+<li><p>如果某个数据的最新版本不可以被读出来，就顺着 roll_pointer 找到该数据的上一个版本，继续做如上的判断</p>
+</li>
+</ul>
+<h3 id="更新逻辑"><a href="#更新逻辑" class="headerlink" title="更新逻辑"></a>更新逻辑</h3><p>更新数据都是先读后写的，且只能读当前的值，称为当前读</p>
+<p>除了 <code>update</code> 语句外，<code>select</code> 语句如果加锁，也是当前读</p>
+<h3 id="READ-COMMITTED"><a href="#READ-COMMITTED" class="headerlink" title="READ COMMITTED"></a>READ COMMITTED</h3><p>每次读取数据都会创建 ReadView</p>
+<h3 id="REPEATABLE-READ"><a href="#REPEATABLE-READ" class="headerlink" title="REPEATABLE READ"></a>REPEATABLE READ</h3><p>事务启动时创建 ReadView，整个事务期间都使用同一个 ReadView</p>
+<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> `t` ( </span><br><span class="line">    `id` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span>, </span><br><span class="line">    `k` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>, </span><br><span class="line">    <span class="keyword">PRIMARY</span> KEY (`id`)</span><br><span class="line">    ) ENGINE<span class="operator">=</span>InnoDB;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t(id, k) <span class="keyword">values</span>(<span class="number">1</span>,<span class="number">1</span>),(<span class="number">2</span>,<span class="number">2</span>);</span><br></pre></td></tr></table></figure>
 
-<p>遍历的时间复杂度跟节点个数n成正比，所以二叉树遍历时间复杂度是 O(n)</p>
-<h2 id="二叉查找树"><a href="#二叉查找树" class="headerlink" title="二叉查找树"></a>二叉查找树</h2><p>二叉查找树支持快速查找一个数据，还支持快速插入、删除一个数据</p>
-<p>二叉查找树：在树的任意一个节点，其左子树中的每个节点的值都小于这个节点的值，右子树节点的值都大于这个节点</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/08.jpg" class="">
+<img src="/2023/04/09/MySql-mvcc/03.png" class="">
 
-<h3 id="查找操作"><a href="#查找操作" class="headerlink" title="查找操作"></a>查找操作</h3><p>先取根节点，如果等于要查找的数据就返回</p>
-<p>如果要查找的数据比根节点的值小，就去左子树中递归查找；如果要查找数据比根节点值大，就去右子树中递归查找</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/09.jpg" class="">
+<h3 id="事务启动时机"><a href="#事务启动时机" class="headerlink" title="事务启动时机"></a>事务启动时机</h3><p><code>begin/start transaction</code> 命令并不是一个事务的起点，在执行到它们之后的第一个操作 InnoDB 表的语句，事务才真正启动</p>
+<p>如果想要马上启动一个事务，可以使用 <code>start transaction with consistent snapshot</code> 这个命令</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>事务 C 没有显式地使用 <code>begin/commit</code>，表示这个 <code>update</code> 语句本身就是一个事务，语句完成的时候会自动提交</p>
+<p>事务 B 在更新了行之后查询</p>
+<p>事务 A 在一个只读事务中查询，并且时间顺序上是在事务 B 的查询之后</p>
+<p>事务 B 查到的 k 的值是 3，而事务 A 查到的 k 的值是 1</p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>做如下假设：</p>
+<ul>
+<li><p>事务 A 开始前，系统里面只有一个活跃事务 ID 是 99</p>
+</li>
+<li><p>事务 A、B、C 的版本号分别是 100、101、102，且当前系统里只有这四个事务</p>
+</li>
+<li><p>三个事务开始前，(1,1）这一行数据的 transaction_id 是 90</p>
+</li>
+</ul>
+<p>事务 A 的 m_ids 是[99,100]，事务 B 的 m_ids 是[99,100,101], 事务 C 的 m_ids 是[99,100,101,102]</p>
+<img src="/2023/04/09/MySql-mvcc/04.png" class="">
 
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Node</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> val_ = <span class="number">0</span>;</span><br><span class="line">    Node * left_ = <span class="literal">nullptr</span>;</span><br><span class="line">    Node * right_ = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line">    ~<span class="built_in">Node</span>()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(left_ != <span class="literal">nullptr</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">delete</span> left_;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(right_ != <span class="literal">nullptr</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">delete</span> right_;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">BinarySearchTree</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    Node * root_ = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">Node <span class="title">find</span><span class="params">(<span class="type">int</span> data)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        Node * p = root_;</span><br><span class="line">        <span class="keyword">while</span> (p != <span class="literal">nullptr</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (data &lt; p.val_) p = p.left_;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (data &gt; p.data) p = p.right_;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">return</span> p;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="插入操作"><a href="#插入操作" class="headerlink" title="插入操作"></a>插入操作</h3><p>新插入的数据一般都是在叶子节点上，所以只需要从根节点开始，依次比较要插入的数据和节点的大小关系；如果要插入的数据比节点的数据大，并且节点的右子树为空就将新数据插入到右子节点的位置，如果不为空就继续遍历树</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/10.jpg" class="">
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">insert</span><span class="params">(<span class="type">int</span> data)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (root_ == <span class="literal">nullptr</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        root_ = <span class="keyword">new</span> <span class="built_in">Node</span>(data);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Node * p = root_;</span><br><span class="line">    <span class="keyword">while</span> (p != <span class="literal">nullptr</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (data &gt; p.val_)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (p.right_ == <span class="literal">nullptr</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                p.right_ = <span class="keyword">new</span> <span class="built_in">Node</span>(data);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            p = p.right_;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">// data &lt; p.data</span></span><br><span class="line">            <span class="keyword">if</span> (p.left_ == <span class="literal">nullptr</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                p.left_ = <span class="keyword">new</span> <span class="built_in">Node</span>(data);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            p = p.left_;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="删除操作"><a href="#删除操作" class="headerlink" title="删除操作"></a>删除操作</h3><p>第一种情况：要删除的节点没有子节点，则只需要直接将父节点中指向要删除的指针置为NULL</p>
-<p>第二种情况：要删除的节点只有一个子节点，则更新父节点，让指向要删除节点的指针指向子节点</p>
-<p>第三种情况：要删除的节点有两个子节点，需要找到这个节点的右子树中最小的子节点，把它替换到要删除的节点然后删除这个最小节点</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/11.jpg" class="">
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">delete</span><span class="params">(<span class="type">int</span> data)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Node * p = root_; <span class="comment">// p 指向要删除的节点，初始化指向根节点</span></span><br><span class="line">    Node * pp = <span class="literal">nullptr</span>; <span class="comment">// pp 记录的是 p 的父节点</span></span><br><span class="line">    <span class="keyword">while</span> (p != <span class="literal">nullptr</span> &amp;&amp; p.val_ != data)</span><br><span class="line">    &#123;</span><br><span class="line">        pp = p;</span><br><span class="line">        <span class="keyword">if</span> (data &gt; p.data) p = p.right_;</span><br><span class="line">        <span class="keyword">else</span> p = p.left_;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (p == <span class="literal">nullptr</span>) <span class="keyword">return</span>; <span class="comment">// 没有找到</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 要删除的节点有两个子节点</span></span><br><span class="line">    <span class="keyword">if</span> (p.left_ != <span class="literal">nullptr</span> &amp;&amp; p.right_ != <span class="literal">nullptr</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 查找右子树中最小节点</span></span><br><span class="line">        Node * minP = p.right_;</span><br><span class="line">        Node * minPP = p; <span class="comment">// minPP 表示 minP 的父节点</span></span><br><span class="line">        <span class="keyword">while</span> (minP.left_ != <span class="literal">nullptr</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            minPP = minP;</span><br><span class="line">            minP = minP.left_;</span><br><span class="line">        &#125;</span><br><span class="line">        p.val_ = minP.val_; <span class="comment">// 将 minP 的数据替换到 p 中</span></span><br><span class="line">        p = minP; <span class="comment">// 下面就变成了删除 minP 了</span></span><br><span class="line">        pp = minPP;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 删除节点是叶子节点或者仅有一个子节点</span></span><br><span class="line">    Node * child; <span class="comment">// p 的子节点</span></span><br><span class="line">    <span class="keyword">if</span> (p.left_ != <span class="literal">nullptr</span>) child = p.left_;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (p.right_ != <span class="literal">nullptr</span>) child = p.right_;</span><br><span class="line">    <span class="keyword">else</span> child = <span class="literal">nullptr</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (pp == <span class="literal">nullptr</span>) tree = child; <span class="comment">// 删除的是根节点</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (pp.left_ == p) pp.left_ = child;</span><br><span class="line">    <span class="keyword">else</span> pp.right_ = child;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="递归-BFS"><a href="#递归-BFS" class="headerlink" title="递归 BFS"></a>递归 BFS</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">bfs_rec</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    function&lt;<span class="type">void</span>(TreeNode *, <span class="type">int</span>)&gt; bfs = [&amp;](TreeNode * node, <span class="type">int</span> level)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(node)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span>(level == <span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                cout&lt;&lt;node-&gt;val&lt;&lt;endl;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="built_in">bfs</span>(node-&gt;left, level - <span class="number">1</span>);</span><br><span class="line">            <span class="built_in">bfs</span>(node-&gt;right, level - <span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h3 id="其他操作"><a href="#其他操作" class="headerlink" title="其他操作"></a>其他操作</h3><p>支持快速查找最大节点和最小节点、前驱节点和后继节点</p>
-<p>中序遍历可以输出有序的数据序列，时间复杂度 O(n)</p>
-<h3 id="支持重复数据的二叉查找树"><a href="#支持重复数据的二叉查找树" class="headerlink" title="支持重复数据的二叉查找树"></a>支持重复数据的二叉查找树</h3><p>实际开发中，二叉查找树存储的是一个包含很多字段的对象，利用对象的某个字段作为键值来构件二叉查找树，其他字段叫做卫星数据</p>
-<p>一个节点存储相同的键值：第一种方法通过链表和支持动态扩容的数组等数据结构，把值相同的数据存储在同一个节点上；第二种方法每个节点仍然存储一个数据，在插入过程中遇到值相同的节点，把新插入的数据当做大于这个节点值来处理，查找数据的时候，遇到值相同的节点，并不停止查找操作而是继续在右子树中查找直到叶子节点，对于删除操作，先查找到所有要删除的节点，然后再删除</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/12.jpg" class="">
-
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91/13.jpg" class="">
-
-<h2 id="时间复杂度分析"><a href="#时间复杂度分析" class="headerlink" title="时间复杂度分析"></a>时间复杂度分析</h2><p>根节点的左右子树极度不平衡，退化成了链表所以查找的时间复杂度成了 O(n)<br>完全二叉树不管是插入、删除、还是查找，时间复杂度是 O(height)</p>
-<h2 id="与哈希表的比较"><a href="#与哈希表的比较" class="headerlink" title="与哈希表的比较"></a>与哈希表的比较</h2><p>哈希表的插入、删除、查找操作的时间复杂度可以做到常量级的 O(1)，而二叉查找树在比较平衡的情况下插入、删除、查找的时间复杂度是 O(logn)</p>
+<p>第一个有效更新是事务 C，把数据从 (1,1) 改成了 (1,2)。这时候这个数据的最新版本的 transaction_id 是 102，而 90 这个版本已经成为了历史版本</p>
+<p>第二个有效更新是事务 B，把数据从 (1,2) 改成了 (1,3)。这时候这个数据的最新版本 transaction_id 是 101，而 102 又成为了历史版本</p>
+<p>事务 A 读数据时，它的 m_ids 是 [99,100]，它的读数据流程：</p>
 <ol>
-<li><p>哈希表的数据是无序存储的，如果要输出有序的数据需要先进行排序；而二叉查找树只需要中序遍历，时间复杂度O(n)</p>
+<li><p>找到 (1,3) 的时候，判断出 transaction_id &#x3D; 101，比 100 大，不可见</p>
 </li>
-<li><p>哈希表扩容耗时很多，遇到哈希冲突性能不稳定；平衡二叉查找树的性能稳定，时间复杂度在O(logn)</p>
+<li><p>接着，找到上一个历史版本，transaction_id &#x3D; 102，比 100 大，不可见</p>
 </li>
-<li><p>因为哈希冲突，哈希表的查找时间不一定比logn小</p>
-</li>
-<li><p>哈希表的构造比二叉查找树要复杂</p>
-</li>
-<li><p>为了避免哈希冲突，哈希装载因子不能太大，会浪费一定的存储空间</p>
+<li><p>接着，找到上一个历史版本，一看 transaction_id &#x3D; 90，比99小，可见</p>
 </li>
 </ol>
-<h2 id="线段树"><a href="#线段树" class="headerlink" title="线段树"></a>线段树</h2><p>线段树用来存放给定区间内对应信息的一种数据结构，支持区间查询和元素更新操作，且都是 O(logn)</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SegmentTreeNode</span> &#123;</span><br><span class="line">    <span class="type">int</span> start;  <span class="comment">// 区间左闭区间</span></span><br><span class="line">    <span class="type">int</span> end;  <span class="comment">// 区间右闭区间</span></span><br><span class="line">    <span class="type">int</span> val;  <span class="comment">// 节点的值</span></span><br><span class="line">    SegmentTreeNode * left;</span><br><span class="line">    SegmentTreeNode * right;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">SegmentTreeNode</span>(<span class="type">int</span> s, <span class="type">int</span> e, <span class="type">int</span> v, SegmentTreeNode * l = <span class="literal">nullptr</span>, SegmentTreeNode * r = <span class="literal">nullptr</span>) : <span class="built_in">start</span>(s), <span class="built_in">end</span>(e), <span class="built_in">val</span>(v), <span class="built_in">left</span>(l), <span class="built_in">right</span>(r) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    ~<span class="built_in">SegmentTreeNode</span>() &#123;</span><br><span class="line">        <span class="keyword">if</span>(left) <span class="keyword">delete</span> left;</span><br><span class="line">        <span class="keyword">if</span>(right) <span class="keyword">delete</span> right;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">SegmentTree</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    SegmentTreeNode * root;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">SegmentTree</span>(vector&lt;<span class="type">int</span>&gt; &amp; nums) &#123;</span><br><span class="line">        <span class="type">int</span> len = nums.<span class="built_in">size</span>();</span><br><span class="line">        root = <span class="literal">nullptr</span>;</span><br><span class="line">        <span class="keyword">if</span>(!len) <span class="keyword">return</span>;</span><br><span class="line">        function&lt;SegmentTreeNode *(<span class="type">int</span>, <span class="type">int</span>)&gt; build = [&amp;](<span class="type">int</span> s, <span class="type">int</span> e)-&gt;SegmentTreeNode * &#123;</span><br><span class="line">            <span class="keyword">if</span>(s == e) <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">SegmentTreeNode</span>(s, e, nums[s]);</span><br><span class="line">            <span class="type">int</span> mid = s + (e - s) / <span class="number">2</span>;</span><br><span class="line">            <span class="keyword">auto</span> left = <span class="built_in">build</span>(s, mid);</span><br><span class="line">            <span class="keyword">auto</span> right = <span class="built_in">build</span>(mid + <span class="number">1</span>, e);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">SegmentTreeNode</span>(s, e, left-&gt;val + right-&gt;val, left, right);</span><br><span class="line">        &#125;;</span><br><span class="line">        root = <span class="built_in">build</span>(<span class="number">0</span>, len - <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    ~<span class="built_in">SegmentTree</span>() &#123;<span class="keyword">if</span>(root) <span class="keyword">delete</span> root;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">Update</span><span class="params">(<span class="type">int</span> i, <span class="type">int</span> v, SegmentTreeNode * node)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(node-&gt;start == node-&gt;end &amp;&amp; node-&gt;start == i) &#123;</span><br><span class="line">            node-&gt;val = v;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> mid = node-&gt;start + (node-&gt;end - node-&gt;start) / <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">if</span>(mid &gt;= i) <span class="built_in">Update</span>(i, v, node-&gt;left);</span><br><span class="line">        <span class="keyword">else</span> <span class="built_in">Update</span>(i, v, node-&gt;right);</span><br><span class="line">        node-&gt;val = node-&gt;left-&gt;val + node-&gt;right-&gt;val;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">QuerySum</span><span class="params">(<span class="type">int</span> i, <span class="type">int</span> j, SegmentTreeNode * node)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(node-&gt;start == i &amp;&amp; node-&gt;end == j) <span class="keyword">return</span> node-&gt;val;</span><br><span class="line">        <span class="type">int</span> mid = node-&gt;start + (node-&gt;end - node-&gt;start) / <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">if</span>(mid &gt;= j) <span class="keyword">return</span> <span class="built_in">QuerySum</span>(i, j, node-&gt;left);</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(mid &lt; i) <span class="keyword">return</span> <span class="built_in">QuerySum</span>(i, j, node-&gt;right);</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">return</span> <span class="built_in">QuerySum</span>(i, mid, node-&gt;left) + <span class="built_in">QuerySum</span>(mid + <span class="number">1</span>, j, node-&gt;right);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>当事务 B 要去更新数据的时候，就不能再在历史版本上更新了，否则事务 C 的更新就丢失了，因此，事务 B 此时的 <code>set k=k+1</code> 是在（1,2）的基础上进行的操作</p>
+<p>在更新的时候，当前读拿到的数据是 (1,2)，更新后生成了新版本的数据 (1,3)，这个新版本的 transaction_id 是 101；在执行事务 B 查询语句的时候，一看自己的版本号是 101 和最新数据的版本号相同，可以直接使用，所以查询得到的 k 的值是 3</p>
+<p>如果把事务 A 的查询语句 select * from t where id&#x3D;1 修改一下，加上 lock in share mode 或 for update，也都可以读到版本号是 101 的数据，返回的 k 的值是 3</p>
+<h3 id="拓展"><a href="#拓展" class="headerlink" title="拓展"></a>拓展</h3><p>假设事务 C 不是马上提交的，而是变成了下面的事务 C’</p>
+<img src="/2023/04/09/MySql-mvcc/05.png" class="">
 
-<p>对于数组 [2, 5, 1, 4, 9, 3]，节点存储区间内最小值</p>
-
-
-<h2 id="二叉树的序列化与反序列化"><a href="#二叉树的序列化与反序列化" class="headerlink" title="二叉树的序列化与反序列化"></a>二叉树的序列化与反序列化</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">string <span class="title">serialize</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(!root) <span class="keyword">return</span> &#123;&#125;;</span><br><span class="line">    string ans;</span><br><span class="line">    queue&lt;TreeNode *&gt; q;</span><br><span class="line">    q.<span class="built_in">push</span>(root);</span><br><span class="line">    <span class="keyword">while</span>(!q.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">        TreeNode * temp = q.<span class="built_in">front</span>();</span><br><span class="line">        q.<span class="built_in">pop</span>();</span><br><span class="line">        <span class="keyword">if</span>(!temp) &#123;</span><br><span class="line">            ans.<span class="built_in">push_back</span>(<span class="string">&#x27;#&#x27;</span>);</span><br><span class="line">            ans.<span class="built_in">push_back</span>(<span class="string">&#x27;,&#x27;</span>);</span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125; </span><br><span class="line">        ans += <span class="built_in">to_string</span>(temp-&gt;val);</span><br><span class="line">        ans.<span class="built_in">push_back</span>(<span class="string">&#x27;,&#x27;</span>);</span><br><span class="line">        q.<span class="built_in">push</span>(temp-&gt;left);</span><br><span class="line">        q.<span class="built_in">push</span>(temp-&gt;right);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">TreeNode* <span class="title">deserialize</span><span class="params">(string data)</span> </span>&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> len = data.<span class="built_in">length</span>();</span><br><span class="line">    <span class="keyword">if</span>(!len) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">    <span class="type">int</span> e = data.<span class="built_in">find_first_of</span>(<span class="string">&quot;,&quot;</span>, <span class="number">0</span>);</span><br><span class="line">    TreeNode * root = <span class="keyword">new</span> <span class="built_in">TreeNode</span>(<span class="built_in">stoi</span>(data.<span class="built_in">substr</span>(<span class="number">0</span>, e)));</span><br><span class="line">    queue&lt;TreeNode *&gt; q;</span><br><span class="line">    q.<span class="built_in">push</span>(root);</span><br><span class="line">    <span class="keyword">while</span>(e &lt; len - <span class="number">1</span>) &#123;</span><br><span class="line">        TreeNode * node = q.<span class="built_in">front</span>();</span><br><span class="line">        q.<span class="built_in">pop</span>();</span><br><span class="line">        <span class="type">int</span> s = e + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span>(data[s] == <span class="string">&#x27;#&#x27;</span>) &#123;</span><br><span class="line">            node-&gt;left = <span class="literal">nullptr</span>;</span><br><span class="line">            e = s + <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            e = data.<span class="built_in">find_first_of</span>(<span class="string">&quot;,&quot;</span>, s);</span><br><span class="line">            <span class="type">int</span> v = <span class="built_in">stoi</span>(data.<span class="built_in">substr</span>(s, e - s));</span><br><span class="line">            node-&gt;left = <span class="keyword">new</span> <span class="built_in">TreeNode</span>(v);</span><br><span class="line">            q.<span class="built_in">push</span>(node-&gt;left);</span><br><span class="line">        &#125;</span><br><span class="line">        s = e + <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span>(data[s] == <span class="string">&#x27;#&#x27;</span>) &#123;</span><br><span class="line">            node-&gt;right = <span class="literal">nullptr</span>;</span><br><span class="line">            e = s + <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            e = data.<span class="built_in">find_first_of</span>(<span class="string">&quot;,&quot;</span>, s);</span><br><span class="line">            <span class="type">int</span> v = <span class="built_in">stoi</span>(data.<span class="built_in">substr</span>(s, e - s));</span><br><span class="line">            node-&gt;right = <span class="keyword">new</span> <span class="built_in">TreeNode</span>(v);</span><br><span class="line">            q.<span class="built_in">push</span>(node-&gt;right);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> root;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="模板"><a href="#模板" class="headerlink" title="模板"></a>模板</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">// 一棵树</span><br><span class="line">func solve(root)</span><br><span class="line">    if not root: return ...  // 没有左右节点</span><br><span class="line">    if f(root): return ...</span><br><span class="line"></span><br><span class="line">    l = solve(root.left)</span><br><span class="line">    r = solve(root.right)</span><br><span class="line">    return g(l, r, root)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">// 两棵树</span><br><span class="line">func solve(p, q)</span><br><span class="line">    if not p and not q: return ...  // 两棵树都没有左右节点</span><br><span class="line">    if f(p, q): return ...</span><br><span class="line"></span><br><span class="line">    c1 = solve(p.child, q.child)</span><br><span class="line">    c2 = solve(p.child, q.child)</span><br><span class="line">    return g(c1, c2, p, q)</span><br></pre></td></tr></table></figure>
+<p>事务 C’ 的不同是，更新后并没有马上提交，在它提交前，事务 B 的更新语句先发起了</p>
+<p>虽然事务 C’ 还没提交，但是 (1,2) 这个版本也已经生成了，并且是当前的最新版本</p>
+<p>事务 C’ 没提交，也就是说 (1,2) 这个版本上的写锁还没释放。而事务 B 是当前读，必须要读最新版本，而且必须加锁，因此就被锁住了，必须等到事务 C’ 释放这个锁，才能继续它的当前读</p>
+<img src="/2023/04/09/MySql-mvcc/06.png" class="">
       
     </div>
 
@@ -959,7 +440,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%95%B0%E7%BB%84/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -977,7 +458,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%95%B0%E7%BB%84/" class="post-title-link" itemprop="url">数组</a>
+          <a href="/2023/04/09/MySql-%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/" class="post-title-link" itemprop="url">日志系统</a>
         </h2>
 
         <div class="post-meta-container">
@@ -988,14 +469,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-02 15:38:25" itemprop="dateCreated datePublished" datetime="2023-04-02T15:38:25+08:00">2023-04-02</time>
+      <time title="创建时间：2023-04-09 15:12:20" itemprop="dateCreated datePublished" datetime="2023-04-09T15:12:20+08:00">2023-04-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-19 20:18:01" itemprop="dateModified" datetime="2023-04-19T20:18:01+08:00">2023-04-19</time>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1003,7 +484,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
         </span>
     </span>
 
@@ -1017,16 +498,66 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>数组是一种线型表数据结构，它用一组连续的内存空间来存储一组具有相同类型的数据</p>
-<p>线型表：数据排成一条线一样的结构，每个线型表上的数据最多只有前和后两个方向</p>
-<p>数组、链表、队列、栈等都是线型表结构</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%95%B0%E7%BB%84/01.jpg" class="">
+          <p>更新流程涉及两个重要的日志模块：redo log（重做日志）和 binlog（归档日志）</p>
+<p>redo log 是 InnoDB 引擎特有的日志，Server 层的日志称为 binlog</p>
+<h2 id="redo-log"><a href="#redo-log" class="headerlink" title="redo log"></a>redo log</h2><p>当有一条记录需要更新的时候，InnoDB 引擎就会先把记录写到 redo log，并更新内存，这个时候更新就算完成了</p>
+<p>InnoDB 引擎会在适当的时候，将这个操作记录更新到磁盘里面，而这个更新往往是在系统比较空闲的时候做</p>
+<p>InnoDB 的 redo log 是固定大小的，比如可以配置为一组 4 个文件，每个文件的大小是 1GB，那么redo log 总共就可以记录 4GB 的操作，从头开始写，写到末尾就又回到开头循环写</p>
+<img src="/2023/04/09/MySql-%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/01.png" class="">
 
-<p>非线性表：二叉树、堆、图等，数据之间并不是简单的前后关系</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%95%B0%E7%BB%84/02.jpg" class="">
+<p>write pos 是当前记录的位置，一边写一边后移；checkpoint 是当前要擦除的位置，也是往后推移并且循环的，擦除记录前要把记录更新到数据文件</p>
+<p>write pos 和 checkpoint 之间的部分是可以用来记录新的操作；如果 write pos 追上 checkpoint，这时候不能再执行新的更新，需要把 checkpoint 推进一下</p>
+<p>有了 redo log，InnoDB 就可以保证即使数据库发生异常重启，之前提交的记录都不会丢失</p>
+<p>redo log 的写入拆成了两个步骤：prepare 和 commit，这就是两阶段提交，是为了让 redo log 和 binlog 之间的逻辑一致</p>
+<p>由于 redo log 和 binlog 是两个独立的逻辑，如果不用两阶段提交，会出现一定问题</p>
+<h2 id="binlog"><a href="#binlog" class="headerlink" title="binlog"></a>binlog</h2><p>与 redo log 区别：</p>
+<ol>
+<li><p>redo log 是 InnoDB 引擎特有的；binlog 是 MySQL 的 Server 层实现的，所有引擎都可以使用</p>
+</li>
+<li><p>redo log 是物理日志，记录的是在某个数据页上做了什么修改；binlog 是逻辑日志，记录的是这个语句的原始逻辑</p>
+</li>
+<li><p>redo log 是循环写的，空间固定会用完；binlog 是可以追加写入的</p>
+</li>
+</ol>
+<p>对于 SQL 语句 <code>update T set c=c+1 where ID=2</code>：</p>
+<ol>
+<li><p>执行器先找引擎取 <code>ID=2</code> 这一行</p>
+</li>
+<li><p>如果 <code>ID=2</code> 这一行所在的数据页本来就在内存中，就直接返回给执行器；否则，需要先从磁盘读入内存，然后再返回</p>
+</li>
+<li><p>执行器拿到引擎给的行数据，把这个值加上 1，再调用引擎接口写入这行新数据</p>
+</li>
+<li><p>引擎将这行新数据更新到内存中，同时将这个更新操作记录到 redo log 里面，然后告知执行器执行完成，此时 redo log 处于 prepare 状态</p>
+</li>
+<li><p>执行器生成这个操作的 binlog，并把 binlog 写入磁盘</p>
+</li>
+<li><p>执行器调用引擎的提交事务接口，引擎把刚刚写入的 redo log 改成提交（commit）状态，更新完成</p>
+</li>
+</ol>
+<img src="/2023/04/09/MySql-%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/01.jpg" class="">
 
-<p>数组的连续内存空间和相同的数据类型，使得它可以随机访问；但为了保证连续性，就需要做大量的数据搬移工作</p>
-<p>数组动态扩容，当数组空间不够用时，我们就重新申请一块更大的内存，将原来数组中数据全部拷贝过去，从而实现动态扩容的</p>
+<p>MySQL 以 binlog 的写入与否作为事务是否成功的标记</p>
+<h2 id="奔溃恢复规则"><a href="#奔溃恢复规则" class="headerlink" title="奔溃恢复规则"></a>奔溃恢复规则</h2><p>redo log 和 binlog 有一个共同的数据字段，叫 XID</p>
+<p>崩溃恢复的时候，会按顺序扫描 redo log：</p>
+<ol>
+<li><p>如果碰到既有 prepare、又有 commit 的 redo log，就直接提交</p>
+</li>
+<li><p>如果碰到只有 parepare、而没有 commit 的 redo log，就拿着 XID 去 binlog 找对应的事务；binlog 无记录，回滚事务；binlog 有记录，提交事务</p>
+</li>
+</ol>
+<p>先写 redo log 后写 binlog：假设在 redo log 写完，binlog 还没有写完的时候，MySQL 进程异常重启；由于 bin log 日志没有修改记录，使用 redo log + bin log 恢复的数据就是数据库旧的数据</p>
+<p>先写 bin log 后写 redo log：假设在 bin log 写完，redo log 还没有完成的时候，MySQL 进程异常重启</p>
+<p>binlog 写入后会被从库（或者用这个 binlog 恢复出来的库）使用，保证主库和备库的数据就一致性</p>
+<h2 id="binlog-完整性"><a href="#binlog-完整性" class="headerlink" title="binlog 完整性"></a>binlog 完整性</h2><p>MySQL 引入 binlog-checksum 参数，用来验证 binlog 内容的正确性</p>
+<h2 id="binlog-相比-redo-log-优越性"><a href="#binlog-相比-redo-log-优越性" class="headerlink" title="binlog 相比 redo log 优越性"></a>binlog 相比 redo log 优越性</h2><ol>
+<li><p>redo log 是循环写，写到末尾是要回到开头继续写的，这样历史日志没法保留，redo log 也就起不到归档的作用</p>
+</li>
+<li><p>MySQL 系统依赖于 binlog，系统高可用的基础，就是 binlog 复制</p>
+</li>
+</ol>
+<h2 id="redo-log-buffer"><a href="#redo-log-buffer" class="headerlink" title="redo log buffer"></a>redo log buffer</h2><p>redo log buffer 就是一块内存，用来先存 redo 日志的</p>
+<p>真正把日志写到 redo log 文件，是在执行 commit 语句的时候做的</p>
+<p>事务执行过程中不会主动去刷盘，以减少不必要的 IO 消耗，但是可能会出现被动写入磁盘，比如内存不够、其他事务提交等情况</p>
 
       
     </div>
@@ -1053,7 +584,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E9%94%81/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1071,7 +602,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/" class="post-title-link" itemprop="url">存储系统</a>
+          <a href="/2023/04/09/MySql-%E9%94%81/" class="post-title-link" itemprop="url">锁</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1082,14 +613,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-02 15:34:26" itemprop="dateCreated datePublished" datetime="2023-04-02T15:34:26+08:00">2023-04-02</time>
+      <time title="创建时间：2023-04-09 15:10:29" itemprop="dateCreated datePublished" datetime="2023-04-09T15:10:29+08:00">2023-04-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-19 20:18:01" itemprop="dateModified" datetime="2023-04-19T20:18:01+08:00">2023-04-19</time>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1097,7 +628,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
         </span>
     </span>
 
@@ -1111,33 +642,123 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>Spark 存储系统负责维护所有暂存在内存与磁盘中的数据，这些数据包括 Shuffle 中间文件、RDD Cache 以及广播变量</p>
-<h2 id="BlockManager"><a href="#BlockManager" class="headerlink" title="BlockManager"></a>BlockManager</h2><p>Driver 中包含 BlockManagerMaster，Executor 中包含 BlockManager</p>
-<p>BlockManager 负责向 BlockManagerMaster 汇报 Executor 的内存、磁盘使用情况</p>
-<p>BlockManagerMaster 与 BlockManager 之间的信息交换是双向的，但 BlockManager 之间没有信息交换，Executor 之间想交换内存、磁盘的使用情况必须通过 BlockManagerMaster</p>
-<p>BlockManager 的职责，是在 Executors 中管理这 3 类数据的存储、读写与收发</p>
-<h2 id="Block"><a href="#Block" class="headerlink" title="Block"></a>Block</h2><ul>
-<li><p>Shuffle 中间文件消耗的是节点磁盘</p>
+          <p>根据加锁的范围，MySQL 里面的锁大致可以分成全局锁、表级锁和行锁三类</p>
+<h2 id="全局锁"><a href="#全局锁" class="headerlink" title="全局锁"></a>全局锁</h2><p>全局锁就是对整个数据库实例加锁，MySQL 提供了一个加全局读锁的方法，命令是 Flush tables with read lock，让整个库处于只读状态，修改表的线程全部阻塞</p>
+<p>全局锁的典型使用场景是，做全库逻辑备份，也就是把整库每个表都 select 出来存成文本</p>
+<p>让整个库只可读，有一些隐患：</p>
+<ul>
+<li><p>如果在主库上备份，那么在备份期间都不能执行更新，业务基本上就得停摆</p>
 </li>
-<li><p>广播变量主要占用节点的内存空间</p>
-</li>
-<li><p>RDD Cache 既可以消耗内存，也可以消耗磁盘</p>
+<li><p>如果在从库上备份，那么备份期间从库不能执行主库同步过来的 binlog，会导致主从延迟</p>
 </li>
 </ul>
-<p>不管是在内存、还是在磁盘，这些数据都是以数据块（Blocks）为粒度进行存取与访问的</p>
-<p>BlockManager 的核心职责，在于管理数据块的元数据（Meta data），这些元数据记录并维护数据块的地址、位置、尺寸以及状态</p>
-<p>只有借助元数据，BlockManager 才有可能高效地完成数据的存与取、收与发</p>
-<p>BlockManager 借助 MemoryStore 管理内存中的数据存取，借助 DiskStore 管理磁盘中的数据访问</p>
-<h2 id="MemoryStore"><a href="#MemoryStore" class="headerlink" title="MemoryStore"></a>MemoryStore</h2><p>MemoryStore 使用 <code>LinkedHashMap[BlockId, MemoryEntry]</code> 管理内存</p>
-<img src="/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/01.png" class="">
+<h2 id="表级锁"><a href="#表级锁" class="headerlink" title="表级锁"></a>表级锁</h2><p>MySQL 里面表级别的锁有两种：一种是表锁，一种是元数据锁 MDL</p>
+<h3 id="表锁"><a href="#表锁" class="headerlink" title="表锁"></a>表锁</h3><p>表锁的语法是 lock tables … read&#x2F;write，可以用 unlock tables 主动释放锁，也可以在客户端断开的时候自动释放</p>
+<p>lock tables 语法除了会限制别的线程的读写外，也限定了本线程接下来的操作对象</p>
+<h3 id="MDL"><a href="#MDL" class="headerlink" title="MDL"></a>MDL</h3><p>MDL(meta data lock) 不需要显式使用，在访问一个表的时候会被自动加上</p>
+<p>MDL 的作用是，保证读写的正确性；如果一个查询正在遍历一个表中的数据，而执行期间另一个线程对这个表结构做变更，删了一列，那么查询线程拿到的结果跟表结构对不上，肯定是不行的</p>
+<p>当对一个表做增删改查操作的时候，加 MDL 读锁；当要对表做结构变更操作的时候，加 MDL 写锁</p>
+<ul>
+<li><p>读锁之间不互斥，因此你可以有多个线程同时对一张表增删改查</p>
+</li>
+<li><p>读写锁之间、写锁之间是互斥的，用来保证变更表结构操作的安全性</p>
+</li>
+</ul>
+<p>申请 MDL 锁的操作会形成一个队列，队列中写锁获取优先级高于读锁；一旦出现写锁等待，不但当前操作会被阻塞，同时还会阻塞后续该表的所有操作</p>
+<p>事务中的 MDL 锁，在语句执行开始时申请，但是语句结束后并不会马上释放，而会等到整个事务提交后再释放</p>
+<h2 id="行锁"><a href="#行锁" class="headerlink" title="行锁"></a>行锁</h2><p>行锁就是针对数据表中行记录的锁</p>
+<p>两阶段锁协议：InnoDB 事务中，行锁是在需要的时候才加上的，但并不是不需要了就立刻释放，而是要等到事务结束时才释放</p>
+<p>尽量将并发度高的行，放在事务的最后进行执行</p>
+<h2 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h2><p>当并发系统中不同线程出现循环资源依赖，涉及的线程都在等待别的线程释放资源时，就会导致这几个线程都进入无限等待的状态</p>
+<p>InnoDB 能检测到死锁的循环依赖并立即返回一个错误，主动死锁检测在发生死锁的时候，是能够快速发现并进行处理的，但是它也是有额外负担的；每当一个事务被锁的时候，就要看看它所依赖的线程有没有被别人锁住，如此循环，最后判断是否出现了循环等待，也就是死锁；每个新来的被堵住的线程，都要判断会不会由于自己的加入导致了死锁，这是一个时间复杂度是 O(n) 的操作</p>
+<p>解决方法：</p>
+<ul>
+<li><p>尽量使用较低的隔离级别</p>
+</li>
+<li><p>设计索引，并尽量使用索引访问数据，使加锁更精确，从而减少锁冲突的机会</p>
+</li>
+<li><p>显示加锁时，一次性请求足够级别的锁</p>
+</li>
+<li><p>如果不同程序会并发存取多个表，尽量约定以相同的顺序访问表</p>
+</li>
+<li><p>尽量用相等条件访问数据</p>
+</li>
+<li><p>在同一个事务中，尽可能做到一次锁定所需要的所有资源，减少死锁产生概率</p>
+</li>
+<li><p>对于非常容易产生死锁的业务部分，可以尝试使用升级锁定颗粒度，通过表级锁定来减少死锁产生的概率</p>
+</li>
+<li><p>用分布式事务锁或者使用乐观锁</p>
+</li>
+</ul>
+<h2 id="InnoDB-的行锁与表锁"><a href="#InnoDB-的行锁与表锁" class="headerlink" title="InnoDB 的行锁与表锁"></a>InnoDB 的行锁与表锁</h2><p>InnoDB 行锁是通过给索引上的索引项加锁来实现的；只有通过索引条件检索数据，InnoDB 才使用行级锁，否则将使用表锁</p>
+<p>由于 MySQL 的行锁是针对索引加的锁，不是针对记录加的锁，因此虽然是访问不同行的记录，但是如果是使用相同的索引键，是会出现锁冲突的(查询非唯一索引时，非唯一索引可能对应多条聚簇索引，因此会锁住多行)；当表有多个索引的时候，不同的事务可以使用不同的索引锁定不同的行</p>
+<p>即便在条件中使用了索引字段，但是否使用索引来检索数据是由 MySQL 通过判断不同的执行计划的代价来决定的。如果 MySQL 认为全表扫描效率更高，比如对一些很小的表，它就不会使用索引，这种情况下 InnoDB 将使用表锁，而不是行锁</p>
+<h2 id="InnoDB-锁算法"><a href="#InnoDB-锁算法" class="headerlink" title="InnoDB 锁算法"></a>InnoDB 锁算法</h2><h3 id="Record-lock"><a href="#Record-lock" class="headerlink" title="Record lock"></a>Record lock</h3><p>单个行记录上的锁；当查询的索引含有唯一属性时，使用 record lock；RC 级别使用该方式加锁</p>
+<ul>
+<li>使用聚簇索引等值查询</li>
+</ul>
+<img src="/2023/04/09/MySql-%E9%94%81/01.png" class="">
 
-<p>BlockId 用于标记 Block 的身份，它不是一个仅仅记录 Id 的字符串，而是一种记录 Block 元信息的数据结构，包括 Block 名字、所属 RDD、Block 对应的 RDD 数据分区、是否为广播变量、是否为 Shuffle Block 等等</p>
-<p>MemoryEntry 用于承载数据实体，数据实体可以是某个 RDD 的数据分区，也可以是广播变量</p>
-<h2 id="DiskStore"><a href="#DiskStore" class="headerlink" title="DiskStore"></a>DiskStore</h2><p>DiskStore 是通过维护数据块与磁盘文件的对应关系，实现磁盘数据的存取访问</p>
-<p>DiskStore 使用 DiskBlockManager 来维护元数据</p>
-<img src="/2023/04/02/Spark-%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/02.png" class="">
+<ul>
+<li>使用唯一索引等值查询</li>
+</ul>
+<img src="/2023/04/09/MySql-%E9%94%81/02.png" class="">
 
-<p>DiskBlockManager 是类对象，它的 <code>getFile</code> 方法以 BlockId 为参数，返回磁盘文件</p>
+<h3 id="Gap-lock"><a href="#Gap-lock" class="headerlink" title="Gap lock"></a>Gap lock</h3><p>间隙锁，锁定一个索引范围（左开右开），不包括记录本身；设计的目的是为了阻止多个事务将记录插入到同一范围内，防止幻读的产生</p>
+<ul>
+<li>使用一般索引等值查询：不仅给相应索引和聚簇索引加 record lock，还要给索引间隙加 gap lock</li>
+</ul>
+<img src="/2023/04/09/MySql-%E9%94%81/03.png" class="">
+
+<img src="/2023/04/09/MySql-%E9%94%81/04.png" class="">
+
+<ul>
+<li>无索引查询：将聚簇索引中的所有行以及间隙都锁起来，等于锁表了</li>
+</ul>
+<img src="/2023/04/09/MySql-%E9%94%81/05.png" class="">
+
+<h3 id="Next-key-lock"><a href="#Next-key-lock" class="headerlink" title="Next-key lock"></a>Next-key lock</h3><p>record+gap 锁定一个范围，并包含记录本身；对于行的查询使用 next-key lock，解决幻读问题；把查询出来的记录锁住，同时也会把该范围查询内的所有间隙空间也会锁住，再之它会把相邻的下一个区间也会锁住；当使用唯一索引且得到的结果只有 1 条则降级为 Record lock；RR 级别使用该方式加锁</p>
+<img src="/2023/04/09/MySql-%E9%94%81/06.png" class="">
+
+<h2 id="锁机制划分"><a href="#锁机制划分" class="headerlink" title="锁机制划分"></a>锁机制划分</h2><p>三种锁都分为共享读锁和排他写锁</p>
+<h3 id="共享读锁"><a href="#共享读锁" class="headerlink" title="共享读锁"></a>共享读锁</h3><ul>
+<li><p>持有读锁的会话可以读表，但不能写表</p>
+</li>
+<li><p>允许多个会话同时持有读锁</p>
+</li>
+<li><p>其他会话就算没有给表加读锁，也是可以读表的，但是不能写表</p>
+</li>
+<li><p>其他会话申请该表写锁时会阻塞，直到锁释放</p>
+</li>
+</ul>
+<h3 id="排他写锁"><a href="#排他写锁" class="headerlink" title="排他写锁"></a>排他写锁</h3><ul>
+<li><p>持有写锁的会话既可以读表，也可以写表</p>
+</li>
+<li><p>只有持有写锁的会话才可以访问该表，其他会话访问该表会被阻塞，直到锁释放</p>
+</li>
+<li><p>其他会话无论申请该表的读锁或写锁，都会阻塞，直到锁释放</p>
+</li>
+</ul>
+<h2 id="隔离级别与锁"><a href="#隔离级别与锁" class="headerlink" title="隔离级别与锁"></a>隔离级别与锁</h2><ul>
+<li><p>未提交读 READ UNCOMMITTED：读取数据不加共享锁</p>
+</li>
+<li><p>提交读 READ COMMITTED：读取数据加共享锁，操作结束后释放共享锁</p>
+</li>
+<li><p>可重复读 REPEATABLE READ：读取数据加共享锁，事务提交前不释放锁</p>
+</li>
+<li><p>可串行化 SERIALIZABLE：锁定整个范围的键并一直有锁，直到事务完成</p>
+</li>
+</ul>
+<h2 id="乐观锁、悲观锁"><a href="#乐观锁、悲观锁" class="headerlink" title="乐观锁、悲观锁"></a>乐观锁、悲观锁</h2><ul>
+<li><p>乐观锁：假设不会发生并发冲突不会上锁，只在提交操作时检查是否违反数据完整性；适用于多读的应用类型，这样可以提高吞吐量</p>
+</li>
+<li><p>悲观锁：假定会发生并发冲突，每次在拿数据的时候都会上锁，屏蔽一切可能违反数据完整性的操作；</p>
+</li>
+</ul>
+<h2 id="死锁-1"><a href="#死锁-1" class="headerlink" title="死锁"></a>死锁</h2><p>当多个进程访问同一数据库时，其中每个进程拥有的锁都是其他进程所需的，由此造成每个进程都无法继续下去；进程 A 等待进程 B 释放他的资源，B 又等待 A 释放他的资源，这样就互相等待就形成死锁</p>
+<h2 id="表锁行锁与死锁"><a href="#表锁行锁与死锁" class="headerlink" title="表锁行锁与死锁"></a>表锁行锁与死锁</h2><p>MyISAM 中是不会产生死锁的，因为 MyISAM 总是一次性获得所需的全部锁，要么全部满足，要么全部等待。而在 InnoDB 中，锁是逐步获得的，就造成了死锁的可能</p>
+<p>InnoDB 行锁并不是直接锁数据而是锁索引；索引分为主键索引和非主键索引两种，如果一条 SQL 语句操作了主键索引，MySQL 就会锁定这条主键索引；如果一条 SQL 语句操作了非主键索引，MySQL 就会先锁定该非主键索引，再锁定相关的主键索引</p>
+<p>当两个事务同时执行，一个锁住了主键索引，在等待其他相关索引；另一个锁定了非主键索引，在等待主键索引，这样就会发生死锁</p>
 
       
     </div>
@@ -1164,7 +785,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-SparkSQL/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1182,7 +803,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/Spark-SparkSQL/" class="post-title-link" itemprop="url">SparkSQL</a>
+          <a href="/2023/04/09/MySql-%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB/" class="post-title-link" itemprop="url">事务隔离</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1193,14 +814,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-02 15:33:21" itemprop="dateCreated datePublished" datetime="2023-04-02T15:33:21+08:00">2023-04-02</time>
+      <time title="创建时间：2023-04-09 15:09:39" itemprop="dateCreated datePublished" datetime="2023-04-09T15:09:39+08:00">2023-04-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-19 20:18:01" itemprop="dateModified" datetime="2023-04-19T20:18:01+08:00">2023-04-19</time>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
     </span>
 
   
@@ -1213,17 +834,44 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>Spark Core 特指 Spark 底层执行引擎，包括了调度系统、存储系统、内存管理、Shuffle 管理等核心功能模块</p>
-<p>Spark SQL 则凌驾于 Spark Core 之上，是一层独立的优化引擎</p>
-<p>Spark Core 负责执行，而 Spark SQL 负责优化，Spark SQL 优化过后的代码，依然要交付 Spark Core 来做执行</p>
-<img src="/2023/04/02/Spark-SparkSQL/01.png" class="">
-
-<p>在 RDD 框架下开发的应用程序，会直接交付 Spark Core 运行。而使用 DataFrame API 开发的应用，则会先过一遍 Spark SQL，由 Spark SQL 优化过后再交由 Spark Core 去做执行</p>
-<p>Spark SQL 包含两个核心组件：Catalyst 优化器和 Tungsten</p>
-<img src="/2023/04/02/Spark-SparkSQL/02.png" class="">
-
-<h2 id="Catalyst-优化器"><a href="#Catalyst-优化器" class="headerlink" title="Catalyst 优化器"></a>Catalyst 优化器</h2><p>Catalyst 优化器，它的职责在于创建并优化执行计划，它包含 3 个功能模块，分别是创建语法树并生成执行计划、逻辑阶段优化和物理阶段优化</p>
-<h2 id="Tungsten"><a href="#Tungsten" class="headerlink" title="Tungsten"></a>Tungsten</h2><p>Tungsten 用于衔接 Catalyst 执行计划与底层的 Spark Core 执行引擎，它主要负责优化数据结果与可执行代码</p>
+          <h2 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h2><p>事务是一个不可分割的数据库操作序列，要么完全地执行，要么完全地不执行，是数据库并发控制得基本单位</p>
+<p>通过将一组相关操作组合为一个要么全部成功要么全部失败的单元，可以简化错误恢复并使应用程序更加可靠</p>
+<p>一个逻辑工作单元要成为事务，必须满足所谓的 ACID 属性</p>
+<ul>
+<li><p>原子性（Atomicity）：原子性是指事务包含的所有操作要么全部成功，要么全部失败回滚</p>
+</li>
+<li><p>一致性（Consistency）：一致性规定了事务提交前后，永远只可能存在事务提交前的状态和事务提交后的状态，从一个一致性的状态到另一个一致性状态，而不可能出现中间的过程态；事务的执行结果是量子化状态，而不是线性状态</p>
+</li>
+<li><p>隔离性（Isolation）：当多个用户并发访问数据库时，比如操作同一张表时，数据库为每一个用户开启的事务不能被其他事务的操作所干扰，多个并发事务之间要相互隔离；多个事务并发访问时，事务之间是隔离的，一个事务不应该影响其它事务运行效果；当不同的事务同时操纵相同的数据时，每个事务都有各自的完整数据空间</p>
+</li>
+<li><p>持久性（Durability）：持久性是指一个事务一旦被提交了，那么对数据库中的数据的改变就是永久性的，即便是在数据库系统遇到故障的情况下也不会丢失提交事务的操作</p>
+</li>
+</ul>
+<p>在 MySQL 中，事务支持是在引擎层实现的</p>
+<h2 id="数据库并发操作带来的一致性问题"><a href="#数据库并发操作带来的一致性问题" class="headerlink" title="数据库并发操作带来的一致性问题"></a>数据库并发操作带来的一致性问题</h2><p>数据库事物无非两种：读取事物、修改事物</p>
+<p>在没有事务隔离控制的时候，多个事务在同一时刻对同一数据的操作可能就会影响到最终期望的结果，通常有四种情况：</p>
+<ul>
+<li><p>脏写：一个事务的更新覆盖了另一个事务还没提交的更新（事务 A和 B 读入同一数据并修改，B 提交的结果破坏了 A 提交的结果，导致 A 的修改被丢失）</p>
+</li>
+<li><p>脏读：一个事务读取了另一个事物未提交的数据（事务 A 修改某一数据，并将其写回磁盘，事务 B 读取同一数据后，A 由于某种原因被撤销，这时 A 已修改过的数据恢复原值，B 读到的数据就与数据库中的数据不一致，则 B 读到的数据为脏数据）</p>
+</li>
+<li><p>不可重复读：一个事务两次读取同一个数据，两次读取的数据不一致（事务 A 读取某一数据后，事务 B 对其作了修改，当事务 A 再次读取数据时，得到与前一次不同的值；事务 A 按一定的条件从数据库中读取了某些数据后，事务 B 删除了其中部分记录，当 A 再次以相同条件读取时，发现某些记录消失了）</p>
+</li>
+<li><p>幻读：一个事务按相同的查询条件重新读取以前检索过的数据，却发现其他事务插入了满足其查询条件的新数据</p>
+</li>
+</ul>
+<p>幻读和不可重复读都是读取了另一条已经提交的事务（这点和脏读不同），所不同的是不可重复读查询的都是同一个数据项，而幻读针对的是一批数据整体</p>
+<h2 id="事务隔离级别"><a href="#事务隔离级别" class="headerlink" title="事务隔离级别"></a>事务隔离级别</h2><p>同一时间，只允许一个事务请求同一数据，不同的事务之间彼此没有任何干扰</p>
+<ul>
+<li><p>未提交读 READ UNCOMMITTED：最低的隔离级别，一个事务在提交之前，对其他事务是可见的，即事务可以读取未提交的数据；存在脏读（读到了脏数据）问题</p>
+</li>
+<li><p>提交读 READ COMMITTED：事务在提交之前，对其它事务是不可见的；解决了脏读的问题，但存在不可重复读（两次查询的得到的结果可能不同，即可能在查询的间隙，有事务提交了修改）问题</p>
+</li>
+<li><p>可重复读 REPEATABLE READ：默认隔离等级，在同一事务中多次读取的数据是一致的；解决了脏读和不可重复读问题，存在幻读（在事务两次查询间隙，有其他事务又插入或删除了新的记录）问题</p>
+</li>
+<li><p>可串行化 SERIALIZABLE：通过对每个读的数据行加上共享锁，强制事务串行化执行，即一个事务一个事务挨个来执行，可以解决上述所有问题，隔离级别最高，牺牲了系统的并发性；可以解决并发事务的所有问题</p>
+</li>
+</ul>
 
       
     </div>
@@ -1250,7 +898,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-Shuffle/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1268,7 +916,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/Spark-Shuffle/" class="post-title-link" itemprop="url">Shuffle</a>
+          <a href="/2023/04/09/MySql-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/" class="post-title-link" itemprop="url">基础结构</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1279,14 +927,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-02 15:32:20" itemprop="dateCreated datePublished" datetime="2023-04-02T15:32:20+08:00">2023-04-02</time>
+      <time title="创建时间：2023-04-09 15:08:22" itemprop="dateCreated datePublished" datetime="2023-04-09T15:08:22+08:00">2023-04-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-19 20:18:01" itemprop="dateModified" datetime="2023-04-19T20:18:01+08:00">2023-04-19</time>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1294,7 +942,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
         </span>
     </span>
 
@@ -1308,30 +956,772 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>任务调度的首要环节，是 DAGScheduler 以 Shuffle 为边界，把计算图 DAG 切割为多个执行阶段 Stages</p>
-<p>在分布式计算场景中，Shuffle 为集群范围内跨节点、跨进程的数据分发</p>
-<p>分布式数据集在集群内的分发，会引入大量的磁盘 I&#x2F;O 与网络 I&#x2F;O，在 DAG 的计算链条中，Shuffle 环节的执行性能是最差的</p>
-<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><p>以 Shuffle 为边界，计算被切割为两个执行阶段。Shuffle 之前的 Stage 叫作 Map 阶段，而把 Shuffle 之后的 Stage 称作 Reduce 阶段</p>
-<p>在 Map 阶段，每个 Executors 先把自己负责的数据分区做初步聚合</p>
-<p>在 Reduce 阶段，Executors 做第二次聚合（又叫全局聚合），从而完成任务</p>
-<p>Shuffle 是 Map 阶段与 Reduce 阶段之间的数据交换</p>
-<h2 id="中间文件"><a href="#中间文件" class="headerlink" title="中间文件"></a>中间文件</h2><p>Map 阶段与 Reduce 阶段，通过生产与消费 Shuffle 中间文件的方式，来完成集群范围内的数据交换</p>
-<img src="/2023/04/02/Spark-Shuffle/01.png" class="">
+          <img src="/2023/04/09/MySql-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/01.png" class="">
 
-<p>DAGScheduler 会为每一个 Stage 创建任务集合 TaskSet，而每一个 TaskSet 都包含多个分布式任务（Task）</p>
-<p>在 Map 执行阶段，每个 Task都会生成包含 data 文件与 index 文件的 Shuffle 中间文件</p>
-<p>Shuffle 文件的生成，是以 Map Task 为粒度的，Map 阶段有多少个 Map Task，就会生成多少份 Shuffle 中间文件</p>
-<p>Shuffle 中间文件包含两类实体文件，一个是记录（Key，Value）键值对的 data 文件，另一个是记录键值对所属 Reduce Task 的 index 文件</p>
-<p>index 文件标记了 data 文件中的哪些记录，应该由下游 Reduce 阶段中的哪些 Task（简称 Reduce Task）消费</p>
-<h2 id="Shuffle-Write"><a href="#Shuffle-Write" class="headerlink" title="Shuffle Write"></a>Shuffle Write</h2><p>在生成中间文件的过程中，Spark 会借助一种类似于 Map 的数据结构，来计算、缓存并排序数据分区中的数据记录</p>
-<p>这种 Map 结构的 Key 是（Reduce Task Partition ID，Record Key），而 Value 是原数据记录中的数据值</p>
-<p>对于数据分区中的数据记录，Spark 会根据特定公式逐条计算记录所属的目标分区 ID，然后把主键（Reduce Task Partition ID，Record Key）和记录的数据值插入到 Map 数据结构中</p>
-<p>当 Map 结构被灌满之后，Spark 根据主键对 Map 中的数据记录做排序，然后把所有内容溢出到磁盘中的临时文件</p>
-<p>Map 结构被清空后，Spark 可以继续读取分区内容并继续向 Map 结构中插入数据，直到 Map 结构再次被灌满而再次溢，如此往复，直到数据分区中所有的数据记录都被处理完毕</p>
-<p>最后，磁盘上存有若干个溢出的临时文件，而内存的 Map 结构中留有部分数据，Spark 使用归并排序算法对所有临时文件和 Map 结构剩余数据做合并，分别生成 data 文件、和与之对应的 index 文件</p>
-<h2 id="Shuffle-Read"><a href="#Shuffle-Read" class="headerlink" title="Shuffle Read"></a>Shuffle Read</h2><p>对于每一个 Map Task 生成的中间文件，其中的目标分区数量是由 Reduce 阶段的任务数量（又叫并行度）决定的</p>
-<p>对于所有 Map Task 生成的中间文件，Reduce Task 需要通过网络从不同节点的硬盘中下载并拉取属于自己的数据内容</p>
+<p>MySQL 可以分为 Server 层和存储引擎层两部分</p>
+<p>Server 层包括连接器、查询缓存、分析器、优化器、执行器等，涵盖 MySQL 的大多数核心服务功能，以及所有的内置函数（如日期、时间、数学和加密函数等），所有跨存储引擎的功能都在这一层实现，比如存储过程、触发器、视图等</p>
+<p>存储引擎层负责数据的存储和提取，其架构模式是插件式的，支持 InnoDB、MyISAM、Memory 等多个存储引擎</p>
+<h2 id="连接器"><a href="#连接器" class="headerlink" title="连接器"></a>连接器</h2><p>连接器负责跟客户端建立连接、获取权限、维持和管理连接</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -h $ip -P $port -u $user -p</span><br></pre></td></tr></table></figure>
 
+<p>客户端跟服务端通过 TCP 建立连接</p>
+<p>如果用户名密码认证通过，连接器会到权限表里面查出客户端拥有的权限，之后这个连接里面的权限判断逻辑，都将依赖于此时读到的权限</p>
+<p>一个用户成功建立连接后，即使用管理员账号对这个用户的权限做了修改，也不会影响已经存在连接的权限；修改完成后，只有再新建的连接才会使用新的权限设置</p>
+<p>客户端如果太长时间没动静，连接器就会自动将它断开，这个时间是由参数 wait_timeout 控制的，默认值是 8 小时</p>
+<p>长连接是指连接成功后，如果客户端持续有请求，则一直使用同一个连接；短连接则是指每次执行完很少的几次查询就断开连接，下次查询再重新建立一个</p>
+<p>全部使用长连接后，有些时候 MySQL 占用内存涨得特别快，这是因为 MySQL 在执行过程中临时使用的内存是管理在连接对象里面的。这些资源会在连接断开的时候才释放。所以如果长连接累积下来，可能导致内存占用太大，被系统强行杀掉（OOM），从现象看就是 MySQL 异常重启了</p>
+<p>解决方案：</p>
+<ul>
+<li><p>定期断开长连接。使用一段时间，或者程序里面判断执行过一个占用内存的大查询后，断开连接，之后要查询再重连</p>
+</li>
+<li><p>在 MySQL 5.7 之后的版本，可以在每次执行一个比较大的操作后，通过执行 mysql_reset_connection 来重新初始化连接资源，这个过程不需要重连和重新做权限验证，但是会将连接恢复到刚刚创建完时的状态</p>
+</li>
+</ul>
+<h2 id="查询缓存"><a href="#查询缓存" class="headerlink" title="查询缓存"></a>查询缓存</h2><p>MySQL 查询缓存是用来缓存特定 Query 的整个结果集信息，且共享给所有客户端</p>
+<p>之前执行过的语句及其结果可能会以 key-value 对的形式，被直接缓存在内存中</p>
+<p>key 是查询的语句，value 是查询的结果，如果查询能够直接在这个缓存中找到 key，那么这个 value 通过权限验证后就可以直接返回给客户端</p>
+<p>如果语句不在查询缓存中，就会继续后面的执行阶段，执行完成后执行结果会被存入查询缓存中</p>
+<p>只要有对一个表的更新，这个表上所有的查询缓存都会被清空，对于频繁更新的表，查询缓存是不适合的，而对于一些不常改变数据且有大量相同 SQL 查询的表，查询缓存会节约很大的性能</p>
+<h3 id="命中条件"><a href="#命中条件" class="headerlink" title="命中条件"></a>命中条件</h3><ul>
+<li><p>两个 SQL 语句，只要相差哪怕一个字符，那么这两个 SQL 将使用不同的 Cache 地址</p>
+</li>
+<li><p>如果表中任何数据或是结构发生改变更改了，那么使用这个表的所有缓存查询将不再有效</p>
+</li>
+<li><p>当某个表正在写入数据，则这个表的缓存将会处于失效状态；在 Innodb 中，如果某个事务修改了这张表，则这个表的缓存在事务提交前都会处于失效状态，在这个事务提交前，这个表的相关查询都无法被缓存</p>
+</li>
+<li><p><code>where</code> 条件中如包含任何一个不确定的函数将永远不会被 cache, 比如 <code>current_date</code>, <code>now</code> 等</p>
+</li>
+<li><p>太大的 result set 不会被 cache</p>
+</li>
+</ul>
+<h3 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h3><p>MySQL Query Cache 使用内存池技术，自己管理内存释放和分配，而不是通过操作系统</p>
+<p>query_cache_limit：可以缓存的单条查询的最大结果集的大小，默认值为 1MB</p>
+<p>query_cache_min_res_unit：每次分配内存的最小空间大小，也就是用于缓存查询结果的最小内存空间的大小，默认值为 4KB</p>
+<p>query_cache_size：可以使用的最大内存空间的大小，必须是 1024 的整数倍</p>
+<ol>
+<li><p>数据库启动时需要初始化查询缓存需要的内存，这时内存池是一个完整的空闲块，而这个空闲块的大小是 query_cache_size 的值减去用于维护元数据的数据结构所消耗的空间（约 40KB）</p>
+</li>
+<li><p>当有查询结果需要缓存的时候，MySQL 先从大的空闲块中申请 query_cache_min_res_unit 大小的内存用于存储结果</p>
+</li>
+<li><p>MySQL 逐步向数据块写入数据，若数据块全部使用完成后仍然有剩余的数据需要存储，那么将再次向空闲空间申请一个数据块，直到数据全部存储完成</p>
+</li>
+<li><p>当存储完成后申请的数据块还有部分剩余空间，那么这部分将被释放，并入到空闲内存部分</p>
+</li>
+</ol>
+<p>并发插入和缓存失效都会导致内存碎片</p>
+<h3 id="额外消耗"><a href="#额外消耗" class="headerlink" title="额外消耗"></a>额外消耗</h3><ul>
+<li><p>读查询开始之前必须检查是否命中缓存</p>
+</li>
+<li><p>如果读查询可以缓存，那么执行完查询操作后，会把查询结果和查询语句写入缓存</p>
+</li>
+<li><p>当向某个表写入数据的时候，必须将这个表所有的缓存设置为失效，如果缓存空间很大，则消耗也会很大</p>
+</li>
+<li><p>对 InnoDB 表，当修改一个表时，设置了缓存失效，但是多版本特性会暂时将这修改对其他事务屏蔽，在这个事务提交之前，所有查询都无法使用缓存，直到这个事务被提交，所以长时间的事务，会大大降低查询缓存的命中</p>
+</li>
+</ul>
+<h2 id="分析器"><a href="#分析器" class="headerlink" title="分析器"></a>分析器</h2><p>对 SQL 语句做解析</p>
+<p>词法分析 —&gt; 语法分析</p>
+<p>词法分析：将 SQL 语句的字符串识别出来</p>
+<p>语法分析：根据语法规则判断 SQL 语句是否满足语法</p>
+<h2 id="优化器"><a href="#优化器" class="headerlink" title="优化器"></a>优化器</h2><p>优化器是在表里面有多个索引的时候，决定使用哪个索引；或者在一个语句有多表关联（join）的时候，决定各个表的连接顺序</p>
+<p>对于查询不在表里的字段，在优化器时就会报错，优化器在做优化时会拿到表的信息，从而不需要后续打开表</p>
+<p>优化器选择索引的目的，是找到一个最优的执行方案，并用最小的代价去执行语句；在数据库里面，扫描行数是影响执行代价的因素之一，扫描的行数越少，意味着访问磁盘数据的次数越少，消耗的 CPU 资源越少；扫描行数并不是唯一的判断标准，优化器还会结合是否使用临时表、是否排序等因素进行综合判断</p>
+<p>MySQL 在真正开始执行语句之前，并不能精确地知道满足这个条件的记录有多少条，而只能根据统计信息来估算记录数；这个统计信息就是索引的区分度，一个索引上不同的值越多，这个索引的区分度就越好，而一个索引上不同的值的个数，称之为基数；基数越大，索引的区分度越好</p>
+<p>MySQL 通过采样统计获得索引的基数；InnoDB 默认会选择 N 个数据页，统计这些页面上的不同值，得到一个平均值，然后乘以这个索引的页面数，就得到了这个索引的基数；当变更的数据行数超过 1&#x2F;M 的时候，会自动触发重新做一次索引统计</p>
+<p>对于由于索引统计信息不准确导致的慢查询问题，可以用 analyze table 来解决</p>
+<p>优化器还会考虑非主键索引的回表查询代价</p>
+<p>当使用排序时，选择排序字段可避免排序，因此优化器也会优先选择该字段</p>
+<h2 id="执行器"><a href="#执行器" class="headerlink" title="执行器"></a>执行器</h2><p>开始执行的时候，要先判断一下客户端对这个表 T 有没有执行查询的权限，如果没有，就会返回没有权限的错误</p>
+<p>如果查询没有命中索引：</p>
+<ol>
+<li><p>调用引擎接口取这个表的第一行，满足条件则放入结果集合中</p>
+</li>
+<li><p>调用引擎接口取下一行，重复相同逻辑，直到取到这个表的最后一行</p>
+</li>
+<li><p>执行器将上述遍历过程中所有满足条件的行组成的记录集作为结果集返回给客户端</p>
+</li>
+</ol>
+<p>如果查询命中索引：</p>
+<ol>
+<li><p>调用引擎满足条件第一行的接口</p>
+</li>
+<li><p>循环调用满足条件下一行的接口</p>
+</li>
+</ol>
+<h2 id="更新语句执行"><a href="#更新语句执行" class="headerlink" title="更新语句执行"></a>更新语句执行</h2><p>如果每一次的更新操作都需要写进磁盘，然后磁盘也要找到对应的那条记录，然后再更新，整个过程 IO 成本、查找成本都很高</p>
+<p>MySQL 使用 WAL 技术，其全称是 Write-Ahead Logging，它的关键点就是先写日志再写磁盘</p>
+<p>当有一条记录需要更新的时候，InnoDB 引擎就会先把记录写到 redo log 里面并更新内存，这个时候更新就算完成了；InnoDB 引擎会在适当的时候，将这个操作记录更新到磁盘里面，而这个更新往往是在系统比较空闲的时候做</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E7%B4%A2%E5%BC%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/09/MySql-%E7%B4%A2%E5%BC%95/" class="post-title-link" itemprop="url">索引</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-09 15:06:53" itemprop="dateCreated datePublished" datetime="2023-04-09T15:06:53+08:00">2023-04-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="磁盘-IO-与索引"><a href="#磁盘-IO-与索引" class="headerlink" title="磁盘 IO 与索引"></a>磁盘 IO 与索引</h2><h3 id="磁盘-IO"><a href="#磁盘-IO" class="headerlink" title="磁盘 IO"></a>磁盘 IO</h3><p>磁盘读取数据靠的是机械运动，每次读取数据花费的时间可以分为寻道时间、旋转延迟、传输时间三个部分</p>
+<p>寻道时间指的是磁臂移动到指定磁道所需要的时间，主流磁盘一般在 5ms 以下；旋转延迟就是我们经常听说的磁盘转速，比如一个磁盘 7200 转，旋转延迟就是 1 &#x2F; 120 &#x2F; 2 &#x3D; 4.17ms；传输时间指的是从磁盘读出或将数据写入磁盘的时间，一般在零点几毫秒，相对于前两个时间可以忽略不计。那么访问一次磁盘的时间，即一次磁盘 IO 的时间约等于 5 + 4.17 &#x3D; 9ms左右</p>
+<h3 id="预读"><a href="#预读" class="headerlink" title="预读"></a>预读</h3><p>当一次 IO 时，不光把当前磁盘地址的数据，而是把相邻的数据也都读取到内存缓冲区内；当计算机访问一个地址的数据的时候，与其相邻的数据也会很快被访问到</p>
+<p>每一次 IO 读取的数据我们称之为一页，一般为 4k 或 8k，也就是我们读取一页内的数据时候，实际上才发生了一次 IO，B+ 树的一个节点存储在一页内</p>
+<h3 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h3><p>添加索引使得每次查找数据时的磁盘 IO 次数控制在一个很小的数量级，最好是常数数量级</p>
+<p>索引是对数据库表中一列或多列的值进行排序的一种结构，使用索引可快速访问数据库表中的特定信息</p>
+<p>索引的一个主要目的就是加快检索表中数据的方法，亦即能协助信息搜索者尽快的找到符合限制条件的记录 ID 的辅助数据结构</p>
+<p>DB 在执行一条 Sql 语句的时候，默认的方式是根据搜索条件进行全表扫描，遇到匹配条件的就加入搜索结果集合。如果我们对某一字段增加索引，查询时就会先去索引列表中一次定位到特定值的行数，大大减少遍历匹配的行数，所以能明显增加查询的速度</p>
+<p>优点：</p>
+<ul>
+<li><p>通过创建唯一性索引，可以保证数据库表中每一行数据的唯一性</p>
+</li>
+<li><p>可以大大加快数据的检索速度，这也是创建索引的最主要的原因</p>
+</li>
+<li><p>可以加速表和表之间的连接，特别是在实现数据的参考完整性方面特别有意义</p>
+</li>
+<li><p>在使用分组和排序子句进行数据检索时，同样可以显著减少查询中分组和排序的时间</p>
+</li>
+<li><p>通过使用索引，可以在查询的过程中，使用优化隐藏器，提高系统的性能</p>
+</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li><p>创建索引和维护索引要耗费时间，这种时间随着数据量的增加而增加</p>
+</li>
+<li><p>索引需要占物理空间，除了数据表占数据空间之外，每一个索引还要占一定的物理空间</p>
+</li>
+</ul>
+<p>原则：</p>
+<ul>
+<li><p>在查询中很少使用或者参考的列不应该创建索引</p>
+</li>
+<li><p>只有很少数据值的列也不应该增加索引</p>
+</li>
+<li><p>定义为 text、image 和 bit 数据类型的列不应该增加索引</p>
+</li>
+<li><p>当修改性能远远大于检索性能时，不应该创建索引</p>
+</li>
+<li><p>使用短索引，如果对长字符串列进行索引，应该指定一个前缀长度，这样能够节省索引空间</p>
+</li>
+<li><p>尽量的扩展索引，不要新建索引</p>
+</li>
+<li><p>定义有外键的数据列一定要建立索引</p>
+</li>
+</ul>
+<p>实现：一般分为 B+ 树索引和哈希索引</p>
+<ul>
+<li><p>B+ 树是非线性结构，它的节点是天然有序的；hash 桶是线性结构，哈希表中多个数据在存储关系上是没有任务顺序关系的</p>
+</li>
+<li><p>哈希索引适合等值查询，无法进行范围查询和模糊查询；B+ 树索引可以进行等值、部分前缀、范围查询</p>
+</li>
+<li><p>B+ 树索引其非叶子节点均为 key 值，叶子节点是 key-data 键值对，叶子节点前后相连且有序</p>
+</li>
+<li><p>哈希索引 O(1) 在速度上毋庸置疑要快于 B+ 树近似 O(logn)，但哈希索引速度不稳定，当某个键值存在大量重复时效率极差</p>
+</li>
+<li><p>哈希索引无法利用索引完成排序</p>
+</li>
+<li><p>哈希索引不支持多列联合索引的最左匹配规则</p>
+</li>
+<li><p>哈希索引存储行指针，并通过开链的方式解决冲突</p>
+</li>
+<li><p>哈希索引没办法避免回表查询，B+ 树在聚簇索引和索引覆盖的情况下可以只通过索引查询</p>
+</li>
+</ul>
+<h3 id="索引存储"><a href="#索引存储" class="headerlink" title="索引存储"></a>索引存储</h3><p>数据库索引都是存储在磁盘上的，当数据量比较大的时候，索引也会很大；当我们利用索引查询的时候，不能把索引全部加载到内存，只能逐一加载每个磁盘页，磁盘页即对应着索引树的节点</p>
+<p>磁盘 IO 次数由树的高度决定，因此不适合使用 BST 存储索引，因此需要使用更加矮胖的树结构</p>
+<p>在 MySQL 中，索引是在存储引擎层实现的，所以并没有统一的索引标准，即不同存储引擎的索引的工作方式并不一样</p>
+<h2 id="AVL-树、RB-树、B-树和-B-树"><a href="#AVL-树、RB-树、B-树和-B-树" class="headerlink" title="AVL 树、RB 树、B 树和 B+ 树"></a>AVL 树、RB 树、B 树和 B+ 树</h2><p>大多数自平衡搜索树（如 AVL 树和 RB 树）都会假定所有数据都在主内存中，但我们必须考虑无法容纳在主内存中的大量数据。当键的数量很大时，将以块形式从磁盘读取数据，与主存储器访问时间相比，磁盘访问时间非常高。</p>
+<h3 id="AVL-树"><a href="#AVL-树" class="headerlink" title="AVL 树"></a>AVL 树</h3><p>自平衡二叉搜索树，树中任一节点的两个子树的高度差最大为 1，其查找、插入和删除在平均和最坏情况下的时间复杂度都是 O(log n)</p>
+<ul>
+<li><p>具有二叉查找树的特点(左子树任一节点小于父节点，右子树任一节点大于父节点)，任何一个节点的左子树与右子树都是平衡二叉树</p>
+</li>
+<li><p>任一节点的左右子树高度差小于 1</p>
+</li>
+</ul>
+<p>AVL 树通过旋转来调整平衡</p>
+<h3 id="RB-树"><a href="#RB-树" class="headerlink" title="RB 树"></a>RB 树</h3><p>AVL 树比红黑树更加平衡，但 AVL 树可能在插入和删除过程中引起更多旋转；如果频繁的插入和删除，应首选 RB 树；如果插入和删除操作的频率较低，而搜索操作的频率较高，则 AVL 树应优先于红黑树</p>
+<h3 id="B-树"><a href="#B-树" class="headerlink" title="B 树"></a>B 树</h3><h4 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h4><p>B 树叫平衡多路查找树，设计的主要思想是减少磁盘访问次数，大多数树操作(增、删、查、最大值、最小值等)都需要都需要 O(h) 磁盘访问，h 为树的高度。</p>
+<p>通常，B 树节点的大小保持与磁盘块大小相等，由于 B 树的高度较低，因此与平衡的二叉搜索树（如AVL 树、RB 树等）相比，大多数操作的磁盘访问次数显著减少。</p>
+<p>先定义一条数据记录为一个二元组 [key, data]，key 为记录的键值，对于不同数据记录，key 是互不相同的；data 为数据记录除 key 外的数据</p>
+<ul>
+<li><p>M 阶 B 树表示每个节点最多 M 个子树</p>
+</li>
+<li><p>每个非叶子节点由 n-1 个 key 和 n 个指针组成，其中 M&#x2F;2 &lt;&#x3D; n &lt;&#x3D; M，其中 M&#x2F;2 向上取整</p>
+</li>
+<li><p>每个叶子节点最少包含一个 key 和两个指针，最多包含 M-1 个 key 和 M 个指针，叶节点的指针均为 null</p>
+</li>
+<li><p>所有叶子节点都在同一层</p>
+</li>
+<li><p>key 和指针互相间隔，节点两端是指针</p>
+</li>
+<li><p>一个节点中的 key 从左到右非递减排列</p>
+</li>
+<li><p>每个指针要么为 null，要么指向另外一个节点</p>
+</li>
+<li><p>如果某个指针在节点 node 最左边且不为 null，则其指向节点的所有 key 小于 v_key1，其中 v_key1 为 node 的第一个 key 的值</p>
+</li>
+<li><p>如果某个指针在节点 node 最右边且不为 null，则其指向节点的所有 key 大于 v_key2，其中 v_key2 为 node 的最后一个 key 的值</p>
+</li>
+<li><p>如果某个指针在节点 node 的左右相邻 key 分别是 key_i 和 key_i+1 且不为 null，则其指向节点的所有 key 小于 v_key_i+1 且大于 v_key_i</p>
+</li>
+<li><p>每个节点都存储数据</p>
+</li>
+</ul>
+<p>一颗 4 阶的 B 树，每个节点最多有 4 个子树、3 个 key，最少有 2 个子树、1 个 key</p>
+<img src="/2023/04/09/MySql-%E7%B4%A2%E5%BC%95/01.png" class="">
+
+<h4 id="插入保持平衡"><a href="#插入保持平衡" class="headerlink" title="插入保持平衡"></a>插入保持平衡</h4><ul>
+<li><p>首先考虑要插入的子树是否已经超出了关键字数的限制</p>
+</li>
+<li><p>超出的话，如果要插入的位置是叶子节点，就只能拆一个关键字添加到要插入位置的父节点</p>
+</li>
+<li><p>如果非叶子节点，就得从其他子树拆子树给新插入的元素做孩子</p>
+</li>
+</ul>
+<h4 id="删除保持平衡"><a href="#删除保持平衡" class="headerlink" title="删除保持平衡"></a>删除保持平衡</h4><p>删除孩子后，父节点是否还满足子树 k 介于 M&#x2F;2 和 M 的条件，不满足就得从别的节点拆子树甚至修改相关子树结构来保持平衡</p>
+<h4 id="性质"><a href="#性质" class="headerlink" title="性质"></a>性质</h4><p>由于 B-Tree 的特性，在 B-Tree 中按 key 检索数据流程：首先从根节点进行二分查找，如果找到则返回对应节点的 data，否则对相应区间的指针指向的节点递归进行查找，直到找到节点或找到 null 指针，前者查找成功，后者查找失败</p>
+<p>B 树的树内存储数据，因此查询单条数据的时候，B 树的查询效率不固定，最好的情况是 O(1)，所以做单一数据查询的时候，使用 B 树平均性能更好，在特定数据重复多次查询的场景中更加高效</p>
+<p>由于 B 树中各节点之间没有指针相邻，因此 B 树不适合做一些数据遍历操作</p>
+<h3 id="B-树-1"><a href="#B-树-1" class="headerlink" title="B+ 树"></a>B+ 树</h3><p>与 B-Tree 相比，B+Tree 有以下不同点：</p>
+<ul>
+<li><p>n 个 key 对应 n 个指针 n 颗树，M&#x2F;2 &lt;&#x3D; n &lt;&#x3D; M</p>
+</li>
+<li><p>非叶子节点不存储 data，只存储 key；叶子节点不存储指针</p>
+</li>
+<li><p>所有叶子节点增加了一个链指针</p>
+</li>
+</ul>
+<img src="/2023/04/09/MySql-%E7%B4%A2%E5%BC%95/02.png" class="">
+
+<p>B+ 树的数据只出现在叶子节点上，因此在查询单条数据的时候，查询速度非常稳定，所以在做单一数据的查询上，其平均性能并不如 B 树</p>
+<p>B+ 树的叶子节点上有指针进行相连，因此在做数据遍历的时候，只需要对叶子节点进行遍历即可，这个特性使得 B+ 树非常适合做范围查询</p>
+<h3 id="选择-B-树"><a href="#选择-B-树" class="headerlink" title="选择 B+ 树"></a>选择 B+ 树</h3><ul>
+<li><p>B 树只适合随机检索，而 B+ 树同时支持随机检索和顺序检索</p>
+</li>
+<li><p>B+ 树空间利用率更高，可减少 IO 次数，磁盘读写代价更低：B+ 树内部结点比 B 树小，一次性读入内存中可以查找的关键字也就越多，从而 IO 次数降低了</p>
+</li>
+<li><p>B+ 树的查询效率更加稳定</p>
+</li>
+<li><p>增删节点时，效率更高</p>
+</li>
+</ul>
+<h2 id="索引类型"><a href="#索引类型" class="headerlink" title="索引类型"></a>索引类型</h2><ul>
+<li><p>主键索引：数据列不允许重复，不允许为 NULL，一个表只能有一个主键</p>
+</li>
+<li><p>唯一索引：数据列不允许重复，允许为 NULL 值，一个表允许多个列创建唯一索引</p>
+</li>
+<li><p>普通索引: 基本的索引类型，没有唯一性的限制，允许为 NULL 值</p>
+</li>
+<li><p>全文索引：基于相似度的查询，而不是原来的精确数值比较；<code>like + %</code> 在文本比较少时是合适的，但是对于大量的文本数据检索，是不可想象的；全文索引可能存在精度问题</p>
+</li>
+</ul>
+<h2 id="聚簇索引和非聚簇索引"><a href="#聚簇索引和非聚簇索引" class="headerlink" title="聚簇索引和非聚簇索引"></a>聚簇索引和非聚簇索引</h2><p>InnoDB 的 B+ Tree 可能存储的是整行数据，也有可能是主键的值</p>
+<p>聚簇索引：在 InnoDB 里，索引 B+ Tree 的叶子节点存储了整行数据的是主键索引</p>
+<p>非聚簇索引：索引 B+ Tree 的叶子节点存储了主键的值的是非主键索引</p>
+<p>聚簇索引查询会更快，因为主键索引树的叶子节点直接就是我们要查询的整行数据了，而非主键索引的叶子节点是主键的值，查到主键的值以后，还需要再通过主键的值回表查询</p>
+<h2 id="非主键索引存储的是主键索引值"><a href="#非主键索引存储的是主键索引值" class="headerlink" title="非主键索引存储的是主键索引值"></a>非主键索引存储的是主键索引值</h2><p>非主键索引直接存储数据的地址，会带来一些问题：</p>
+<ol>
+<li><p>数据库备份、迁移困难</p>
+</li>
+<li><p>插入、删除数据时，B+ 树可能发生分裂，导致物理地址变化</p>
+</li>
+<li><p>无法给物理地址加行级锁</p>
+</li>
+</ol>
+<h2 id="覆盖索引"><a href="#覆盖索引" class="headerlink" title="覆盖索引"></a>覆盖索引</h2><p>非主键索引并不一定都会回表查询</p>
+<p>索引覆盖：当一个查询语句的执行只用从索引中就能够取得，则不必从数据表中读取</p>
+<p>常见方法：对被查询的字段建立联合索引</p>
+<h2 id="联合索引和最左前缀匹配"><a href="#联合索引和最左前缀匹配" class="headerlink" title="联合索引和最左前缀匹配"></a>联合索引和最左前缀匹配</h2><h3 id="联合索引"><a href="#联合索引" class="headerlink" title="联合索引"></a>联合索引</h3><p>在创建多列索引时，根据业务需求，where 子句中使用最频繁的一列放在最左边，因为 MySQL 索引查询会遵循最左前缀匹配的原则，即最左优先，在检索数据时从联合索引的最左边开始匹配。</p>
+<p>当创建一个联合索引的时候，如 (key1,key2,key3)，相当于创建了 (key1)、(key1,key2) 和 (key1,key2,key3) 三个索引</p>
+<p>&#x3D; 和 in 可以乱序，查询优化器会帮你优化成索引可以识别的形式</p>
+<h3 id="最左前缀匹配"><a href="#最左前缀匹配" class="headerlink" title="最左前缀匹配"></a>最左前缀匹配</h3><p>匹配时会一直向右匹配直到遇到范围查询，范围列可以用到索引，但是范围列后面的列无法用到索引，即索引最多用于一个范围列，如果查询条件中有两个范围列则无法全用到索引</p>
+<p>like 语句中通配符出现在开头则不能使用索引</p>
+<p>如果查询条件中含有函数或表达式，将导致索引失效而进行全表扫描</p>
+<p>只要列中包含有 NULL 值都将不会被包含在索引中，复合索引中只要有一列含有 NULL 值，那么这一列对于此复合索引就是无效的</p>
+<h2 id="索引下推"><a href="#索引下推" class="headerlink" title="索引下推"></a>索引下推</h2><p>使用联合索引时，索引下推优化可以在索引遍历过程中，对索引中包含的字段先做判断，直接过滤掉不满足条件的记录，减少回表次数</p>
+<h2 id="普通索引和唯一索引"><a href="#普通索引和唯一索引" class="headerlink" title="普通索引和唯一索引"></a>普通索引和唯一索引</h2><p>当某个字段较大时，不适合做主键，会浪费大量磁盘空间，因此可以考虑在该字段设置唯一索引或普通索引</p>
+<p>假设在 id 字段建立索引，执行 <code>select id from T where k=5</code></p>
+<h3 id="查询区别"><a href="#查询区别" class="headerlink" title="查询区别"></a>查询区别</h3><p>先通过 B+ 树从树根开始，按层搜索到叶子节点，找到相应的数据页，然后可以认为在数据页内部通过二分法来定位记录</p>
+<ul>
+<li><p>对于普通索引来说，查找到满足条件的第一个记录后，需要查找下一个记录，直到碰到第一个不满足条件的记录</p>
+</li>
+<li><p>对于唯一索引来说，由于索引定义了唯一性，查找到第一个满足条件的记录后，就会停止继续检索</p>
+</li>
+</ul>
+<p>这两个的不同带来的性能差距是微乎其微</p>
+<p>InnoDB 的数据是按数据页为单位来读写的，当需要读一条记录的时候，并不是将这个记录本身从磁盘读出来，而是以页为单位，将其整体读入内存。在 InnoDB 中，每个数据页的大小默认是 16KB</p>
+<p>因为引擎是按页读写的，当找到第一个的记录的时候，它所在的数据页就都在内存里了。那么，对于普通索引来说，要多做的查找和判断下一条记录的操作，就只需要一次指针寻找和一次计算</p>
+<p>如果第一个记录刚好是这个数据页的最后一个记录，那么要取下一个记录，必须读取下一个数据页，但这种情况概率很低</p>
+<h3 id="更新过程"><a href="#更新过程" class="headerlink" title="更新过程"></a>更新过程</h3><p>当需要更新一个数据页时，如果数据页在内存中就直接更新，而如果这个数据页还没有在内存中的话，在不影响数据一致性的前提下，InnoDB 会将这些更新操作缓存在 change buffer 中，这样就不需要从磁盘中读入这个数据页了</p>
+<p>在下次查询需要访问这个数据页的时候，将数据页读入内存，然后执行 change buffer 中与这个页有关的操作</p>
+<p>change buffer 是可以持久化的数据，在内存中有拷贝，也会被写入到磁盘上</p>
+<p>将 change buffer 中的操作应用到原数据页，得到最新结果的过程称为 merge</p>
+<p>除了访问这个数据页会触发 merge 外，系统有后台线程会定期 merge；在数据库正常关闭（shutdown）的过程中，也会执行 merge 操作</p>
+<p>将更新操作先记录在 change buffer，减少读磁盘，语句的执行速度会得到明显的提升；数据读入内存是需要占用 buffer pool 的，所以这种方式还能够避免占用内存，提高内存利用率</p>
+<p>对于唯一索引来说，所有的更新操作都要先判断这个操作是否违反唯一性约束，必须要将数据页读入内存才能判断；如果都已经读入到内存了，那直接更新内存会更快，就没必要使用 change buffer 了</p>
+<p>因此，唯一索引的更新就不能使用 change buffer，实际上也只有普通索引可以使用</p>
+<p>change buffer 用的是 buffer pool 里的内存，因此不能无限增大</p>
+<p>因为 merge 的时候是真正进行数据更新的时刻，而 change buffer 的主要目的就是将记录的变更动作缓存下来，所以在一个数据页做 merge 之前，change buffer 记录的变更越多（也就是这个页面上要更新的次数越多），收益就越大</p>
+<p>对于更新的目标页在内存中：</p>
+<ul>
+<li><p>对于唯一索引来说，判断到没有冲突，插入这个值，语句执行结束</p>
+</li>
+<li><p>对于普通索引来说，插入这个值，语句执行结束</p>
+</li>
+</ul>
+<p>此情况下，普通索引和唯一索引对更新语句性能影响的差别，只是一个判断，只会耗费微小的 CPU 时间</p>
+<p>对于更新的目标页不再内存中：</p>
+<ul>
+<li><p>对于唯一索引来说，需要将数据页读入内存，判断到没有冲突，插入这个值，语句执行结束</p>
+</li>
+<li><p>对于普通索引来说，则是将更新记录在 change buffer，语句执行就结束了</p>
+</li>
+</ul>
+<p>change buffer 因为减少了随机磁盘访问，所以对更新性能的提升是会很明显的</p>
+<p>对于写多读少的业务来说，页面在写完以后马上被访问到的概率比较小，此时 change buffer 的使用效果最好</p>
+<p>对于写完马上做查询的业务，即使满足了条件，将更新先记录在 change buffer，但之后由于马上要访问这个数据页，会立即触发 merge 过程，这样随机访问 IO 的次数不会减少，反而增加了 change buffer 的维护代价，change buffer 反而起到了副作用</p>
+<h2 id="redo-log-和-change-buffer"><a href="#redo-log-和-change-buffer" class="headerlink" title="redo log 和 change buffer"></a>redo log 和 change buffer</h2><p>change buffer 和 redo log 颗粒度不一样</p>
+<p>change buffer 只是针对如果更改的数据所在页不在内存中才暂时储存在 change buffer 中</p>
+<p>redo log 会记录一个事务内进行数据更改的所有操作，即使修改的数据已经在内存中了，那也会记录下来</p>
+<p>redo log 主要节省的是随机写磁盘的 IO 消耗（转成顺序写）</p>
+<p>change buffer 主要节省的则是随机读磁盘的 IO 消耗</p>
+<h2 id="前缀索引"><a href="#前缀索引" class="headerlink" title="前缀索引"></a>前缀索引</h2><p>可以定义字符串的一部分作为索引</p>
+<p>如果创建索引的语句不指定前缀长度，那么索引就会包含整个字符串</p>
+<p>使用前缀索引后，可能会导致查询语句回表查询的次数变多</p>
+<p>使用前缀索引，定义好长度，就可以做到既节省空间，又不用额外增加太多的查询成本</p>
+<p>使用前缀索引用不上覆盖索引对查询性能的优化</p>
+<p>在建立前缀索引时，区分度越高越好，可以通过 <code>select count(distinct key(n)) from T</code> 查看前缀长度的区分度</p>
+<h2 id="索引使用场景"><a href="#索引使用场景" class="headerlink" title="索引使用场景"></a>索引使用场景</h2><ul>
+<li><p>查询时，加速 SQL 执行效率</p>
+</li>
+<li><p>如果没有创建索引，排序时将查询出的所有数据使用外部排序（将数据从硬盘分批读取到内存使用内部排序，最后合并排序结果），非常影响性能；建立索引后，数据本身有序，可直接按照索引的顺序和映射关系逐条取出数据</p>
+</li>
+<li><p>提高 join 效率</p>
+</li>
+<li><p>索引覆盖</p>
+</li>
+</ul>
+<h2 id="索引失效"><a href="#索引失效" class="headerlink" title="索引失效"></a>索引失效</h2><ul>
+<li><p>如果查询条件用 or，必须 or 条件中的每个列都加上索引，否则无效</p>
+</li>
+<li><p>违反最左匹配原则，则不适用索引</p>
+</li>
+<li><p>like 语句中通配符出现在开头则不能使用索引</p>
+</li>
+<li><p>存在索引列的数据类型隐形转换，则不使用索引</p>
+</li>
+<li><p>where 字句里对索引列有数学运算或者使用函数，则不使用索引</p>
+</li>
+<li><p>mysql 优化器觉得全表扫描更快时，则不适用索引</p>
+</li>
+</ul>
+<h2 id="自增主键"><a href="#自增主键" class="headerlink" title="自增主键"></a>自增主键</h2><p>B+ 树为了维护索引有序性，在插入新值的时候需要做必要的维护</p>
+<ul>
+<li><p>页分裂：插入情况下，如果所在数据页已经满了，根据 B+ 树的算法，这时候需要申请一个新的数据页，然后挪动部分数据过去；页分裂除了影响分类，还影响数据页利用率</p>
+</li>
+<li><p>页合并：当相邻两个页由于删除了数据，利用率很低之后，会将数据页做合并</p>
+</li>
+</ul>
+<p>自增主键是指自增列上定义的主键，在建表语句中一般这么定义 <code>NOT NULL PRIMARY KEY AUTO_INCREMENT</code></p>
+<p>插入新记录的时候可以不指定 ID 的值，系统会获取当前 ID 最大值加 1 作为下一条记录的 ID 值</p>
+<p>每次插入一条新记录，都是追加操作，都不涉及到挪动其他记录，也不会触发叶子节点的分裂，而业务逻辑的字段做主键，则往往不容易保证有序插入，这样写数据成本相对较高</p>
+<p>主键长度越小，普通索引的叶子节点就越小，普通索引占用的空间也就越小</p>
+<p>从性能和存储空间方面考量，自增主键往往是更合理的选择</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E6%95%B0%E6%8D%AE%E5%BA%93%E6%8A%96%E5%8A%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/09/MySql-%E6%95%B0%E6%8D%AE%E5%BA%93%E6%8A%96%E5%8A%A8/" class="post-title-link" itemprop="url">数据库抖动</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-09 15:04:51" itemprop="dateCreated datePublished" datetime="2023-04-09T15:04:51+08:00">2023-04-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>InnoDB 在处理更新语句的时候，只做了写 redo log 一个磁盘操作，在更新内存写完 redo log 后，就返回给客户端，本次更新成功</p>
+<p>把内存里的数据写入磁盘的过程称为 flush</p>
+<p>当内存数据页跟磁盘数据页内容不一致的时候，称这个内存页为脏页；内存数据写入到磁盘后，内存和磁盘上的数据页的内容就一致了，称为干净页；不论是脏页还是干净页，都在内存中</p>
+<ul>
+<li>当 InnoDB 的 redo log 写满了，这时候系统会停止所有更新操作，把 checkpoint 往前推进，redo log 留出空间可以继续写；checkpoint 推进需将对应的脏页 flush 进磁盘</li>
+</ul>
+<img src="/2023/04/09/MySql-%E6%95%B0%E6%8D%AE%E5%BA%93%E6%8A%96%E5%8A%A8/01.jpg" class="">
+
+<ul>
+<li><p>当需要新的内存页，而内存不够用的时候，就要淘汰一些数据页，空出内存给别的数据页使用；如果淘汰的是脏页，就要先将脏页写到磁盘；如果脏页没刷，直接淘汰，虽然可以依靠 redo log 恢复到最新状态，但是 redo Log 就成了唯一的依靠了，唯一的依靠就不能随便擦除，会制约 redo log 的擦除</p>
+</li>
+<li><p>系统要合理地安排时间，见缝插针地找时间，只要有机会就刷一点脏页</p>
+</li>
+<li><p>MySQL 正常关闭，会把内存的脏页都 flush 到磁盘上，这样下次 MySQL 启动的时候，就可以直接从磁盘上读数据，启动速度会很快</p>
+</li>
+</ul>
+<h2 id="对性能的影响"><a href="#对性能的影响" class="headerlink" title="对性能的影响"></a>对性能的影响</h2><h3 id="第一种情况"><a href="#第一种情况" class="headerlink" title="第一种情况"></a>第一种情况</h3><p>redo log 写满了，要 flush 脏页，这种情况是 InnoDB 要尽量避免的；整个系统就不能再接受更新了，所有的更新都必须堵住</p>
+<p>日志写满，更新全部堵住，写性能跌为 0，这种情况对敏感业务来说，是不能接受的</p>
+<h3 id="第二种情况"><a href="#第二种情况" class="headerlink" title="第二种情况"></a>第二种情况</h3><p>内存不够用了，要先将脏页写到磁盘</p>
+<p>InnoDB 用缓冲池（buffer pool）管理内存，缓冲池中的内存页有三种状态：还没有使用的、使用了并且是干净页、使用了并且是脏页</p>
+<p>InnoDB 的策略是尽量使用内存，因此对于一个长时间运行的库来说，未被使用的页面很少</p>
+<p>当要读入的数据页没有在内存的时候，就必须到缓冲池中申请一个数据页，这时候只能把最久不使用的数据页从内存中淘汰掉</p>
+<p>如果要淘汰的是一个干净页，就直接释放出来复用</p>
+<p>如果是脏页就必须先刷到磁盘，变成干净页后才能复用</p>
+<p>一个查询要淘汰的脏页个数太多，会导致查询的响应时间明显变长</p>
+<h2 id="刷脏页的控制策略"><a href="#刷脏页的控制策略" class="headerlink" title="刷脏页的控制策略"></a>刷脏页的控制策略</h2><p>要正确地告诉 InnoDB 所在主机的 IO 能力，这样 InnoDB 才能知道需要全力刷脏页的时候，可以刷多快</p>
+<p>在准备刷一个脏页的时候，如果这个数据页旁边的数据页刚好是脏页，就会把这个邻居也带着一起刷掉；而且这个把邻居拖下水的逻辑还可以继续蔓延，也就是对于每个邻居数据页，如果跟它相邻的数据页也还是脏页的话，也会被放到一起刷</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-count%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/09/MySql-count%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">count 函数分析</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-09 15:02:27" itemprop="dateCreated datePublished" datetime="2023-04-09T15:02:27+08:00">2023-04-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>在不同的 MySQL 引擎中，<code>count(*)</code> 有不同的实现方式</p>
+<ol>
+<li><p>MyISAM 引擎把一个表的总行数存在了磁盘上，因此执行 <code>count(*)</code> 的时候会直接返回这个数，效率很高</p>
+</li>
+<li><p>InnoDB 执行 <code>count(*)</code> 的时候，需要把数据一行一行地从引擎里面读出来，然后累积计数</p>
+</li>
+</ol>
+<p>InnoDB 中即使是在同一个时刻的多个查询，由于多版本并发控制 MVCC 的原因，InnoDB 表应该返回多少行也是不确定的</p>
+<p>假设表 t 中现在有 10000 条记录，设计三个用户并行的会话：</p>
+<ul>
+<li><p>会话 A 先启动事务并查询一次表的总行数</p>
+</li>
+<li><p>会话 B 启动事务，插入一行后记录后，查询表的总行数</p>
+</li>
+<li><p>会话 C 先启动一个单独的语句，插入一行记录后，查询表的总行数</p>
+</li>
+</ul>
+<img src="/2023/04/09/MySql-count%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90/01.png" class="">
+
+<p>因此对于 <code>count(*)</code> 请求来说，InnoDB 只能把数据一行一行地读出依次判断，可见的行才能够用于计算表的总行数</p>
+<p>InnoDB 是索引组织表，主键索引树的叶子节点是数据，而普通索引树的叶子节点是主键值，所以普通索引树比主键索引树小很多；对于 <code>count(*)</code> 这样的操作，遍历哪个索引树得到的结果逻辑上都是一样的，因此 MySQL 优化器会找到最小的那棵树来遍历</p>
+<h2 id="不同的-count-用法"><a href="#不同的-count-用法" class="headerlink" title="不同的 count 用法"></a>不同的 count 用法</h2><p><code>count()</code> 是一个聚合函数，对于返回的结果集，一行行地判断，如果 <code>count</code> 函数的参数不是 NULL，累计值就加 1，否则不加。最后返回累计值</p>
+<p>对于 <code>count(主键 id)</code> 来说，InnoDB 引擎会遍历整张表，把每一行的 id 值都取出来，返回给 server 层。server 层拿到 id 后，判断是不可能为空的，就按行累加</p>
+<p>对于 <code>count(1)</code> 来说，InnoDB 引擎遍历整张表，但不取值。server 层对于返回的每一行，放一个数字 1 进去，判断是不可能为空的，按行累加</p>
+<p><code>count(1)</code> 执行得要比 <code>count(主键 id)</code> 快。因为从引擎返回 id 会涉及到解析数据行，以及拷贝字段值的操作</p>
+<p>按照效率排序的话，<code>count(字段)</code> &lt; <code>count(主键 id)</code> &lt; <code>count(1)</code> ≈ <code>count(*)</code>，所以建议尽量使用 <code>count(*)</code></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/gcc-%E5%B1%9E%E6%80%A7%E8%AE%BE%E7%BD%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/02/gcc-%E5%B1%9E%E6%80%A7%E8%AE%BE%E7%BD%AE/" class="post-title-link" itemprop="url">属性设置</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-02 23:17:37" itemprop="dateCreated datePublished" datetime="2023-04-02T23:17:37+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/gcc/" itemprop="url" rel="index"><span itemprop="name">gcc</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><code>__attribute__</code> 可以设置函数属性、变量属性和类型属性</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">__attribute__ ((attribute-<span class="built_in">list</span>))</span><br></pre></td></tr></table></figure>
+<h2 id="aligned"><a href="#aligned" class="headerlink" title="aligned"></a>aligned</h2><p>设定一个指定大小的对齐格式，以字节为单位</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 指定以 8 字节对齐</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">S</span> &#123;</span></span><br><span class="line">    <span class="type">short</span> b[<span class="number">3</span>];</span><br><span class="line">&#125; __attribute__ ((aligned (<span class="number">8</span>)));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 指定以最优方式对齐</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">S</span> &#123;</span></span><br><span class="line">    <span class="type">short</span> b[<span class="number">3</span>];</span><br><span class="line">&#125; __attribute__ ((aligned));</span><br></pre></td></tr></table></figure>
+
+<p><code>aligned</code> 属性使被设置的对象占用更多的空间</p>
+<h2 id="packed"><a href="#packed" class="headerlink" title="packed"></a>packed</h2><p>取消内存对齐，采用紧密分布方式</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">x</span> &#123;</span></span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">    <span class="type">char</span> b;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">p</span> <span class="title">px</span>;</span></span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">&#125; __attribute__ ((packed))</span><br></pre></td></tr></table></figure>
+
+<p><code>packed</code> 可以减小对象占用的空间</p>
+<h2 id="format"><a href="#format" class="headerlink" title="format"></a>format</h2><p>指定一个函数比如 <code>printf</code> 或 <code>scanf</code>作为参数，使编译器检查函数声明和函数实际调用参数之间的格式化字符串是否匹配</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">format (archetype, <span class="built_in">string</span>-index, first-to-check)</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="type">int</span> <span class="title function_">my_printf</span> <span class="params">(<span class="type">void</span> *my_object, <span class="type">const</span> <span class="type">char</span> *my_format, ...)</span> __<span class="title function_">attribute__</span><span class="params">((format(<span class="built_in">printf</span>, <span class="number">2</span>, <span class="number">3</span>)))</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>string-index</code> 指定传入函数的第几个参数是格式化字符串</p>
+<p><code>first-to-check</code> 指定从函数的第几个参数开始按上述规则进行检查</p>
+<p>当函数是成员函数时，由于编译器会添加 <code>this</code> 指针，所以 <code>first-to-check</code> 需要后移一位</p>
+<h2 id="noreturn"><a href="#noreturn" class="headerlink" title="noreturn"></a>noreturn</h2><p>通知编译器函数从不返回值，当遇到类似函数需要返回值而却不可能运行到返回值处就已经退出来的情况，该属性可以避免出现错误信息</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">exit</span><span class="params">(<span class="type">int</span>)</span> __<span class="title function_">attribute__</span><span class="params">((<span class="keyword">noreturn</span>))</span>;</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1350,7 +1740,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/9/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/page/11/">11</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/11/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/9/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/page/11/">11</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/11/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>

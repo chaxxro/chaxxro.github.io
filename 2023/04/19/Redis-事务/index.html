@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="事务是数据库的一个重要功能 事务在执行时，会提供专门的属性保证，包括原子性、一致性、隔离性和持久性，也就是 ACID 属性 原子性的要求很明确，就是一个事务中的多个操作必须都完成，或者都不完成 一致性是指数据库中的数据在事务执行前后是一致的 隔离性要求数据库在执行一个事务时，其它操作无法存取到正在执行事务访问的数据 持久性是指数据的修改要被持久化保存下来 Redis 事务客户端要使用 MULTI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="事务">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/19/Redis-%E4%BA%8B%E5%8A%A1/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="事务是数据库的一个重要功能 事务在执行时，会提供专门的属性保证，包括原子性、一致性、隔离性和持久性，也就是 ACID 属性 原子性的要求很明确，就是一个事务中的多个操作必须都完成，或者都不完成 一致性是指数据库中的数据在事务执行前后是一致的 隔离性要求数据库在执行一个事务时，其它操作无法存取到正在执行事务访问的数据 持久性是指数据的修改要被持久化保存下来 Redis 事务客户端要使用 MULTI">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/19/Redis-%E4%BA%8B%E5%8A%A1/01.png">
+<meta property="article:published_time" content="2023-04-19T12:32:46.000Z">
+<meta property="article:modified_time" content="2023-04-20T13:20:13.803Z">
+<meta property="article:author" content="chaxxro">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/19/Redis-%E4%BA%8B%E5%8A%A1/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/19/Redis-%E4%BA%8B%E5%8A%A1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/19/Redis-%E4%BA%8B%E5%8A%A1/","path":"2023/04/19/Redis-事务/","title":"事务"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>事务 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis-%E4%BA%8B%E5%8A%A1"><span class="nav-text">Redis 事务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E5%AD%90%E6%80%A7"><span class="nav-text">原子性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis-%E4%B8%80%E8%87%B4%E6%80%A7"><span class="nav-text">Redis 一致性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis-%E9%9A%94%E7%A6%BB%E6%80%A7"><span class="nav-text">Redis 隔离性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis-%E6%8C%81%E4%B9%85%E6%80%A7"><span class="nav-text">Redis 持久性</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">217</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E4%BA%8B%E5%8A%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="事务 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          事务
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-19 20:32:46" itemprop="dateCreated datePublished" datetime="2023-04-19T20:32:46+08:00">2023-04-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-20 21:20:13" itemprop="dateModified" datetime="2023-04-20T21:20:13+08:00">2023-04-20</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>事务是数据库的一个重要功能</p>
+<p>事务在执行时，会提供专门的属性保证，包括原子性、一致性、隔离性和持久性，也就是 ACID 属性</p>
+<p>原子性的要求很明确，就是一个事务中的多个操作必须都完成，或者都不完成</p>
+<p>一致性是指数据库中的数据在事务执行前后是一致的</p>
+<p>隔离性要求数据库在执行一个事务时，其它操作无法存取到正在执行事务访问的数据</p>
+<p>持久性是指数据的修改要被持久化保存下来</p>
+<h2 id="Redis-事务"><a href="#Redis-事务" class="headerlink" title="Redis 事务"></a>Redis 事务</h2><p>客户端要使用 <code>MULTI</code> 显式地表示一个事务的开启</p>
+<p>客户端把事务中本身要执行的具体操作发送给服务器端，Redis 实例只是把这些命令暂存到一个命令队列中，并不会立即执行</p>
+<p>客户端向服务器端发送 <code>EXEC</code> 提交事务的命令，让数据库实际执行第二步中发送的具体操作</p>
+<h2 id="原子性"><a href="#原子性" class="headerlink" title="原子性"></a>原子性</h2><p>在执行 <code>EXEC</code> 命令前，客户端发送的操作命令本身就有错误，在命令入队时就被 Redis 实例判断出来了，但 Redis 只会记录下这个错误，客户端还能继续提交命令操作</p>
+<p>等到执行了 <code>EXEC</code> 命令之后，Redis 就会拒绝执行所有提交的命令操作，返回事务失败的结果，务中的所有命令都不会再被执行了，保证了原子性</p>
+<p>事务操作入队时，当命令和操作的数据类型不匹配时，Redis 不会当时检查出错误，在执行 <code>EXEC</code> 命令时就会报错，但之前正确的命令已经执行完了，因此事务的原子性就无法得到保证了</p>
+<p>传统数据库（例如 MySQL）在执行事务时，会提供回滚机制，当事务执行发生错误时，事务中的所有操作都会撤销，已经修改的数据也会被恢复到事务执行前的状态</p>
+<p>Redis 中并没有提供回滚机制，虽然 Redis 提供了 <code>DISCARD</code> 命令，但是这个命令只能用来主动放弃事务执行，把暂存的命令队列清空，起不到回滚的效果</p>
+<p>在执行事务的 <code>EXEC</code> 命令时，Redis 实例发生了故障，导致事务执行失败：</p>
+<ul>
+<li><p>如果 Redis 开启了 AOF 日志，那么只会有部分的事务操作被记录到 AOF 日志中，可以通过把未完成的事务操作从 AOF 文件中去除，从而使用 AOF 恢复实例后事务操作不会再被执行，从而保证了原子性</p>
+</li>
+<li><p>如果 AOF 日志并没有开启，那么实例重启后，数据也都没法恢复了</p>
+</li>
+</ul>
+<h2 id="Redis-一致性"><a href="#Redis-一致性" class="headerlink" title="Redis 一致性"></a>Redis 一致性</h2><p>命令入队时就报错，事务本身就会被放弃执行，所以可以保证数据库的一致性</p>
+<p>命令入队时没报错，实际执行时报错，有错误的命令不会被执行，正确的命令可以正常执行，也不会改变数据库的一致性</p>
+<p>如果没有开启 RDB 或 AOF，那么，实例故障重启后，数据都没有了，数据库是一致的</p>
+<p>使用了 RDB 快照，因为 RDB 快照不会在事务执行时执行，所以，事务命令操作的结果不会被保存到 RDB 快照中，使用 RDB 快照进行恢复时，数据库里的数据也是一致的</p>
+<p>使用了 AOF 日志，而事务操作还没有被记录到 AOF 日志时，实例就发生了故障，那么使用 AOF 日志恢复的数据库数据是一致的。如果只有部分操作被记录到了 AOF 日志，清除事务中已经完成的操作，数据库恢复后也是一致的</p>
+<p>在命令执行错误或 Redis 发生故障的情况下，Redis 事务机制对一致性属性是有保证的</p>
+<h2 id="Redis-隔离性"><a href="#Redis-隔离性" class="headerlink" title="Redis 隔离性"></a>Redis 隔离性</h2><p>事务的隔离性保证，会受到和事务一起执行的并发操作的影响</p>
+<p>并发操作在 <code>EXEC</code> 命令前执行，此时，隔离性的保证要使用 WATCH 机制来实现，否则隔离性无法保证</p>
+<p>并发操作在 <code>EXEC</code> 命令后执行，此时，隔离性可以保证</p>
+<p>WATCH 机制的作用是，在事务执行前，监控一个或多个键的值变化情况，当事务调用 <code>EXEC</code> 命令执行时，WATCH 机制会先检查监控的键是否被其它客户端修改了。如果修改了，就放弃事务执行，避免事务的隔离性被破坏。然后，客户端可以再次执行事务，此时，如果没有并发修改事务数据的操作了，事务就能正常执行，隔离性也得到了保证</p>
+<img src="/2023/04/19/Redis-%E4%BA%8B%E5%8A%A1/01.png" class="">
+
+<p>因为 Redis 是用单线程执行命令，而且，<code>EXEC</code> 命令执行后，Redis 会保证先把命令队列中的所有命令执行完。所以，在这种情况下，并发操作不会破坏事务的隔离性</p>
+<h2 id="Redis-持久性"><a href="#Redis-持久性" class="headerlink" title="Redis 持久性"></a>Redis 持久性</h2><p>如果 Redis 没有使用 RDB 或 AOF，那么事务的持久化属性肯定得不到保证</p>
+<p>如果 Redis 使用了 RDB 模式，那么，在一个事务执行后，而下一次的 RDB 快照还未执行前，如果发生了实例宕机，这种情况下，事务修改的数据也是不能保证持久化的</p>
+<p>如果 Redis 采用了 AOF 模式，因为 AOF 模式的三种配置选项 no、everysec 和 always 都会存在数据丢失的情况，所以，事务的持久性属性也还是得不到保证</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/19/Redis-%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4/" rel="prev" title="基本命令">
+                  <i class="fa fa-chevron-left"></i> 基本命令
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/19/Redis-%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6/" rel="next" title="异步机制">
+                  异步机制 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
