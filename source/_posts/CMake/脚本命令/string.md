@@ -9,7 +9,7 @@ tags: cmake
 categories: cmake
 ---
 
-## 查找和替换
+## 查找
 
 ```cmake
 string(FIND <string> <substring> <output_variable> [REVERSE])
@@ -19,7 +19,9 @@ string(FIND <string> <substring> <output_variable> [REVERSE])
 
 未找到 substring 返回 -1
 
-`string(FIND)` 将 string 当作 ASCII 串处理
+需要注意的是 `string(FIND)` 将所有字符当作 ASCII 串处理
+
+## 替换
 
 ```cmake
 string(REPLACE <match_string>
@@ -29,19 +31,19 @@ string(REPLACE <match_string>
 
 将 input 中所有 match_string 替换成 replace_string，并将结果存储在 output_variable 中 
 
+## 正则匹配
+
 ```cmake
 string(REGEX MATCH <regular_expression>
        <output_variable> <input> [<input>...])
-```
 
-使用 regular_expression 匹配一次，在匹配前会将所有 input 连接起来，将结果存储在 output_variable
-
-```cmake
 string(REGEX MATCHALL <regular_expression>
        <output_variable> <input> [<input>...])
 ```
 
-使用 regular_expression 尽可能多的匹配，在匹配前会将所有 input 连接起来，将结果存储在 output_variable
+使用 regular_expression 匹配，在匹配前会将所有 input 连接起来，将匹配结果存储在 output_variable
+
+## 正则替换
 
 ```cmake
 string(REGEX REPLACE <regular_expression>

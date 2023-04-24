@@ -15,7 +15,7 @@ categories: cmake
 message([<mode>] "message text" ...)
 ```
 
-如果同时打印多条信息，多条信息会被拼接成一条信息输出，拼接时不会隔开
+如果同时打印多条信息，多条信息会被拼接成一条信息输出，拼接时不会用空格隔开
 
 - `FATAL_ERROR` 打印信息后停止 CMake 进程和构建
 

@@ -19,7 +19,7 @@ else()
 endif()
 ```
 
-- `if(<constant>)`：当 `constant` 为 `TRUE` 、1、`ON`、`YES`、`Y` 和非 0 数时都为 `true`，当 `constant` 为 `FALSE`、`0`、`OFF`、`NO`、`N`、`IGNORE`、`NOTFOUND`、空字符串和以 `-NOTFOUND` 结尾的字符串时都为 `false`
+- `if(<constant>)`：当 `constant` 为 `TRUE` 、`1`、`ON`、`YES`、`Y` 和非 0 数时都为 `true`，当 `constant` 为 `FALSE`、`0`、`OFF`、`NO`、`N`、`IGNORE`、`NOTFOUND`、空字符串和以 `-NOTFOUND` 结尾的字符串时都为 `false`
 
 - `if(<variable>)`：如果变量被定义且不被定义为 `false` 的常量时为 `true`，宏参数、环境变量不能以这种方式进行判断
 

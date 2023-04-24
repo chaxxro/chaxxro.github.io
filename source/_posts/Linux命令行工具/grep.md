@@ -34,7 +34,7 @@ grep [-abcdDEFGHhIiJLlMmnOopqRSsUVvwXxZz] [-A num] [-B num] [-C[num]]
 
 `-e pattern`、`--regexp=pattern` 指定字符串作为查找文件内容的表达式
 
-`-E`、`--extended-regexp` 表达式使用扩展正则表达式
+`-E`、`--extended-regexp` 表达式使用扩展正则 ere 表达式
 
 `--exclude pattern` 排除带绝对路径文件名匹配 pattern 的文件
 
