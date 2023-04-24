@@ -20,18 +20,18 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Redis 键值对中的每一个值都是用 RedisObject 保存的 基本对象结构因为 Redis 的数据类型有很多，而且不同数据类型都有些相同的元数据要记录（比如最后一次访问的时间、被引用的次数等），所以，Redis 会用一个 RedisObject 结构体来统一记录这些元数据，同时指向实际数据 123456789101112typedef struct redisObject &amp;#123;">
+    <meta name="description" content="Redis 键值对中的每一个值都是用 redisObject 保存的 基本对象结构因为 Redis 的数据类型有很多，而且不同数据类型都有些相同的元数据要记录（比如最后一次访问的时间、被引用的次数等），所以 Redis 会用一个 redisObject 结构体来统一记录这些元数据，同时指向实际数据 12345678910111213141516171819202122&#x2F;* The actual R">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RedisObject">
 <meta property="og:url" content="https://chaxxro.github.io/2023/04/20/Redis-redisObject/index.html">
 <meta property="og:site_name" content="也无风雨也无晴">
-<meta property="og:description" content="Redis 键值对中的每一个值都是用 RedisObject 保存的 基本对象结构因为 Redis 的数据类型有很多，而且不同数据类型都有些相同的元数据要记录（比如最后一次访问的时间、被引用的次数等），所以，Redis 会用一个 RedisObject 结构体来统一记录这些元数据，同时指向实际数据 123456789101112typedef struct redisObject &amp;#123;">
+<meta property="og:description" content="Redis 键值对中的每一个值都是用 redisObject 保存的 基本对象结构因为 Redis 的数据类型有很多，而且不同数据类型都有些相同的元数据要记录（比如最后一次访问的时间、被引用的次数等），所以 Redis 会用一个 redisObject 结构体来统一记录这些元数据，同时指向实际数据 12345678910111213141516171819202122&#x2F;* The actual R">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-redisObject/01.png">
 <meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-redisObject/02.png">
 <meta property="og:image" content="https://chaxxro.github.io/2023/04/20/Redis-redisObject/03.png">
 <meta property="article:published_time" content="2023-04-20T13:01:29.000Z">
-<meta property="article:modified_time" content="2023-04-20T13:37:29.578Z">
+<meta property="article:modified_time" content="2023-04-24T02:57:54.886Z">
 <meta property="article:author" content="chaxxro">
 <meta property="article:tag" content="redis">
 <meta name="twitter:card" content="summary">
@@ -117,7 +117,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E5%AF%B9%E8%B1%A1%E7%BB%93%E6%9E%84"><span class="nav-text">基本对象结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="nav-text">基本数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E6%96%B0%E6%95%B0%E6%8D%AE"><span class="nav-text">定义新数据</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E5%AF%B9%E8%B1%A1%E7%BB%93%E6%9E%84"><span class="nav-text">基本对象结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%84%E7%B1%BB%E5%9E%8B%E5%AF%B9%E5%BA%94%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F"><span class="nav-text">各类型对应编码方式</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -196,9 +196,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2023-04-20 21:01:29 / 修改时间：21:37:29" itemprop="dateCreated datePublished" datetime="2023-04-20T21:01:29+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-20 21:01:29" itemprop="dateCreated datePublished" datetime="2023-04-20T21:01:29+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-24 10:57:54" itemprop="dateModified" datetime="2023-04-24T10:57:54+08:00">2023-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -220,45 +226,24 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <p>Redis 键值对中的每一个值都是用 RedisObject 保存的</p>
-<h2 id="基本对象结构"><a href="#基本对象结构" class="headerlink" title="基本对象结构"></a>基本对象结构</h2><p>因为 Redis 的数据类型有很多，而且不同数据类型都有些相同的元数据要记录（比如最后一次访问的时间、被引用的次数等），所以，Redis 会用一个 RedisObject 结构体来统一记录这些元数据，同时指向实际数据</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">redisObject</span> &#123;</span></span><br><span class="line">    <span class="type">unsigned</span> type:<span class="number">4</span>;</span><br><span class="line">    <span class="type">unsigned</span> encoding:<span class="number">4</span>;</span><br><span class="line">    <span class="comment">/* LRU time (relative to global lru_clock) or</span></span><br><span class="line"><span class="comment">     * LFU data (least significant 8 bits frequency</span></span><br><span class="line"><span class="comment">     * and most significant 16 bits access time). </span></span><br><span class="line"><span class="comment">     * #define LRU_BITS 24</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">unsigned</span> lru:LRU_BITS;</span><br><span class="line">    <span class="type">int</span> refcount;</span><br><span class="line">    <span class="type">void</span> *ptr;</span><br><span class="line">&#125; robj;</span><br></pre></td></tr></table></figure>
+        <p>Redis 键值对中的每一个值都是用 <code>redisObject</code> 保存的</p>
+<h2 id="基本对象结构"><a href="#基本对象结构" class="headerlink" title="基本对象结构"></a>基本对象结构</h2><p>因为 Redis 的数据类型有很多，而且不同数据类型都有些相同的元数据要记录（比如最后一次访问的时间、被引用的次数等），所以 Redis 会用一个 <code>redisObject</code> 结构体来统一记录这些元数据，同时指向实际数据</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* The actual Redis Object */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_STRING 0    <span class="comment">/* String object. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_LIST 1      <span class="comment">/* List object. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_SET 2       <span class="comment">/* Set object. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ZSET 3      <span class="comment">/* Sorted set object. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_HASH 4      <span class="comment">/* Hash object. */</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_MODULE 5    <span class="comment">/* Module object. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_STREAM 6    <span class="comment">/* Stream object. */</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">redisObject</span> &#123;</span></span><br><span class="line">    <span class="type">unsigned</span> type:<span class="number">4</span>; <span class="comment">// 0 ~ 15</span></span><br><span class="line">    <span class="type">unsigned</span> encoding:<span class="number">4</span>; <span class="comment">// 0 ~ 15</span></span><br><span class="line">    <span class="comment">/* LRU time (relative to global lru_clock) or</span></span><br><span class="line"><span class="comment">     * LFU data (least significant 8 bits frequency</span></span><br><span class="line"><span class="comment">     * and most significant 16 bits access time). </span></span><br><span class="line"><span class="comment">     * #define LRU_BITS 24</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">unsigned</span> lru:LRU_BITS;  <span class="comment">// 最近使用时的时间戳</span></span><br><span class="line">    <span class="type">int</span> refcount;</span><br><span class="line">    <span class="type">void</span> *ptr;</span><br><span class="line">&#125; robj;</span><br></pre></td></tr></table></figure>
 
 <p>一个 <code>redisObject</code> 占 16 个字节，元数据占 8 个字节，实际数据指针占 8 个字节</p>
-<ul>
-<li><p>type：表示值的类型，涵盖了五大基本类型</p>
-</li>
-<li><p>encoding：值的编码方式，用来表示 Redis 中实现各个基本类型的底层数据结构，如 SDS、压缩列表、哈希表、跳表等</p>
-</li>
-<li><p>lru：记录了这个对象最后一次被访问的时间，用于淘汰过期的键值对</p>
-</li>
-<li><p>refcount：记录了对象的引用计数</p>
-</li>
-<li><p>*ptr：是指向数据的指针</p>
-</li>
-</ul>
+<p><code>encoding</code> 记录了对象使用的底层编码方式，不同的场景同一类型对象可能使用不同的底层编码方式</p>
+<p><code>lru</code> 记录了这个对象最后一次被访问的时间，用于淘汰过期的键值对</p>
+<p><code>refcount</code> 记录了对象的引用计数</p>
+<p><code>ptr</code> 指向数据的指针</p>
 <img src="/2023/04/20/Redis-redisObject/01.png" class="">
 
-<h2 id="基本数据结构"><a href="#基本数据结构" class="headerlink" title="基本数据结构"></a>基本数据结构</h2><p>Redis 的 value 支持的数据结构为：String、List、Hash、Set、Sorted Set</p>
-<p>底层数据结构一共有 6 种，分别是简单动态字符串、双向链表、压缩列表、哈希表、跳表和整数数组</p>
+<h2 id="各类型对应编码方式"><a href="#各类型对应编码方式" class="headerlink" title="各类型对应编码方式"></a>各类型对应编码方式</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Objects encoding. Some kind of objects like Strings and Hashes can be</span></span><br><span class="line"><span class="comment"> * internally represented in multiple ways. The &#x27;encoding&#x27; field of the object</span></span><br><span class="line"><span class="comment"> * is set to one of this fields for this object. */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_RAW 0     <span class="comment">/* Raw representation */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_INT 1     <span class="comment">/* Encoded as integer */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_HT 2      <span class="comment">/* Encoded as hash table */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_ZIPMAP 3  <span class="comment">/* Encoded as zipmap */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_LINKEDLIST 4 <span class="comment">/* No longer used: old list encoding. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_ZIPLIST 5 <span class="comment">/* Encoded as ziplist */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_INTSET 6  <span class="comment">/* Encoded as intset */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_SKIPLIST 7  <span class="comment">/* Encoded as skiplist */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_EMBSTR 8  <span class="comment">/* Embedded sds string encoding */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_QUICKLIST 9 <span class="comment">/* Encoded as linked list of ziplists */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_STREAM 10 <span class="comment">/* Encoded as a radix tree of listpacks */</span></span></span><br></pre></td></tr></table></figure>
+
 <img src="/2023/04/20/Redis-redisObject/02.png" class="">
 
 <p>String 类型的底层实现只有一种数据结构，也就是简单动态字符串</p>
 <p>List、Hash、Set 和 Sorted Set 这四种数据类型，都有两种底层实现结构，这四种类型为集合类型，特点是一个键对应一个集合的数据</p>
 <img src="/2023/04/20/Redis-redisObject/03.png" class="">
-
-<h2 id="定义新数据"><a href="#定义新数据" class="headerlink" title="定义新数据"></a>定义新数据</h2><p>定义了新的数据类型，只要在 RedisObject 中设置好新类型的 type 和 encoding，再用 *ptr 指向新类型的实现</p>
-<ol>
-<li><p>newtype.h 文件中定义好新类型</p>
-</li>
-<li><p>server.h 文件中增加一个宏定义，用来在代码中指代新类型</p>
-</li>
-<li><p>object.c 文件中增加创建函数和释放函数</p>
-</li>
-<li><p>开发新类型的命令操作</p>
-</li>
-</ol>
-
     </div>
 
     

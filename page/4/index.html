@@ -195,7 +195,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-20 21:37:29" itemprop="dateModified" datetime="2023-04-20T21:37:29+08:00">2023-04-20</time>
+      <time title="修改时间：2023-04-24 10:57:54" itemprop="dateModified" datetime="2023-04-24T10:57:54+08:00">2023-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -292,7 +292,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-20 21:37:29" itemprop="dateModified" datetime="2023-04-20T21:37:29+08:00">2023-04-20</time>
+      <time title="修改时间：2023-04-24 10:57:54" itemprop="dateModified" datetime="2023-04-24T10:57:54+08:00">2023-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -391,7 +391,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-20 21:37:29" itemprop="dateModified" datetime="2023-04-20T21:37:29+08:00">2023-04-20</time>
+      <time title="修改时间：2023-04-24 10:57:54" itemprop="dateModified" datetime="2023-04-24T10:57:54+08:00">2023-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -413,20 +413,27 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="变量作用域"><a href="#变量作用域" class="headerlink" title="变量作用域"></a>变量作用域</h2><p>在 <code>function</code> 中定义的变量，变量仅在函数内和函数调用中可见</p>
+          <ul>
+<li><p>CMake 将所有的变量的值视为字符串</p>
+</li>
+<li><p>CMake 使用空格或者分号作为字符串的分隔符</p>
+</li>
+<li><p>变量的值可以包含换行，也可以包含引号，不过需要转义</p>
+</li>
+</ul>
+<h2 id="变量作用域"><a href="#变量作用域" class="headerlink" title="变量作用域"></a>变量作用域</h2><p>在 <code>function</code> 中定义的变量，变量仅在函数内和函数调用中可见</p>
 <p>非 <code>function</code> 内定义变量的默认变量作用域是文件夹作用域，在处理当前文件夹下的 CMakeLists.txt 时，会将父目录中的变量拷贝至当前目录中</p>
 <p>全局变量，仅能被显式修改</p>
-<h2 id="普通变量"><a href="#普通变量" class="headerlink" title="普通变量"></a>普通变量</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(&lt;variable&gt; &lt;value&gt;... [PARENT_SCOPE])</span><br></pre></td></tr></table></figure>
+<h2 id="普通变量"><a href="#普通变量" class="headerlink" title="普通变量"></a>普通变量</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(&lt;variable&gt; &lt;value&gt;... [PARENT_SCOPE])</span><br><span class="line"><span class="comment"># value 可以是一个以空格或者分号隔开的字符串，这样定义的变量将是一个列表</span></span><br></pre></td></tr></table></figure>
 
 <p>作用域是当前函数作用域或当前文件夹作用域</p>
 <p>如果使用 <code>PARENT_SCOPE</code> 则会修改父目录中 CMakeLists.txt 的该变量值，而不会修改当前作用域该变量的值</p>
-<h2 id="缓存变量"><a href="#缓存变量" class="headerlink" title="缓存变量"></a>缓存变量</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(&lt;variable&gt; &lt;value&gt;... CACHE &lt;type&gt; &lt;docstring&gt; [FORCE])</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(CACHE_VAL <span class="string">&quot;666&quot;</span> CACHE <span class="keyword">STRING</span> INTERNAL)</span><br></pre></td></tr></table></figure>
-
-<p>相当于一个全局变量</p>
+<h2 id="缓存变量"><a href="#缓存变量" class="headerlink" title="缓存变量"></a>缓存变量</h2><p>与普通变量不同，缓存变量的值会缓存到 CMakeCache.txt 文件中，所以缓存变量的作用域是全局的</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(&lt;variable&gt; &lt;value&gt;... CACHE &lt;type&gt; &lt;docstring&gt; [FORCE])</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(CACHE_VAL <span class="string">&quot;666&quot;</span> CACHE <span class="keyword">STRING</span> INTERNAL)</span><br></pre></td></tr></table></figure>
 <p>默认情况下，不能覆盖已存在的缓存变量，除非使用 <code>FORCE</code></p>
 <p><code>type</code> 包括：</p>
 <ul>
-<li><p><code>BOOL</code>：<code>ON</code> 和 <code>OFF</code></p>
+<li><p><code>BOOL</code>：<code>ON</code>、<code>OFF</code>、<code>TRUE</code>、<code>FALSE</code>、<code>1</code>、<code>0</code></p>
 </li>
 <li><p><code>FILEPATH</code>：文件地址</p>
 </li>
@@ -438,6 +445,7 @@
 </li>
 </ul>
 <p><code>doctring</code>：提示文字</p>
+<p>对于 <code>BOOL</code> 类型的缓存变量，CMake 提供了等价的 <code>option</code></p>
 <h2 id="环境变量"><a href="#环境变量" class="headerlink" title="环境变量"></a>环境变量</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(ENV&#123;&lt;variable&gt;&#125; [&lt;value&gt;])</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(ENV&#123;DEFINE&#125; DEFINE)</span><br></pre></td></tr></table></figure>
 
 <p>使用格式 <code>$ENV&#123;DEFINE&#125;</code></p>
@@ -512,7 +520,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-20 21:37:29" itemprop="dateModified" datetime="2023-04-20T21:37:29+08:00">2023-04-20</time>
+      <time title="修改时间：2023-04-24 10:57:54" itemprop="dateModified" datetime="2023-04-24T10:57:54+08:00">2023-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -627,7 +635,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-20 21:37:29" itemprop="dateModified" datetime="2023-04-20T21:37:29+08:00">2023-04-20</time>
+      <time title="修改时间：2023-04-24 10:57:54" itemprop="dateModified" datetime="2023-04-24T10:57:54+08:00">2023-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -679,6 +687,7 @@
 </tbody></table>
 <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(var <span class="string">&quot;ABC&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span>(Foo arg)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;arg = $&#123;arg&#125;&quot;</span>)  <span class="comment"># 输出原值 ABC</span></span><br><span class="line">    <span class="keyword">set</span>(arg <span class="string">&quot;abc&quot;</span>)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;# After change the value of arg.&quot;</span>)  <span class="comment"># 输出修改后的值 abc</span></span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;arg = $&#123;arg&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">endfunction</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">message</span>(<span class="string">&quot;=== Call function ===&quot;</span>)</span><br><span class="line">Foo(<span class="variable">$&#123;var&#125;</span>)</span><br></pre></td></tr></table></figure>
 
+<p>函数把每个参数都当作是 CMake 变量，所以这些参数都符合 CMake 变量的行为</p>
 <p>通过 <code>Foo($&#123;var&#125;)</code> 调用函数时，CMake 会将变量进行展开，依次匹配函数声明中的参数列表，相当于传统函数调用中的值传递</p>
 <p>在 <code>function</code> 中定义的变量，变量仅在函数内和函数调用中可见</p>
 <p><code>CMAKE_CURRENT_FUNCTION</code> 当前函数名称</p>
@@ -747,7 +756,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-20 21:37:29" itemprop="dateModified" datetime="2023-04-20T21:37:29+08:00">2023-04-20</time>
+      <time title="修改时间：2023-04-24 10:57:54" itemprop="dateModified" datetime="2023-04-24T10:57:54+08:00">2023-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -769,21 +778,18 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="查找和替换"><a href="#查找和替换" class="headerlink" title="查找和替换"></a>查找和替换</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(FIND &lt;<span class="keyword">string</span>&gt; &lt;substring&gt; &lt;output_variable&gt; [REVERSE])</span><br></pre></td></tr></table></figure>
+          <h2 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(FIND &lt;<span class="keyword">string</span>&gt; &lt;substring&gt; &lt;output_variable&gt; [REVERSE])</span><br></pre></td></tr></table></figure>
 
 <p>查找 string 中的 sbustring，将 substring 的索引存储在 output_variable</p>
 <p>未找到 substring 返回 -1</p>
-<p><code>string(FIND)</code> 将 string 当作 ASCII 串处理</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(REPLACE &lt;match_string&gt;</span><br><span class="line">       &lt;replace_string&gt; &lt;output_variable&gt;</span><br><span class="line">       &lt;input&gt; [&lt;input&gt;...])</span><br></pre></td></tr></table></figure>
+<p>需要注意的是 <code>string(FIND)</code> 将所有字符当作 ASCII 串处理</p>
+<h2 id="替换"><a href="#替换" class="headerlink" title="替换"></a>替换</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(REPLACE &lt;match_string&gt;</span><br><span class="line">       &lt;replace_string&gt; &lt;output_variable&gt;</span><br><span class="line">       &lt;input&gt; [&lt;input&gt;...])</span><br></pre></td></tr></table></figure>
 
 <p>将 input 中所有 match_string 替换成 replace_string，并将结果存储在 output_variable 中 </p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(REGEX MATCH &lt;regular_expression&gt;</span><br><span class="line">       &lt;output_variable&gt; &lt;input&gt; [&lt;input&gt;...])</span><br></pre></td></tr></table></figure>
+<h2 id="正则匹配"><a href="#正则匹配" class="headerlink" title="正则匹配"></a>正则匹配</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(REGEX MATCH &lt;regular_expression&gt;</span><br><span class="line">       &lt;output_variable&gt; &lt;input&gt; [&lt;input&gt;...])</span><br><span class="line"></span><br><span class="line"><span class="keyword">string</span>(REGEX MATCHALL &lt;regular_expression&gt;</span><br><span class="line">       &lt;output_variable&gt; &lt;input&gt; [&lt;input&gt;...])</span><br></pre></td></tr></table></figure>
 
-<p>使用 regular_expression 匹配一次，在匹配前会将所有 input 连接起来，将结果存储在 output_variable</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(REGEX MATCHALL &lt;regular_expression&gt;</span><br><span class="line">       &lt;output_variable&gt; &lt;input&gt; [&lt;input&gt;...])</span><br></pre></td></tr></table></figure>
-
-<p>使用 regular_expression 尽可能多的匹配，在匹配前会将所有 input 连接起来，将结果存储在 output_variable</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(REGEX REPLACE &lt;regular_expression&gt;</span><br><span class="line">       &lt;replacement_expression&gt; &lt;output_variable&gt;</span><br><span class="line">       &lt;input&gt; [&lt;input&gt;...])```</span><br></pre></td></tr></table></figure>
+<p>使用 regular_expression 匹配，在匹配前会将所有 input 连接起来，将匹配结果存储在 output_variable</p>
+<h2 id="正则替换"><a href="#正则替换" class="headerlink" title="正则替换"></a>正则替换</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(REGEX REPLACE &lt;regular_expression&gt;</span><br><span class="line">       &lt;replacement_expression&gt; &lt;output_variable&gt;</span><br><span class="line">       &lt;input&gt; [&lt;input&gt;...])```</span><br></pre></td></tr></table></figure>
 
 <p>使用 regular_expression 尽可能多的匹配，在匹配前会将所有 input 连接起来，使用 replacement_expression 替换后将结果存储在 output_variable</p>
 <h2 id="修改"><a href="#修改" class="headerlink" title="修改"></a>修改</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">string</span>(APPEND &lt;<span class="keyword">string</span>-var&gt; [&lt;input&gt;...])</span><br><span class="line"><span class="keyword">string</span>(PREPEND &lt;<span class="keyword">string</span>-var&gt; [&lt;input&gt;...])</span><br><span class="line"><span class="keyword">string</span>(CONCAT &lt;out-var&gt; [&lt;input&gt;...])</span><br><span class="line"><span class="keyword">string</span>(JOIN &lt;glue&gt; &lt;out-var&gt; [&lt;input&gt;...])</span><br><span class="line"><span class="keyword">string</span>(TOLOWER &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(TOUPPER &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(LENGTH &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(SUBSTRING &lt;<span class="keyword">string</span>&gt; &lt;begin&gt; &lt;length&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(STRIP &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(GENEX_STRIP &lt;<span class="keyword">string</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">string</span>(REPEAT &lt;<span class="keyword">string</span>&gt; &lt;count&gt; &lt;out-var&gt;)</span><br></pre></td></tr></table></figure>
@@ -857,7 +863,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-20 21:37:29" itemprop="dateModified" datetime="2023-04-20T21:37:29+08:00">2023-04-20</time>
+      <time title="修改时间：2023-04-24 10:57:54" itemprop="dateModified" datetime="2023-04-24T10:57:54+08:00">2023-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -890,6 +896,8 @@
 <li><p><code>module</code> 命名格式是 <code>&lt;modulename&gt;.cmake</code>，加载时先去 <code>CMAKE_MODULE_PATH</code> 中搜索，然后再去 CMake module 目录中搜索</p>
 </li>
 </ul>
+<p><code>include()</code> 不会引入新的变量作用域，因此被加载的文件可以直接修改调用方的普通变量</p>
+<p><code>include()</code> 也不会改变 <code>CMAKE_CURRENT_SOURCE_DIR</code> 和 <code>CMAKE_CURRENT_BINARY_DIR</code> </p>
 
       
     </div>
@@ -952,7 +960,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-20 21:37:29" itemprop="dateModified" datetime="2023-04-20T21:37:29+08:00">2023-04-20</time>
+      <time title="修改时间：2023-04-24 10:57:54" itemprop="dateModified" datetime="2023-04-24T10:57:54+08:00">2023-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1055,7 +1063,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-20 21:37:29" itemprop="dateModified" datetime="2023-04-20T21:37:29+08:00">2023-04-20</time>
+      <time title="修改时间：2023-04-24 10:57:54" itemprop="dateModified" datetime="2023-04-24T10:57:54+08:00">2023-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1079,6 +1087,7 @@
     <div class="post-body" itemprop="articleBody">
           <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">option</span>(&lt;variable&gt; <span class="string">&quot;&lt;help_text&gt;&quot;</span> [value])</span><br></pre></td></tr></table></figure>
 
+<p>等价于 <code>set(variable value CACHE BOOL &quot;help_txt&quot;)</code></p>
 <p>提供开关选项，<code>value</code> 可取 <code>on</code> 和 <code>off</code>，默认 <code>off</code></p>
 <p>如果 <code>variable</code> 已经设置为普通变量或缓存变量，则该命令不执行任何操作</p>
 
@@ -1143,7 +1152,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-20 21:37:29" itemprop="dateModified" datetime="2023-04-20T21:37:29+08:00">2023-04-20</time>
+      <time title="修改时间：2023-04-24 10:57:54" itemprop="dateModified" datetime="2023-04-24T10:57:54+08:00">2023-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1167,7 +1176,7 @@
     <div class="post-body" itemprop="articleBody">
           <h2 id="一般形式"><a href="#一般形式" class="headerlink" title="一般形式"></a>一般形式</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">message</span>([&lt;mode&gt;] <span class="string">&quot;message text&quot;</span> ...)</span><br></pre></td></tr></table></figure>
 
-<p>如果同时打印多条信息，多条信息会被拼接成一条信息输出，拼接时不会隔开</p>
+<p>如果同时打印多条信息，多条信息会被拼接成一条信息输出，拼接时不会用空格隔开</p>
 <ul>
 <li><p><code>FATAL_ERROR</code> 打印信息后停止 CMake 进程和构建</p>
 </li>
