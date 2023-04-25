@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">220</span>
+          <span class="site-state-item-count">237</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,7 +159,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-get-filename-component/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E4%BA%8B%E5%8A%A1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-get-filename-component/" class="post-title-link" itemprop="url">get_file_component</a>
+          <a href="/2023/04/19/Redis-%E4%BA%8B%E5%8A%A1/" class="post-title-link" itemprop="url">事务</a>
         </h2>
 
         <div class="post-meta-container">
@@ -188,23 +188,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-19 13:53:13" itemprop="dateCreated datePublished" datetime="2023-04-19T13:53:13+08:00">2023-04-19</time>
+      <time title="创建时间：2023-04-19 20:32:46" itemprop="dateCreated datePublished" datetime="2023-04-19T20:32:46+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-25 21:16:22" itemprop="dateModified" datetime="2023-04-25T21:16:22+08:00">2023-04-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
+      <time title="修改时间：2023-04-25 21:32:57" itemprop="dateModified" datetime="2023-04-25T21:32:57+08:00">2023-04-25</time>
     </span>
 
   
@@ -217,25 +208,43 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>获取完整文件名的特定部分</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">get_filename_component</span>(&lt;var&gt; &lt;FileName&gt; &lt;mode&gt; [CACHE])</span><br></pre></td></tr></table></figure>
-
+          <p>事务是数据库的一个重要功能</p>
+<p>事务在执行时，会提供专门的属性保证，包括原子性、一致性、隔离性和持久性，也就是 ACID 属性</p>
+<p>原子性的要求很明确，就是一个事务中的多个操作必须都完成，或者都不完成</p>
+<p>一致性是指数据库中的数据在事务执行前后是一致的</p>
+<p>隔离性要求数据库在执行一个事务时，其它操作无法存取到正在执行事务访问的数据</p>
+<p>持久性是指数据的修改要被持久化保存下来</p>
+<h2 id="Redis-事务"><a href="#Redis-事务" class="headerlink" title="Redis 事务"></a>Redis 事务</h2><p>客户端要使用 <code>MULTI</code> 显式地表示一个事务的开启</p>
+<p>客户端把事务中本身要执行的具体操作发送给服务器端，Redis 实例只是把这些命令暂存到一个命令队列中，并不会立即执行</p>
+<p>客户端向服务器端发送 <code>EXEC</code> 提交事务的命令，让数据库实际执行第二步中发送的具体操作</p>
+<h2 id="原子性"><a href="#原子性" class="headerlink" title="原子性"></a>原子性</h2><p>在执行 <code>EXEC</code> 命令前，客户端发送的操作命令本身就有错误，在命令入队时就被 Redis 实例判断出来了，但 Redis 只会记录下这个错误，客户端还能继续提交命令操作</p>
+<p>等到执行了 <code>EXEC</code> 命令之后，Redis 就会拒绝执行所有提交的命令操作，返回事务失败的结果，务中的所有命令都不会再被执行了，保证了原子性</p>
+<p>事务操作入队时，当命令和操作的数据类型不匹配时，Redis 不会当时检查出错误，在执行 <code>EXEC</code> 命令时就会报错，但之前正确的命令已经执行完了，因此事务的原子性就无法得到保证了</p>
+<p>传统数据库（例如 MySQL）在执行事务时，会提供回滚机制，当事务执行发生错误时，事务中的所有操作都会撤销，已经修改的数据也会被恢复到事务执行前的状态</p>
+<p>Redis 中并没有提供回滚机制，虽然 Redis 提供了 <code>DISCARD</code> 命令，但是这个命令只能用来主动放弃事务执行，把暂存的命令队列清空，起不到回滚的效果</p>
+<p>在执行事务的 <code>EXEC</code> 命令时，Redis 实例发生了故障，导致事务执行失败：</p>
 <ul>
-<li><p><code>DIRECTORY</code>：文件夹名</p>
+<li><p>如果 Redis 开启了 AOF 日志，那么只会有部分的事务操作被记录到 AOF 日志中，可以通过把未完成的事务操作从 AOF 文件中去除，从而使用 AOF 恢复实例后事务操作不会再被执行，从而保证了原子性</p>
 </li>
-<li><p><code>NAME</code>：不带文件夹名的文件名</p>
-</li>
-<li><p><code>EXT</code>：最长后缀名</p>
-</li>
-<li><p><code>NAME_WE</code>：既没有目录也没有最长扩展名的文件名</p>
-</li>
-<li><p><code>LAST_EXT</code>：最后一个后缀名</p>
-</li>
-<li><p><code>NAME_WLE</code>：既没有目录也没有最后一个扩展名的文件名</p>
-</li>
-<li><p><code>ABSOLUTE</code>：完整文件路径</p>
+<li><p>如果 AOF 日志并没有开启，那么实例重启后，数据也都没法恢复了</p>
 </li>
 </ul>
+<h2 id="Redis-一致性"><a href="#Redis-一致性" class="headerlink" title="Redis 一致性"></a>Redis 一致性</h2><p>命令入队时就报错，事务本身就会被放弃执行，所以可以保证数据库的一致性</p>
+<p>命令入队时没报错，实际执行时报错，有错误的命令不会被执行，正确的命令可以正常执行，也不会改变数据库的一致性</p>
+<p>如果没有开启 RDB 或 AOF，那么，实例故障重启后，数据都没有了，数据库是一致的</p>
+<p>使用了 RDB 快照，因为 RDB 快照不会在事务执行时执行，所以，事务命令操作的结果不会被保存到 RDB 快照中，使用 RDB 快照进行恢复时，数据库里的数据也是一致的</p>
+<p>使用了 AOF 日志，而事务操作还没有被记录到 AOF 日志时，实例就发生了故障，那么使用 AOF 日志恢复的数据库数据是一致的。如果只有部分操作被记录到了 AOF 日志，清除事务中已经完成的操作，数据库恢复后也是一致的</p>
+<p>在命令执行错误或 Redis 发生故障的情况下，Redis 事务机制对一致性属性是有保证的</p>
+<h2 id="Redis-隔离性"><a href="#Redis-隔离性" class="headerlink" title="Redis 隔离性"></a>Redis 隔离性</h2><p>事务的隔离性保证，会受到和事务一起执行的并发操作的影响</p>
+<p>并发操作在 <code>EXEC</code> 命令前执行，此时，隔离性的保证要使用 WATCH 机制来实现，否则隔离性无法保证</p>
+<p>并发操作在 <code>EXEC</code> 命令后执行，此时，隔离性可以保证</p>
+<p>WATCH 机制的作用是，在事务执行前，监控一个或多个键的值变化情况，当事务调用 <code>EXEC</code> 命令执行时，WATCH 机制会先检查监控的键是否被其它客户端修改了。如果修改了，就放弃事务执行，避免事务的隔离性被破坏。然后，客户端可以再次执行事务，此时，如果没有并发修改事务数据的操作了，事务就能正常执行，隔离性也得到了保证</p>
+<img src="/2023/04/19/Redis-%E4%BA%8B%E5%8A%A1/01.png" class="">
+
+<p>因为 Redis 是用单线程执行命令，而且，<code>EXEC</code> 命令执行后，Redis 会保证先把命令队列中的所有命令执行完。所以，在这种情况下，并发操作不会破坏事务的隔离性</p>
+<h2 id="Redis-持久性"><a href="#Redis-持久性" class="headerlink" title="Redis 持久性"></a>Redis 持久性</h2><p>如果 Redis 没有使用 RDB 或 AOF，那么事务的持久化属性肯定得不到保证</p>
+<p>如果 Redis 使用了 RDB 模式，那么，在一个事务执行后，而下一次的 RDB 快照还未执行前，如果发生了实例宕机，这种情况下，事务修改的数据也是不能保证持久化的</p>
+<p>如果 Redis 采用了 AOF 模式，因为 AOF 模式的三种配置选项 no、everysec 和 always 都会存在数据丢失的情况，所以，事务的持久性属性也还是得不到保证</p>
 
       
     </div>
@@ -262,7 +271,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-option/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -280,7 +289,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-option/" class="post-title-link" itemprop="url">option</a>
+          <a href="/2023/04/19/Redis-%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4/" class="post-title-link" itemprop="url">基本命令</a>
         </h2>
 
         <div class="post-meta-container">
@@ -291,14 +300,126 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-19 13:46:55" itemprop="dateCreated datePublished" datetime="2023-04-19T13:46:55+08:00">2023-04-19</time>
+      <time title="创建时间：2023-04-19 20:23:58" itemprop="dateCreated datePublished" datetime="2023-04-19T20:23:58+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-25 21:16:22" itemprop="dateModified" datetime="2023-04-25T21:16:22+08:00">2023-04-25</time>
+      <time title="修改时间：2023-04-25 21:32:57" itemprop="dateModified" datetime="2023-04-25T21:32:57+08:00">2023-04-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="通用"><a href="#通用" class="headerlink" title="通用"></a>通用</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line">// 检测 key 是否存在</span><br><span class="line">EXISTS key</span><br><span class="line"></span><br><span class="line">// 返回类型</span><br><span class="line">TYPE key</span><br><span class="line">// 返回内部编码方式</span><br><span class="line">object encoding key</span><br><span class="line"></span><br><span class="line">// 改名</span><br><span class="line">RENAME key newkey</span><br><span class="line">// newkey 存在时覆盖旧值</span><br><span class="line">RENAMENX key newkey</span><br><span class="line">// 仅当 newkey 不存在时才改名</span><br><span class="line"></span><br><span class="line">// 将 key 移动到 db 数据库</span><br><span class="line">MOVE key db</span><br><span class="line">// 如果当前数据库(源数据库)和给定数据库(目标数据库)有相同名字的给定 key </span><br><span class="line">// 或者 key 不存在于当前数据库，则没有任何效果</span><br><span class="line"></span><br><span class="line">// 删除</span><br><span class="line">DEL key1 key2...</span><br><span class="line"></span><br><span class="line">// 随机获取一个 key</span><br><span class="line">RANDOMKEY</span><br><span class="line"></span><br><span class="line">// 当前数据库 key 数量</span><br><span class="line">DBSIZE</span><br><span class="line"></span><br><span class="line">// 查找符合模式的所有 key</span><br><span class="line">KEYS pattern</span><br><span class="line"></span><br><span class="line">// 增量迭代遍历</span><br><span class="line">SCAN cursor [MATCH pattern] [COUNT count]</span><br><span class="line">// 每次执行都只会返回少量元素，不会阻塞服务器很久</span><br><span class="line">// SCAN 用于迭代遍历当前数据库中的键</span><br><span class="line">// SSCAN 用于迭代遍历集合键中的元素</span><br><span class="line">// HSCAN 用于迭代遍历哈希键中的键值对</span><br><span class="line">// ZSCAN 用于迭代遍历有序集合的元素</span><br><span class="line">// 一个元素，它从遍历开始直到遍历结束期间都存在于被遍历的数据集当中</span><br><span class="line">// 那么 SCAN 命令总会在某次迭代中将这个元素返回给用户</span><br><span class="line">// 同一个元素可能会被返回多次</span><br><span class="line">// 一个元素是在迭代过程中被添加到数据集的，又或者是在迭代过程中从数据集中被删除的</span><br><span class="line">// 那么这个元素可能会被返回， 也可能不会</span><br><span class="line"></span><br><span class="line">SORT key [BY pattern] [LIMIT offset count] [ASC|DESC]</span><br><span class="line"></span><br><span class="line">// 清空</span><br><span class="line">FLUSHDB</span><br><span class="line">// 清空所有数据库数据</span><br><span class="line">FLUSHALL</span><br><span class="line"></span><br><span class="line">// 切换数据库</span><br><span class="line">SELECT index</span><br><span class="line"></span><br><span class="line">// 交换数据库</span><br><span class="line">SWAPDB db1 db2</span><br><span class="line"></span><br><span class="line">// 设置过期时间</span><br><span class="line">EXPIRE key seconds</span><br><span class="line">// 一个命令只是修改一个带生存时间的 key 的值而不是用一个新的 key 值来代替它</span><br><span class="line">// 那么生存时间不会被改变</span><br><span class="line">// 对一个已经带有生存时间的 key 执行 EXPIRE 命令，新指定的生存时间会取代旧的生存时间</span><br><span class="line">PEXPIRE key milliseconds</span><br><span class="line">// 过期时间单位为毫秒</span><br><span class="line"></span><br><span class="line">// 移除过期时间</span><br><span class="line">PERSIST</span><br><span class="line"></span><br><span class="line">// 返回剩余时间</span><br><span class="line">TTL key</span><br><span class="line">PTTL key</span><br><span class="line">// key 不存在时返回 -2</span><br><span class="line">// key 存在但没有设置过期时间返回 -1</span><br><span class="line"></span><br><span class="line">// 标记一个事务块的开始</span><br><span class="line">MULTI</span><br><span class="line"></span><br><span class="line">// 执行所有事务块内的命令</span><br><span class="line">EXEC</span><br><span class="line"></span><br><span class="line">// 取消事务，放弃执行事务块内的所有命令</span><br><span class="line">DISCARD</span><br><span class="line"></span><br><span class="line">// 如果 key 处于 WATCH 命令的监视之下，且事务块中有和这个(或这些) key 相关的命令</span><br><span class="line">// 那么 EXEC 命令只在 key 没有被其他命令所改动的情况下执行并生效，否则该事务被打断</span><br><span class="line">WATCH key1 key2...</span><br><span class="line"></span><br><span class="line">// 取消 WATCH 命令对所有 key 的监视</span><br><span class="line">UNWATCH</span><br><span class="line"></span><br><span class="line">// 执行一个同步保存操作</span><br><span class="line">SAVE</span><br><span class="line">// 以 RDB 文件的形式保存到硬盘</span><br><span class="line">// 会阻塞所有客户端</span><br><span class="line"></span><br><span class="line">// 后台异步保存当前数据库的数据到磁盘</span><br><span class="line">BGSAVE</span><br><span class="line"></span><br><span class="line">// 执行一个 AOF文件 重写操作</span><br><span class="line">BGREWRITEAOF</span><br><span class="line">// 重写操作只会在没有其他持久化工作在后台执行时被触发</span><br></pre></td></tr></table></figure>
+
+<h2 id="bitmap"><a href="#bitmap" class="headerlink" title="bitmap"></a>bitmap</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">// 对 key 所储存的字符串值，设置或清除指定偏移量上的位</span><br><span class="line">SETBTI key offset value</span><br><span class="line">// 当 key 不存在时，自动生成一个新的字符串值</span><br><span class="line"></span><br><span class="line">GETBIT key offset</span><br><span class="line">// 当 offset 比字符串值的长度大，或者 key 不存在时，返回 0</span><br><span class="line"></span><br><span class="line">// 返回 1 的数量</span><br><span class="line">GETCOUNT key [start] [end]</span><br><span class="line">// key 不存在则为 0</span><br><span class="line"></span><br><span class="line">// 返回第一个值为 bit 的位置</span><br><span class="line">BITPOS key bit [start] [end]</span><br><span class="line"></span><br><span class="line">// 对多个 key 做并、或、异或、非计算</span><br><span class="line">BITOP AND|OR|XOR|NOT dst key1 key2...</span><br></pre></td></tr></table></figure>
+
+<h2 id="hash"><a href="#hash" class="headerlink" title="hash"></a>hash</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">// 将 hash 表中 filed 设置为 valude</span><br><span class="line">HSET hash field value</span><br><span class="line">// 如果给定的哈希表并不存在， 那么创建一个新的哈希表</span><br><span class="line">// 如果 field 已经存在于哈希表中， 那么它的旧值将被新值覆盖</span><br><span class="line"></span><br><span class="line">HGET hash field</span><br><span class="line"></span><br><span class="line">HEXISTS hash field</span><br><span class="line"></span><br><span class="line">HMSET hash field1 value1 fedld2 value2...</span><br><span class="line">// 会覆盖已存在的 field</span><br><span class="line"></span><br><span class="line">HMGET hash field1 field2...</span><br><span class="line"></span><br><span class="line">// 哈希表不存在则创建</span><br><span class="line">// field 存在则放弃执行</span><br><span class="line">// field 不存在则执行</span><br><span class="line">HSETNX hash field value</span><br><span class="line"></span><br><span class="line">// 删除 hash 中的 field</span><br><span class="line">HDEL hash field1 field2</span><br><span class="line"></span><br><span class="line">// 获取 hash 表中 field 数量</span><br><span class="line">HLEN hash</span><br><span class="line"></span><br><span class="line">// 获取 hash 表中 field 对应的字符串长度</span><br><span class="line">HSTRLEN hash field</span><br><span class="line"></span><br><span class="line">// 为 hash 表中 field 的值加上增量</span><br><span class="line">// 增量可以为负数</span><br><span class="line">HINCRBY hash field num</span><br><span class="line">HINCRBYFLOAT hash field num</span><br><span class="line">// hash 不存在则新建</span><br><span class="line">// field 不存在则初始化为 0</span><br><span class="line"></span><br><span class="line">// 获取 hash 中所有的 field</span><br><span class="line">HKEYS hash</span><br><span class="line"></span><br><span class="line">// 获取 hash 中所有 value</span><br><span class="line">HVALS hash</span><br><span class="line"></span><br><span class="line">// 获取 hash 中所有 field-value</span><br><span class="line">HGETALL hash</span><br></pre></td></tr></table></figure>
+
+<h2 id="list"><a href="#list" class="headerlink" title="list"></a>list</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">// 将一个或多个值插入到列表的表头</span><br><span class="line">LPUSH key value1 value2...</span><br><span class="line">// 多个 value 则按从左到右的顺序依次插入</span><br><span class="line">// key 不存在则创建一个空列表</span><br><span class="line">// key 存在但不是列表类型则返回错误</span><br><span class="line"></span><br><span class="line">// 插入表尾</span><br><span class="line">RPUSH key value1 value2...</span><br><span class="line"></span><br><span class="line">// 只有当 key 存在且为 list 时执行 push</span><br><span class="line">// 不存在时什么都不做</span><br><span class="line">LPUSHX key value</span><br><span class="line">RPUSHX key value</span><br><span class="line"></span><br><span class="line">// 弹出</span><br><span class="line">LPOP key</span><br><span class="line">RPOP key</span><br><span class="line"></span><br><span class="line">// 弹出 src 最后一个元素，并返回给客户端</span><br><span class="line">// 弹出的元素插入到 dst 列表，作为头元素</span><br><span class="line">RPOPLPUSH src dst</span><br><span class="line">// src 不存在则报错</span><br><span class="line">// src = dst 则将表尾元素移动到表头</span><br><span class="line"></span><br><span class="line">// 插入</span><br><span class="line">LINSERT key BEFORE|AFTER pivot value</span><br><span class="line">// 没有找到 pivot 返回 -1</span><br><span class="line"></span><br><span class="line">// 设置值</span><br><span class="line">LSET key index value</span><br><span class="line">// 将列表 key 下标为 index 的元素的值设置为 value</span><br><span class="line">// 当 key 不存在或 index 超出范围时返回错误</span><br><span class="line"></span><br><span class="line">// 移除</span><br><span class="line">LREM key count value</span><br><span class="line">// 根据参数 count 的值，移除列表中与参数 value 相等的元素</span><br><span class="line">// count &gt; 0: 从表头开始向表尾搜索，移除与 value 相等的元素，数量为 count</span><br><span class="line">// count &lt; 0: 从表尾开始向表头搜索，移除与 value 相等的元素，数量为 count 的绝对值</span><br><span class="line">// count = 0: 移除表中所有与 value 相等的值</span><br><span class="line"></span><br><span class="line">// 修剪</span><br><span class="line">LTRIM key start stop</span><br><span class="line">// 只保留区间内的元素</span><br><span class="line"></span><br><span class="line">// 获取链表长度</span><br><span class="line">LLEN key</span><br><span class="line">// 不存在返回 0</span><br><span class="line"></span><br><span class="line">// 返回下标为 index 的元素</span><br><span class="line">LINDEX key index</span><br><span class="line">// index 以 0 为底</span><br><span class="line">//-1 为最后一个元素</span><br><span class="line"></span><br><span class="line">// 范围查询</span><br><span class="line">LRANGE key start stop</span><br></pre></td></tr></table></figure>
+
+<h2 id="set"><a href="#set" class="headerlink" title="set"></a>set</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">// 将元素添加进集合</span><br><span class="line">SADD key member1 member2...</span><br><span class="line"></span><br><span class="line">// 检测元素是否在集合中</span><br><span class="line">SISMEMBER key member</span><br><span class="line"></span><br><span class="line">// 返回随机元素</span><br><span class="line">SRANDMEMBER key count</span><br><span class="line">// count 表示返回元素个数</span><br><span class="line"></span><br><span class="line">// 移除元素</span><br><span class="line">SREM key member1 member2...</span><br><span class="line"></span><br><span class="line">// 移除一个随机元素</span><br><span class="line">SPOP key</span><br><span class="line"></span><br><span class="line">// 将 src 元素 member 移动到 dst</span><br><span class="line">SMOVE src dst member</span><br><span class="line">// 如果 src 不存在或 member 不存在则不执行任何操作</span><br><span class="line"></span><br><span class="line">// 获取集合元素数量</span><br><span class="line">SCARD key</span><br><span class="line"></span><br><span class="line">// 获取集合所有元素</span><br><span class="line">SMEMBERS key</span><br><span class="line"></span><br><span class="line">// 获取元素</span><br><span class="line">SSCAN key cursor MATCH pattern count</span><br><span class="line">// cursor 游标，0 代表从头开始遍历</span><br><span class="line">// SSCAN 会返回一个游标，之后可以使用它延续之前的遍历</span><br><span class="line">// pattern 模式匹配</span><br><span class="line">// count 返回元素个数，默认 10</span><br><span class="line"></span><br><span class="line">// 交集</span><br><span class="line">SINTER key1 key2...</span><br><span class="line">SINTERSTORE dst key1 key2...</span><br><span class="line">// 将交集保存到 dst</span><br><span class="line">// dst 存在则覆盖</span><br><span class="line"></span><br><span class="line">// 并集</span><br><span class="line">SUNION key1 key2...</span><br><span class="line">SUNIONSTORE dst key1 key2</span><br><span class="line"></span><br><span class="line">// 差集</span><br><span class="line">SDIFF key1 key2...</span><br><span class="line">SDIFFSTORE dst key1 key2...</span><br></pre></td></tr></table></figure>
+
+<h2 id="sortedset"><a href="#sortedset" class="headerlink" title="sortedset"></a>sortedset</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">// 添加元素</span><br><span class="line">ZADD key score1 member1 score2 member2...</span><br><span class="line">// 如果 member 已存在则更新 score 并重新排序</span><br><span class="line">// score 可以是整数和双精度浮点数</span><br><span class="line"></span><br><span class="line">// 获取权重</span><br><span class="line">ZSCORE key member</span><br><span class="line">// 以字符串形式返回权重</span><br><span class="line"></span><br><span class="line">// 获取递增排行</span><br><span class="line">ZRANK key member</span><br><span class="line">// 获取递减排行</span><br><span class="line">ZREVRANK key member</span><br><span class="line"></span><br><span class="line">// 获取数量</span><br><span class="line">ZCARD key</span><br><span class="line"></span><br><span class="line">// 获取区间个数</span><br><span class="line">ZCOUNT key min max</span><br><span class="line">// 闭区间</span><br><span class="line"></span><br><span class="line">// 获取字典序区间个数</span><br><span class="line">ZLEXCOUNT key min max</span><br><span class="line"></span><br><span class="line">// 获取区间元素</span><br><span class="line">ZRANGE key start stop [WITHSCORES]</span><br><span class="line">// 返回成员按 score 递增排序</span><br><span class="line">// 相同 score 按字典排序</span><br><span class="line"></span><br><span class="line">// 获取字典序元素</span><br><span class="line">ZRANGEBYLEX key min max [LIMIT offset count]</span><br><span class="line">// 对元素使用 memcmp() 和 min/max 做比较</span><br><span class="line"></span><br><span class="line">// 递减输出</span><br><span class="line">ZREVRANGE key start stop [WITHSCORES]</span><br><span class="line"></span><br><span class="line">// 获取区间元素</span><br><span class="line">ZRANGEBYSCORE key min max [WITHSCORES][LIMIT offset count]</span><br><span class="line">// min 可以是 -inf</span><br><span class="line">// max 可以是 +inf</span><br><span class="line">// 默认闭区间，可用 ( 表示开区间</span><br><span class="line">ZREVRANGEBYSCORE key min max [WITHSCORES][LIMIT offset count]</span><br><span class="line"></span><br><span class="line">// 权重操作</span><br><span class="line">ZINCRBY key increment member</span><br><span class="line">// member 的 score 加上增量 increment</span><br><span class="line">// increment 可以是负数</span><br><span class="line">// member 不存在时，权重默认为 0</span><br><span class="line"></span><br><span class="line">// 移除</span><br><span class="line">ZREM key member1 member2...</span><br><span class="line">// member 不存在则忽略</span><br><span class="line"></span><br><span class="line">// 按排行移除</span><br><span class="line">ZREMRANGEBYRANK key start stop</span><br><span class="line">// 按权重移除</span><br><span class="line">ZREMRANGEBYSCORE key start stop</span><br><span class="line">// 字典序移除</span><br><span class="line">ZREMRANGEBYLEX key min max</span><br><span class="line"></span><br><span class="line">// 使用游标获取元素</span><br><span class="line">ZSCAN key cursor MATCH pattern count</span><br><span class="line"></span><br><span class="line">// 并集</span><br><span class="line">ZUNIONSTORE dst numkeys key1... [WEIGHTS weight...] [AGGREGATE SUM|MIN|MAX]</span><br><span class="line">// 给定 key 的数量必须以 numkeys 参数指定</span><br><span class="line">// 默认结果集中某个成员的 score 值是所有给定集下该成员 score 值之和</span><br><span class="line">// WEIGHTS 为每个集合权重赋值惩罚因子，默认为 1 </span><br><span class="line">// AGGREGATE 指定聚合方式</span><br><span class="line"></span><br><span class="line">// 交集</span><br><span class="line">ZINTERSTORE dst numkeys key1... [WEIGHTS weight...] [AGGREGATE SUM|MIN|MAX]</span><br></pre></td></tr></table></figure>
+
+<h2 id="stream"><a href="#stream" class="headerlink" title="stream"></a>stream</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">// 插入一条消息</span><br><span class="line">XADD key id field0 value0...</span><br><span class="line">// id 为 * 表示让 Redis 为插入的数据自动生成一个全局唯一的 id</span><br><span class="line">// 也可以直接在消息队列名称后自行设定一个 id 号，只要保证这个 id 号是全局唯一的就行</span><br><span class="line">// 生成的消息的全局唯一 id 由两部分组成</span><br><span class="line"></span><br><span class="line">// 获取总长度</span><br><span class="line">XLEN key</span><br><span class="line"></span><br><span class="line">// 范围获取</span><br><span class="line">XRANGE key start end [COUNT count]</span><br><span class="line">XREVRANGE key start end [COUNT count]</span><br><span class="line">// - + 表示获取所有，- 表示最小 ID， + 表示最大 ID</span><br><span class="line"></span><br><span class="line">// 删除消息</span><br><span class="line">XDEL key id</span><br><span class="line">// 仅设置标志位，不影响消息总长度</span><br><span class="line"></span><br><span class="line">// 删除 Streams</span><br><span class="line">del key</span><br><span class="line"></span><br><span class="line">// 获取消息</span><br><span class="line">XREAD [COUNT count] [BLOCK milliseconds] STREAMS key [key ...] ID [ID ...]</span><br><span class="line">// milliseconds 用于设置 XREAD 为阻塞模式下阻塞时长，默认为非阻塞模式</span><br><span class="line">// BLOCK 0 代表永远阻塞</span><br><span class="line">// ID，用于设置由哪个消息开始读取</span><br><span class="line">// 使用 0 表示从第一条消息开始</span><br><span class="line">// 消息队列 ID 是单调递增的，所以通过设置起点，可以向后读取</span><br><span class="line">// 在阻塞模式中，可以使用 $，表示最新的消息 ID</span><br><span class="line">// 如果有多个客户端等待同一个队列，当队列添加一个新消息的时候</span><br><span class="line">// 所有客户端都会收到这个消息，策略为 FIFO</span><br><span class="line"></span><br><span class="line">// 创建消费者组</span><br><span class="line">XGROUP CREATE key group-name id</span><br><span class="line">// id 为 $ 表示从新消息开始分发，0 表示从头开始分发</span><br><span class="line">// 初始化 last_delivered_id</span><br><span class="line"></span><br><span class="line">// 组内消费</span><br><span class="line">XREADGROUP GROUP group-name consumer-name [COUNT count] [BLOCK milliseconds] [NOACK] STREAMS key [key ...] ID [ID ...]</span><br><span class="line">// count：读取数量</span><br><span class="line">// milliseconds：阻塞时间</span><br><span class="line">// ID 为 &gt; 表示从组内 last_delivered_id 后面开始读</span><br><span class="line">// ID 为 0-0 表示读取所有 PEL 消息及 last_delivered_id 之后的新消息</span><br><span class="line"></span><br><span class="line">// 组内消费确认</span><br><span class="line">XACK key group-name id</span><br></pre></td></tr></table></figure>
+
+<h2 id="string"><a href="#string" class="headerlink" title="string"></a>string</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">// 使用 SET 和 GET 来设置和获取字符串值</span><br><span class="line">SET key value</span><br><span class="line"></span><br><span class="line">GET key</span><br><span class="line">// 当 key 存在时，SET 命令会覆盖掉你上一次设置的值</span><br><span class="line"></span><br><span class="line">// 批量设置</span><br><span class="line">MSET key1 value1 key2 value2</span><br><span class="line"></span><br><span class="line">// 批量获取</span><br><span class="line">MGET key1 key2</span><br><span class="line"></span><br><span class="line">// set if not exists</span><br><span class="line">SETNX key</span><br><span class="line"></span><br><span class="line">// 设置新的 value 并返回旧值</span><br><span class="line">GETSET key newvalue</span><br></pre></td></tr></table></figure>
+
+<p>值可以是任何种类的字符串（包括二进制数据），只需要注意不要超过 512 MB 的最大限度</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 使用 EXISTS 和 DEL 关键字来查询是否存在和删除键值对</span><br><span class="line">EXISTS key</span><br><span class="line"></span><br><span class="line">DEL key</span><br></pre></td></tr></table></figure>
+
+<p>如果 value 是一个整数，还可以对它使用 INCR 命令进行原子性的自增操作，这意味着及时多个客户端对同一个 key 进行操作，也决不会导致竞争的情况</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">SET connections 10</span><br><span class="line">INCR connections // 11</span><br><span class="line">DEL connections</span><br><span class="line">INCR connections // 1</span><br><span class="line"></span><br><span class="line">INCRBY connections 100 // 101</span><br><span class="line"></span><br><span class="line">DECR connections // 100</span><br><span class="line">DECRBY connections // 90</span><br></pre></td></tr></table></figure>
+
+<p>设置过期时间</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// 设置 key 5 秒后过期</span><br><span class="line">EXPIRE key 5 </span><br><span class="line"></span><br><span class="line">// 等价于 SET + SETEX</span><br><span class="line">SETEX key 5 value</span><br><span class="line"></span><br><span class="line">// 过期时间为毫秒</span><br><span class="line">PSETEX KEY 200 value</span><br></pre></td></tr></table></figure>
+
+<p>字符串操作</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">// 获取字符串长度</span><br><span class="line">STRLEN key</span><br><span class="line"></span><br><span class="line">// 追加</span><br><span class="line">APPEND key value</span><br><span class="line">// 如果 key 存在则将 value 追加到末尾</span><br><span class="line">// 如果 key 不存在则将 key 设置为 value</span><br><span class="line"></span><br><span class="line">// 从偏移量开始， 用 value 覆写键 key 储存的字符串值</span><br><span class="line">// 不存在的键 key 当作空白字符串处理</span><br><span class="line">SETRANGE key offset value</span><br><span class="line">// 确保字符串足够长以便将 value 设置到指定的偏移量上</span><br><span class="line">// 如果键 key 原来储存的字符串长度比偏移量小</span><br><span class="line">// 原字符和偏移量之间的空白将用零字节填充</span><br><span class="line"></span><br><span class="line">// 字符串的索引范围由 start 和 end 两个偏移量决定</span><br><span class="line">GETRANGE start end</span><br><span class="line">// -1 表示最后一个字符</span><br><span class="line">// -2 表示倒数第二个字符</span><br></pre></td></tr></table></figure>
+
+<h2 id="hyperloglog"><a href="#hyperloglog" class="headerlink" title="hyperloglog"></a>hyperloglog</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// 添加</span><br><span class="line">PFADD key element1...</span><br><span class="line"></span><br><span class="line">// 获取近似基数</span><br><span class="line">PFCOUNT key1...</span><br><span class="line"></span><br><span class="line">// 合并</span><br><span class="line">PFMERGE dst key1...</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E7%B3%BB%E7%BB%9F%E5%8F%98%E9%87%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E7%B3%BB%E7%BB%9F%E5%8F%98%E9%87%8F/" class="post-title-link" itemprop="url">系统信息</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-19 20:10:47" itemprop="dateCreated datePublished" datetime="2023-04-19T20:10:47+08:00">2023-04-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-25 21:32:57" itemprop="dateModified" datetime="2023-04-25T21:32:57+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -320,11 +441,26 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">option</span>(&lt;variable&gt; <span class="string">&quot;&lt;help_text&gt;&quot;</span> [value])</span><br></pre></td></tr></table></figure>
-
-<p>等价于 <code>set(variable value CACHE BOOL &quot;help_txt&quot;)</code></p>
-<p>提供开关选项，<code>value</code> 可取 <code>on</code> 和 <code>off</code>，默认 <code>off</code></p>
-<p>如果 <code>variable</code> 已经设置为普通变量或缓存变量，则该命令不执行任何操作</p>
+          <table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CMAKE_SYSTEM</td>
+<td>系统的完整名称</td>
+</tr>
+<tr>
+<td>CMAKE_SYSTEM_NAME</td>
+<td>cmake 编译产物的目标操作系统</td>
+</tr>
+<tr>
+<td>CMAKE_HOST_SYSTEM_NAME</td>
+<td>当前操作系统名称，支持 Linux、Windows、Darwin</td>
+</tr>
+</tbody></table>
 
       
     </div>
@@ -351,7 +487,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-message/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E8%AF%AD%E8%A8%80%E5%8F%98%E9%87%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -369,7 +505,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-message/" class="post-title-link" itemprop="url">message</a>
+          <a href="/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E8%AF%AD%E8%A8%80%E5%8F%98%E9%87%8F/" class="post-title-link" itemprop="url">语言变量</a>
         </h2>
 
         <div class="post-meta-container">
@@ -380,14 +516,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-19 10:34:09" itemprop="dateCreated datePublished" datetime="2023-04-19T10:34:09+08:00">2023-04-19</time>
+      <time title="创建时间：2023-04-19 20:10:10" itemprop="dateCreated datePublished" datetime="2023-04-19T20:10:10+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-25 21:16:22" itemprop="dateModified" datetime="2023-04-25T21:16:22+08:00">2023-04-25</time>
+      <time title="修改时间：2023-04-25 21:32:57" itemprop="dateModified" datetime="2023-04-25T21:32:57+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -409,43 +545,34 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="一般形式"><a href="#一般形式" class="headerlink" title="一般形式"></a>一般形式</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">message</span>([&lt;mode&gt;] <span class="string">&quot;message text&quot;</span> ...)</span><br></pre></td></tr></table></figure>
-
-<p>如果同时打印多条信息，多条信息会被拼接成一条信息输出，拼接时不会用空格隔开</p>
-<ul>
-<li><p><code>FATAL_ERROR</code> 打印信息后停止 CMake 进程和构建</p>
-</li>
-<li><p><code>SEND_ERROR</code> 打印信息后继续 CMake 进程，但停止构建</p>
-</li>
-<li><p><code>WARNING</code></p>
-</li>
-<li><p><code>AUTHOR_WARNING</code></p>
-</li>
-<li><p><code>DEPRECATION</code></p>
-</li>
-<li><p><code>NOTICE</code> 默认等级</p>
-</li>
-<li><p><code>STATUS</code></p>
-</li>
-<li><p><code>VERBOSE</code></p>
-</li>
-<li><p><code>DEBUG</code></p>
-</li>
-<li><p><code>TRACE</code></p>
-</li>
-</ul>
-<p>CMake 命令行工具在 stdout 上显示 <code>STATUS</code> 至 <code>TRACE</code> 的消息，<code>--log-level</code> 选项可以设置打印等级</p>
-<p>所有其他消息类型都被发送到 stderr</p>
-<h2 id="检查模式"><a href="#检查模式" class="headerlink" title="检查模式"></a>检查模式</h2><p>cmake 中经常会用 <code>message</code> 做一些检查结果的输出提示，类似于下面的例子</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">message</span>(STATUS <span class="string">&quot;Looking for someheader.h&quot;</span>)</span><br><span class="line"><span class="comment">#... do the checks, set checkSuccess with the result</span></span><br><span class="line"><span class="keyword">if</span>(checkSuccess)</span><br><span class="line">  <span class="keyword">message</span>(STATUS <span class="string">&quot;Looking for someheader.h - found&quot;</span>)</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">  <span class="keyword">message</span>(STATUS <span class="string">&quot;Looking for someheader.h - not found&quot;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br></pre></td></tr></table></figure>
-
-<p>cmake 引入检查模式来简化这种情况</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">message</span>(CHECK_START <span class="string">&quot;message&quot;</span> ...)</span><br><span class="line"><span class="keyword">message</span>(CHECK_PASS <span class="string">&quot;message&quot;</span> ...)</span><br><span class="line"><span class="keyword">message</span>(CHECK_FAIL <span class="string">&quot;message&quot;</span> ...)</span><br></pre></td></tr></table></figure>
-
-<p><code>CHECK_START</code> 必须要 <code>CHECK_PASS</code> 或 <code>CHECK_FAIL</code></p>
-<p>嵌套的 <code>CHECK_START</code> 可以使用 <code>CMAKE_MESSAGE_INDENT</code> 添加缩进</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">message</span>(CHECK_START <span class="string">&quot;Finding my things&quot;</span>)</span><br><span class="line"><span class="keyword">list</span>(APPEND CMAKE_MESSAGE_INDENT <span class="string">&quot;  &quot;</span>)</span><br><span class="line"><span class="keyword">unset</span>(missingComponents)</span><br><span class="line"></span><br><span class="line"><span class="keyword">message</span>(CHECK_START <span class="string">&quot;Finding partA&quot;</span>)</span><br><span class="line"><span class="comment"># ... do check, assume we find A</span></span><br><span class="line"><span class="keyword">message</span>(CHECK_PASS <span class="string">&quot;found&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">message</span>(CHECK_START <span class="string">&quot;Finding partB&quot;</span>)</span><br><span class="line"><span class="comment"># ... do check, assume we don&#x27;t find B</span></span><br><span class="line"><span class="keyword">list</span>(APPEND missingComponents B)</span><br><span class="line"><span class="keyword">message</span>(CHECK_FAIL <span class="string">&quot;not found&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span>(POP_BACK CMAKE_MESSAGE_INDENT)</span><br><span class="line"><span class="keyword">if</span>(missingComponents)</span><br><span class="line">  <span class="keyword">message</span>(CHECK_FAIL <span class="string">&quot;missing components: $&#123;missingComponents&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">  <span class="keyword">message</span>(CHECK_PASS <span class="string">&quot;all components found&quot;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br><span class="line">-- Finding my things</span><br><span class="line">--   Finding partA</span><br><span class="line">--   Finding partA - found</span><br><span class="line">--   Finding partB</span><br><span class="line">--   Finding partB - <span class="keyword">not</span> found</span><br><span class="line">-- Finding my things - missing components: B</span><br></pre></td></tr></table></figure>
-
+          <table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CMAKE_&lt;LANG&gt;_COMPILER_ID</td>
+<td>Clang、GNU、Intel、MSVC 中的一个</td>
+</tr>
+<tr>
+<td>CMAKE_CXX_STANDARD</td>
+<td>C++ 语言标准，支持 98、11、14、17、20、23</td>
+</tr>
+<tr>
+<td>CMAKE_CXX_STANDARD_REQUIRED</td>
+<td>是否必须支持 C++ 语言标准</td>
+</tr>
+<tr>
+<td>CMAKE_C_FLAGS</td>
+<td>C 编译选项，也可以通过 <code>ADD_COMPILE_OPTIONS</code> 添加，作用于所有编译类型</td>
+</tr>
+<tr>
+<td>CMAKE_CXX_FLAGS</td>
+<td>C++ 编译选项，也可以通过指令 <code>ADD_COMPILE_OPTIONS</code> 添加，作用于所有编译类型</td>
+</tr>
+</tbody></table>
 
       
     </div>
@@ -472,7 +599,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-while/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E6%9E%84%E5%BB%BA%E5%8F%98%E9%87%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -490,7 +617,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-while/" class="post-title-link" itemprop="url">while</a>
+          <a href="/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E6%9E%84%E5%BB%BA%E5%8F%98%E9%87%8F/" class="post-title-link" itemprop="url">构建变量</a>
         </h2>
 
         <div class="post-meta-container">
@@ -501,14 +628,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-19 10:33:26" itemprop="dateCreated datePublished" datetime="2023-04-19T10:33:26+08:00">2023-04-19</time>
+      <time title="创建时间：2023-04-19 20:07:08" itemprop="dateCreated datePublished" datetime="2023-04-19T20:07:08+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-25 21:16:22" itemprop="dateModified" datetime="2023-04-25T21:16:22+08:00">2023-04-25</time>
+      <time title="修改时间：2023-04-25 21:32:57" itemprop="dateModified" datetime="2023-04-25T21:32:57+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -530,9 +657,30 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span>(&lt;condition&gt;)</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">endwhile</span>()</span><br></pre></td></tr></table></figure>
-
-<p><code>condition</code> 同 <code>if</code></p>
+          <table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CMAKE_ARCHIVE_OUTPUT_DIRECTORY</td>
+<td>静态库生成地址，默认值 ARCHIVE_OUTPUT_DIRECTORY</td>
+</tr>
+<tr>
+<td>CMAKE_LIBRARY_OUTPUT_DIRECTORY</td>
+<td>动态库生成地址，默认值 LIBRARY_OUTPUT_DIRECTORY</td>
+</tr>
+<tr>
+<td>CMAKE_RUNTIME_OUTPUT_DIRECTORY</td>
+<td>可执行文件生成地址，默认值 RUNTIME_OUTPUT_DIRECTORY</td>
+</tr>
+<tr>
+<td>CMAKE_SHARED_LINKER_FLAGS</td>
+<td>编译动态库时的额外编译选项</td>
+</tr>
+</tbody></table>
 
       
     </div>
@@ -559,7 +707,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/18/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-if/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E8%A1%8C%E4%B8%BA%E5%8F%98%E9%87%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -577,7 +725,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/18/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-if/" class="post-title-link" itemprop="url">if</a>
+          <a href="/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E8%A1%8C%E4%B8%BA%E5%8F%98%E9%87%8F/" class="post-title-link" itemprop="url">行为变量</a>
         </h2>
 
         <div class="post-meta-container">
@@ -588,14 +736,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-18 21:22:10" itemprop="dateCreated datePublished" datetime="2023-04-18T21:22:10+08:00">2023-04-18</time>
+      <time title="创建时间：2023-04-19 19:58:23" itemprop="dateCreated datePublished" datetime="2023-04-19T19:58:23+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-25 21:16:22" itemprop="dateModified" datetime="2023-04-25T21:16:22+08:00">2023-04-25</time>
+      <time title="修改时间：2023-04-25 21:32:57" itemprop="dateModified" datetime="2023-04-25T21:32:57+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -617,361 +765,38 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(&lt;condition&gt;)</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">elseif</span>(&lt;condition&gt;)</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">endif</span>()</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>if(&lt;constant&gt;)</code>：当 <code>constant</code> 为 <code>TRUE</code> 、<code>1</code>、<code>ON</code>、<code>YES</code>、<code>Y</code> 和非 0 数时都为 <code>true</code>，当 <code>constant</code> 为 <code>FALSE</code>、<code>0</code>、<code>OFF</code>、<code>NO</code>、<code>N</code>、<code>IGNORE</code>、<code>NOTFOUND</code>、空字符串和以 <code>-NOTFOUND</code> 结尾的字符串时都为 <code>false</code></p>
-</li>
-<li><p><code>if(&lt;variable&gt;)</code>：如果变量被定义且不被定义为 <code>false</code> 的常量时为 <code>true</code>，宏参数、环境变量不能以这种方式进行判断</p>
-</li>
-<li><p><code>if(&lt;string&gt;)</code>：用引号括起来的字符串的计算结果总是为 <code>false</code>，除非字符串是为 <code>true</code> 的常量</p>
-</li>
-<li><p><code>if(NOT &lt;condition&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;cond1&gt; AND &lt;cond2&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;cond1&gt; OR &lt;cond2&gt;)</code></p>
-</li>
-<li><p><code>if((condition) AND (condition OR (condition)))</code></p>
-</li>
-<li><p><code>if(COMMAND command-name)</code>：当 <code>command-name</code> 是可以被调用的命令、宏和函数时为 <code>true</code></p>
-</li>
-<li><p><code>if(TARGET target-name)</code>：当 <code>target-name</code> 已经被 <code>add_executable</code>、<code>add_library</code> 和 <code>add_custom_target</code> 添加时为 <code>true</code></p>
-</li>
-<li><p><code>if(DEFINED &lt;name&gt;|CACHE&#123;&lt;name&gt;&#125;|ENV&#123;&lt;name&gt;&#125;)</code>：当变量、环境变量、全局变量已被定义时为 <code>true</code>，不关系其具体的值</p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; IN_LIST &lt;variable&gt;)</code></p>
-</li>
-<li><p><code>if(EXISTS path-to-file-or-directory)</code>：只适用于绝对地址</p>
-</li>
-<li><p><code>if(file1 IS_NEWER_THAN file2)</code></p>
-</li>
-<li><p><code>if(IS_DIRECTORY path-to-directory)</code></p>
-</li>
-<li><p><code>if(IS_ABSOLUTE path)</code>：空串为 <code>false</code>，</p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; MATCHES regex)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; LESS &lt;variable|string&gt;)</code>：<code>variable|string</code> 必须是数字</p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; GREATER &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; EQUAL &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; LESS_EQUAL &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; GREATER_EQUAL &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; STRLESS &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; STRGREATER &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; STREQUAL &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; STRLESS_EQUAL &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; STRGREATER_EQUAL &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; VERSION_LESS &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; VERSION_GREATER &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; VERSION_EQUAL &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; VERSION_LESS_EQUAL &lt;variable|string&gt;)</code></p>
-</li>
-<li><p><code>if(&lt;variable|string&gt; VERSION_GREATER_EQUAL &lt;variable|string&gt;)</code></p>
-</li>
-</ul>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(var)</span><br><span class="line"><span class="comment"># 等价于</span></span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$&#123;var&#125;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(var1 <span class="keyword">OFF</span>)</span><br><span class="line"><span class="keyword">set</span>(var2 <span class="string">&quot;var1&quot;</span>)</span><br><span class="line"><span class="keyword">if</span>(var1) <span class="comment"># var1 被定义成 false 常量 -&gt; false</span></span><br><span class="line"><span class="keyword">if</span>(var2) <span class="comment"># var2 被定义，且不是 false 常量 -&gt; true</span></span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$&#123;var1&#125;</span>) <span class="comment"># 等价于 if(OFF) -&gt; false</span></span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$&#123;var2&#125;</span>) <span class="comment"># 等价于 if(var1) -&gt; false</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/18/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-foreach/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/18/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-foreach/" class="post-title-link" itemprop="url">foreach</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-18 21:02:32" itemprop="dateCreated datePublished" datetime="2023-04-18T21:02:32+08:00">2023-04-18</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-25 21:16:22" itemprop="dateModified" datetime="2023-04-25T21:16:22+08:00">2023-04-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">foreach</span>(&lt;loop_var&gt; &lt;items&gt;)</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">endforeach</span>()</span><br></pre></td></tr></table></figure>
-
-<p><code>items</code> 是一系列用空格或分号分隔的列表，使用时需要写成 <code>$&#123;A&#125;</code></p>
-<p>支持 <code>break</code> 和 <code>continue</code></p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 指明下标条件</span></span><br><span class="line"><span class="keyword">foreach</span>(&lt;loop_var&gt; RANGE &lt;stop&gt;)</span><br><span class="line"><span class="keyword">foreach</span>(&lt;loop_var&gt; RANGE &lt;start&gt; &lt;stop&gt; [&lt;step&gt;])</span><br><span class="line"></span><br><span class="line"><span class="comment"># lists 必须是用空格或分号分割的一系列列表变量，使用时不需要 $&#123;A&#125;</span></span><br><span class="line"><span class="keyword">foreach</span>(&lt;loop_var&gt; IN [LISTS [&lt;lists&gt;]] [ITEMS [&lt;items&gt;]])</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(A <span class="number">0</span>;<span class="number">1</span>)</span><br><span class="line"><span class="keyword">set</span>(B <span class="number">2</span> <span class="number">3</span>)</span><br><span class="line"><span class="keyword">set</span>(C <span class="string">&quot;4 5&quot;</span>)</span><br><span class="line"><span class="keyword">set</span>(D <span class="number">6</span>;<span class="number">7</span> <span class="number">8</span>)</span><br><span class="line"><span class="keyword">set</span>(E <span class="string">&quot;&quot;</span>)</span><br><span class="line"><span class="keyword">foreach</span>(X IN LISTS A B C D E)</span><br><span class="line">    <span class="keyword">message</span>(STATUS <span class="string">&quot;X=$&#123;X&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">endforeach</span>()</span><br><span class="line"><span class="comment">#-- X=0</span></span><br><span class="line"><span class="comment">#-- X=1</span></span><br><span class="line"><span class="comment">#-- X=2</span></span><br><span class="line"><span class="comment">#-- X=3</span></span><br><span class="line"><span class="comment">#-- X=4 5</span></span><br><span class="line"><span class="comment">#-- X=6</span></span><br><span class="line"><span class="comment">#-- X=7</span></span><br><span class="line"><span class="comment">#-- X=8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">foreach</span>(&lt;loop_var&gt;... IN ZIP_LISTS &lt;lists&gt;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">list</span>(APPEND English one two three four)</span><br><span class="line"><span class="keyword">list</span>(APPEND Bahasa satu dua tiga)</span><br><span class="line"></span><br><span class="line"><span class="keyword">foreach</span>(num IN ZIP_LISTS English Bahasa)</span><br><span class="line">    <span class="keyword">message</span>(STATUS <span class="string">&quot;num_0=$&#123;num_0&#125;, num_1=$&#123;num_1&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">endforeach</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">foreach</span>(en ba IN ZIP_LISTS English Bahasa)</span><br><span class="line">    <span class="keyword">message</span>(STATUS <span class="string">&quot;en=$&#123;en&#125;, ba=$&#123;ba&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">endforeach</span>()</span><br><span class="line"></span><br><span class="line"><span class="comment">#-- num_0=one, num_1=satu</span></span><br><span class="line"><span class="comment">#-- num_0=two, num_1=dua</span></span><br><span class="line"><span class="comment">#-- num_0=three, num_1=tiga</span></span><br><span class="line"><span class="comment">#-- num_0=four, num_1=</span></span><br><span class="line"><span class="comment">#-- en=one, ba=satu</span></span><br><span class="line"><span class="comment">#-- en=two, ba=dua</span></span><br><span class="line"><span class="comment">#-- en=three, ba=tiga</span></span><br><span class="line"><span class="comment">#-- en=four, ba=</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/18/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-file/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/18/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-file/" class="post-title-link" itemprop="url">file</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-18 20:28:58" itemprop="dateCreated datePublished" datetime="2023-04-18T20:28:58+08:00">2023-04-18</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-25 21:16:22" itemprop="dateModified" datetime="2023-04-25T21:16:22+08:00">2023-04-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="读"><a href="#读" class="headerlink" title="读"></a>读</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(READ &lt;filename&gt; &lt;variable&gt;</span><br><span class="line">     [OFFSET &lt;offset&gt;] [LIMIT &lt;max-in&gt;] [HEX])</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>offset</code> 开始位置的偏移量</p>
-</li>
-<li><p><code>max-in</code> 读取的最多字节数</p>
-</li>
-<li><p><code>HEX</code> 是否转换成十六进制</p>
-</li>
-</ul>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(STRINGS &lt;filename&gt; &lt;variable&gt; [&lt;options&gt;...])</span><br></pre></td></tr></table></figure>
-
-<p>从文件中读取 ASCII 字符串列表，作为列表存储在变量中，列表中的每项是行数据</p>
-<p>二进制数据和 <code>\r</code> 都会被忽略</p>
-<p>可选项：</p>
-<ul>
-<li><p><code>LENGTH_MAXIMUM &lt;max-len&gt;</code> 字符串的长度最大值</p>
-</li>
-<li><p><code>LENGTH_MINIMUM &lt;min-len&gt;</code> 字符串的长度最小值</p>
-</li>
-<li><p><code>LIMIT_COUNT &lt;max-num&gt;</code> 获取的不同字符串的数量</p>
-</li>
-<li><p><code>LIMIT_INPUT &lt;max-in&gt;</code> 从文件中读取的最多字节数</p>
-</li>
-<li><p><code>LIMIT_OUTPUT &lt;max-out&gt;</code> 列表中最多储存的字节数</p>
-</li>
-<li><p><code>NEWLINE_CONSUME</code> 将 <code>\r</code> 作为字符的一部分</p>
-</li>
-<li><p><code>REGEX &lt;regex&gt;</code> 字符串满足正则表达式</p>
-</li>
-<li><p><code>ENCODING &lt;encoding-type&gt;</code> 支持 UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE</p>
-</li>
-</ul>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(&lt;HASH&gt; &lt;filename&gt; &lt;variable&gt;)</span><br></pre></td></tr></table></figure>
-
-<p>读取文件内容的哈希值</p>
-<h2 id="写"><a href="#写" class="headerlink" title="写"></a>写</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(WRITE &lt;filename&gt; &lt;content&gt;...)</span><br><span class="line"><span class="keyword">file</span>(APPEND &lt;filename&gt; &lt;content&gt;...)</span><br></pre></td></tr></table></figure>
-
-<p><code>WRITE</code> 会覆盖原有文件内容，<code>APPEND</code> 在原有内容后追加新的内容</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(TOUCH [&lt;files&gt;...])</span><br><span class="line"><span class="keyword">file</span>(TOUCH_NOCREATE [&lt;files&gt;...])</span><br></pre></td></tr></table></figure>
-
-<p><code>TOUCH</code> 新建文件，若文件存在则更新其属性</p>
-<p><code>TOUch_NOCREATE</code> 不新建文件</p>
-<h2 id="文件操作"><a href="#文件操作" class="headerlink" title="文件操作"></a>文件操作</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(GLOB &lt;variable&gt;</span><br><span class="line">     [LIST_DIRECTORIES <span class="keyword">true</span>|<span class="keyword">false</span>] [RELATIVE &lt;path&gt;] [CONFIGURE_DEPENDS]</span><br><span class="line">     [&lt;globbing-expressions&gt;...])</span><br><span class="line"><span class="keyword">file</span>(GLOB_RECURSE &lt;variable&gt; [FOLLOW_SYMLINKS]</span><br><span class="line">     [LIST_DIRECTORIES <span class="keyword">true</span>|<span class="keyword">false</span>] [RELATIVE &lt;path&gt;] [CONFIGURE_DEPENDS]</span><br><span class="line">     [&lt;globbing-expressions&gt;...])</span><br></pre></td></tr></table></figure>
-
-<p>生成满足 <code>globbing-expressions</code> 的文件名列表，并将其存储到变量中</p>
-<ul>
-<li><p><code>RELATIVE</code> 文件名取与 <code>path</code> 的相对地址</p>
-</li>
-<li><p><code>LIST_DIRECTORIES</code> 是否忽略目录，默认不忽略目录</p>
-</li>
-<li><p><code>CONFIGURE_DEPENDS</code> 每次都更新该变量值，确保不遗漏新增文件，但不建议使用</p>
-</li>
-</ul>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(<span class="keyword">MAKE_DIRECTORY</span> [&lt;directories&gt;...])</span><br><span class="line"><span class="keyword">file</span>(<span class="keyword">REMOVE</span> [&lt;files&gt;...])</span><br><span class="line"><span class="keyword">file</span>(REMOVE_RECURSE [&lt;files&gt;...])</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(RENAME &lt;oldname&gt; &lt;newname&gt;</span><br><span class="line">     [RESULT &lt;result&gt;]</span><br><span class="line">     [NO_REPLACE])</span><br><span class="line"><span class="keyword">file</span>(COPY_FILE &lt;oldname&gt; &lt;newname&gt;</span><br><span class="line">     [RESULT &lt;result&gt;]</span><br><span class="line">     [ONLY_IF_DIFFERENT])</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>RESULT</code> 成功时将 <code>result</code> 置为 0，否则设置为失败信息</p>
-</li>
-<li><p><code>NO_REPLACE</code> 若 <code>newname</code> 已存在则不替换</p>
-</li>
-<li><p>复制文件时，不拷贝软链，而是将内容复制到 <code>newname</code> 中</p>
-</li>
-<li><p><code>ONLY_IF_DIFFERENT</code> 当 <code>newname</code> 已存在时，之前 <code>oldname</code> 与 <code>newname</code> 不同时才覆盖</p>
-</li>
-</ul>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(SIZE &lt;filename&gt; &lt;variable&gt;)</span><br><span class="line"><span class="keyword">file</span>(CHMOD &lt;files&gt;... &lt;directories&gt;...</span><br><span class="line">    [PERMISSIONS &lt;permissions&gt;...]</span><br><span class="line">    [FILE_PERMISSIONS &lt;permissions&gt;...]</span><br><span class="line">    [DIRECTORY_PERMISSIONS &lt;permissions&gt;...])</span><br><span class="line"><span class="keyword">file</span>(CHMOD_RECURSE &lt;files&gt;... &lt;directories&gt;...</span><br><span class="line">     [PERMISSIONS &lt;permissions&gt;...]</span><br><span class="line">     [FILE_PERMISSIONS &lt;permissions&gt;...]</span><br><span class="line">     [DIRECTORY_PERMISSIONS &lt;permissions&gt;...])</span><br></pre></td></tr></table></figure>
-
-<p>修改文件的权限，支持 <code>OWNER_READ</code>、<code>OWNER_WRITE</code>、<code>OWNER_EXECUTE</code>、<code>GROUP_READ</code>、<code>GROUP_WRITE</code>、<code>GROUP_EXECUTE</code>、<code>WORLD_READ</code>、<code>WORLD_WRITE</code>、<code>WORLD_EXECUTE</code>、<code>SETUID</code>、<code>SETGID</code></p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(READ_SYMLINK &lt;linkname&gt; &lt;variable&gt;)</span><br></pre></td></tr></table></figure>
-
-<p>将 <code>linkname</code> 指向的地址存储在变量中，若 <code>linkname</code> 不存在或不是软链则报错</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(CREATE_LINK &lt;original&gt; &lt;linkname&gt;</span><br><span class="line">     [RESULT &lt;result&gt;] [COPY_ON_ERROR] [SYMBOLIC])</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>默认建立硬链接，<code>SYMBOLIC</code> 创建软链</p>
-</li>
-<li><p>硬链接时 <code>original</code> 必须存在，并且只能是文件</p>
-</li>
-<li><p><code>linkname</code> 存在时会覆盖原先链接</p>
-</li>
-</ul>
-<h2 id="路径转换"><a href="#路径转换" class="headerlink" title="路径转换"></a>路径转换</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(REAL_PATH &lt;path&gt; &lt;out-var&gt; [BASE_DIRECTORY &lt;dir&gt;] [EXPAND_TILDE])</span><br></pre></td></tr></table></figure>
-
-<p>计算给定地址的绝对地址</p>
-<ul>
-<li><p><code>BASE_DIRECTORY &lt;dir&gt;</code> 当 <code>path</code> 是相对地址时指定其基地址，默认使用 <code>CMAKE_CURRENT_SOURCE_DIR</code></p>
-</li>
-<li><p><code>EXPAND_TILDE</code></p>
-</li>
-</ul>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(RELATIVE_PATH &lt;variable&gt; &lt;directory&gt; &lt;<span class="keyword">file</span>&gt;)</span><br></pre></td></tr></table></figure>
-
-<p>计算从 <code>directory</code> 到 <code>file</code> 的相对地址</p>
-<h2 id="转换操作"><a href="#转换操作" class="headerlink" title="转换操作"></a>转换操作</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(DOWNLOAD &lt;url&gt; [&lt;<span class="keyword">file</span>&gt;] [&lt;options&gt;...])</span><br><span class="line"><span class="keyword">file</span>(UPLOAD   &lt;<span class="keyword">file</span>&gt; &lt;url&gt; [&lt;options&gt;...])</span><br></pre></td></tr></table></figure>
-
-<p>下载、上传文件</p>
-<ul>
-<li><p><code>INACTIVITY_TIMEOUT &lt;seconds&gt;</code> 指定断开连接时间</p>
-</li>
-<li><p><code>LOG &lt;variable&gt;</code> 存储日志</p>
-</li>
-<li><p><code>SHOW_PROGRESS</code> 打印进度条</p>
-</li>
-<li><p><code>STATUS &lt;variable&gt;</code> 存储操作结果</p>
-</li>
-<li><p><code>TIMEOUT &lt;seconds&gt;</code> 指定操作的总时间</p>
-</li>
-<li><p><code>USERPWD &lt;username&gt;:&lt;password&gt;</code> 指定用户名和密码</p>
-</li>
-</ul>
-<h2 id="打包操作"><a href="#打包操作" class="headerlink" title="打包操作"></a>打包操作</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">file</span>(ARCHIVE_CREATE OUTPUT &lt;archive&gt;</span><br><span class="line">  PATHS &lt;paths&gt;...</span><br><span class="line">  [FORMAT &lt;format&gt;]</span><br><span class="line">  [COMPRESSION &lt;compression&gt; [COMPRESSION_LEVEL &lt;compression-level&gt;]]</span><br><span class="line">  [MTIME &lt;mtime&gt;]</span><br><span class="line">  [VERBOSE])</span><br></pre></td></tr></table></figure>
-
-<p>将 <code>paths</code> 打包成 <code>archive</code></p>
-<p><code>format</code> 支持 7zip、gnutar、pax、paxr、raw 和 zip，默认 paxr</p>
+          <table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BUILD_SHARED_LIBS</td>
+<td>被设置为 on 时，ADD_LIBRARY 默认生成动态库</td>
+</tr>
+<tr>
+<td>CMAKE_BUILD_TYPE</td>
+<td>使用单一构建工具时的构建类型，该变量不区分大小写，包括 None (CMAKE_C_FLAGS 和 CMAKE_CXX_FLAGS 使用)、Debug (CMAKE_C_FLAGS_DEBUG 和 CMAKE_CXX_FLAGS_DEBUG 使用)、Release (CMAKE_C_FLAGS_RELEASE 和 CMAKE_CXX_FLAGS_RELEASE 使用)、RelWithDebInfo (CMAKE_C_FLAGS_RELWITHDEBINFO 和 CMAKE_CXX_FLAGS_RELWITHDEBINFO 使用）、MinSizeRel (CMAKE_C_FLAGS_MINSIZEREL 和 CMAKE_CXX_FLAGS_MINSIZEREL 使用)</td>
+</tr>
+<tr>
+<td>CMAKE_INCLUDE_PATH</td>
+<td><code>find_file</code> 和 <code>find_path</code> 使用，默认空</td>
+</tr>
+<tr>
+<td>CMAKE_LIBRARY_PATH</td>
+<td><code>find_library</code> 使用么，默认空</td>
+</tr>
+<tr>
+<td>CMAKE_PREFIX_PATH</td>
+<td>搜索头文件、二进制文件和库文件时的搜索路径前缀</td>
+</tr>
+<tr>
+<td>CMAKE_MODULE_PATH</td>
+<td><code>find_package</code> 首先搜索第三方库的路径</td>
+</tr>
+</tbody></table>
 
       
     </div>
@@ -998,7 +823,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/18/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-configure-file/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E4%BF%A1%E6%81%AF%E5%8F%98%E9%87%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1016,7 +841,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/18/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-configure-file/" class="post-title-link" itemprop="url">configure_file</a>
+          <a href="/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E4%BF%A1%E6%81%AF%E5%8F%98%E9%87%8F/" class="post-title-link" itemprop="url">信息变量</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1027,14 +852,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-18 19:34:52" itemprop="dateCreated datePublished" datetime="2023-04-18T19:34:52+08:00">2023-04-18</time>
+      <time title="创建时间：2023-04-19 19:50:50" itemprop="dateCreated datePublished" datetime="2023-04-19T19:50:50+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-25 21:16:22" itemprop="dateModified" datetime="2023-04-25T21:16:22+08:00">2023-04-25</time>
+      <time title="修改时间：2023-04-25 21:32:57" itemprop="dateModified" datetime="2023-04-25T21:32:57+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1056,33 +881,155 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">configure_file</span>(&lt;input&gt; &lt;output&gt;</span><br><span class="line">               [NO_SOURCE_PERMISSIONS | USE_SOURCE_PERMISSIONS |</span><br><span class="line">                FILE_PERMISSIONS &lt;permissions&gt;...]</span><br><span class="line">               [COPYONLY] [ESCAPE_QUOTES] [@ONLY]</span><br><span class="line">               [NEWLINE_STYLE [UNIX|DOS|WIN32|LF|CRLF] ])</span><br></pre></td></tr></table></figure>
+          <table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CMAKE_PROJECT_NAME、CMAKE_PROJECT_DESCRIPTION、CMAKE_PROJECT_HOMEPAGE_URL、CMAKE_PROJECT_VERSION</td>
+<td>顶层 <code>project</code> 设置的工程属性</td>
+</tr>
+<tr>
+<td>PROJECT_NAME、PROJECT_DESCRIPTION、PROJECT_HOMEPAGE_URL、PROJECT_VERSION</td>
+<td>最近 <code>project</code> 设置的工程属性</td>
+</tr>
+<tr>
+<td>CMAKE_SOURCE_DIR</td>
+<td>顶层 CMakeLists.txt 所在路径</td>
+</tr>
+<tr>
+<td>CMAKE_CURRENT_SOURCE_DIR</td>
+<td>当前处理的 CMakeLists.txt 所在的路径</td>
+</tr>
+<tr>
+<td>CMAKE_BINARY_DIR</td>
+<td>工程编译发生的目录，in-source 编译时等同于 CMAKE_CURRENT_BINARY_DIR</td>
+</tr>
+<tr>
+<td>CMAKE_CURRRENT_BINARY_DIR</td>
+<td>in-source 编译时等同于 CMAKE_CURRENT_SOURCE_DIR，否则是当前 CMakeLists.txt 将要生效的目录地址</td>
+</tr>
+<tr>
+<td>CMAKE_CURRENT_LIST_FILE</td>
+<td>当前文件的带绝对地址的文件名</td>
+</tr>
+<tr>
+<td>CMAKE_CURRENT_LIST_DIR</td>
+<td>当前文件所在文件的绝对路径</td>
+</tr>
+<tr>
+<td>PROJECT-NAME_BINARY_DIR、PROJECT-NAME_SOURCE_DIR</td>
+<td>指定工程对应的地址</td>
+</tr>
+<tr>
+<td>PROJECT_BINARY_DIR、PROJECT_SOURCE_DIR</td>
+<td>当前工程对应地址</td>
+</tr>
+<tr>
+<td>CMAKE_GENERATOR</td>
+<td>当前使用的构建工具</td>
+</tr>
+<tr>
+<td>CMAKE_MATCH_COUNT</td>
+<td>匹配结果数量</td>
+</tr>
+<tr>
+<td>CMAKE_MATCH_&lt;n&gt;</td>
+<td>最近的一次正则匹配结果，n 从 0 到 9，0 表示所有匹配结果，1 到 9 表示匹配结果索引</td>
+</tr>
+</tbody></table>
 
-<ol>
-<li><p>将 input 复制到 output，若使用相对地址，则是相对于 <code>CMAKE_CURRENT_SOURCE_DIR</code></p>
-</li>
-<li><p>使用 CMakeLists.txt 中的 <code>VAR</code> 变量值替换 input 中的 <code>@VAR@</code> 和 <code>$&#123;VAR&#125;</code>，若 <code>VAR</code> 在 CMakeLists.txt 中没定义则使用空串替换</p>
-</li>
-<li><p><code>#cmakedefine var</code> 关键字替换成 <code>#define var</code> 或者 <code>/* #undef VAR */</code>，这取决于 cmake 是否定义了 <code>var</code></p>
-</li>
-<li><p><code>#cmakedefine01 var</code> 关键字替换成 <code>#define var 0</code> 或者 <code>#define var 1</code>，这取决于 cmake 是否定义了 <code>var</code></p>
-</li>
-</ol>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%86%85%E7%BD%AE%E7%BC%96%E8%AF%91%E7%B1%BB%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/19/CMake-%E5%86%85%E7%BD%AE%E7%BC%96%E8%AF%91%E7%B1%BB%E5%9E%8B/" class="post-title-link" itemprop="url">内置编译类型</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-19 19:47:31" itemprop="dateCreated datePublished" datetime="2023-04-19T19:47:31+08:00">2023-04-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-25 21:32:57" itemprop="dateModified" datetime="2023-04-25T21:32:57+08:00">2023-04-25</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>CMake 有多种预置的编译类型</p>
 <ul>
-<li><p><code>NO_SOURCE_PERMISSIONS</code> 不将输入文件的权限转移到输出文件，复制的文件权限默认为标准的644值</p>
+<li><p><code>Release</code> 对应 <code>-O3 -DNDEBUG</code></p>
 </li>
-<li><p><code>USE_SOURCE_PERMISSIONS</code> 将输入文件的权限转移到输出文件，默认行为</p>
+<li><p><code>Debug</code> 对应 <code>-g</code></p>
 </li>
-<li><p><code>FILE_PERMISSIONS &lt;permissions&gt;</code></p>
+<li><p><code>MinSizeRel</code> 对应 <code>-Os -DNDEBUG</code></p>
 </li>
-<li><p><code>COPYONLY</code></p>
-</li>
-<li><p><code>@ONLY</code> 只替换 <code>@VAR@</code> 形式变量</p>
-</li>
-<li><p><code>NEWLINE_STYLE &lt;style&gt;</code> 指明新文件的换行方式，<code>UNIX</code> 或 <code>LF</code> 使用 <code>\n</code>，<code>DOS</code>、<code>WIN32</code> 或 <code>CRLF</code> 使用 <code>\r\n</code></p>
+<li><p><code>RelWithDebInfo</code> 对应 <code>-O2 -g -DNDEBUG</code></p>
 </li>
 </ul>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># foo.h.in</span></span><br><span class="line"><span class="comment">#cmakedefine FOO_ENABLE</span></span><br><span class="line"><span class="comment">#cmakedefine FOO_STRING &quot;@FOO_STRING@&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># CMakeLists.txt</span></span><br><span class="line"><span class="keyword">option</span>(FOO_ENABLE <span class="string">&quot;Enable Foo&quot;</span> <span class="keyword">ON</span>)</span><br><span class="line"><span class="keyword">if</span>(FOO_ENABLE)</span><br><span class="line">  <span class="keyword">set</span>(FOO_STRING <span class="string">&quot;foo&quot;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"><span class="keyword">configure_file</span>(foo.h.in foo.h @ONLY)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 替换后</span></span><br><span class="line"><span class="comment">#define FOO_ENABLE</span></span><br><span class="line"><span class="comment">#define FOO_STRING &quot;foo&quot;</span></span><br></pre></td></tr></table></figure>
+<p>可以通过 <code>cmake .. -DCMAKE_BUILD_TYPE=Release</code> 来设置编译类型</p>
+<p>CMake 默认不使用任何的编译参数，但可以设置默认的编译类型</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_BUILD_TYPE <span class="keyword">AND</span> <span class="keyword">NOT</span> CMAKE_CONFIGURATION_TYPES)</span><br><span class="line">  <span class="keyword">message</span>(<span class="string">&quot;Setting build type to &#x27;RelWithDebInfo&#x27; as none was specified.&quot;</span>)</span><br><span class="line">  <span class="keyword">set</span>(CMAKE_BUILD_TYPE RelWithDebInfo CACHE <span class="keyword">STRING</span> <span class="string">&quot;Choose the type of build.&quot;</span> FORCE)</span><br><span class="line">  <span class="comment"># Set the possible values of build type for cmake-gui</span></span><br><span class="line">  <span class="keyword">set_property</span>(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS <span class="string">&quot;Debug&quot;</span> <span class="string">&quot;Release&quot;</span> <span class="string">&quot;MinSizeRel&quot;</span> <span class="string">&quot;RelWithDebInfo&quot;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1108,7 +1055,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/18/CMake-%E5%B7%A5%E7%A8%8B%E5%91%BD%E4%BB%A4-target-link-libraries/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-ExtractVersion/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1126,7 +1073,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/18/CMake-%E5%B7%A5%E7%A8%8B%E5%91%BD%E4%BB%A4-target-link-libraries/" class="post-title-link" itemprop="url">target_link_libraries</a>
+          <a href="/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-ExtractVersion/" class="post-title-link" itemprop="url">ExtractVersion</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1137,14 +1084,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-18 19:24:48" itemprop="dateCreated datePublished" datetime="2023-04-18T19:24:48+08:00">2023-04-18</time>
+      <time title="创建时间：2023-04-19 19:43:22" itemprop="dateCreated datePublished" datetime="2023-04-19T19:43:22+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-25 21:16:22" itemprop="dateModified" datetime="2023-04-25T21:16:22+08:00">2023-04-25</time>
+      <time title="修改时间：2023-04-25 21:32:57" itemprop="dateModified" datetime="2023-04-25T21:32:57+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1166,7 +1113,9 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">target_link_libraries</span>(&lt;<span class="keyword">target</span>&gt;</span><br><span class="line">                      &lt;PRIVATE|PUBLIC|INTERFACE&gt; &lt;item&gt;...</span><br><span class="line">                     [&lt;PRIVATE|PUBLIC|INTERFACE&gt; &lt;item&gt;...]...)</span><br></pre></td></tr></table></figure>
+          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ExtractVersion.cmake</span></span><br><span class="line"><span class="keyword">function</span>(extract_version)</span><br><span class="line">    <span class="keyword">file</span>(READ <span class="string">&quot;version.h&quot;</span> file_contents)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">string</span>(REGEX MATCH <span class="string">&quot;VER_MAJOR ([0-9]+)&quot;</span> _ <span class="string">&quot;$&#123;file_contents&#125;&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_MATCH_COUNT <span class="keyword">EQUAL</span> <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">message</span>(FATAL_ERROR <span class="string">&quot;Could not extract major version number from version.h&quot;</span>)</span><br><span class="line">    <span class="keyword">endif</span>()</span><br><span class="line">    <span class="keyword">set</span>(ver_major <span class="variable">$&#123;CMAKE_MATCH_1&#125;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">string</span>(REGEX MATCH <span class="string">&quot;VER_MINOR ([0-9]+)&quot;</span> _ <span class="string">&quot;$&#123;file_contents&#125;&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_MATCH_COUNT <span class="keyword">EQUAL</span> <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">message</span>(FATAL_ERROR <span class="string">&quot;Could not extract minor version number from version.h&quot;</span>)</span><br><span class="line">    <span class="keyword">endif</span>()</span><br><span class="line">    <span class="keyword">set</span>(ver_minor <span class="variable">$&#123;CMAKE_MATCH_1&#125;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">string</span>(REGEX MATCH <span class="string">&quot;VER_PATCH ([0-9]+)&quot;</span> _ <span class="string">&quot;$&#123;file_contents&#125;&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_MATCH_COUNT <span class="keyword">EQUAL</span> <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">message</span>(FATAL_ERROR <span class="string">&quot;Could not extract patch version number from version.h&quot;</span>)</span><br><span class="line">    <span class="keyword">endif</span>()</span><br><span class="line">    <span class="keyword">set</span>(ver_patch <span class="variable">$&#123;CMAKE_MATCH_1&#125;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">set</span>(VERSION_MAJOR <span class="variable">$&#123;ver_major&#125;</span> PARENT_SCOPE)</span><br><span class="line">    <span class="keyword">set</span>(VERSION_MINOR <span class="variable">$&#123;ver_minor&#125;</span> PARENT_SCOPE)</span><br><span class="line">    <span class="keyword">set</span>(VERSION_PATCH <span class="variable">$&#123;ver_patch&#125;</span> PARENT_SCOPE)</span><br><span class="line">    <span class="keyword">set</span>(VERSION <span class="string">&quot;$&#123;ver_major&#125;.$&#123;ver_minor&#125;.$&#123;ver_patch&#125;&quot;</span> PARENT_SCOPE)</span><br><span class="line"><span class="keyword">endfunction</span>()</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> VER_MAJOR 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> VER_MINOR 10</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> VER_PATCH 0</span></span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1192,7 +1141,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/18/CMake-%E5%B7%A5%E7%A8%8B%E5%91%BD%E4%BB%A4-target-include-directories/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-CheckIncludeFiles/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1210,7 +1159,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/18/CMake-%E5%B7%A5%E7%A8%8B%E5%91%BD%E4%BB%A4-target-include-directories/" class="post-title-link" itemprop="url">target_include_directories</a>
+          <a href="/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-CheckIncludeFiles/" class="post-title-link" itemprop="url">CheckIncludeFiles</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1221,14 +1170,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-18 19:21:15" itemprop="dateCreated datePublished" datetime="2023-04-18T19:21:15+08:00">2023-04-18</time>
+      <time title="创建时间：2023-04-19 19:38:38" itemprop="dateCreated datePublished" datetime="2023-04-19T19:38:38+08:00">2023-04-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-25 21:16:22" itemprop="dateModified" datetime="2023-04-25T21:16:22+08:00">2023-04-25</time>
+      <time title="修改时间：2023-04-25 21:32:57" itemprop="dateModified" datetime="2023-04-25T21:32:57+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1250,11 +1199,14 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">target_include_directories</span>(&lt;<span class="keyword">target</span>&gt; [SYSTEM] [AFTER|BEFORE]</span><br><span class="line">  &lt;INTERFACE|PUBLIC|PRIVATE&gt; [items1...]</span><br><span class="line">  [&lt;INTERFACE|PUBLIC|PRIVATE&gt; [items2...] ...])</span><br></pre></td></tr></table></figure>
+          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span>(CheckIncludeFiles)</span><br><span class="line">CHECK_INCLUDE_FILES(<span class="string">&quot;&lt;includes&gt;&quot;</span> &lt;variable&gt; [LANGUAGE &lt;language&gt;])</span><br><span class="line"><span class="comment"># LANGUAGE 支持 c 和 cxx</span></span><br></pre></td></tr></table></figure>
 
-<p><code>AFTER</code> 向后追加，<code>BEFORE</code> 向前追加</p>
-<p>包含目录可以是绝对地址，也可以是相对地址，其中相对地址会被自动转换为以当前 CMakeLists.txt 所在目录为基目录的绝对地址</p>
+<p>不同平台的差异通常使用一个头文件来进行处理，通常为 config.h，其他文件可以 <code>include</code> 该 config.h 来进行平台检查</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// config.h</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HAVE_MALLOC_H 1</span></span><br><span class="line"><span class="comment">/* #undef HAVE_SYS_MNTTAB_H 1 */</span></span><br><span class="line"><span class="comment">/* #undef HAVE_SYS_MNTENT_H 1 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HAVE_SYS_MOUNT_H 1</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;config.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> HAVE_MALLOC_H</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;malloc.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">do_something</span><span class="params">()</span> </span>&#123;</span><br><span class="line"> <span class="type">void</span> *buf=<span class="built_in">malloc</span>(<span class="number">1024</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>一些使用自动工具的软件，在编译时需要在 <code>make</code> 前使用 <code>./configure</code> 来自动生成 config.h 文件</p>
+<p>CMake 在 &#x2F;usr&#x2F;local&#x2F;share&#x2F;CMake&#x2F;Modules 中提供了一些平台检查的 cmake 脚本，使用这些脚本时需要将脚本引入 CMakeLists.txt</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span>(CheckIncludeFiles)</span><br><span class="line">CHECK_INCLUDE_FILES(malloc.h HAVE_MALLOC_H)</span><br><span class="line">CHECK_INCLUDE_FILES(<span class="string">&quot;sys/param.h;sys/mount.h&quot;</span> HAVE_SYS_MOUNT_H)</span><br><span class="line"><span class="keyword">CONFIGURE_FILE</span>(<span class="variable">$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;</span>/config.h.in <span class="variable">$&#123;CMAKE_CURRENT_BINARY_DIR&#125;</span>/config.h)</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1273,7 +1225,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/6/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/6/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
