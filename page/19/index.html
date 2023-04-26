@@ -122,18 +122,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">254</span>
+          <span class="site-state-item-count">273</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-count">21</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-count">24</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -159,7 +159,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/LeetCode-123-188/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-Rdd/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/LeetCode-123-188/" class="post-title-link" itemprop="url">lc-123-188</a>
+          <a href="/2023/04/02/Spark-Rdd/" class="post-title-link" itemprop="url">Rdd</a>
         </h2>
 
         <div class="post-meta-container">
@@ -188,14 +188,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-01 16:01:49" itemprop="dateCreated datePublished" datetime="2023-04-01T16:01:49+08:00">2023-04-01</time>
+      <time title="创建时间：2023-04-02 15:27:27" itemprop="dateCreated datePublished" datetime="2023-04-02T15:27:27+08:00">2023-04-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 21:27:06" itemprop="dateModified" datetime="2023-04-26T21:27:06+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -203,7 +203,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LeetCode/" itemprop="url" rel="index"><span itemprop="name">LeetCode</span></a>
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
         </span>
     </span>
 
@@ -217,10 +217,91 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>DP</p>
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/lQEj_K1lUY83QtIzqTikGA">分析</a></p>
+          <p>RDD 是构建 Spark 分布式内存计算引擎的基石，很多 Spark 核心概念与核心组件，如 DAG 和调度系统都衍生自 RDD</p>
+<img src="/2023/04/02/Spark-Rdd/01.png" class="">
+
+<p>RDD 是一种抽象，它所囊括的是分布式计算环境中的分布式数据集</p>
+<p>RDD 代表的数据集是跨进程、跨节点的，它的活动范围是整个集群</p>
+<p>RDD 中承载数据的基本单元是数据分片</p>
+<p>在分布式计算环境中，一份完整的数据集，会按照某种规则切割成多份数据分片。这些数据分片被均匀地分发给集群内不同的计算节点和执行进程，从而实现分布式并行计算</p>
+<p>RDD 的四个重要属性：</p>
+<ul>
+<li><p>partitions：数据分片</p>
+</li>
+<li><p>partitioner：分片切割规则</p>
+</li>
+<li><p>dependencies：RDD 依赖</p>
+</li>
+<li><p>compute：转换函数</p>
+</li>
+</ul>
+<p>数据分片的分布，是由 RDD 的 partitioner 决定的，两者是强相关的</p>
+<p>在数据形态的转换过程中，每个 RDD 都会通过 dependencies 属性来记录它所依赖的前一个、或是多个 RDD</p>
+<p>RDD 使用 compute 属性，来记录从父 RDD 到当前 RDD 的转换操作</p>
+<h2 id="创建-RDD"><a href="#创建-RDD" class="headerlink" title="创建 RDD"></a>创建 RDD</h2><h3 id="内部数据创建"><a href="#内部数据创建" class="headerlink" title="内部数据创建"></a>内部数据创建</h3><p>在 Spark 应用中自定义的各类数据结构，如数组、列表、映射等，都属于内部数据</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.rdd.<span class="type">RDD</span></span><br><span class="line"><span class="keyword">val</span> words: <span class="type">Array</span>[<span class="type">String</span>] = <span class="type">Array</span>(<span class="string">&quot;Spark&quot;</span>, <span class="string">&quot;is&quot;</span>, <span class="string">&quot;cool&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>用 <code>parallelize</code> 函数来封装内部数据即可 RDD</p>
+<p>在 Spark 应用内定义体量超大的数据集，其实都是不太合适的，因为数据集完全由 Driver 端创建，且创建完成后，还要在全网范围内跨节点、跨进程地分发到其他 Executors，所以往往会带来性能问题</p>
+<h3 id="外部数据创建"><a href="#外部数据创建" class="headerlink" title="外部数据创建"></a>外部数据创建</h3><p>Spark 系统之外的所有数据形式，如本地文件系统或是分布式文件系统中的数据，再比如来自其他大数据组件（Hive、Hbase、RDBMS 等）的数据，都是外部数据</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> lineRDD: <span class="type">RDD</span>[<span class="type">String</span>] = spark.sparkContext.textFile(file)</span><br></pre></td></tr></table></figure>
+
+<h2 id="RDD-算子"><a href="#RDD-算子" class="headerlink" title="RDD 算子"></a>RDD 算子</h2><p>RDD 代表的是分布式数据形态，RDD 到 RDD 之间的转换，本质上是数据形态上的转换；在 RDD 的编程模型中，一共有两种算子，Transformations 类算子和 Actions 类算子；使用 Transformations 类算子，定义并描述数据形态的转换过程，然后调用 Actions 类算子，将计算结果收集起来、或是物化到磁盘</p>
+<p>调用的各类 Transformations 算子，并不立即执行计算，当且仅当开发者调用 Actions 算子时，之前调用的转换算子才会付诸执行</p>
+<img src="/2023/04/02/Spark-Rdd/02.png" class="">
+
+<h2 id="内部数据转换"><a href="#内部数据转换" class="headerlink" title="内部数据转换"></a>内部数据转换</h2><ul>
+<li><p><code>map</code> 算子：给定映射函数 <code>f</code>，<code>map(f)</code> 以元素为粒度对 RDD 做数据转换；由于以元素为粒度，在某些计算场景下，这个特点会严重影响执行效率</p>
+</li>
+<li><p><code>mapPartitions</code> 算子：以数据分区为粒度的数据转换，使用映射函数 <code>f</code> 对 RDD 进行数据转换；凡是可以共享的操作，都可以用 <code>mapPartitions</code> 算子进行优化，如创建用于连接远端数据库的 Connections 对象等</p>
+</li>
+<li><p><code>mapPartitionsWithIndex</code> 算子：相比 <code>mapPartitions</code>，<code>mapPartitionsWithIndex</code> 仅仅多出了一个数据分区索引，这个数据分区索引可以为获取分区编号</p>
+</li>
+<li><p><code>flatMap</code>：以元素为粒度，对 RDD 进行数据转换，但接受的 <code>f</code> 是元素到集合（如数组、列表等）；在逻辑上分为以元素为单位创建集合和提取集合元素</p>
+</li>
+<li><p><code>filter</code> 算子：对 RDD 进行过滤</p>
+</li>
+</ul>
+<h2 id="Shuffle-计算"><a href="#Shuffle-计算" class="headerlink" title="Shuffle 计算"></a>Shuffle 计算</h2><ul>
+<li><p><code>groupByKey</code>：按照 Key 做分组，包含分组和收集两步；对于元素类型为（Key，Value）键值对的 Paired RDD，groupByKey 的功能就是对 Key 值相同的元素做分组，然后把相应的 Value 值，以集合的形式收集到一起；Shuffle 时以全量原始数据记录的方式消耗磁盘与网络</p>
+</li>
+<li><p><code>reduceByKey</code>：根据聚合函数 f 给出的算法，把 Key 值相同的多个元素，聚合成一个元素；对于 <code>RDD[(Key，Value)]</code>，函数 f 的形参，必须是两个数值，且数值的类型必须与 Value 的类型相同，而 f 的返回值，也必须是 Value 类型的数值；Shuffle 时会在落盘与分发之前的 Map 阶段做初步的聚合计算，称之为 Map 端聚合；局限性在于其 Map 阶段与 Reduce 阶段的计算逻辑必须保持一致，这个计算逻辑统一由聚合函数 f 定义</p>
+</li>
+<li><p><code>aggregateByKey</code>：需要提供一个初始值，一个 Map 端聚合函数 f1，以及一个 Reduce 端聚合函数 f2，初始值类型必须与 f2 的结果类型保持一致，f1 的形参类型，必须与 Paired RDD 的 Value 类型保持一致，f2 的形参类型，必须与 f1 的结果类型保持一致</p>
+</li>
+</ul>
+<img src="/2023/04/02/Spark-Rdd/03.png" class="">
+
+<ul>
+<li><code>sortByKey</code>：以 Key 为准对 RDD 做排序，默认升序排序</li>
+</ul>
+<h3 id="数据准备"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备</h3><p>在数据准备阶段，<code>union</code> 与 <code>sample</code> 用于对不同来源的数据进行合并与拆分</p>
+<ul>
+<li><p><code>union</code> 用于把两个类型一致、但来源不同的 RDD 进行合并，从而构成一个统一的、更大的分布式数据集；<code>union</code> 操作能够成立的前提，就是参与合并的两个 RDD 的类型必须完全一致</p>
+</li>
+<li><p><code>sample(withReplacement, fraction, seed)</code> 用于对 RDD 做随机采样，从而把一个较大的数据集变为一份小数据；<code>withReplacement</code> 的类型是 <code>Boolean</code>，表示采样是否有放回；<code>fraction</code> 类型是 <code>Double</code>，值域为 0 到 1，其含义是采样比例；<code>seed</code> 参数是可选的，它的类型是 <code>Long</code></p>
+</li>
+</ul>
+<h2 id="数据预处理"><a href="#数据预处理" class="headerlink" title="数据预处理"></a>数据预处理</h2><p>较为均衡的数据分布，对后面数据处理阶段提升 CPU 利用率更有帮助，可以整体提升执行效率</p>
+<p><code>coalesce</code> 与 <code>repartition</code> 的作用就是重新调整 RDD 数据分布</p>
+<p><code>repartition</code> 算子随意调整（提升或降低）RDD 的并行度，而 <code>coalesce</code> 算子则只能用于降低 RDD 并行度</p>
+<p>每个 RDD 的数据分区，都对应着一个分布式 Task，而每个 Task 都需要一个 CPU 线程去执行</p>
+<p>RDD 的并行度，很大程度上决定了分布式系统中 CPU 的使用效率，进而还会影响分布式系统并行计算的执行效率</p>
+<p>使用 <code>repartition</code> 调整 RDD 并行度会引入 Shuffle，而 <code>coalesce</code> 则不会</p>
+<p>给定 RDD，如果用 <code>repartition</code> 来调整其并行度，不论增加还是降低，对于 RDD 中的每一条数据记录，<code>repartition</code> 对它们的影响都是无差别的数据分发</p>
+<p><code>coalesce</code> 在降低并行度的计算中，它采取的思路是把同一个 Executor 内的不同数据分区进行合并，这样数据并不需要跨 Executors、跨节点进行分发，因而自然不会引入 Shuffle</p>
+<h2 id="数据收集"><a href="#数据收集" class="headerlink" title="数据收集"></a>数据收集</h2><p><code>take</code>、<code>first</code>、<code>collect</code> 把结果直接收集到 Driver 端</p>
+<p><code>saveAsTextFile</code> 将计算结果持久化到（分布式）文件系统</p>
+<ul>
+<li><p><code>first</code> 用于收集 RDD 数据集中的任意一条数据记录</p>
+</li>
+<li><p><code>take</code> 用于收集多条记录</p>
+</li>
+<li><p><code>collect</code> 收集全部数据到 Driver，但有两处性能隐患，一个是拉取数据过程中引入的网络开销，另一个 Driver 的 OOM</p>
+</li>
+<li><p><code>saveAsTextFile</code> 直接通过 Executors 将 RDD 数据分区物化到文件系统，这个过程并不涉及与 Driver 端的任何交互</p>
+</li>
+</ul>
 
       
     </div>
@@ -247,7 +328,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/LeetCode-127/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -265,7 +346,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/LeetCode-127/" class="post-title-link" itemprop="url">lc-127</a>
+          <a href="/2023/04/02/Spark-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/" class="post-title-link" itemprop="url">基础架构</a>
         </h2>
 
         <div class="post-meta-container">
@@ -276,14 +357,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-01 16:01:49" itemprop="dateCreated datePublished" datetime="2023-04-01T16:01:49+08:00">2023-04-01</time>
+      <time title="创建时间：2023-04-02 15:26:31" itemprop="dateCreated datePublished" datetime="2023-04-02T15:26:31+08:00">2023-04-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 21:27:06" itemprop="dateModified" datetime="2023-04-26T21:27:06+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -291,7 +372,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LeetCode/" itemprop="url" rel="index"><span itemprop="name">LeetCode</span></a>
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
         </span>
     </span>
 
@@ -305,8 +386,45 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>BFS + 双向 BFS</p>
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/word-ladder/">题目</a></p>
+          <p>Spark 应用程序由一个驱动器进程和一组执行器进程组成</p>
+<p>驱动进程运行 <code>main</code> 函数，是 Spark 应用程序的核心，负责：</p>
+<ul>
+<li><p>维护 Spark 应用程序的相关信息</p>
+</li>
+<li><p>回应用户的程序或输入</p>
+</li>
+<li><p>分析任务并分发给若干执行器进行处理</p>
+</li>
+</ul>
+<p>执行器负责执行驱动器分配的计算工作，负责：</p>
+<ul>
+<li><p>执行由驱动器分配的代码</p>
+</li>
+<li><p>将执行器的计算状态报告给驱动器</p>
+</li>
+</ul>
+<h2 id="SparkSession"><a href="#SparkSession" class="headerlink" title="SparkSession"></a>SparkSession</h2><p>每一个 Spark 程序都需要一个 <code>SparkSession</code> 来作为驱动器</p>
+<p>通过创建 <code>SparkSession</code> 来将用户命令和数据发送给 Spark</p>
+<h2 id="DataFrame"><a href="#DataFrame" class="headerlink" title="DataFrame"></a>DataFrame</h2><p><code>DataFrame</code> 是最常见的结构化 API，是包含行和列的数据表</p>
+<p>描述这些行和列的规则成为 <code>schema</code></p>
+<p><code>DataFrame</code> 是分布式的，存在于集群中</p>
+<h2 id="核心抽象"><a href="#核心抽象" class="headerlink" title="核心抽象"></a>核心抽象</h2><p><code>Dataset</code>、<code>DataFrame</code>、SQL 表和 <code>RDD</code> 都是分布式数据集合</p>
+<h2 id="数据分区"><a href="#数据分区" class="headerlink" title="数据分区"></a>数据分区</h2><p>为了让多个执行器并行处理数据，Spark 将数据分解成多个数据块，每个数据块是一个分区</p>
+<p>分区位于集群中的一台物理机上</p>
+<h2 id="转换操作"><a href="#转换操作" class="headerlink" title="转换操作"></a>转换操作</h2><p>Spark 的核心数据结构在计算过程中是保持不变的</p>
+<p>但可以为指定抽象的转换，转换操作是使用 Spark 表达业务逻辑的核心，在调用动作操作之前，Spark 不会真的执行转换操作</p>
+<p>有两类转换操作：</p>
+<ul>
+<li><p>窄依赖关系的转换操作：每个输入分区仅决定一个输出分区的转换，输入输出是一对一的映射关系</p>
+</li>
+<li><p>宽依赖关系的转换操作 shuffle：每个输入分区决定了多个输出分区，它会在整个集群中执行互相交互分区数据，输入输出是一对多的映射关系</p>
+</li>
+</ul>
+<p>如果是窄依赖转换，Spark 会自动执行流水线处理，全部操作在内存中执行</p>
+<p>如果是宽依赖转换，Spark 会将结果写入磁盘</p>
+<h2 id="惰性评估"><a href="#惰性评估" class="headerlink" title="惰性评估"></a>惰性评估</h2><p>当用户表达了一些对数据的操作时，Spark 不会立即修改数据，而是建立一个作用到原始数据的转换计划</p>
+<p>Spark 首先将这个计划编译为可以在集群中高效运行的流水线式的物理执行计划，等到最后时刻才开始执行代码</p>
+<h2 id="动作操作"><a href="#动作操作" class="headerlink" title="动作操作"></a>动作操作</h2><p>转换操作建立逻辑转换的计划，动作操作执行转换计划得到计算结果</p>
 
       
     </div>
@@ -333,7 +451,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/LeetCode-1278/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-%E8%BF%9B%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -351,7 +469,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/LeetCode-1278/" class="post-title-link" itemprop="url">lc-1278</a>
+          <a href="/2023/04/02/Spark-%E8%BF%9B%E7%A8%8B%E6%A8%A1%E5%9E%8B/" class="post-title-link" itemprop="url">进程模型</a>
         </h2>
 
         <div class="post-meta-container">
@@ -362,14 +480,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-01 16:01:49" itemprop="dateCreated datePublished" datetime="2023-04-01T16:01:49+08:00">2023-04-01</time>
+      <time title="创建时间：2023-04-02 15:24:30" itemprop="dateCreated datePublished" datetime="2023-04-02T15:24:30+08:00">2023-04-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 21:27:06" itemprop="dateModified" datetime="2023-04-26T21:27:06+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -377,7 +495,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LeetCode/" itemprop="url" rel="index"><span itemprop="name">LeetCode</span></a>
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
         </span>
     </span>
 
@@ -391,11 +509,27 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>DP</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">dp[i][j] : s[0 ~ i - 1] splite j group</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">dp[i][j] = min(dp[k][j - 1] + cast(k, i - 1)) j - 2 &lt; k &lt; i - 2</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+          <p>在 Spark 的应用开发中，任何一个应用程序的入口，都是带有 SparkSession 的 main 函数</p>
+<p>SparkSession 提供 Spark 运行时上下文的同时（如调度系统、存储系统、内存管理、RPC 通信），也可以为开发者提供创建、转换、计算分布式数据集（如 RDD）的开发 API</p>
+<p>在 Spark 分布式计算环境中，有且仅有一个 JVM 进程运行这样的 main 函数，这个特殊的 JVM 进程，在 Spark 中有个专门的术语，叫作 Driver</p>
+<p>Driver 最核心的作用在于，解析用户代码、构建计算流图，然后将计算流图转化为分布式任务，并把任务分发给集群中的执行进程交付运行</p>
+<p>Driver 的角色是拆解任务、派活儿，而真正干活儿是执行进程</p>
+<p>在 Spark 的分布式环境中，执行进程可以有一个或是多个，它们也有专门的术语，叫作 Executor</p>
+<img src="/2023/04/02/Spark-%E8%BF%9B%E7%A8%8B%E6%A8%A1%E5%9E%8B/01.png" class="">
 
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/palindrome-partitioning-iii/">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=kD6ShM6jr3g">分析</a></p>
+<p>分布式计算的核心是任务调度，而分布式任务的调度与执行，仰仗的是 Driver 与 Executors 之间的通力合作</p>
+<h2 id="Driver"><a href="#Driver" class="headerlink" title="Driver"></a>Driver</h2><p>在 Spark 的 Driver 进程中，DAGScheduler、TaskScheduler 和 SchedulerBackend 这三个对象通力合作，依次完成分布式任务调度的 3 个核心步骤：</p>
+<ol>
+<li><p>根据用户代码构建计算流图</p>
+</li>
+<li><p>根据计算流图拆解出分布式任务</p>
+</li>
+<li><p>将分布式任务分发到 Executors 中去</p>
+</li>
+</ol>
+<p>Driver 以 Shuffle 为边界创建、分发分布式任务</p>
+<h2 id="Executor"><a href="#Executor" class="headerlink" title="Executor"></a>Executor</h2><p>接收到任务之后，Executors 调用内部线程池，结合事先分配好的数据分片，并发地执行任务代码</p>
+<p>对于一个完整的 RDD，每个 Executors 负责处理这个 RDD 的一个数据分片子集</p>
 
       
     </div>
@@ -422,7 +556,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/LeetCode-128/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-DataFrame/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -440,7 +574,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/LeetCode-128/" class="post-title-link" itemprop="url">lc-128</a>
+          <a href="/2023/04/02/Spark-DataFrame/" class="post-title-link" itemprop="url">DataFrame</a>
         </h2>
 
         <div class="post-meta-container">
@@ -451,14 +585,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-01 16:01:49" itemprop="dateCreated datePublished" datetime="2023-04-01T16:01:49+08:00">2023-04-01</time>
+      <time title="创建时间：2023-04-02 15:23:13" itemprop="dateCreated datePublished" datetime="2023-04-02T15:23:13+08:00">2023-04-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 21:27:06" itemprop="dateModified" datetime="2023-04-26T21:27:06+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -466,7 +600,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LeetCode/" itemprop="url" rel="index"><span itemprop="name">LeetCode</span></a>
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
         </span>
     </span>
 
@@ -480,11 +614,17 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>哈希</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">建立哈希表 hash(key, len)，存储以 key 为端点得子序列长度，每次更新只需更细连续区间端点的值</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/longest-consecutive-sequence/">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=rc2QdQ7U78I">分析</a></p>
+          <p>RDD 中的 <code>map</code>、<code>mapPartitions</code>、<code>filter</code>、<code>flatMap</code> 算子都是高阶函数，都需要一个辅助函数 <code>f</code> 来作为形参，通过 <code>f</code> 来完成计算</p>
+<p>对于 Spark 来说，辅助函数 <code>f</code> 是透明的，Spark Core 只能把函数 <code>f</code> 以闭包的形式打发到 Executor，没办法做更多的优化</p>
+<p>DataFrame 与 RDD 一样，都是用来封装分布式数据集的</p>
+<p>DataFrame 是携带数据模式（Data Schema）的结构化数据，而 RDD 是不携带 Schema 的分布式数据集</p>
+<p>因为有了 Schema 提供明确的类型信息，Spark 才能有针对性地设计出更紧凑的数据结构，从而大幅度提升数据存储与访问效率</p>
+<p>DataFrame 算子的表达能力却很弱，它定义了一套 DSL（Domain Specific Language） 算子</p>
+<p>DataFrame 的算子大多数都是标量函数，它们的形参往往是结构化二维表的数据列</p>
+<h2 id="从-Driver-创建-DataFrame"><a href="#从-Driver-创建-DataFrame" class="headerlink" title="从 Driver 创建 DataFrame"></a>从 Driver 创建 DataFrame</h2><p>在 Driver 端，Spark 可以直接从数组、元组、映射等数据结构创建 DataFrame</p>
+<h3 id="createDataFrame-方法"><a href="#createDataFrame-方法" class="headerlink" title="createDataFrame 方法"></a>createDataFrame 方法</h3><p><code>createDataFrame</code> 方法有两个形参，第一个参数是 <code>RDD[Row]</code>，第二个参数是 <code>Schema</code></p>
+<h3 id="toDF-方法"><a href="#toDF-方法" class="headerlink" title="toDF 方法"></a>toDF 方法</h3><p>通过 <code>spark.implicits</code> 中的隐式方法，可以不需要创建 <code>Schema</code> 直接由 RDD 或 Seq 创建 DataFrame</p>
+<h2 id="从文件系统创建-DataFrame"><a href="#从文件系统创建-DataFrame" class="headerlink" title="从文件系统创建 DataFrame"></a>从文件系统创建 DataFrame</h2><p>使用 read API 创建 DataFrame，开发者只需要调用 SparkSession 的 read 方法，同时通过 <code>format</code>、<code>option</code> 和 <code>load</code> 提供文件格式、加载选项和文件路径</p>
 
       
     </div>
@@ -511,7 +651,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/LeetCode-1335/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -529,7 +669,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/LeetCode-1335/" class="post-title-link" itemprop="url">lc-1335</a>
+          <a href="/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" class="post-title-link" itemprop="url">内存管理</a>
         </h2>
 
         <div class="post-meta-container">
@@ -540,14 +680,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-01 16:01:49" itemprop="dateCreated datePublished" datetime="2023-04-01T16:01:49+08:00">2023-04-01</time>
+      <time title="创建时间：2023-04-02 15:21:17" itemprop="dateCreated datePublished" datetime="2023-04-02T15:21:17+08:00">2023-04-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 21:27:06" itemprop="dateModified" datetime="2023-04-26T21:27:06+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -555,7 +695,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LeetCode/" itemprop="url" rel="index"><span itemprop="name">LeetCode</span></a>
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
         </span>
     </span>
 
@@ -569,11 +709,201 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>DP</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">dp[i][j] : jd[0 ~ i + 1] splite j days</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">dp[i][j] = min(dp[k][j - 1] + max(jd[k ~ i - 1]))</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+          <p>相比其他大数据计算引擎，Spark 的优势和特点就是合理而充分地使用内存</p>
+<h2 id="内存区域划分"><a href="#内存区域划分" class="headerlink" title="内存区域划分"></a>内存区域划分</h2><p>对于任意一个 Executor 来说，Spark 会把内存分为 4 个区域，分别是 Reserved Memory、User Memory、Execution Memory 和 Storage Memory</p>
+<img src="/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/01.png" class="">
 
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/minimum-difficulty-of-a-job-schedule/">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=eRBpfoWujQM&t=223s">分析</a></p>
+<p>Reserved Memory 固定为 300MB，不受开发者控制，它是 Spark 预留的、用来存储各种 Spark 内部对象的内存区域</p>
+<p>User Memory 用于存储开发者自定义的数据结构，例如 RDD 算子中引用的数组、列表、映射等等</p>
+<p>Execution Memory 用来执行分布式任务，主要包括数据的转换、过滤、映射、排序、聚合、归并等环节的内存消耗</p>
+<p>Storage Memory 用于缓存分布式数据集，比如 RDD Cache、广播变量等等</p>
+<p>Spark 推出了统一内存管理模式，在这种模式下，Execution Memory 和 Storage Memory 之间可以相互转化</p>
+<h2 id="内存转换"><a href="#内存转换" class="headerlink" title="内存转换"></a>内存转换</h2><p>Execution Memory 和 Storage Memory 之间的转换规则，一共可以总结为 3 条：</p>
+<ul>
+<li><p>如果对方的内存空间有空闲，双方可以互相转换</p>
+</li>
+<li><p>对于 Storage Memory 转换的 Execution Memory 部分，当分布式任务有计算需要时，Storage Memory 必须立即归还内存，涉及的缓存数据要么落盘、要么清除</p>
+</li>
+<li><p>对于 Execution Memory 转换的 Storage Memory 部分，即便 Storage Memory 有收回内存的需要，也必须要等到分布式任务执行完毕才能释放</p>
+</li>
+</ul>
+<h2 id="内存配置项"><a href="#内存配置项" class="headerlink" title="内存配置项"></a>内存配置项</h2><p>Executor JVM Heap 的划分，由 3 个配置项来决定</p>
+<img src="/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/02.png" class="">
+
+<p>spark.executor.memory 是绝对值，它指定了 Executor 进程的 JVM Heap 总大小</p>
+<p>spark.memory.fraction 和 spark.memory.storageFraction 都是比例值，它们指定了划定不同区域的空间占比</p>
+<p>spark.memory.fraction 用于标记 Spark 处理分布式数据集的内存总大小，这部分内存包括 Execution Memory 和 Storage Memory 两部分</p>
+<p>spark.memory.storageFraction 则用来进一步区分 Execution Memory 和 Storage Memory 的初始大小</p>
+<h2 id="RDD-Cache"><a href="#RDD-Cache" class="headerlink" title="RDD Cache"></a>RDD Cache</h2><p>在 RDD 完成定义之后，在这个 RDD 之上依次调用 <code>cache</code> 和 <code>count</code> 即可，<code>cache</code> 算子告知 Spark 对 RDD 加缓存，<code>count</code> 算子将 RDD 缓存到内存</p>
+<p><code>cache</code> 函数实际上会进一步调用 <code>persist(MEMORY_ONLY)</code> 来完成计算</p>
+<p><code>persist</code> 算子具有更多的存储级别，允许开发者灵活地选择 Cache 的存储介质、存储形式以及副本数量</p>
+<img src="/2023/04/02/Spark-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/03.png" class="">
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Docker-Dockerfile/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/02/Docker-Dockerfile/" class="post-title-link" itemprop="url">Dockerfile</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-02 14:59:54" itemprop="dateCreated datePublished" datetime="2023-04-02T14:59:54+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-26 21:27:06" itemprop="dateModified" datetime="2023-04-26T21:27:06+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="构建镜像"><a href="#构建镜像" class="headerlink" title="构建镜像"></a>构建镜像</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">docker build [OPTIONS] &lt;上下文路径/URL/-&gt;</span><br><span class="line"><span class="comment"># OPTION说明：</span></span><br><span class="line"><span class="comment"># -f ：指定 Dockerfile 文件名字，默认为当前目录的 Dockerfile 文件；</span></span><br><span class="line"><span class="comment"># -m ：设置构建后内存使用最大值；</span></span><br><span class="line"><span class="comment"># --ulimit ：设置 ulimit；</span></span><br><span class="line"><span class="comment"># -t ：镜像名字和标签，通常使用 name:tag 或 name 格式；</span></span><br></pre></td></tr></table></figure>
+
+<p>当构建的时候，用户会指定构建镜像上下文的路径，<code>docker build</code>命令得知这个路径后，会将路径下的所有内容打包，然后上传给 Docker 引擎</p>
+<p><code>COPY</code> 这类指令中的源文件的路径都是相对路径，因为 docker 引擎无法获取超出上下文范围的文件</p>
+<p>如果目录下有些东西确实不希望构建时传给 Docker 引擎，那么可以用 .gitignore 一样的语法写一个 .dockerignore</p>
+<p><code>docker build</code> 还支持从 URL 构建，比如可以直接从 Git repo 中构建</p>
+<p>如果所给出的 URL 不是个 Git repo，而是个 tar 压缩包，那么 Docker 引擎会下载这个包，并自动解压缩，以其作为上下文，开始构建</p>
+<h2 id="FROM-指定基础镜像"><a href="#FROM-指定基础镜像" class="headerlink" title="FROM 指定基础镜像"></a>FROM 指定基础镜像</h2><p>定制镜像一定是以一个镜像为基础，在其上进行定制</p>
+<p><code>FROM</code> 就是指定基础镜像，因此一个 Dockerfile 中 <code>FROM</code> 是必备的指令，并且必须是第一条指令</p>
+<p>Docker 还存在一个特殊的镜像，名为 scratch，这个镜像是虚拟的概念，并不实际存在，它表示一个空白的镜像</p>
+<h2 id="RUN-执行命令"><a href="#RUN-执行命令" class="headerlink" title="RUN 执行命令"></a>RUN 执行命令</h2><p><code>RUN</code> 指令是用来执行命令行命令，格式有两种：</p>
+<ul>
+<li><p>shell 格式：<code>RUN &lt;命令&gt;</code>，就像直接在命令行中输入的命令一样，Dockerfile 支持 Shell 类的行尾添加 <code>\</code> 的命令换行方式，以及行首 <code>#</code> 进行注释的格式</p>
+</li>
+<li><p>exec 格式：<code>RUN [&quot;可执行文件&quot;, &quot;参数1&quot;, &quot;参数2&quot;]</code>，这更像是函数调用中的格式</p>
+</li>
+</ul>
+<p>每一个 <code>RUN</code> 的行为，就和手工建立镜像的过程一样：新建立一层，在其上执行这些命令，执行结束后，commit 这一层的修改，构成新的镜像</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">FROM debian:stretch</span><br><span class="line"></span><br><span class="line">RUN apt-get update</span><br><span class="line">RUN apt-get install -y gcc libc6-dev make wget</span><br><span class="line">RUN wget -O redis.tar.gz &quot;http://download.redis.io/releases/redis-5.0.3.tar.gz&quot;</span><br><span class="line">RUN mkdir -p /usr/src/redis</span><br><span class="line">RUN tar -xzf redis.tar.gz -C /usr/src/redis --strip-components=1</span><br><span class="line">RUN make -C /usr/src/redis</span><br><span class="line">RUN make -C /usr/src/redis install</span><br></pre></td></tr></table></figure>
+
+<p>上面的这种写法创建了 7 层镜像，很多运行时不需要的东西，都被装进了镜像里，比如编译环境、更新的软件包等等</p>
+<p>正确的写法应该是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">FROM debian:stretch</span><br><span class="line"></span><br><span class="line">RUN set -x; buildDeps=&#x27;gcc libc6-dev make wget&#x27; \</span><br><span class="line">    &amp;&amp; apt-get update \</span><br><span class="line">    &amp;&amp; apt-get install -y $buildDeps \</span><br><span class="line">    &amp;&amp; wget -O redis.tar.gz &quot;http://download.redis.io/releases/redis-5.0.3.tar.gz&quot; \</span><br><span class="line">    &amp;&amp; mkdir -p /usr/src/redis \</span><br><span class="line">    &amp;&amp; tar -xzf redis.tar.gz -C /usr/src/redis --strip-components=1 \</span><br><span class="line">    &amp;&amp; make -C /usr/src/redis \</span><br><span class="line">    &amp;&amp; make -C /usr/src/redis install \</span><br><span class="line">    &amp;&amp; rm -rf /var/lib/apt/lists/* \</span><br><span class="line">    &amp;&amp; rm redis.tar.gz \</span><br><span class="line">    &amp;&amp; rm -r /usr/src/redis \</span><br><span class="line">    &amp;&amp; apt-get purge -y --auto-remove $buildDeps</span><br></pre></td></tr></table></figure>
+
+<h2 id="COPY-复制文件"><a href="#COPY-复制文件" class="headerlink" title="COPY 复制文件"></a>COPY 复制文件</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">COPY [--<span class="built_in">chown</span>=&lt;user&gt;:&lt;group&gt;] [--from=&lt;阶段&gt;] &lt;源路径&gt;... &lt;目标路径&gt;</span><br><span class="line">COPY [--<span class="built_in">chown</span>=&lt;user&gt;:&lt;group&gt;] [--from=&lt;阶段&gt;] [<span class="string">&quot;&lt;源路径1&gt;&quot;</span>,... <span class="string">&quot;&lt;目标路径&gt;&quot;</span>]</span><br><span class="line"><span class="comment"># COPY 指令将从构建上下文目录中 &lt;源路径&gt; 的文件/目录复制到新的一层的镜像内的 &lt;目标路径&gt; 位置</span></span><br><span class="line"><span class="comment"># --from=&lt;阶段&gt;中的阶段是必须在 FROM 中定义的，它表示该 copy 操作是从镜像中某个阶段产生的结果中 copy，而不是从宿主机</span></span><br><span class="line"><span class="comment"># --chown=&lt;user&gt;:&lt;group&gt; 选项来改变文件的所属用户及所属组</span></span><br></pre></td></tr></table></figure>
+
+<p>源路径可以是多个，甚至可以是通配符，其通配符规则要满足 Go 的 <code>filepath.Match</code> 规则</p>
+<p>目标路径可以是容器内的绝对路径，也可以是相对于工作目录的相对路径（工作目录可以用 <code>WORKDIR</code> 指令来指定）</p>
+<p>如果源路径为文件夹，复制的时候不是直接复制该文件夹，而是将文件夹中的内容复制到目标路径</p>
+<h2 id="ADD-添加文件"><a href="#ADD-添加文件" class="headerlink" title="ADD 添加文件"></a>ADD 添加文件</h2><p><code>ADD</code> 命令与 <code>COPY</code> 命令基本一致，只是在 <code>COPY</code> 命令的基础上增加了两个功能：</p>
+<ol>
+<li><p>支持源文件是一个 URL，此时 docker 引擎会试图去下载这个文件放到目的路径中，下载后的文件权限自动设置为 600</p>
+</li>
+<li><p>支持自动解压，如果源文件是一个 tar，则会自动进行解压</p>
+</li>
+</ol>
+<h2 id="CMD-容器启动命令"><a href="#CMD-容器启动命令" class="headerlink" title="CMD 容器启动命令"></a>CMD 容器启动命令</h2><p>容器就是进程，那么在启动容器的时候，需要指定所运行的程序及参数</p>
+<p><code>CMD</code> 指令就是用于指定默认的容器主进程的启动命令的</p>
+<ul>
+<li><p>shell 格式：<code>CMD &lt;命令&gt;</code></p>
+</li>
+<li><p>exec 格式：<code>CMD [&quot;可执行文件&quot;, &quot;参数1&quot;, &quot;参数2&quot;...]</code></p>
+</li>
+</ul>
+<p>在运行时可以指定新的命令来替代镜像设置中的这个默认命令</p>
+<p>使用 shell 格式的话，实际的命令会被包装为 <code>sh -c</code> 的参数的形式进行执行</p>
+<p>在指令格式上，一般推荐使用 exec 格式，这类格式在解析时会被解析为 JSON 数组，因此一定要使用双引号 <code>&quot;</code>，而不要使用单引号</p>
+<h2 id="ENTRYPOINT-入口点"><a href="#ENTRYPOINT-入口点" class="headerlink" title="ENTRYPOINT 入口点"></a>ENTRYPOINT 入口点</h2><p><code>ENTRYPOINT</code> 的目的和 <code>CMD</code> 一样，都是在指定容器启动程序及参数</p>
+<p><code>ENTRYPOINT</code> 在运行时也可以替代，不过比 <code>CMD</code> 要略显繁琐，需要通过 <code>docker run</code> 的参数 <code>--entrypoint</code> 来指定</p>
+<p>当指定了 <code>ENTRYPOINT</code> 后，<code>CMD</code> 的含义就发生了改变，不再是直接的运行其命令，而是将 <code>CMD</code> 的内容作为参数传给 <code>ENTRYPOINT</code> 指令</p>
+<h2 id="ENV-设置环境变量"><a href="#ENV-设置环境变量" class="headerlink" title="ENV 设置环境变量"></a>ENV 设置环境变量</h2><ul>
+<li><p><code>ENV &lt;key&gt; &lt;value&gt;</code></p>
+</li>
+<li><p><code>ENV &lt;key1&gt;=&lt;value1&gt; &lt;key2&gt;=&lt;value2&gt;...</code></p>
+</li>
+</ul>
+<h2 id="ARG-构建参数"><a href="#ARG-构建参数" class="headerlink" title="ARG 构建参数"></a>ARG 构建参数</h2><p><code>ARG &lt;参数名&gt;[=&lt;默认值&gt;]</code></p>
+<p>构建参数和 <code>ENV</code> 的效果一样，都是设置环境变量</p>
+<p>所不同的是，<code>ARG</code> 所设置的构建环境的环境变量，在将来容器运行时是不会存在这些环境变量的</p>
+<p><code>ARG</code> 指令是定义参数名称，以及定义其默认值，该默认值可以在构建命令 <code>docker build</code> 中用 <code>--build-arg &lt;参数名&gt;=&lt;值&gt;</code> 来覆盖</p>
+<p><code>ARG</code> 指令有生效范围，如果在 <code>FROM</code> 指令之前指定，那么只能用于 <code>FROM</code> 指令前</p>
+<h2 id="VOLUME-定义匿名卷"><a href="#VOLUME-定义匿名卷" class="headerlink" title="VOLUME 定义匿名卷"></a>VOLUME 定义匿名卷</h2><ul>
+<li><p><code>VOLUME [&quot;&lt;路径1&gt;&quot;, &quot;&lt;路径2&gt;&quot;...]</code></p>
+</li>
+<li><p><code>VOLUME &lt;路径&gt;</code></p>
+</li>
+</ul>
+<p>容器运行时应该尽量保持容器存储层不发生写操作</p>
+<p>为了防止运行时用户忘记将动态文件所保存目录挂载为卷，在 Dockerfile 中，可以事先指定某些目录挂载为匿名卷，这样在运行时如果用户不指定挂载，其应用也可以正常运行，不会向容器存储层写入大量数据</p>
+<h2 id="EXPOSE-暴露端口"><a href="#EXPOSE-暴露端口" class="headerlink" title="EXPOSE 暴露端口"></a>EXPOSE 暴露端口</h2><p><code>EXPOSE &lt;端口1&gt; [&lt;端口2&gt;...]</code></p>
+<p><code>EXPOSE</code> 指令是声明容器运行时提供服务的端口，在容器运行时并不会因为这个声明应用就会开启这个端口的服务</p>
+<p>是帮助镜像使用者理解这个镜像服务的守护端口，以方便配置映射</p>
+<p>在运行时使用随机端口映射时，也就是 docker run -P 时，会自动随机映射 EXPOSE 的端口</p>
+<h2 id="WORKDIR-指定工作目录"><a href="#WORKDIR-指定工作目录" class="headerlink" title="WORKDIR 指定工作目录"></a>WORKDIR 指定工作目录</h2><p><code>WORKDIR &lt;工作目录路径&gt;</code> 指定工作目录，以后各层的当前目录就被改为指定的目录，如该目录不存在，<code>WORKDIR</code> 会帮你建立目录</p>
+<p>每一个 <code>RUN</code> 都是启动一个容器、执行命令、然后提交存储层文件变更，因此如果需要改变以后各层的工作目录的位置，那么应该使用 <code>WORKDIR</code> 指令</p>
+<p>如果 <code>WORKDIR</code> 指令使用的相对路径，那么所切换的路径与之前的 <code>WORKDIR</code> 有关</p>
+<h2 id="USER-指定当前用户"><a href="#USER-指定当前用户" class="headerlink" title="USER 指定当前用户"></a>USER 指定当前用户</h2><p><code>USER &lt;用户名&gt;[:&lt;用户组&gt;]</code></p>
+<p><code>USER</code> 指令和 <code>WORKDIR</code> 相似，都是改变环境状态并影响以后的层</p>
+<p><code>WORKDIR</code> 是改变工作目录，<code>USER</code> 则是改变之后层的执行 <code>RUN</code>, <code>CMD</code> 以及 <code>ENTRYPOINT</code> 这类命令的身份</p>
+<h2 id="ONBUILD"><a href="#ONBUILD" class="headerlink" title="ONBUILD"></a>ONBUILD</h2><p><code>ONBUILD &lt;其它指令&gt;</code></p>
+<p><code>ONBUILD</code> 是一个特殊的指令，它后面跟的是其它指令，比如 <code>RUN</code>, <code>COPY</code> 等在当前镜像构建时并不会被执行，只有当以当前镜像为基础镜像，去构建下一级镜像的时候才会被执行</p>
+<h2 id="LABEL-为镜像添加元数据"><a href="#LABEL-为镜像添加元数据" class="headerlink" title="LABEL 为镜像添加元数据"></a>LABEL 为镜像添加元数据</h2><p><code>LABEL</code> 指令用来给镜像以键值对的形式添加一些元数据</p>
+<p><code>LABEL &lt;key&gt;=&lt;value&gt; &lt;key&gt;=&lt;value&gt; &lt;key&gt;=&lt;value&gt; ...</code></p>
 
       
     </div>
@@ -600,7 +930,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/LeetCode-1349/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Docker-%E7%BD%91%E7%BB%9C/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -618,7 +948,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/LeetCode-1349/" class="post-title-link" itemprop="url">lc-1349</a>
+          <a href="/2023/04/02/Docker-%E7%BD%91%E7%BB%9C/" class="post-title-link" itemprop="url">Docker 网络</a>
         </h2>
 
         <div class="post-meta-container">
@@ -629,14 +959,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-01 16:01:49" itemprop="dateCreated datePublished" datetime="2023-04-01T16:01:49+08:00">2023-04-01</time>
+      <time title="创建时间：2023-04-02 14:58:29" itemprop="dateCreated datePublished" datetime="2023-04-02T14:58:29+08:00">2023-04-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 21:27:06" itemprop="dateModified" datetime="2023-04-26T21:27:06+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -644,7 +974,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LeetCode/" itemprop="url" rel="index"><span itemprop="name">LeetCode</span></a>
+          <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
         </span>
     </span>
 
@@ -658,11 +988,18 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>DP + 位运算</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">利用行状态做 DP</span></span><br><span class="line"><span class="comment">dp[i][s]：第 i 行状态为 s 时的最多人数</span></span><br><span class="line"><span class="comment">dp[i + 1][s] = max(dp[i][t] + row(i + 1, t))</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">取一个数的二进制子集</span></span><br><span class="line"><span class="comment">generate a subset of v</span></span><br><span class="line"><span class="comment">x = v</span></span><br><span class="line"><span class="comment">while x:</span></span><br><span class="line"><span class="comment">    x = (x - 1) &amp; v</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/maximum-students-taking-exam/">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=QJvCYx1eGxE">分析</a></p>
+          <p>docker 在安装时会默认创建三个网络，可以使用 <code>docker network ls</code> 可以查看</p>
+<p>docker 内部支持 4 种网络：</p>
+<ul>
+<li><p>bridge：桥接模式，它会为每一个容器分配、设置 IP，并把容器连接到 docker0 虚拟网桥，通过 docker0 网桥以及 iptables nat 表配置与宿主机通信；</p>
+</li>
+<li><p>host：容器和宿主机共享 Network namespace，也就是容器没有内部模式；</p>
+</li>
+<li><p>none：容器有独立的 Network namespace，但并没有对其进行任何网络设置，如分配 veth pair 和网桥连接、配置 IP 等；</p>
+</li>
+<li><p>container：容器和另外的容器共享 Network namespace，在 k8s 中的 pod 就是多个容器共享一个 Network namespace</p>
+</li>
+</ul>
 
       
     </div>
@@ -689,7 +1026,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/LeetCode-1416/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Docker-%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -707,7 +1044,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/LeetCode-1416/" class="post-title-link" itemprop="url">lc-1416</a>
+          <a href="/2023/04/02/Docker-%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7/" class="post-title-link" itemprop="url">Docker 命令行</a>
         </h2>
 
         <div class="post-meta-container">
@@ -718,14 +1055,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-01 16:01:49" itemprop="dateCreated datePublished" datetime="2023-04-01T16:01:49+08:00">2023-04-01</time>
+      <time title="创建时间：2023-04-02 14:56:50" itemprop="dateCreated datePublished" datetime="2023-04-02T14:56:50+08:00">2023-04-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 21:27:06" itemprop="dateModified" datetime="2023-04-26T21:27:06+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -733,7 +1070,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LeetCode/" itemprop="url" rel="index"><span itemprop="name">LeetCode</span></a>
+          <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
         </span>
     </span>
 
@@ -747,11 +1084,173 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>DP + 递归</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">递归形式：</span></span><br><span class="line"><span class="comment">int helper(string s) &#123;</span></span><br><span class="line"><span class="comment">    if(s.empty() == 0) return 1;</span></span><br><span class="line"><span class="comment">    if(s[0] == &#x27;0&#x27;) return 0;</span></span><br><span class="line"><span class="comment">    int ans = 0;</span></span><br><span class="line"><span class="comment">    for(int i = 1; i &lt; s.length(); ++i) &#123;</span></span><br><span class="line"><span class="comment">        int num = stoi(s.substr(0, i));</span></span><br><span class="line"><span class="comment">        if(num &gt; K) break;</span></span><br><span class="line"><span class="comment">        ans += (ans + helper(s.substr(i))) % kmod;</span></span><br><span class="line"><span class="comment">    &#125;</span></span><br><span class="line"><span class="comment">    return ans;</span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment">使用 hash 记忆化后仍超时</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">dp[i] : s[i ~ n] cnt</span></span><br><span class="line"><span class="comment">dp[i] = sum(dp[j]) j : i ~ n</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+          <h2 id="安装-docker"><a href="#安装-docker" class="headerlink" title="安装 docker"></a>安装 docker</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">yum install docker-ce docker-ce-cli containerd.io</span><br><span class="line"></span><br><span class="line"><span class="comment"># 开机启动</span></span><br><span class="line">systemctl <span class="built_in">enable</span> docker</span><br><span class="line"><span class="comment"># 启动</span></span><br><span class="line">systemctl start docker</span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试</span></span><br><span class="line">docker run --<span class="built_in">rm</span> hello-world</span><br></pre></td></tr></table></figure>
 
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/restore-the-array//">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=mdUTRI2FMtU">分析</a></p>
+<h2 id="使用国内源"><a href="#使用国内源" class="headerlink" title="使用国内源"></a>使用国内源</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看是否在 docker.service 文件中配置过镜像地址</span></span><br><span class="line">systemctl <span class="built_in">cat</span> docker | grep <span class="string">&#x27;\-\-registry\-mirror&#x27;</span></span><br><span class="line"><span class="comment"># 有配置镜像地址</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 没有配置镜像地址</span></span><br><span class="line"><span class="comment"># 在 /etc/docker/daemon.json 中写入</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;registry-mirrors&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;https://hub-mirror.c.163.com&quot;</span>,</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="卸载"><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 停止 docker 服务</span></span><br><span class="line">systemctl stop docker</span><br><span class="line"></span><br><span class="line"><span class="comment"># yum 移除 docker 相关组件</span></span><br><span class="line">yum remove docker-ce docker-ce-cli containerd.io</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除 lib 目录下的 docker 内容</span></span><br><span class="line"><span class="built_in">rm</span> -rf /var/lib/docker</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除 lib 目录下的 contain 内容</span></span><br><span class="line"><span class="built_in">rm</span> -rf /var/lib/containerd</span><br></pre></td></tr></table></figure>
+
+<h2 id="查看-docker-版本信息"><a href="#查看-docker-版本信息" class="headerlink" title="查看 docker 版本信息"></a>查看 docker 版本信息</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker version</span><br></pre></td></tr></table></figure>
+
+<h2 id="查看-docker-概要信息"><a href="#查看-docker-概要信息" class="headerlink" title="查看 docker 概要信息"></a>查看 docker 概要信息</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker info</span><br></pre></td></tr></table></figure>
+
+<h2 id="镜像命令"><a href="#镜像命令" class="headerlink" title="镜像命令"></a>镜像命令</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看所有本地主机上的镜像</span></span><br><span class="line">docker images [OPTIONS] [REPOSITORY[:TAG]]</span><br><span class="line"><span class="comment"># OPTION主要有两个：</span></span><br><span class="line"><span class="comment"># -a：显示所有的本地镜像（含历史映像层）</span></span><br><span class="line"><span class="comment"># -q：仅显示镜像ID</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查询</span></span><br><span class="line">docker search [OPTIONS] image-name</span><br><span class="line"><span class="comment">### 结果说明：</span></span><br><span class="line">NAME：镜像名称</span><br><span class="line">DESCRIPTION：镜像描述</span><br><span class="line">STARS：打星的数量</span><br><span class="line">OFFICIAL：是否官方，带有[OK]表示是官方镜像</span><br><span class="line">AUTOMATED：是否自动编译</span><br><span class="line"><span class="comment"># OPTION 主要使用一个</span></span><br><span class="line"><span class="comment"># --limit int : 限制显示多少个</span></span><br><span class="line"><span class="comment"># --stars=&#123;x&#125;：最少有x颗星</span></span><br><span class="line"><span class="comment"># --filter &lt;fitler&gt;：满足某种表达式条件，若有多个表达式，则使用多个--filter分割；</span></span><br><span class="line"><span class="comment"># 包含名称，自动构建，并且是&#123;x&#125;星以上，并且是官方版本：</span></span><br><span class="line">--filter <span class="string">&quot;stars=3&quot;</span> --filter <span class="string">&quot;is-automated=true&quot;</span>  --filter <span class="string">&quot;is-official=true&quot;</span> hello-world</span><br></pre></td></tr></table></figure>
+
+<h2 id="拉取镜像"><a href="#拉取镜像" class="headerlink" title="拉取镜像"></a>拉取镜像</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker pull [OPTIONS] NAME[:TAG|@DIGEST]</span><br><span class="line"><span class="comment"># tag 默认是 lasest</span></span><br><span class="line"><span class="comment"># name 是两段式名称，即 &lt;用户名&gt;/&lt;软件名&gt;</span></span><br><span class="line"><span class="comment"># 对于 Docker Hub，如果不给出用户名，则默认为 library，也就是官方镜像</span></span><br><span class="line"><span class="comment"># OPTION 说明：</span></span><br><span class="line"><span class="comment"># -a : 下载所有的tag版本的镜像</span></span><br><span class="line"><span class="comment"># --disable-content-trust ：跳过镜像校验</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="查看镜像-x2F-容器-x2F-数据卷等所占空间"><a href="#查看镜像-x2F-容器-x2F-数据卷等所占空间" class="headerlink" title="查看镜像&#x2F;容器&#x2F;数据卷等所占空间"></a>查看镜像&#x2F;容器&#x2F;数据卷等所占空间</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker system <span class="built_in">df</span></span><br><span class="line"><span class="comment">### 执行结果</span></span><br><span class="line">TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE</span><br><span class="line">Images          1         1         13.26kB   0B (0%)</span><br><span class="line">Containers      2         0         0B        0B</span><br><span class="line">Local Volumes   0         0         0B        0B</span><br><span class="line">Build Cache     0         0         0B        0B</span><br></pre></td></tr></table></figure>
+
+<h2 id="删除镜像"><a href="#删除镜像" class="headerlink" title="删除镜像"></a>删除镜像</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">docker rmi [OPTIONS] IMAGE [IMAGE...]</span><br><span class="line"><span class="comment"># OPTION参数说明</span></span><br><span class="line"><span class="comment"># -f ：强制删除某个镜像</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除所有镜像</span></span><br><span class="line">docker rmi -f $(docker images -qa)</span><br></pre></td></tr></table></figure>
+
+<h2 id="更新镜像"><a href="#更新镜像" class="headerlink" title="更新镜像"></a>更新镜像</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker commit [OPTIONS] CONTAINER [REPOSITORY[:TAG]]</span><br><span class="line"></span><br><span class="line"><span class="comment"># OPTIONS说明</span></span><br><span class="line"><span class="comment"># -a :提交的镜像作者</span></span><br><span class="line"><span class="comment"># -c :使用 Dockerfile 指令来创建镜像</span></span><br><span class="line"><span class="comment"># -m :提交时的说明文字</span></span><br><span class="line"><span class="comment"># -p :在 commit 时将容器暂停</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="设置标签"><a href="#设置标签" class="headerlink" title="设置标签"></a>设置标签</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker tag &lt;镜像ID&gt; &lt;仓库名&gt;:&lt;版本号&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="导出镜像"><a href="#导出镜像" class="headerlink" title="导出镜像"></a>导出镜像</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker save &lt;镜像ID&gt; &gt; &lt;镜像文件名&gt;.tar</span><br></pre></td></tr></table></figure>
+
+<h2 id="导入镜像"><a href="#导入镜像" class="headerlink" title="导入镜像"></a>导入镜像</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker load &lt; &lt;镜像文件名&gt;.tar</span><br></pre></td></tr></table></figure>
+
+<h2 id="启动容器"><a href="#启动容器" class="headerlink" title="启动容器"></a>启动容器</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">docker run [OPTIONS] IMAGE [COMMAND] [ARG...]</span><br><span class="line"></span><br><span class="line"><span class="comment"># option</span></span><br><span class="line">-a 登录后台运行的容器</span><br><span class="line">-d 指定容器运行于前台还是后台</span><br><span class="line">-c 设置容器CPU权重，在CPU共享场景使用</span><br><span class="line">-e, --<span class="built_in">env</span>=[] 指定环境变量，容器中可以使用该环境变量</span><br><span class="line">-h, --hostname=<span class="string">&quot;&quot;</span> 指定容器的主机名</span><br><span class="line">-i, --interactive=<span class="literal">false</span> 打开STDIN，用于控制台交互</span><br><span class="line">-t, --<span class="built_in">tty</span>=<span class="literal">false</span> 分配<span class="built_in">tty</span>设备，该可以支持终端登录</span><br><span class="line">-m, --memory=<span class="string">&quot;&quot;</span> 指定容器的内存上限</span><br><span class="line">-P, --publish-all=<span class="literal">false</span> 指定容器暴露的端口</span><br><span class="line">-p, --publish=[] 指定容器暴露的端口</span><br><span class="line">-u, --user=<span class="string">&quot;&quot;</span> 指定容器的用户</span><br><span class="line">-v, --volume=[] 给容器挂载存储卷，挂载到容器的某个目录</span><br><span class="line">-w, --workdir=<span class="string">&quot;&quot;</span> 指定容器的工作目录</span><br><span class="line">--name=<span class="string">&quot;&quot;</span> 指定容器名字，后续可以通过名字进行容器管理，links特性需要使用名字</span><br><span class="line">--cap-add=[] 添加权限，权限清单详见：http://linux.die.net/man/7/capabilities</span><br><span class="line">--cap-drop=[] 删除权限，权限清单详见：http://linux.die.net/man/7/capabilities</span><br><span class="line">--cidfile=<span class="string">&quot;&quot;</span> 运行容器后，在指定文件中写入容器PID值，一种典型的监控系统用法</span><br><span class="line">--cpuset=<span class="string">&quot;&quot;</span> 设置容器可以使用哪些CPU，此参数可以用来容器独占CPU</span><br><span class="line">--device=[] 添加主机设备给容器，相当于设备直通</span><br><span class="line">--dns=[] 指定容器的dns服务器</span><br><span class="line">--dns-search=[] 指定容器的dns搜索域名，写入到容器的/etc/resolv.conf文件</span><br><span class="line">--entrypoint=<span class="string">&quot;&quot;</span> 覆盖image的入口点</span><br><span class="line">--env-file=[] 指定环境变量文件，文件格式为每行一个环境变量</span><br><span class="line">--expose=[] 指定容器暴露的端口，即修改镜像的暴露端口</span><br><span class="line">--<span class="built_in">link</span>=[] 指定容器间的关联，使用其他容器的IP、<span class="built_in">env</span>等信息</span><br><span class="line">--lxc-conf=[] 指定容器的配置文件，只有在指定--exec-driver=lxc时使用</span><br><span class="line">--net=<span class="string">&quot;bridge&quot;</span> 容器网络设置</span><br><span class="line">--privileged=<span class="literal">false</span> 指定容器是否为特权容器，特权容器拥有所有的capabilities</span><br><span class="line">--restart=<span class="string">&quot;&quot;</span> 指定容器停止后的重启策略</span><br><span class="line">--<span class="built_in">rm</span>=<span class="literal">false</span> 指定容器停止后自动删除容器(不支持以docker run -d启动的容器)</span><br><span class="line">--sig-proxy=<span class="literal">true</span> 设置由代理接受并处理信号，但是SIGCHLD、SIGSTOP和SIGKILL不能被代理</span><br></pre></td></tr></table></figure>
+
+<h2 id="退出容器"><a href="#退出容器" class="headerlink" title="退出容器"></a>退出容器</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 直接退出，该退出会导致容器退出</span></span><br><span class="line"><span class="built_in">exit</span></span><br><span class="line"><span class="comment"># 后台退出，该退出仅仅是退出交互终端，不会导致容器退出</span></span><br><span class="line"><span class="comment"># 重新进入可使用：docker attach</span></span><br><span class="line">Ctrl + p + q</span><br></pre></td></tr></table></figure>
+
+<h2 id="重新进入容器"><a href="#重新进入容器" class="headerlink" title="重新进入容器"></a>重新进入容器</h2><p><code>docker attach</code> 进入容器正在执行的终端，不会启动新的进程</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 连接到正在运行中的容器</span></span><br><span class="line">docker attach [OPTIONS] CONTAINER</span><br><span class="line"><span class="comment"># --sig-proxy=false 来确保 CTRL-D 或 CTRL-C 不会关闭容器</span></span><br></pre></td></tr></table></figure>
+
+<p><code>docker exec</code> 进入容器后开启一个新的终端，可以在里面操作</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> -it container /bin/bash</span><br></pre></td></tr></table></figure>
+
+<h2 id="重启容器"><a href="#重启容器" class="headerlink" title="重启容器"></a>重启容器</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 重启容器</span></span><br><span class="line">docker restart [OPTIONS] CONTAINER [CONTAINER...]</span><br></pre></td></tr></table></figure>
+
+<h2 id="删除容器"><a href="#删除容器" class="headerlink" title="删除容器"></a>删除容器</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="built_in">rm</span> container</span><br><span class="line"><span class="comment"># 不能删除正在运行的容器，如果强制删除 rm -f</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除全部已停止的容器</span></span><br><span class="line">docker <span class="built_in">rm</span> $(docker ps -aq)</span><br><span class="line"><span class="comment"># 删除全部容器，不管是否已停止</span></span><br><span class="line">docker <span class="built_in">rm</span> -f $(docker ps -aq)</span><br><span class="line"><span class="comment"># 删除已经退出的容器</span></span><br><span class="line">docker <span class="built_in">rm</span> $(docker ps -a | grep Exited | awk -F <span class="string">&quot; &quot;</span> <span class="string">&#x27;&#123;print $1&#125;&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="查看容器"><a href="#查看容器" class="headerlink" title="查看容器"></a>查看容器</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">docker ps [OPTIONS]</span><br><span class="line"><span class="comment"># 常用参数说明：</span></span><br><span class="line"><span class="comment"># -a：所有容器（不加的话表示默认，仅显示活着的容器）</span></span><br><span class="line"><span class="comment"># -n：显示最近的几个，使用方式：docker ps -n &lt;x&gt;</span></span><br><span class="line"><span class="comment"># -l：显示最新的容器</span></span><br><span class="line"><span class="comment"># -q：只显示容器ID</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="启动容器-1"><a href="#启动容器-1" class="headerlink" title="启动容器"></a>启动容器</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#  启动一个或多个已经被停止的容器</span></span><br><span class="line">docker start [OPTIONS] CONTAINER [CONTAINER...]</span><br></pre></td></tr></table></figure>
+
+<h2 id="暂停容器"><a href="#暂停容器" class="headerlink" title="暂停容器"></a>暂停容器</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker stop [OPTIONS] CONTAINER [CONTAINER...]</span><br><span class="line"><span class="comment"># 常用参数说明</span></span><br><span class="line"><span class="comment"># -t : 停止之前等待多少秒，-t 10 表示10s后再停止</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="查看容器占用情况"><a href="#查看容器占用情况" class="headerlink" title="查看容器占用情况"></a>查看容器占用情况</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker stats [OPTIONS] [CONTAINER...]</span><br></pre></td></tr></table></figure>
+
+<h2 id="查看容器底层信息"><a href="#查看容器底层信息" class="headerlink" title="查看容器底层信息"></a>查看容器底层信息</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker inspect CONTAINER</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/02/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F/" class="post-title-link" itemprop="url">编码格式</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-02 14:52:29" itemprop="dateCreated datePublished" datetime="2023-04-02T14:52:29+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-26 21:27:06" itemprop="dateModified" datetime="2023-04-26T21:27:06+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">编码格式</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="ASCII"><a href="#ASCII" class="headerlink" title="ASCII"></a>ASCII</h2><p>码表中只有英文大小写字母、数字、美式标点符号等</p>
+<p>每个字符占用1个字节，所有字符映射的二进制都为正数，因此有128个字符映射关系</p>
+<h2 id="GB2312"><a href="#GB2312" class="headerlink" title="GB2312"></a>GB2312</h2><p>兼容 ASCII 码表，并加入了中文字符，码表中包含英文大小写字母、数字、美式标点符号占一个字节，中文占两个字节，中文映射的二进制都是负数，因此有 128× 128 &#x3D; 16384 个字符映射关系</p>
+<h2 id="GBK-x2F-GB18030："><a href="#GBK-x2F-GB18030：" class="headerlink" title="GBK&#x2F;GB18030："></a>GBK&#x2F;GB18030：</h2><p>兼容 GB2312 码表，英文大小写字母、数字、美式标点符号占一个字节，中文占两个字节，第一个字节为负数，第二个字节为正数和负数，因为有 128× 256 &#x3D; 32768 个字符映射关系</p>
+<h2 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h2><p>Unicode 仅仅只是一个字符集，规定了符合对应的二进制代码，至于这个二进制代码如何存储则没有任何规定</p>
+<p>Unicode 给每个字符提供了一个唯一的数字，唯一数字称为码点（code point），其范围介乎 <code>0x0</code> 至 <code>0x10FFFF</code> 之间</p>
+<p>码点有多种编码方式，称为 Unicode 转换格式，包括：</p>
+<ul>
+<li><p>UTF-8：8 位可变长度编码。它把一个码点映射至 1 至 4 个字节</p>
+</li>
+<li><p>UTF-16：16 位可变长度编码。它把一个码点映射至 1 至 2 个 16 位编码单元（即 2 至 4 个字节）</p>
+</li>
+<li><p>UTF-32：32 位固定长度编码。它直接把码点映射至单个 32 位编码单元（即 4 字节）</p>
+</li>
+</ul>
+<h3 id="UTF-8"><a href="#UTF-8" class="headerlink" title="UTF-8"></a>UTF-8</h3><p>使用 1 - 4 个字节表示一个字符，根据字符的不同变换长度，编码规则如下：</p>
+<ul>
+<li><p>对于单个字节的字符，第一位设为 0，后面的 7 位对应这个字符的 Unicode 码点。因此，对于英文中的 0 - 127 号字符，与 ASCII 码完全相同。这意味着 ASCII 码那个年代的文档用 UTF-8 编码打开完全没有问题</p>
+</li>
+<li><p>对于需要使用 N 个字节来表示的字符（N &gt; 1），第一个字节的前 N 位都设为 1，第 N + 1 位设为0，剩余的 N - 1 个字节的前两位都设位 10，剩下的二进制位则使用这个字符的 Unicode 码点来填充</p>
+</li>
+</ul>
+<p>UTF-8完全直接兼容ASCII码，而非不完全间接兼容</p>
+<h3 id="UTF-16"><a href="#UTF-16" class="headerlink" title="UTF-16"></a>UTF-16</h3><p>Unicode 的字符不是一次性定义的，而是分区定义</p>
+<p>目前，一共有 17 个平面，每个平面可以存放 65536 个字符</p>
+<p>UTF-16 编码规则：基本平面的字符占用 2 个字节，辅助平面的字符占用 4 个字节</p>
+<p>UTF-16 的编码长度要么是 2 个字节（<code>U+0000</code> 到 <code>U+FFFF</code>），要么是 4 个字节（<code>U+010000</code> 到 <code>U+10FFFF</code>）</p>
+<p>ASCII 字符经过 UTF-16 编码后得到的两个字节，高字节始终是 <code>0x00</code>，很多 C 语言的函数都将此字节视为字符串末尾从而导致无法正确解析文本</p>
+<h3 id="UTF-32"><a href="#UTF-32" class="headerlink" title="UTF-32"></a>UTF-32</h3><p>UTF-32 每个码点固定使用四个字节表示，字节内容一一对应码点</p>
+<h2 id="BOM"><a href="#BOM" class="headerlink" title="BOM"></a>BOM</h2><p>字节序就是字节之间的顺序，当传输或者存储时，如果数字超过 1 个字节，需要指定字节间的顺序</p>
+<p>字节序一般分为大端字节序或小端字节序</p>
+<p>UCS 规范建议我们在传输字节流前，先传输字符 <code>ZERO WIDTH NO-BREAK SPACE</code>，接收者收到 FEFF，就表明这个字节流是 Big-Endian 的，如果收到 FFFE ，就表明这个字节流是 Little-Endian 的</p>
+<p>字符 <code>ZERO WIDTH NO-BREAK SPACE</code> 就是 byte order mark，简称 BOM</p>
+<p>字节序问题仅存在于某种编码下计算机一次读取字符大小大于一个字节的时候</p>
+<p>因为 UTF-8 是单字节码元，所以是字节顺序无关的，它的字节顺序在所有系统中都是一样的，其码元序列与字节序列(字节流)相同，因此它实际上并不需要字节顺序标记 BOM</p>
 
       
     </div>
@@ -778,7 +1277,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/LeetCode-1425/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -796,7 +1295,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/LeetCode-1425/" class="post-title-link" itemprop="url">lc-1425</a>
+          <a href="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/" class="post-title-link" itemprop="url">排序算法</a>
         </h2>
 
         <div class="post-meta-container">
@@ -807,14 +1306,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-01 16:01:49" itemprop="dateCreated datePublished" datetime="2023-04-01T16:01:49+08:00">2023-04-01</time>
+      <time title="创建时间：2023-04-01 16:35:40" itemprop="dateCreated datePublished" datetime="2023-04-01T16:35:40+08:00">2023-04-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 21:27:06" itemprop="dateModified" datetime="2023-04-26T21:27:06+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -822,7 +1321,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LeetCode/" itemprop="url" rel="index"><span itemprop="name">LeetCode</span></a>
+          <a href="/categories/algorithm/" itemprop="url" rel="index"><span itemprop="name">algorithm</span></a>
         </span>
     </span>
 
@@ -836,185 +1335,177 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>DP + 滑动窗口 + BST + 单调队列</p>
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/constrained-subsequence-sum/">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=B5fa989qz4U&t=8s">分析</a></p>
+          <h2 id="一些概念"><a href="#一些概念" class="headerlink" title="一些概念"></a>一些概念</h2><ul>
+<li><p>排序算法的内存消耗：针对排序算法的空间复杂度，引入原地排序概念，即空间复杂度 O(1) 的排序算法</p>
+</li>
+<li><p>排序算法的稳定性：待排序的序列中存在值相等的元素，经过排序之后，相等元素之间原有的先后顺序不变</p>
+</li>
+<li><p>有序度、逆序度：对于包含n个数据的数组，有 n! 种排列方式；有序度：数组中具有有序关系的元素对的个数(逆序数)；我们把完全有序的数组称为满有序度</p>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 有序元素对：a[i] &lt;= a[j]  i &lt; j</span><br><span class="line">// 完全有序的数组：有序度 n * (n - 1) / 2</span><br><span class="line">// 逆序元素对：a[i] &gt; a[j]  i &lt; j</span><br><span class="line">// 逆序度 = 满有序度 - 有序度</span><br></pre></td></tr></table></figure>
+<p>排序的过程就是增加有序度，减少逆序度的过程，最后达到满有序度</p>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/10.png" class="">
 
-      
-    </div>
+<h2 id="冒泡排序"><a href="#冒泡排序" class="headerlink" title="冒泡排序"></a>冒泡排序</h2><p>冒泡排序只会操作相邻的两个数据；每次冒泡操作都会对相邻的两个元素进行比较，看是否满足大小关系要求，如果不满足就让它们交换；</p>
+<p>一次冒泡会让至少一个元素移动到它应该在的位置，重复 n 次，就完成了 n 个数据的排序工作</p>
+<p>当某次冒泡操作没有进行数据交互时，说明已经排序完成了，可以不再继续冒泡操作了</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">bubblesort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v)</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> size = v.<span class="built_in">size</span>();</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt; size; ++i) &#123;</span><br><span class="line">		<span class="type">bool</span> flag = <span class="literal">false</span>;</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; size - i; ++j) &#123;</span><br><span class="line">			<span class="keyword">if</span> (v[j] &gt; v[j + <span class="number">1</span>]) &#123;</span><br><span class="line">				<span class="built_in">swap</span>(v[j], v[j + <span class="number">1</span>]);</span><br><span class="line">				flag = <span class="literal">true</span>;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> (!flag) <span class="keyword">break</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    
-    
-    
+<ul>
+<li><p>冒泡排序只涉及相邻数据的交换操作，只需要常量级的临时空间，所以空间复杂度为 O(1)，故是原地排序</p>
+</li>
+<li><p>冒泡排序在相邻两个元素大小相等时不做交换，所以相同大小的数据在排序前后不会改变顺序，故冒泡排序是稳定的排序算法</p>
+</li>
+<li><p>时间复杂度：平均时间复杂度 O(n^2)；要排序的数据是反序，则需要进行 n 次冒泡操作，所以最坏复杂度 O(n^2)；要排序的数据已经有序，则只需要进行一次冒泡操作，所以最好复杂度 O(n)</p>
+</li>
+</ul>
+<h2 id="插入排序"><a href="#插入排序" class="headerlink" title="插入排序"></a>插入排序</h2><img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/01.jpg" class="">
 
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
+<p>我们将数组中的数据分为两个区间，已排序区间和未排序区间</p>
+<p>插入排序的核心思想是取未排序区间中的元素，在已排序区间中找到合适的插入位置将其插入，并保证已排序区间数据一直有序；重复这个过程，直到未排序区间中元素为空</p>
+<p>初始已排序区间只有一个元素</p>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/02.jpg" class="">
 
+<p>插入排序包含两种操作，元素的比较和元素的移动；对于一个给定的初始序列，移动操作的次数总是固定的，即逆序度</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">insertsort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v)</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> size = v.<span class="built_in">size</span>();</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt; size; ++i) &#123;</span><br><span class="line">		<span class="type">int</span> tmp = v[i];</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> j = i - <span class="number">1</span>; j &gt;= <span class="number">0</span>; --j) &#123;</span><br><span class="line">			<span class="keyword">if</span> (v[j + <span class="number">1</span>] &lt; v[j]) &#123;</span><br><span class="line">				<span class="built_in">swap</span>(v[j + <span class="number">1</span>], v[j]);</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> <span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<ul>
+<li><p>插入排序是原地排序</p>
+</li>
+<li><p>插入排序是稳定排序</p>
+</li>
+<li><p>复杂度：平均时间复杂度 O(n^2)；要排序的数据是反序，则最坏复杂度 O(n^2)；要排序的数据已经有序，则最好复杂度 O(n)</p>
+</li>
+</ul>
+<h2 id="选择排序"><a href="#选择排序" class="headerlink" title="选择排序"></a>选择排序</h2><p>选择排序也分已排序区间和未排序区间，但选择排序每次会从未排序区间中找到最小的元素，将其放到已排序区间的末尾;每次操作确定一个元素的正确位置</p>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/03.jpg" class="">
 
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">selectsort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v)</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> size = v.<span class="built_in">size</span>();</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; size; ++i) &#123;</span><br><span class="line">		<span class="type">int</span> pos = i;</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> j = i; j &lt; size; ++j) &#123;</span><br><span class="line">			<span class="keyword">if</span> (v[j] &lt; v[pos]) &#123;</span><br><span class="line">				pos = j;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">swap</span>(v[i], v[pos]);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    
+<ul>
+<li><p>选择排序是原地排序</p>
+</li>
+<li><p>选择排序是稳定排序</p>
+</li>
+<li><p>复杂度：平均时间复杂度 O(n^2)，最好最坏复杂度都是 O(n^2)</p>
+</li>
+</ul>
+<h2 id="归并排序"><a href="#归并排序" class="headerlink" title="归并排序"></a>归并排序</h2><p>核心思想就是分治，将一个大问题分解成小的子问题；使用递归来实现</p>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/04.jpg" class="">
 
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">merge</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v, <span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (end &lt;= start) <span class="keyword">return</span>;</span><br><span class="line">	<span class="type">int</span> mid = start + (end - start) / <span class="number">2</span>;</span><br><span class="line">	<span class="built_in">merge</span>(v, start, mid);</span><br><span class="line">	<span class="built_in">merge</span>(v, mid + <span class="number">1</span>, end);</span><br><span class="line">	<span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">tmp</span><span class="params">(end - start + <span class="number">1</span>)</span></span>;</span><br><span class="line">	<span class="type">int</span> i = start, j = mid + <span class="number">1</span>, k = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span> (k &lt; end - start + <span class="number">1</span>) &#123;</span><br><span class="line">		<span class="keyword">if</span>(i &lt; mid + <span class="number">1</span> &amp;&amp; j &lt; end + <span class="number">1</span>) &#123;</span><br><span class="line">			<span class="keyword">if</span> (v[i] &lt; v[j]) &#123;</span><br><span class="line">				tmp[k++] = v[i++];</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> &#123;</span><br><span class="line">				tmp[k++] = v[j++];</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (i &lt; mid + <span class="number">1</span>) &#123;</span><br><span class="line">			<span class="keyword">while</span> (i &lt; mid + <span class="number">1</span>) &#123;</span><br><span class="line">				tmp[k++] = v[i++];</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (j &lt; end + <span class="number">1</span>) &#123;</span><br><span class="line">			<span class="keyword">while</span> (j &lt; end + <span class="number">1</span>) &#123;</span><br><span class="line">				tmp[k++] = v[j++];</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> p = start; p &lt;= end; ++p) &#123;</span><br><span class="line">		v[p] = tmp[p - start];</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">mergesort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v)</span> </span>&#123;</span><br><span class="line">	<span class="built_in">merge</span>(v, <span class="number">0</span>, v.<span class="built_in">size</span>() - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<div class="post-block">
-  
-  
+<ul>
+<li><p>归并排序是稳定排序</p>
+</li>
+<li><p>时间复杂度：递归时，把一个问题分解成多个子问题，那时间复杂度等于多个子问题的时间复杂度加上将多个子问题合并的时间复杂度；归并排序最好、最坏和平均时间复杂度都是 O(nlogn)</p>
+</li>
+<li><p>空间复杂度：归并排序的合并函数需要借助额外的存储空间，空间复杂度为 O(n)</p>
+</li>
+</ul>
+<h2 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h2><p>如果要排序数组中下标从 p 到 r 之间的一组数据，我们选择中间任意一个数组作为 pivot（分区点）；遍历 p 到 r 之间的数据，将小于 pivot 的放左边，大于 pivot 的放右边，将 pivot 放中间</p>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/05.jpg" class="">
 
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/LeetCode-1438/">
+<p>原地分区过程：</p>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/06.jpg" class="">
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/07.jpg" class="">
 
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">partition</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v, <span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> pos = start;</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = start; i &lt; end; ++i) &#123;</span><br><span class="line">		<span class="keyword">if</span> (v[i] &lt; v[end]) &#123;</span><br><span class="line">			<span class="built_in">swap</span>(v[pos++], v[i]);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">swap</span>(v[pos], v[end]);</span><br><span class="line">	<span class="keyword">return</span> pos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">quicksort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v, <span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (end &lt;= start) <span class="keyword">return</span>;</span><br><span class="line">	<span class="type">int</span> p = <span class="built_in">partition</span>(v, start, end);</span><br><span class="line">	<span class="built_in">quicksort</span>(v, start, p - <span class="number">1</span>);</span><br><span class="line">	<span class="built_in">quicksort</span>(v, p + <span class="number">1</span>, end);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">quicksort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v)</span> </span>&#123;</span><br><span class="line">	<span class="built_in">quicksort</span>(v, <span class="number">0</span>, v.<span class="built_in">size</span>() - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/LeetCode-1438/" class="post-title-link" itemprop="url">lc-1438</a>
-        </h2>
+<ul>
+<li><p>快排原地不稳定排序</p>
+</li>
+<li><p>空间复杂度 O(1)</p>
+</li>
+<li><p>当 pivot 选择合适，每次将区间分为大小相近的两个小区间，则快排最好时间复杂度是 O(nlogn)；当 pivot 选择不合适，每次分区得到的两个区间都不均等，需要进行 n 次分区操作，则最坏时间复杂度 O(n^2)，快排时间复杂度退化到 O(n^2)的概率非常小，可以通过合理的选择 pivot 来避免这种情况；平均时间复杂度是 O(nlogn)</p>
+</li>
+</ul>
+<p>这种 O(n^2) 时间复杂度出现的主要原因还是因为我们分区点选得不够合理，最理想的分区点是：被分区点分开的两个分区中，数据的数量差不多。改进方法：</p>
+<ol>
+<li><p>从区间的首、尾、中间，分别取出一个数，然后对比大小，取这 3 个数的中间值作为分区点。但是，如果要排序的数组比较大，那三数取中可能就不够了，可能要五数取中或者十数取中</p>
+</li>
+<li><p>每次从要排序的区间中随机选择一个元素作为分区点。这种方法并不能保证每次分区点都选的比较好，但是从概率的角度来看，也不大可能会出现每次分区点都选得很差的情况，所以平均情况下，这样选的分区点是比较好的</p>
+</li>
+</ol>
+<h2 id="堆排序"><a href="#堆排序" class="headerlink" title="堆排序"></a>堆排序</h2><p>堆排序时间复杂度非常稳定，是 O(nlogn)，并且还是原地排序算法</p>
+<p>堆排序的过程大致分解成两个大的步骤，建堆和排序</p>
+<h3 id="建堆"><a href="#建堆" class="headerlink" title="建堆"></a>建堆</h3><p>将数组原地建成一个堆，不借助另一个数组，在原数组上操作</p>
+<ul>
+<li><p>第一种方法：借助堆插入思路，假设堆中只包含一个数据，就是下标为 1 的数据；然后调用插入操作，将下标从 2 到 n 的数据依次插入到堆中；每个数据插入堆中，都是从下往上堆化</p>
+</li>
+<li><p>第二种方法：从后往前处理数组，每个数据都是从上往下堆化；因为叶子节点往下堆化只能跟自己比较，所以从第一个非叶子节点开始，即下标从 n&#x2F;2 开始到 1 的数据进行堆化，下标 n&#x2F;2+1 到 n 的节点都是叶子节点，不需要堆化；</p>
+</li>
+</ul>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/11.jpg" class="">
 
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/12.jpg" class="">
 
-      <time title="创建时间：2023-04-01 16:01:49" itemprop="dateCreated datePublished" datetime="2023-04-01T16:01:49+08:00">2023-04-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LeetCode/" itemprop="url" rel="index"><span itemprop="name">LeetCode</span></a>
-        </span>
-    </span>
+<h3 id="排序"><a href="#排序" class="headerlink" title="排序"></a>排序</h3><p>建堆结束之后，数组中的数据已经按照大顶堆的特性组织的；把数组中第一个元素跟最后一个元素交换，最大元素就放到了下标为 n 的位置，类似于删除堆顶元素操作；堆顶元素移除后把下标为 n 的元素放到堆顶，然后再堆化，以此类推完成排序</p>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/13.jpg" class="">
 
-  
-</div>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">buildsort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v, <span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">	<span class="comment">// 1 从下往上</span></span><br><span class="line">	<span class="comment">//for (int i = 1; i &lt; n; ++i) &#123;</span></span><br><span class="line">	<span class="comment">//	int j = i;</span></span><br><span class="line">	<span class="comment">//	while (j &gt; 0) &#123;</span></span><br><span class="line">	<span class="comment">//		int p = (j - 1) / 2;</span></span><br><span class="line">	<span class="comment">//		if (v[p] &lt; v[j]) &#123;</span></span><br><span class="line">	<span class="comment">//			swap(v[p], v[j]);</span></span><br><span class="line">	<span class="comment">//			j = p;</span></span><br><span class="line">	<span class="comment">//		&#125;</span></span><br><span class="line">	<span class="comment">//		else break;</span></span><br><span class="line">	<span class="comment">//	&#125;</span></span><br><span class="line">	<span class="comment">//&#125;</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 2 从上往下</span></span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = n / <span class="number">2</span> - <span class="number">1</span>; i &gt;= <span class="number">0</span>; --i) &#123;</span><br><span class="line">		<span class="type">int</span> j = i;</span><br><span class="line">		<span class="keyword">while</span> (j &lt; n / <span class="number">2</span>) &#123;</span><br><span class="line">			<span class="type">int</span> l = <span class="number">2</span> * j + <span class="number">1</span>, r = <span class="number">2</span> * j + <span class="number">2</span>;</span><br><span class="line">			<span class="keyword">if</span> (r &lt; n) &#123;</span><br><span class="line">				<span class="type">int</span> tmp;</span><br><span class="line">				<span class="keyword">if</span> (v[l] &lt; v[r]) tmp = r;</span><br><span class="line">				<span class="keyword">else</span> tmp = l;</span><br><span class="line">				<span class="keyword">if</span> (v[j] &lt; v[tmp]) &#123;</span><br><span class="line">					<span class="built_in">swap</span>(v[j], v[tmp]);</span><br><span class="line">					j = tmp;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">else</span> <span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> <span class="keyword">if</span> (l &lt; n) &#123;</span><br><span class="line">				<span class="keyword">if</span> (v[j] &lt; v[l]) &#123;</span><br><span class="line">					<span class="built_in">swap</span>(v[j], v[l]);</span><br><span class="line">					j = l;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">else</span> <span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">heapsort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v)</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> size = v.<span class="built_in">size</span>();</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; size; ++i) &#123;</span><br><span class="line">		<span class="built_in">buildsort</span>(v, v.<span class="built_in">size</span>() - i);</span><br><span class="line">		<span class="built_in">swap</span>(v[size - <span class="number">1</span> - i], v[<span class="number">0</span>]);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-        </div>
-      </header>
+<h3 id="与快排比较"><a href="#与快排比较" class="headerlink" title="与快排比较"></a>与快排比较</h3><ol>
+<li><p>堆排序数据访问方式没有快排友好：堆排跳着访问数据，快排顺序访问数据，对CPU缓存不友好</p>
+</li>
+<li><p>对于同样的数据，在排序过程中，堆排数据交换次数多于快排</p>
+</li>
+</ol>
+<h3 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h3><ul>
+<li>优先级队列</li>
+</ul>
+<p>优先级队列首先是一个队列，但出队的顺序不是先进先出，而是按照优先级，优先级最高的最先出队</p>
+<p>一个堆可以看做一个优先级队列，往优先级队列中插入元素相当于往堆中插入一个元素，从优先级队列中取出有优先级最高的元素相当于取出堆顶元素</p>
+<ul>
+<li><p>求Top K</p>
+</li>
+<li><p>求中位数</p>
+</li>
+</ul>
+<h2 id="桶排序"><a href="#桶排序" class="headerlink" title="桶排序"></a>桶排序</h2><p>核心思想是将要排序的数据分到几个有序的桶里，每个桶里的数据在单独进行排序；桶内排完序之后再把每个桶里的数据按照顺序依次去除，组成的序列就是有序的了</p>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/08.jpg" class="">
 
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>滑动窗口 + 单调队列 + BST</p>
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit/">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=p8-f0_CwWLk&t=687s">分析</a></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/LeetCode-1441/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/LeetCode-1441/" class="post-title-link" itemprop="url">lc-1441</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-01 16:01:49" itemprop="dateCreated datePublished" datetime="2023-04-01T16:01:49+08:00">2023-04-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LeetCode/" itemprop="url" rel="index"><span itemprop="name">LeetCode</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>DP</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">利用行的状态做 DP</span></span><br><span class="line"><span class="comment">一行格子涂装总共有 27 中方式</span></span><br><span class="line"><span class="comment">dp[i][p] 表示第 i 行用 p 这种方式涂装的次数</span></span><br><span class="line"><span class="comment">dp[i + 1][q] = sum(dp[i][p]) 其中 q 与 p 不冲突</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/number-of-ways-to-paint-n-3-grid/">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=LwD9UIDIvHE">分析</a></p>
+<ul>
+<li><p>在每个桶里进行快速排序</p>
+</li>
+<li><p>桶排序的时间复杂度接近 O(n)</p>
+</li>
+<li><p>桶排序对排序数据的要求非常苛刻：要排序的数据需要很容易地划分成 m 个桶，并且桶与桶之间有着天然的大小顺序，这样每个桶内的数据排序完后桶与桶之间的数据不需要再进行排序；数据在各个桶之间的分布是比较均匀的，在低端情况下会退化为 O(nlogn) 的排序</p>
+</li>
+<li><p>桶排序比较适合用于外部排序中，即数据存储在外部磁盘中，数据量比较大，内存有限，无法将数据全部加载到内存中</p>
+</li>
+</ul>
+<h2 id="计数排序"><a href="#计数排序" class="headerlink" title="计数排序"></a>计数排序</h2><ul>
+<li><p>当要排序 n 个数据，所处的范围并不大的时候，比如最大值为 k，我们就可以把数据划分 k 个桶，每个桶内的数据值都是相同的，省掉了桶内排序的时间</p>
+</li>
+<li><p>因为只涉及扫描遍历操作，所有时间复杂度是 O(n)</p>
+</li>
+<li><p>计数排序只能对非负整数排序；如果要排序的数据是其他类型的，要将其在不改变相对大小的情况下，转化为非负整数</p>
+</li>
+</ul>
+<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/09.jpg" class="">
+<h2 id="基数排序"><a href="#基数排序" class="headerlink" title="基数排序"></a>基数排序</h2><p>基数排序对要排序的数据是有要求的，需要能分割出独立的位来比较，而且位之间有递进关系，如果高位的数据大则剩下地位则不需要比较；而且，每位的数据范围不能大，能采用线性排序算法来排序</p>
+<h2 id="排序优化"><a href="#排序优化" class="headerlink" title="排序优化"></a>排序优化</h2><p>线性排序算法的时间复杂度底但适用场景比较特殊，不适合用于通用的排序算法；</p>
+<p>如果对小规模数据进行排序，可以选择时间复杂度是 O(n^2) 的算法；但如果对大规模数据进行排序，时间复杂度为 O(nlogn) 的算法更加高效；所以一般首选时间复杂度为 O(nlogn) 的排序算法来实现排序函数</p>
+<p>因为归并排序的控件复杂度为 O(n^2)，不是原地排序，所以一般采用快速排序算法</p>
+<h3 id="优化快速排序"><a href="#优化快速排序" class="headerlink" title="优化快速排序"></a>优化快速排序</h3><p>快速排序在最坏情况下的时间复杂度为 O(n^2)，这种情况的出现原因主要是因为分区点的选择不够合理</p>
+<p>最理想的分区点是：被区分点分开的两个分区中，数据的数据量差不多；为了提高地让每次分区都比较平均</p>
+<ol>
+<li><p>三数取中法，从区间的首、尾、中间分别取数，对比大小后取 3 个数的中间值作为分区点</p>
+</li>
+<li><p>随机法</p>
+</li>
+</ol>
+<p>每次从要排序的区间中，随机选择一个元素作为分区点；虽然不能保证每次分区点都选的比较好，但是从概率的角度，平均情况下分区点事比较好的</p>
+<h3 id="递归注意事项"><a href="#递归注意事项" class="headerlink" title="递归注意事项"></a>递归注意事项</h3><p>递归要警惕堆栈溢出，递归过深而堆栈过小，导致堆栈溢出</p>
+<ol>
+<li><p>限制递归深度</p>
+</li>
+<li><p>在堆上模拟实现一个函数调用栈，手动模拟递归压栈、出栈的过程</p>
+</li>
+</ol>
 
       
     </div>
@@ -1034,7 +1525,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/18/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/26/">26</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/20/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/18/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/28/">28</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/20/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="epoll 比 select 和 poll 更加灵活而且没有描述符数量限制 epoll 对多线程编程更有友好，一个线程调用了 epoll_wait()，另一个线程关闭了同一个描述符也不会产生像 select() 和 poll() 的不确定情况 epoll() 分清了频繁调用和不频繁调用的操作，epoll_wait() 是非常频繁调用的，而 epoll_ctl() 是不太频繁调用的，不会随着并发连接">
+<meta property="og:type" content="article">
+<meta property="og:title" content="epoll">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-epoll/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="epoll 比 select 和 poll 更加灵活而且没有描述符数量限制 epoll 对多线程编程更有友好，一个线程调用了 epoll_wait()，另一个线程关闭了同一个描述符也不会产生像 select() 和 poll() 的不确定情况 epoll() 分清了频繁调用和不频繁调用的操作，epoll_wait() 是非常频繁调用的，而 epoll_ctl() 是不太频繁调用的，不会随着并发连接">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-26T12:48:54.000Z">
+<meta property="article:modified_time" content="2023-04-26T13:27:06.384Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="网络编程">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-epoll/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-epoll/","path":"2023/04/26/网络编程-api-epoll/","title":"epoll"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>epoll | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F"><span class="nav-text">工作模式</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">273</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-epoll/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="epoll | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          epoll
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-26 20:48:54 / 修改时间：21:27:06" itemprop="dateCreated datePublished" datetime="2023-04-26T20:48:54+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><code>epoll</code> 比 <code>select</code> 和 <code>poll</code> 更加灵活而且没有描述符数量限制</p>
+<p><code>epoll</code> 对多线程编程更有友好，一个线程调用了 <code>epoll_wait()</code>，另一个线程关闭了同一个描述符也不会产生像 <code>select()</code> 和 <code>poll()</code> 的不确定情况</p>
+<p><code>epoll()</code> 分清了频繁调用和不频繁调用的操作，<code>epoll_wait()</code> 是非常频繁调用的，而 <code>epoll_ctl()</code> 是不太频繁调用的，不会随着并发连接的增加使得入参越发多起来，导致内核执行效率下降。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/epoll.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 创造 epoll fd</span></span><br><span class="line"><span class="comment">// size 大于 0 即可</span></span><br><span class="line"><span class="comment">// 失败返回 -1</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">epoll_create</span><span class="params">(<span class="type">int</span> size)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注册监听事件</span></span><br><span class="line"><span class="comment">// op 表示对 fd 操作类型</span></span><br><span class="line"><span class="comment">// EPOLL_CTL_ADD（注册新的 fd 到 epfd 中）</span></span><br><span class="line"><span class="comment">// EPOLL_CTL_MOD（修改已注册的 fd 的监听事件）</span></span><br><span class="line"><span class="comment">// EPOLL_CTL_DEL（从 epfd 中删除一个 fd）</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">epoll_ctl</span><span class="params">(<span class="type">int</span> epfd, <span class="type">int</span> op, <span class="type">int</span> fd, <span class="keyword">struct</span> epoll_event *event)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 等待事件的就绪，成功时返回就绪的事件数目，调用失败时返回 -1，等待超时返回 0</span></span><br><span class="line"><span class="comment">// events 用来从内核得到就绪事件的集合</span></span><br><span class="line"><span class="comment">// maxevents 告诉内核这个 events 有多大</span></span><br><span class="line"><span class="comment">// timeout 表示等待时的超时时间，以毫秒为单位</span></span><br><span class="line"><span class="comment">// 返回值是有事件发生的 fd 数目</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">epoll_wait</span><span class="params">(<span class="type">int</span> epfd, <span class="keyword">struct</span> epoll_event * events, <span class="type">int</span> maxevents, <span class="type">int</span> timeout)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">epoll_events</span> &#123;</span><br><span class="line">    <span class="type">__uint32_t</span> events;  <span class="comment">// epoll event</span></span><br><span class="line">    <span class="type">epoll_data_t</span> data;  <span class="comment">// user data variable</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">union</span> <span class="title class_">epoll_data_t</span> &#123;</span><br><span class="line">    <span class="type">void</span> ptr;</span><br><span class="line">    <span class="type">int</span> fd;</span><br><span class="line">    <span class="type">__uint32_t</span> u32;</span><br><span class="line">    <span class="type">__uint64_t</span> u64;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">epoll_event 被用于注册所感兴趣的事件和回传所发生待处理的事件，其中 epoll_data 联合体用来保存触发事件的某个文件描述符相关的数据</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">events 字段是表示感兴趣的事件和被触发的事件可能的取值为：</span></span><br><span class="line"><span class="comment">EPOLLIN ：表示对应的文件描述符可以读；</span></span><br><span class="line"><span class="comment">EPOLLOUT：表示对应的文件描述符可以写；</span></span><br><span class="line"><span class="comment">EPOLLPRI：表示对应的文件描述符有紧急的数据可读</span></span><br><span class="line"><span class="comment">EPOLLERR：表示对应的文件描述符发生错误；</span></span><br><span class="line"><span class="comment">EPOLLHUP：表示对应的文件描述符被挂断；</span></span><br><span class="line"><span class="comment">EPOLLET：表示对应的文件描述符设定为edge模式；</span></span><br><span class="line"><span class="comment">EPOLLONESHOT：最多触发其上注册的一个可读、可写、或者异常事件，且只触发一次，使一个 socket 连接任何时刻都只被一个线程所处理，注册了 EPOLLONESHOT 事件的 socket 一旦被某个线程处理完毕，该线程就应该立即重置这个 socket 上的 EPOLLONESHOT 事件，以确保这个 socket 下一次可读</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">EPOLLET 通过与其他事件取或运算，使该事件成为边缘触发模式</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Create the epoll descriptor. Only one is needed per app, and is used to monitor all sockets.</span></span><br><span class="line"><span class="comment">// The function argument is ignored (it was not before, but now it is), so put your favorite number here</span></span><br><span class="line"><span class="type">int</span> pollingfd = <span class="built_in">epoll_create</span>( <span class="number">0xCAFE</span> );</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> ( pollingfd &lt; <span class="number">0</span> )</span><br><span class="line"><span class="comment">// report error</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Initialize the epoll structure in case more members are added in future</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">epoll_event</span> ev = &#123; <span class="number">0</span> &#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Associate the connection class instance with the event. You can associate anything</span></span><br><span class="line"><span class="comment">// you want, epoll does not use this information. We store a connection class pointer, pConnection1</span></span><br><span class="line">ev.data.ptr = pConnection1;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Monitor for input, and do not automatically rearm the descriptor after the event</span></span><br><span class="line">ev.events = EPOLLIN | EPOLLONESHOT;</span><br><span class="line"><span class="comment">// Add the descriptor into the monitoring list. We can do it even if another thread is</span></span><br><span class="line"><span class="comment">// waiting in epoll_wait - the descriptor will be properly added</span></span><br><span class="line"><span class="keyword">if</span> ( <span class="built_in">epoll_ctl</span>( epollfd, EPOLL_CTL_ADD, pConnection1-&gt;<span class="built_in">getSocket</span>(), &amp;ev ) != <span class="number">0</span> )</span><br><span class="line"><span class="comment">// report error</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Wait for up to 20 events (assuming we have added maybe 200 sockets before that it may happen)</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">epoll_event</span> pevents[ <span class="number">20</span> ];</span><br><span class="line"></span><br><span class="line"><span class="comment">// Wait for 10 seconds, and retrieve less than 20 epoll_event and store them into epoll_event array</span></span><br><span class="line"><span class="type">int</span> ret = <span class="built_in">epoll_wait</span>( pollingfd, pevents, <span class="number">20</span>, <span class="number">10000</span> );</span><br><span class="line"><span class="comment">// Check if epoll actually succeed</span></span><br><span class="line"><span class="keyword">if</span> ( ret == <span class="number">-1</span> )</span><br><span class="line"><span class="comment">// report error and abort</span></span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> ( ret == <span class="number">0</span> )</span><br><span class="line"><span class="comment">// timeout; no event detected</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Check if any events detected</span></span><br><span class="line">    <span class="keyword">for</span> ( <span class="type">int</span> i = <span class="number">0</span>; i &lt; ret; i++ )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> ( pevents[i].events &amp; EPOLLIN )</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">// Get back our connection pointer</span></span><br><span class="line">            Connection * c = (Connection*) pevents[i].data.ptr;</span><br><span class="line">            c-&gt;<span class="built_in">handleReadEvent</span>();</span><br><span class="line">         &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>一般在 fd 数量比较多，但某段时间内就绪事件 fd 数量较少的情况下，<code>epoll_wait</code> 才会体现出它的优势，也就是说 socket 连接数量较大时而活跃连接较少时 epoll 模型更高效。</p>
+<p><code>epoll_ctl()</code> 用于向内核注册新的描述符或者是改变某个文件描述符的状态。已注册的描述符在内核中会被维护在一棵红黑树上，通过回调函数内核会将 I&#x2F;O 准备好的描述符加入到一个链表中管理，进程调用 <code>epoll_wait()</code> 便可以得到事件完成的描述符</p>
+<p><code>epoll</code> 使用 <code>mmap</code> 减少复制开销，内核可以直接看到 <code>epoll</code> 监听的句柄，效率高</p>
+<p><code>epoll</code> 将用户关系的文件描述符的事件存放到内核的一个事件表中，因此只需要将描述符从进程缓冲区向内核缓冲区拷贝一次，并且进程不需要通过轮询来获得事件完成的描述符</p>
+<p>要在内核中长久的维护一个数据结构来存放文件描述符，并且时常会有插入、查找和删除的操作发生，会对内核产生不小的影响，因此需要一种插入、查找和删除效率都不错的数据结构来存放这些文件描述符，因此选择红黑树存储文件描述符</p>
+<p>在红黑树中排序的根据是 epoll_filefd 的地址大小</p>
+<h2 id="工作模式"><a href="#工作模式" class="headerlink" title="工作模式"></a>工作模式</h2><p>epoll 的描述符事件有两种触发模式：LT（level trigger）和 ET（edge trigger）</p>
+<ul>
+<li><p>LT：默认的一种模式，当 <code>epoll_wait()</code> 检测到描述符事件到达时，将此事件通知进程，进程可以不立即处理该事件，下次调用 <code>epoll_wait()</code> 会再次通知进程；支持阻塞 socket 和非阻塞 socket</p>
+</li>
+<li><p>ET：通知之后进程必须立即处理事件，如果不处理，则下次再调用  <code>epoll_wait()</code> 时不会再得到事件到达的通知，很大程度上减少了 epoll 事件被重复触发的次数，因此效率要比 LT 模式高；内核会假设进程知道文件描述符已经就绪，并且不会再为那个文件描述符发送更多的就绪通知，直到进程做了某些操作导致那个文件描述符不再为就绪状态；只支持非阻塞 socket</p>
+</li>
+<li><p>读事件：LT 模式下，可以按需收取想要的字节数，不用把本次接收到的数据收取干净，当数据未接受完时读事件仍会触发；ET 模式下，必须把数据收取干净，因为不一定有下一次机会再收取数据了，除非有新数据到达，即使后续继续触发也可能存在上次没读完的数据没有及时处理，造成客户端响应延迟，即需要循环到 <code>recv</code> 或者 <code>read</code> 函数返回 -1，错误码为 <code>EWOULDBLOCK</code> 或 <code>EAGAIN</code>，因此需搭配非阻塞 socket 使用</p>
+</li>
+<li><p>写事件：LT 模式下，不需要写事件一定要及时移除，避免不必要的触发，浪费 CPU 资源；ET 模式下，写事件只会由不可写变成可写时触发，如果需要下一次的写事件触发来驱动任务（例如发上次剩余的数据），可移除可写事件后再注册一次检测可写事件</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" rel="tag"># 网络编程</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-connect/" rel="prev" title="connect">
+                  <i class="fa fa-chevron-left"></i> connect
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-gethostbyname/" rel="next" title="gethostbyname">
+                  gethostbyname <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
