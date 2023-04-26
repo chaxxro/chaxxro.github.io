@@ -26,6 +26,7 @@ awk [options] '[BEGIN{ command }] pattern { action } ... [END{ command }]' file
 
 # pattern 布尔代码块
 /regular expression/    # 正则匹配成功与否 /a.*ef/{action}
+$n ~ /qq.com/           # 第 n 列满足正则
 relational expression   # 即等值比较、大小比较 3>2{action}
 pattern && pattern      # 逻辑与 3>2 && 3>1 {action}
 pattern || pattern      # 逻辑或 3>2 || 3<1 {action}
@@ -33,10 +34,10 @@ pattern || pattern      # 逻辑或 3>2 || 3<1 {action}
 (pattern)               # 改变优先级
 pattern ? pattern : pattern  # 三目运算符决定的布尔值
 # pattern 范围代码块
-pattern1, pattern2      # 范围，pat1打开、pat2关闭，即flip,flop模式
+pattern1, pattern2      # 范围
 
 # options:
--F 指定分隔符，默认使用空格分割
+-F 指定分隔符，默认使用空格分割，等价于 BEGIN 中的 FS
 -v var=value 复制一个用户变量，将外部变量传递给 awk
 -f 从脚本文件读取 awk 命令
 
@@ -44,6 +45,9 @@ awk 内置变量：
 1. NR 表示文件中的行号，表示当前是第几行
 2. NF 表示文件中的当前行被分割的列数
 3. 根据分隔符将每一行分为若干字段，依次用 $1, $2,$3 来表示，$0 表示整行
+4. RS 表示读取的分隔符，默认按行读取，通常设置在 BEGIN 代码块中，RS="" 按段落读取，RS="\0" 一次性读取所有数据，但有些特殊文件中可能包含了空字符 \0，RS="^$" 真正的一次性读取所有数据，因为非空文件不可能匹配成功，RS="\n+"：按行读取，但忽略所有空行
+5. FS 表示取列时的分隔符
+6. OFS 表示结果输出时的分隔符
 
 awk 'BEGIN{n=3} /^[0-9]/{$1>5{$1=333;print $1} /Alice/{print "Alice"} END{print "hello"}' a.txt
 

@@ -9,14 +9,26 @@ tags: 命令行工具
 categories: Linux 命令行
 ---
 
-`sed` 把当前处理的行存储在临时缓冲区中，接着用 `sed` 脚本处理缓冲区中的内容，处理完成后，把缓冲区的内容送往屏幕，接着处理下一行，直到文件末尾
+`sed` 的工作流程：
+
+1. 读取输入流的一行到模式空间，输入流可以是标准输入也可以是文件
+
+2. 通过行号计数器记录当前行号
+
+3. 对模式空间中的内容进行匹配和处理
+
+4. 自动输出模式空间内容
+
+5. 清空模式空间内容
+
+6. 读取输入流的下一行到模式空间
 
 ```sh
 sed [option]... [-e '<script>']... [-f '<script 文件>'] [文本文件]
 # 选项
-# -i 直接修改原文件
+# -i['suffix'] sed 通过创建一个临时文件并将输出写入到临时文件然后重命名为源文件来实现的对源文件的覆盖的，指定 suffix 后会将源文件备份
 # -n 关闭默认输出，即不在屏幕上自动打印
-# -r 使用正则
+# -r 使用扩展正则
 # -e 指定脚本，可指定多个脚本
 # -f 指定脚本文件
 
@@ -27,6 +39,7 @@ sed '[address]op[/pattern][/replacement][/flags]' fileName
 # n 在第 n 行执行脚本，$ 表示最后一行
 # n,m 在 n~m 行执行脚本
 # n,+m 在 n~n+m 行执行脚本
+# n~m 取行号满足 n+(x*m) 的行
 # /RE/ 匹配正则 /RE/ 的行
 # n,/RE/  n~匹配 /RE/ 的行执行脚本
 # /RE/,m  匹配 /RE/ 的行~m 执行脚本
@@ -38,9 +51,12 @@ sed '[address]op[/pattern][/replacement][/flags]' fileName
 # a：在当前行下面追加新的行，使用 \n 追加多行
 # i：在当前行上面插入新的行
 # c：行替换
-# s：字符替换
+# s：正则字符替换，对应 flags 有 g 全部替换，p 输出替换后的内容，i 不区分大小写
 # w：把行写入文件
 # q：退出
+# =: 输出行号
+# y: 字符替换
+# n: 读取下一行
 
 # flags
 # g：行内全面替换
@@ -80,22 +96,4 @@ sed '[address]y/inchars/outchars/' fileName
 # 第二个字符会被转换成 outchars 中的第二个字符...
 # 转换命令是一个全局命令
 sed 'y/123/789/' data8.txt
-
-# 打印脚本
-sed '[address]p' fileName
-
-# 另存脚本
-sed '[addrress]w' fileName
-# 可以使用相对路径或绝对路径
-sed '1,2w test.txt' data6.txt
-
-# 插入文件脚本
-sed '[address]r filename' fileName
-# 将一个独立文件的数据插入到当前数据流的指定位置
-sed '3r data12.txt' data6.txt
-sed '$r data12.txt' data6.txt
-
-# 行号
-# 在脚本命令中，指定的地址可以是单个行号
-# 或是用起始行号、逗号以及结尾行号指定的一定区间范围内的行
 ```
