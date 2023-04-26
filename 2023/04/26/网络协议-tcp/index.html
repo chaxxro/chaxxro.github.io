@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="TCP（Transmission Control Protocol）是面向连接的，提供可靠交付，有流量控制，拥塞控制，提供全双工通信，面向字节流（把应用层传下来的报文看成字节流，把字节流组织成大小不等的数据块），每一条 TCP 连接只能是点对点的   TCP 数据包和 UDP 一样，都是由首部和数据两部分组成，唯一不同的是，TCP 数据包没有长度限制，理论上可以无限长，但是为了保证网络的效率，通常">
+<meta property="og:type" content="article">
+<meta property="og:title" content="tcp">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="TCP（Transmission Control Protocol）是面向连接的，提供可靠交付，有流量控制，拥塞控制，提供全双工通信，面向字节流（把应用层传下来的报文看成字节流，把字节流组织成大小不等的数据块），每一条 TCP 连接只能是点对点的   TCP 数据包和 UDP 一样，都是由首部和数据两部分组成，唯一不同的是，TCP 数据包没有长度限制，理论上可以无限长，但是为了保证网络的效率，通常">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/02.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/03.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/04.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/05.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/06.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/07.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/08.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/09.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/10.png">
+<meta property="article:published_time" content="2023-04-26T11:43:07.000Z">
+<meta property="article:modified_time" content="2023-04-26T12:42:48.739Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="网络协议">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/","path":"2023/04/26/网络协议-tcp/","title":"tcp"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>tcp | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B"><span class="nav-text">TCP 三次握手</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E4%B8%A4%E6%AC%A1%E6%8F%A1%E6%89%8B"><span class="nav-text">为什么不两次握手</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%BF%E5%85%8D%E5%8E%86%E5%8F%B2%E8%BF%9E%E6%8E%A5"><span class="nav-text">避免历史连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%E5%8F%8C%E6%96%B9%E5%88%9D%E5%A7%8B%E5%BA%8F%E5%88%97%E5%8F%B7"><span class="nav-text">同步双方初始序列号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%BF%E5%85%8D%E8%B5%84%E6%BA%90%E6%B5%AA%E8%B4%B9"><span class="nav-text">避免资源浪费</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SYN-%E6%94%BB%E5%87%BB"><span class="nav-text">SYN 攻击</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%8A%E8%BF%9E%E6%8E%A5%E9%98%9F%E5%88%97%E5%92%8C%E5%85%A8%E8%BF%9E%E6%8E%A5%E9%98%9F%E5%88%97"><span class="nav-text">半连接队列和全连接队列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP-%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B"><span class="nav-text">TCP 四次挥手</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%9C%80%E5%90%8E%E9%9C%80%E8%A6%81%E7%AD%89%E5%BE%85-2-MSL-%E7%9A%84%E6%97%B6%E9%97%B4"><span class="nav-text">客户端最后需要等待 2 * MSL 的时间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B"><span class="nav-text">为什么四次挥手</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%E5%90%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%AA%81%E5%8F%91%E6%95%85%E9%9A%9C"><span class="nav-text">建立连接后客户端突发故障</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#KEEP-ALIVE"><span class="nav-text">KEEP-ALIVE</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3"><span class="nav-text">滑动窗口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%81%E9%87%8F%E6%8E%A7%E5%88%B6"><span class="nav-text">流量控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%BB%E5%A1%9E%E6%8E%A7%E5%88%B6"><span class="nav-text">阻塞控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP-%E9%87%8D%E4%BC%A0%E6%9C%BA%E5%88%B6"><span class="nav-text">TCP 重传机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B6%85%E6%97%B6%E9%87%8D%E4%BC%A0"><span class="nav-text">超时重传</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BF%AB%E9%80%9F%E9%87%8D%E4%BC%A0"><span class="nav-text">快速重传</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SACK"><span class="nav-text">SACK</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#D-SACK"><span class="nav-text">D-SACK</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP-%E7%B2%98%E5%8C%85%E5%92%8C%E6%8B%86%E5%8C%85"><span class="nav-text">TCP 粘包和拆包</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E7%B2%98%E5%8C%85"><span class="nav-text">为什么会粘包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E6%8B%86%E5%8C%85"><span class="nav-text">为什么会拆包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B2%98%E5%8C%85%E3%80%81%E6%8B%86%E5%8C%85%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text">粘包、拆包解决方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#socket-%E7%9A%84-accept-%E4%B8%8E%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B"><span class="nav-text">socket 的 accept 与三次握手</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP-%E4%BF%9D%E8%AF%81%E5%8F%AF%E9%9D%A0%E6%80%A7"><span class="nav-text">TCP 保证可靠性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Nagle-%E7%AE%97%E6%B3%95"><span class="nav-text">Nagle 算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E8%BF%9F%E7%A1%AE%E8%AE%A4%E5%BA%94%E7%AD%94"><span class="nav-text">延迟确认应答</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%A4%A7%E6%8A%A5%E6%96%87%E9%95%BF%E5%BA%A6-MSS"><span class="nav-text">最大报文长度 MSS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B-SYN-%E5%8F%B7%E6%98%AF%E9%9A%8F%E6%9C%BA%E5%80%BC"><span class="nav-text">初始 SYN 号是随机值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E4%B8%AD%E8%BF%87%E5%A4%9A-TIME-WAIT-%E7%8A%B6%E6%80%81%E8%BF%9E%E6%8E%A5"><span class="nav-text">系统中过多 TIME_WAIT 状态连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TIME-WAIT-%E7%9B%B8%E5%85%B3%E5%8F%82%E6%95%B0"><span class="nav-text">TIME_WAIT 相关参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP-%E4%BC%A0%E8%BE%93%E9%80%9F%E7%8E%87"><span class="nav-text">TCP 传输速率</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FIN-%E5%8C%85"><span class="nav-text">FIN 包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%83%8A%E7%BE%A4%E6%95%88%E5%BA%94"><span class="nav-text">惊群效应</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B6%88%E8%80%97"><span class="nav-text">消耗</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#accept-%E6%83%8A%E7%BE%A4"><span class="nav-text">accept 惊群</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#epoll-%E6%83%8A%E7%BE%A4"><span class="nav-text">epoll 惊群</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NGINX-%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text">NGINX 解决方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="nav-text">TCP 故障排查</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="nav-text">常用命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%8A%B6%E6%80%81"><span class="nav-text">常见状态</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%88%87%E5%88%86%E4%B8%8E%E9%87%8D%E7%BB%84"><span class="nav-text">数据切分与重组</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MTU"><span class="nav-text">MTU</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MSS"><span class="nav-text">MSS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IP-%E5%B1%82%E5%88%86%E7%89%87"><span class="nav-text">IP 层分片</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MSL"><span class="nav-text">MSL</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">254</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="tcp | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          tcp
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-26 19:43:07 / 修改时间：20:42:48" itemprop="dateCreated datePublished" datetime="2023-04-26T19:43:07+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>TCP（Transmission Control Protocol）是面向连接的，提供可靠交付，有流量控制，拥塞控制，提供全双工通信，面向字节流（把应用层传下来的报文看成字节流，把字节流组织成大小不等的数据块），每一条 TCP 连接只能是点对点的</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/01.png" class="">
+
+<p>TCP 数据包和 UDP 一样，都是由首部和数据两部分组成，唯一不同的是，TCP 数据包没有长度限制，理论上可以无限长，但是为了保证网络的效率，通常 TCP 数据包的长度不会超过 IP 数据包的长度，以确保单个 TCP 数据包不必再分割</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/02.png" class="">
+
+<p>TCP 负责应用软件和网络软件之间的通信：IP 负责计算机之间的通信；TCP 负责将数据分割并装入 IP 包，然后在它们到达的时候重新组合它们；IP 负责将包发送至接受者</p>
+<ul>
+<li><p>32 位序列号：用于对字节流进行编号，例如序号为 301，表示第一个字节的编号为 301，如果携带的数据长度为 100 字节，那么下一个报文段的序号应为 401</p>
+</li>
+<li><p>32 位确认号：期望收到的下一个报文段的序号。例如 B 正确收到 A 发送来的一个报文段，序号为 501，携带的数据长度为 200 字节，因此 B 期望下一个报文段的序号为 701，B 发送给 A 的确认报文段中确认号就为 701</p>
+</li>
+<li><p>4 位首部长度：数据部分距离报文段起始处的偏移量，实际上指的是首部的长度</p>
+</li>
+<li><p>源端口号&#x2F;目的端口号: 表示数据从哪个进程来, 到哪个进程去</p>
+</li>
+<li><p>16 位窗口大小：作为接收方让发送方设置其发送窗口的依据</p>
+</li>
+<li><p>6 位标志域：紧急标志 URG (1 表示有效)、有意义的应答标志 ACK （1 时确认号字段有效，否则无效，在连接建立后所有传送的报文段都必须把 ACK 置 1）、推 PSH （1 时表示接收端不将该数据进行队列处理，而是尽可能快地将数据转由应用处理）、重置连接标志 RST 、同步序列号标志 SYN (仅在三次握手建立 TCP 连接时有效，当 SYN&#x3D;1，ACK&#x3D;0 时表示这是一个连接请求报文段。若对方同意建立连接，则响应报文中 SYN&#x3D;1，ACK&#x3D;1)、完成发送数据标志 FIN (1 表示此报文段的发送方的数据已发送完毕，并要求释放连接)</p>
+</li>
+<li><p>TCP 校验和会覆盖首部和数据</p>
+</li>
+</ul>
+<h2 id="TCP-三次握手"><a href="#TCP-三次握手" class="headerlink" title="TCP 三次握手"></a>TCP 三次握手</h2><p>建立一个 TCP 连接时，需要客户端和服务端总共发送 3 个包以确认连接的建立，在 socket 编程中，这一过程由客户端执行 connect 来触发</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/03.png" class="">
+
+<ul>
+<li><p>第一次：客户端 - - &gt; 服务器。此时服务器知道了客户端要建立连接了  Client 将标志位 SYN 置为 1，随机产生一个值 seq &#x3D; J，并将该数据包发送给 Server，Client 进入 SYN_SENT 状态，等待 Server 确认</p>
+</li>
+<li><p>第二次：客户端 &lt; - - 服务器。此时客户端知道服务器收到连接请求了 Server 收到数据包后由标志位 SYN &#x3D; 1 知道 Client 请求建立连接，Server 将标志位 SYN 和 ACK 都置为 1，ack &#x3D; J + 1，随机产生一个值 seq&#x3D;K ，并将该数据包发送给 Client 以确认连接请求，Server 进入 SYN_RCVD 状态</p>
+</li>
+<li><p>第三次：客户端 - - &gt; 服务器。此时服务器知道客户端收到了自己的回应 Client 收到确认后，检查 ack 是否为 J + 1 ，ACK 是否为 1，如果正确则将标志位 ACK 置为 1，ack &#x3D; K + 1，并将该数据包发送给 Server，Server 检查 ack 是否为 K + 1，ACK 是否为 1，如果正确则连接建立成功，Client 和 Server 进入 ESTABLISHED 状态</p>
+</li>
+</ul>
+<h2 id="为什么不两次握手"><a href="#为什么不两次握手" class="headerlink" title="为什么不两次握手"></a>为什么不两次握手</h2><h3 id="避免历史连接"><a href="#避免历史连接" class="headerlink" title="避免历史连接"></a>避免历史连接</h3><p>为了防止已经失效的连接请求报文突然又传送到了服务器，从而产生错误</p>
+<p>如果是历史连接（序列号过期或超时），则第三次握手发送的报文是 RST 报文，终止历史连接</p>
+<h3 id="同步双方初始序列号"><a href="#同步双方初始序列号" class="headerlink" title="同步双方初始序列号"></a>同步双方初始序列号</h3><p>确保双方的初始序列号能被可靠的同步，保证 TCP 的可靠性</p>
+<h3 id="避免资源浪费"><a href="#避免资源浪费" class="headerlink" title="避免资源浪费"></a>避免资源浪费</h3><p>客户端发送的连接请求如果在网络中滞留，那么就会隔很长一段时间才能收到服务器端发回的连接确认。客户端等待一个超时重传时间之后，就会重新请求连接。但是这个滞留的连接请求最后还是会到达服务器，如果不进行三次握手，那么服务器就会打开两个连接。如果有第三次握手，客户端会忽略服务器之后发送的对滞留连接请求的连接确认，不进行第三次握手，因此就不会再次打开连接</p>
+<h2 id="SYN-攻击"><a href="#SYN-攻击" class="headerlink" title="SYN 攻击"></a>SYN 攻击</h2><p>Server 发送 SYN-ACK 之后，收到 Client 的 ACK 之前的 TCP 连接称为半连接。SYN 攻击就是 Client 在短时间内伪造大量不存在的 IP 地址，并向 Server 不断地发送 SYN 包，Server 回复确认包，并等待 Client 的确认，由于源地址是不存在的，因此，Server 需要不断重发直至超时，这些伪造的 SYN 包将产时间占用未连接队列，导致正常的 SYN 请求因为队列满而被丢弃，从而引起网络堵塞甚至系统瘫痪</p>
+<h2 id="半连接队列和全连接队列"><a href="#半连接队列和全连接队列" class="headerlink" title="半连接队列和全连接队列"></a>半连接队列和全连接队列</h2><p>在 TCP 三次握手的时候，Linux 内核会维护两个队列，分别是：半连接队列，也称 SYN 队列；全连接队列，也称 accepet 队列</p>
+<p>服务端收到客户端发起的 SYN 请求后，内核会把该连接存储到半连接队列，并向客户端响应 SYN+ACK，接着客户端会返回 ACK，服务端收到第三次握手的 ACK 后，内核会把连接从半连接队列移除，然后创建新的完全的连接，并将其添加到 accept 队列，等待进程调用 accept 函数时把连接取出来</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/04.png" class="">
+
+<p>不管是半连接队列还是全连接队列，都有最大长度限制，超过限制时，内核会直接丢弃，或返回 RST 包</p>
+<p>当服务端并发处理大量请求时，如果 TCP 全连接队列过小，就容易溢出；Linux 溢出的默认操作时丢弃连接，也可以选择向客户端发送 RST 复位报文，告诉客户端连接已经建立失败</p>
+<h2 id="TCP-四次挥手"><a href="#TCP-四次挥手" class="headerlink" title="TCP 四次挥手"></a>TCP 四次挥手</h2><p>断开一个 TCP 连接时，需要客户端和服务端总共发送 4 个包以确认连接的断开，在 socket 编程中，这一过程由客户端或服务端任一方执行 close 来触发，由于 TCP 连接时全双工的，因此，每个方向都必须要单独进行关闭；发送一个 FIN 来终止这一方向的连接，收到一个 FIN 只是意味着这一方向上没有数据流动了，即不会再收到数据了，但是在这个 TCP 连接上仍然能够发送数据，直到这一方向也发送了 FIN</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/05.png" class="">
+
+<ul>
+<li><p>客户端进程发出连接释放报文，并且停止发送数据，客户端进入 FIN - WAIT - 1 状态</p>
+</li>
+<li><p>服务器收到连接释放报文，发出确认报文，ACK &#x3D; 1，ack &#x3D; u + 1，并且带上自己的序列号 seq &#x3D; v，服务端就进入了 CLOSE-WAIT 状态，此时处于半关闭状态，即客户端已经没有数据要发送了，但是服务器若发送数据，客户端依然要接受客户端收到服务器的确认请求后，客户端就进入 FIN-WAIT-2 状态，等待服务器发送连接释放报文</p>
+</li>
+<li><p>服务器将最后的数据发送完毕后，就向客户端发送连接释放报文，FIN &#x3D; 1，ack &#x3D; u + 1，服务器就进入了 LAST-ACK （最后确认）状态，等待客户端的确认</p>
+</li>
+<li><p>客户端收到服务器的连接释放报文后，必须发出确认，ACK &#x3D; 1，ack &#x3D; w + 1，seq &#x3D; u + 1，客户端就进入了 TIME-WAIT 状态，此时TCP连接还没有释放，必须经过 2 ∗ MSL （最长报文段寿命）的时间后，才进入 CLOSED 状态，服务器只要收到了客户端发出的确认，立即进入 CLOSED 状态</p>
+</li>
+</ul>
+<h2 id="客户端最后需要等待-2-MSL-的时间"><a href="#客户端最后需要等待-2-MSL-的时间" class="headerlink" title="客户端最后需要等待 2 * MSL 的时间"></a>客户端最后需要等待 2 * MSL 的时间</h2><ul>
+<li><p>保证客户端发送的最后一个 ACK 报文能够到达服务器，因为这个 ACK 报文可能丢失，站在服务器的角度看来，我已经发送了 FIN + ACK 报文请求断开了，客户端还没有给我回应，应该是我发送的请求断开报文它没有收到，于是服务器又会重新发送一次，而客户端就能在这个 2 MSL 时间段内收到这个重传的报文，接着给出回应报文，并且会重启 2 MSL 计时器</p>
+</li>
+<li><p>客户端发送完最后一个确认报文后，在这个 2 * MSL 时间中，可以使本连接持续的时间内所产生的所有报文段都从网络中消失，这样新的连接中不会出现旧连接的请求报文</p>
+</li>
+</ul>
+<h2 id="为什么四次挥手"><a href="#为什么四次挥手" class="headerlink" title="为什么四次挥手"></a>为什么四次挥手</h2><p>建立连接的时候， 服务器在 LISTEN 状态下，收到建立连接请求的 SYN 报文后，把 ACK 和 SYN 放在一个报文里发送给客户端，而关闭连接时服务器收到对方的 FIN 报文时，仅仅表示对方不再发送数据了但是还能接收数据，而自己也未必全部数据都发送给对方了，所以己方可以立即关闭，也可以发送一些数据给对方后，再发送 FIN 报文给对方来表示同意现在关闭连接，因此，己方 ACK 和 FIN 一般都会分开发送，从而导致多了一次</p>
+<h2 id="建立连接后客户端突发故障"><a href="#建立连接后客户端突发故障" class="headerlink" title="建立连接后客户端突发故障"></a>建立连接后客户端突发故障</h2><p>TCP 的连接实际上是一种纯软件层面的概念，在物理层面并没有连接这种概念。在长时间无数据交互的时间段内，交互双方都有可能出现掉电、死机、异常重启等各种意外，当这些意外发生之后，这些 TCP 连接并未来得及正常释放。在软件层面上，连接的另一方并不知道对端的情况，它会一直维护这个连接，长时间的积累会导致非常多的半打开连接，造成端系统资源的消耗和浪费 </p>
+<h2 id="KEEP-ALIVE"><a href="#KEEP-ALIVE" class="headerlink" title="KEEP-ALIVE"></a>KEEP-ALIVE</h2><p>TCP 有一个保持活跃的机制叫做 Keep-Alive</p>
+<p>定义一个时间段，在这个时间段内，如果没有任何连接相关的活动，TCP 保活机制会开始作用，每隔一个时间间隔，发送一个探测报文，该探测报文包含的数据非常少，如果连续几个探测报文都没有得到响应，则认为当前的 TCP 连接已经死亡，系统内核将错误信息通知给上层应用程序</p>
+<p>在 Linux 系统中，保活时间、保活时间间隔和保活探测次数分别对应 sysctl 变量 net.ipv4.tcp_keepalive_time、net.ipv4.tcp_keepalive_intvl、 net.ipv4.tcp_keepalve_probes，默认设置是 7200 秒、75 秒和 9 次探测</p>
+<p>如果开启了 TCP 保活:</p>
+<ul>
+<li><p>对端程序是正常工作的，当 TCP 保活的探测报文发送给对端, 对端会正常响应，这样 TCP 保活时间会被重置，等待下一个 TCP 保活时间的到来</p>
+</li>
+<li><p>对端程序崩溃并重启，当 TCP 保活的探测报文发送给对端后，对端是可以响应的，但由于没有该连接的有效信息，会产生一个 RST 报文，这样很快就会发现 TCP 连接已经被重置</p>
+</li>
+<li><p>对端程序崩溃，或对端由于其他原因导致报文不可达，当 TCP 保活的探测报文发送给对端后，石沉大海，没有响应，连续几次，达到保活探测次数后，TCP 会报告该 TCP 连接已经死亡</p>
+</li>
+</ul>
+<p>TCP 保活机制默认是关闭的，因为早期的网络带宽非常有限，如果提供一个频率很高的保活机制，对有限的带宽是一个比较严重的浪费</p>
+<p>可以通过在应用程序中模拟 TCP Keep-Alive 机制，来完成在应用层的连接探活</p>
+<h2 id="滑动窗口"><a href="#滑动窗口" class="headerlink" title="滑动窗口"></a>滑动窗口</h2><p>窗口是缓存的一部分，用来暂时存放字节流。发送方和接收方各有一个窗口，接收方通过 TCP 报文段中的窗口字段告诉发送方自己的窗口大小，发送方根据这个值和其它信息设置自己的窗口大小</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/06.png" class="">
+
+<p>发送窗口内的字节都允许被发送，接收窗口内的字节都允许被接收。如果发送窗口左部的字节已经发送并且收到了确认，那么就将发送窗口向右滑动一定距离，直到左部第一个字节不是已发送并且已确认的状态；接收窗口的滑动类似，接收窗口左部字节已经发送确认并交付主机，就向右滑动接收窗口</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/07.png" class="">
+
+<p>接收窗口只会对窗口内最后一个按序到达的字节进行确认，例如接收窗口已经收到的字节为 {31, 34, 35}，其中 {31} 按序到达，而 {34, 35} 就不是，因此只对字节 31 进行确认。发送方得到一个字节的确认之后，就知道这个字节之前的所有字节都已经被接收</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/08.png" class="">
+
+<h2 id="流量控制"><a href="#流量控制" class="headerlink" title="流量控制"></a>流量控制</h2><p>流量控制是为了控制发送方发送速率，保证接收方来得及接收</p>
+<p>接收方发送的确认报文中的窗口字段可以用来控制发送方窗口大小，从而影响发送方的发送速率。将窗口字段设置为 0，则发送方不能发送数据</p>
+<h2 id="阻塞控制"><a href="#阻塞控制" class="headerlink" title="阻塞控制"></a>阻塞控制</h2><p>如果网络出现拥塞，分组将会丢失，此时发送方会继续重传，从而导致网络拥塞程度更高。因此当出现拥塞时，应当控制发送方的速率</p>
+<p>阻塞窗口用来控制多条连接公平使用的有限带宽</p>
+<p>TCP 主要通过四个算法来进行拥塞控制：慢开始、拥塞避免、快重传、快恢复</p>
+<p>发送方维护一个叫做拥塞窗口 cwnd 的状态变量，拥塞窗口只是一个状态变量，实际决定发送方能发送多少数据的是发送方窗口</p>
+<p>慢开始：发送的最初执行慢开始，令 cwnd &#x3D; 1，发送方只能发送 1 个报文段；当收到确认后，将 cwnd 加倍，因此之后发送方能够发送的报文段数量为：2、4、8 …</p>
+<p>拥塞避免：cwnd 加倍递增，增长速度非常快，从而使得发送方发送的速度增长速度过快，网络拥塞的可能性也就更高。设置一个慢开始门限 ssthresh，当 cwnd &gt;&#x3D; ssthresh 时，进入拥塞避免，每个轮次只将 cwnd 加 1，如果出现了超时，则令 ssthresh &#x3D; cwnd &#x2F; 2，然后重新执行慢开始</p>
+<p>快重传：要求接收方在收到一个失序的报文段后就立即发出重复确认，发送方只要一连收到三个重复确认就应当立即重传对方尚未收到的报文段，而不必继续等待设置的重传计时器时间到期</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/09.png" class="">
+
+<p>快恢复：快重传因为丢失个别报文段，而不是网络拥塞，因此执行快恢复，令 ssthresh &#x3D; cwnd &#x2F; 2 ，cwnd &#x3D; ssthresh，直接进入拥塞避免</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/10.png" class="">
+
+<p>慢开始 cwnd 设定为 1，而快恢复 cwnd 设定为 ssthresh</p>
+<h2 id="TCP-重传机制"><a href="#TCP-重传机制" class="headerlink" title="TCP 重传机制"></a>TCP 重传机制</h2><h3 id="超时重传"><a href="#超时重传" class="headerlink" title="超时重传"></a>超时重传</h3><p>在发送数据时，设定一个定时器，当超过指定的时间后，没有收到对方的 ACK 确认应答报文，就会重发该数据，也就是我们常说的超时重传</p>
+<p>解决：数据包丢失、确认应答丢失</p>
+<p>超时时间需要根据网络延迟进行动态调整，延迟越大，超时时间越长</p>
+<p>RTT（Round Trip Time）：往返时延，也就是数据包从发出去到收到对应 ACK 的时间。RTT 是针对连接的，每一个连接都有各自独立的 RTT</p>
+<p>RTO（Retransmission Time Out）：重传超时时间</p>
+<p>RTO 根据网络中的 RTT 来自适应调整，往往大于两倍的 RTT</p>
+<p>超时往往意味着拥塞，一旦发生这种情况，TCP 不仅会重传对应数据段，还会降低当前的数据发送速率，因为 TCP 会认为当前网络发生了拥塞</p>
+<h3 id="快速重传"><a href="#快速重传" class="headerlink" title="快速重传"></a>快速重传</h3><p>不以时间为驱动，而是以数据驱动重传，当收到三个相同的 ACK 报文时，会在定时器过期之前，重传丢失的报文段</p>
+<p>解决：丢失连续数据的中间部分</p>
+<p>问题：重传时是重传之前的一个还是重传全部，但根据不同实现，两种情况都可能发生</p>
+<h3 id="SACK"><a href="#SACK" class="headerlink" title="SACK"></a>SACK</h3><p>只重传丢失的数据</p>
+<h3 id="D-SACK"><a href="#D-SACK" class="headerlink" title="D-SACK"></a>D-SACK</h3><p>使用了 SACK 来告诉发送方有哪些数据被重复接收了</p>
+<h2 id="TCP-粘包和拆包"><a href="#TCP-粘包和拆包" class="headerlink" title="TCP 粘包和拆包"></a>TCP 粘包和拆包</h2><p>UDP 是基于报文发送的，UDP 并不对数据进行拆分合并，且 UDP 首部有指示 UDP 报文长度，所以没有粘包的问题</p>
+<p>TCP 是基于字节流的，虽然应用层和传输层之间的数据交互是大小不等的数据块，但是 TCP 并没有把这些数据块区分边界，仅仅是一连串没有结构的字节流，且 TCP 首部并没有指示数据长度，所以 TCP 有粘包问题</p>
+<p>当 client 向 server 连续发送两个数据：server 可能会分开收到两个数据；也有可能只收到一个包含两个数据的数据包，server 不知道这两个数据包的界限，即粘包现象；server 收到两个数据，但这两个数据要么不完整要么多出一部分，即发生了粘包和拆包</p>
+<h3 id="为什么会粘包"><a href="#为什么会粘包" class="headerlink" title="为什么会粘包"></a>为什么会粘包</h3><ul>
+<li><p>要发送的数据小于 TCP 发送缓冲区的大小，TCP 将多次写入缓冲区的数据一次发送出去，将会发生粘包</p>
+</li>
+<li><p>接收数据端的应用层没有及时读取接收缓冲区中的数据，将发生粘包</p>
+</li>
+</ul>
+<h3 id="为什么会拆包"><a href="#为什么会拆包" class="headerlink" title="为什么会拆包"></a>为什么会拆包</h3><ul>
+<li><p>要发送的数据大于 TCP 发送缓冲区剩余空间大小，将会发生拆包</p>
+</li>
+<li><p>待发送数据大于最大报文长度，TCP 在传输前将进行拆包</p>
+</li>
+</ul>
+<h3 id="粘包、拆包解决方案"><a href="#粘包、拆包解决方案" class="headerlink" title="粘包、拆包解决方案"></a>粘包、拆包解决方案</h3><p>由于 TCP 本身是面向字节流的，无法理解上层的业务数据，所以在底层是无法保证数据包不被拆分和重组的，这个问题只能通过上层的应用协议栈设计来解决</p>
+<ul>
+<li><p>消息定长：发送端将每个数据包封装为固定长度，这样接收端每次接收缓冲区中读取固定长度的数据就自然而然的把每个数据包拆分开来</p>
+</li>
+<li><p>设置消息边界：服务端从网络流中按消息边界分离出消息内容</p>
+</li>
+<li><p>将消息分为消息头和消息体：消息头中包含表示消息总长度的字段</p>
+</li>
+</ul>
+<h2 id="socket-的-accept-与三次握手"><a href="#socket-的-accept-与三次握手" class="headerlink" title="socket 的 accept 与三次握手"></a>socket 的 accept 与三次握手</h2><ul>
+<li><p>客户端的协议栈向服务器端发送了 SYN 包，并告诉服务器端当前发送序列号 client_isn，客户端进入 SYNC_SENT 状态</p>
+</li>
+<li><p>服务器端的协议栈收到这个包之后，和客户端进行 ACK 应答，应答的值为 client_isn+1，表示对 SYN 包 client_isn 的确认，同时服务器也发送一个 SYN 包，告诉客户端当前我的发送序列号为 server_isn，服务器端进入 SYNC_RCVD 状态</p>
+</li>
+<li><p>客户端协议栈收到 ACK 之后，使得应用程序从 connect 调用返回，表示客户端到服务器端的单向连接建立成功，客户端的状态为 ESTABLISHED，同时客户端协议栈也会对服务器端的 SYN 包进行应答，应答数据为 server_isn+1</p>
+</li>
+<li><p>应答包到达服务器端后，服务器端协议栈使得 accept 阻塞调用返回，这个时候服务器端到客户端的单向连接也建立成功，服务器端也进入 ESTABLISHED 状态</p>
+</li>
+</ul>
+<p>客户端 connect 成功返回是在第二次握手，服务端 accept 成功返回是在三次握手成功之后</p>
+<h2 id="TCP-保证可靠性"><a href="#TCP-保证可靠性" class="headerlink" title="TCP 保证可靠性"></a>TCP 保证可靠性</h2><p>TCP 发送的报文是交给 IP 层的，但 IP 层只能提供最大努力服务，所以 TCP 下面的网络层并不可靠，所以 TCP 需要采用适当措施保证传输可靠</p>
+<p>TCP 主要提供了检验和、序列号&#x2F;确认应答、超时重传、最大消息长度、滑动窗口控制等方法实现了可靠性传输</p>
+<ul>
+<li><p>校验和：接收端通过对 TCP 首部、TCP 伪首部和 TCP 数据进行校验计算，可以检测出来数据是否有差错和异常，假如有差错就会直接丢弃 TCP 段</p>
+</li>
+<li><p>序列号&#x2F;确认应答：发送端发送信息给接收端，接收端会回应一个应答包；只要发送端有一个包传输，但没有收到应答包都会重发数据，这样保证了数据完整性</p>
+</li>
+<li><p>超时重传：发送出去的数据包到接收到确认包之间的时间，如果超过了这个时间会被认为是丢包了，需要重传</p>
+</li>
+<li><p>最大消息长度：在建立 TCP 连接的时候，双方约定一个最大的长度（MSS）作为发送的单位，重传的时候也是以这个单位来进行重传</p>
+</li>
+<li><p>滑动窗口：发送方可连续发送多个分组，不必每发完一个包就停下来等待确认，提高信道利用率，通过滑动窗口机制，接收方对按序到达的最后一个包进行确认，表示最后一个包以前的都是正确收到</p>
+</li>
+<li><p>拥塞控制</p>
+</li>
+</ul>
+<h2 id="Nagle-算法"><a href="#Nagle-算法" class="headerlink" title="Nagle 算法"></a>Nagle 算法</h2><p>本质是限制大批量的小数据包同时发送，为此，它提出在任何一个时刻，未被确认的小数据包不能超过一个</p>
+<p>这里的小数据包，指的是长度小于最大报文段长度 MSS 的 TCP 分组</p>
+<p>发送端就可以把接下来连续的几个小数据包存储起来，等待接收到前一个小数据包的 ACK 分组之后，再将数据一次性发送出去</p>
+<p>仅在下列任意一种条件下才能发送数据：</p>
+<ul>
+<li><p>已发送的数据都已经收到确认应答</p>
+</li>
+<li><p>可以发送最大段长度的数据时</p>
+</li>
+</ul>
+<h2 id="延迟确认应答"><a href="#延迟确认应答" class="headerlink" title="延迟确认应答"></a>延迟确认应答</h2><p>接收方收到数据之后可以并不立即返回确认应答，而是延迟一段时间的机制</p>
+<ul>
+<li><p>在没有收到 2 * 最大段长度的数据为止不做确认应答</p>
+</li>
+<li><p>其他情况下，最大延迟 0.5 秒发送确认应答</p>
+</li>
+<li><p>TCP 文件传输中，大多数是每两个数据段返回一次确认应答</p>
+</li>
+</ul>
+<p>Nagle 算法和延时确认组合在一起，增大了处理时延</p>
+<h2 id="最大报文长度-MSS"><a href="#最大报文长度-MSS" class="headerlink" title="最大报文长度 MSS"></a>最大报文长度 MSS</h2><p>MSS 与接收窗口无关；选择较小 MSS 则对网络利用率较低，选择较大 MSS，则可能在 IP 层分解成多个数据报，这样不仅需要在接收端装配报文，而且如果出错还会重传使得增大开销；因此，只要在 IP 层不分片的情况下尽可能大</p>
+<p>TCP 在三次握手建立连接过程中，会在 SYN 报文中使用 MSS（Maximum Segment Size）选项功能，协商交互双方能够接收的最大段长 MSS 值，交互双方会以双方通告的 MSS 值中取最小值作为发送报文的最大段长</p>
+<p>MSS &#x3D; MTU - 20 字节 TCP 报头 - 20 字节 IP 报头，那么在以太网环境下 MSS 值一般就是 1500 - 20 - 20 &#x3D; 1460 字节</p>
+<p>通过在 TCP 连接之初，协商 MSS 值巧妙的解决了避免端系统分片的问题，但是在复杂的实际网络环境下，影响到 IP 报文分片的并不仅仅是发送方和接收方，还有路由器、防火墙等中间系统</p>
+<h2 id="初始-SYN-号是随机值"><a href="#初始-SYN-号是随机值" class="headerlink" title="初始 SYN 号是随机值"></a>初始 SYN 号是随机值</h2><p>源 IP 可以伪造，所以序列号要随机，使得伪造的随机值不在合法范围内，而被接收方丢弃，增加安全性</p>
+<h2 id="系统中过多-TIME-WAIT-状态连接"><a href="#系统中过多-TIME-WAIT-状态连接" class="headerlink" title="系统中过多 TIME_WAIT 状态连接"></a>系统中过多 TIME_WAIT 状态连接</h2><p>高并发可以让服务器在短时间范围内同时占用大量端口，短连接处理完业务，在关闭连接之后，这个业务用过的端口会停留在 TIME_WAIT 状态几分钟，而这几分钟，其他请求来临的时候是无法占用此端口的</p>
+<p>解决方案：</p>
+<ul>
+<li><p>使用长连接，如果是 http，可以使用 keepalive</p>
+</li>
+<li><p>修改内核参数，提高 TIME_WAIT 连接状态的上限</p>
+</li>
+<li><p>启动快速回收机制，但 NAT 网络下可能会出现问题</p>
+</li>
+<li><p>开启重用机制，允许将 TIME-WAIT socket 重新用于新的 TCP 连接</p>
+</li>
+<li><p>由客户端来发起关闭连接请求</p>
+</li>
+</ul>
+<p>现代 Linux 系统针对连接复用进行了一些优化：</p>
+<ul>
+<li><p>新连接 SYN 告知的初始序列号，一定比 TIME_WAIT 老连接的末序列号大，这样通过序列号就可以区别出新老连接</p>
+</li>
+<li><p>新连接的时间戳比老连接的时间戳大，这样通过时间戳也可以区别出新老连接</p>
+</li>
+</ul>
+<h2 id="TIME-WAIT-相关参数"><a href="#TIME-WAIT-相关参数" class="headerlink" title="TIME_WAIT 相关参数"></a>TIME_WAIT 相关参数</h2><ul>
+<li><p><code>tcp_tw_reuse</code> 的内核配置选项：主要用在连接的发起方，TIME_WAIT 状态的连接创建时间超过 1 秒后，新的连接才可以被复用；<code>tcp_tw_reuse</code> 是为了缩短 time_wait 的时间，避免出现大量的 time_wait 链接而占用系统资源，解决的是 <code>accept</code> 后的问题</p>
+</li>
+<li><p><code>SO_REUSEADDR</code> 是用户态的选项，<code>SO_REUSEADDR</code> 选项用来告诉操作系统内核，如果端口已被占用，但是 TCP 连接状态位于 TIME_WAIT ，可以重用端口，这里一般都是连接的服务方；<code>SO_REUSEADDR</code> 是为了解决 time_wait 状态带来的端口占用问题，以及支持同一个 port 对应多个 ip，解决的是 <code>bind</code> 时的问题</p>
+</li>
+</ul>
+<h2 id="TCP-传输速率"><a href="#TCP-传输速率" class="headerlink" title="TCP 传输速率"></a>TCP 传输速率</h2><p>传输速度和接收方的接受窗口 RWND 以及发送方的拥塞窗口 CWND 有关，传输速率取 RWND 和 CWND 中小的那一个</p>
+<p>RWND 通过滑动窗口机制来控制接收窗口，表示着自己此刻还能接收多少字节的报文</p>
+<p>CWND 由拥塞控制算法控制</p>
+<h2 id="FIN-包"><a href="#FIN-包" class="headerlink" title="FIN 包"></a>FIN 包</h2><p>TCP 协议栈为 FIN 包插入一个文件结束符 EOF 到接收缓冲区中，应用程序可以通过 <code>read</code> 调用来感知这个 FIN 包</p>
+<p>EOF 会被放在已排队等候的其他已接收的数据之后，这就意味着接收端应用程序需要处理这种异常情况，因为 EOF 表示在该连接上再无额外数据到达</p>
+<h2 id="惊群效应"><a href="#惊群效应" class="headerlink" title="惊群效应"></a>惊群效应</h2><p>惊群效应就是多进程（多线程）在同时阻塞等待同一个事件的时候（休眠状态），如果等待的这个事件发生，那么就会唤醒等待的所有进程（或者线程），但是最终却只可能有一个进程（线程）获得这个时间的控制权，对该事件进行处理，而其他进程（线程）获取控制权失败，只能重新进入休眠状态，这种现象和性能浪费就叫做惊群</p>
+<h3 id="消耗"><a href="#消耗" class="headerlink" title="消耗"></a>消耗</h3><ul>
+<li><p>系统对用户进程&#x2F;线程频繁地做无效的调度，上下文切换系统性能大打折扣</p>
+</li>
+<li><p>为了确保只有一个线程得到资源，用户必须对资源操作进行加锁保护，进一步加大了系统开销</p>
+</li>
+</ul>
+<h3 id="accept-惊群"><a href="#accept-惊群" class="headerlink" title="accept 惊群"></a>accept 惊群</h3><p>主进程创建了 <code>socket()</code>、<code>bind()</code>、<code>listen()</code> 之后，<code>fork()</code> 出来多个进程，每个子进程都开始循环处理 <code>accept()</code> 这个 listen_fd</p>
+<p>linux 内核通过睡眠队列来组织所有等待某个事件的 task，而 wakeup 机制则可以异步唤醒整个睡眠队列上的 task，wakeup 逻辑在唤醒睡眠队列时，会遍历该队列链表上的每一个节点，调用每一个节点的 <code>callback</code>，从而唤醒睡眠队列上的每个 task</p>
+<p>每个进程都阻塞在 <code>accept()</code> 上，当一个新的连接到来时候，所有阻塞在 <code>accept</code> 上的的进程都会被唤醒，但是其中只有一个进程会接受成功，其余皆失败，重新休眠</p>
+<p>现在的内核解决了 accept 惊群，通过添加了一个 <code>WQ_FLAG_EXCLUSIVE</code> 标记告诉内核进行排他性的唤醒，即唤醒一个进程后即退出唤醒的过程</p>
+<p>当多个进程&#x2F;线程都阻塞在对同一个 socket 的接受调用上时，当有一个新的连接到来，内核只会唤醒一个进程，其他进程保持休眠，压根就不会被唤醒</p>
+<h3 id="epoll-惊群"><a href="#epoll-惊群" class="headerlink" title="epoll 惊群"></a>epoll 惊群</h3><p>主进程创建 <code>socket()</code>、<code>bind</code>、<code>listen()</code> 后，将该 socket 加入到 <code>epoll()</code> 中，然后 <code>fork()</code> 出多个子进程，每个进程共享一颗红黑树，都阻塞在 <code>epoll_wait()</code> 上</p>
+<p>当 <code>accept</code> 事件进来时可以选择一个进程来 <code>accept</code>，这时任何一个进程都可以，但后续的读写事件也应该由该进程来处理，但当读写事件进来时 epoll 并不知道该由哪个进程来处理，可能会错误通知另一个进程来处理</p>
+<p>一般在每个进程（线程）里面会再次创建一个 epoll 事件循环机制，每个进程的读写事件只注册在自己进程的 epoll 中</p>
+<h3 id="NGINX-解决方案"><a href="#NGINX-解决方案" class="headerlink" title="NGINX 解决方案"></a>NGINX 解决方案</h3><p>在用户空间进程间锁实现的原理：弄一个让所有进程共享的东西，比如 mmap 的内存，比如文件，然后通过这个东西来控制进程的互斥</p>
+<p>每个进程在监听 FD 事件之前，先要通过 ngx_trylock_accept_mutex 去获取一个全局的锁。如果拿锁成功，那么则开始通过 ngx_process_events 尝试去处理事件。如果拿锁失败，则放弃本次操作。所以从某种意义上来讲，对于某一个 FD，Nginx 同时只有一个 Worker 来处理 FD 上的事件，从而避免惊群</p>
+<h2 id="TCP-故障排查"><a href="#TCP-故障排查" class="headerlink" title="TCP 故障排查"></a>TCP 故障排查</h2><p>通过 TCP 各个状态，可以排除和定位网络或系统故障</p>
+<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><ul>
+<li><p><code>netstat -nat</code>：查看 TCP 各个状态的数量</p>
+</li>
+<li><p><code>lsof -i: port</code>：检测到打开套接字的状况</p>
+</li>
+<li><p><code>tcpdump -iany tcp port 9090</code>：对 tcp 端口为 9000 的进行抓包</p>
+</li>
+</ul>
+<h3 id="常见状态"><a href="#常见状态" class="headerlink" title="常见状态"></a>常见状态</h3><h4 id="LISTENING"><a href="#LISTENING" class="headerlink" title="LISTENING"></a>LISTENING</h4><p>当提供的服务没有被连接时就处于 LISTENING 状态</p>
+<h4 id="SYN-SENT"><a href="#SYN-SENT" class="headerlink" title="SYN_SENT"></a>SYN_SENT</h4><p>发送连接请求后等待匹配的连接请求，客户端 tcp 发送一个 SYN 以请求建立一个连接，之后状态置为 SYN_SENT</p>
+<p>连接成功了就变为 ESTABLISHED，正常情况下 SYN_SENT 状态非常短暂</p>
+<p>如果发现有很多 SYN_SENT，一般是网络不好或服务器不存在</p>
+<h4 id="SYN-RECV"><a href="#SYN-RECV" class="headerlink" title="SYN_RECV"></a>SYN_RECV</h4><p>当服务器收到客户端发送的同步信号时，将标志位 ACK 和 SYN 置 1 发送给客户端，此时服务器端处于 SYN_RCVD 状态，如果连接成功了就变为 ESTABLISHED，正常情况下 SYN_RCVD 状态非常短暂</p>
+<p>如果发现有很多 SYN_RECV，可能出现 SYN 攻击，服务器端一般会重试（再次发送 SYN + ACK 给客户端）并等待一段时间后丢弃这个未完成的连接</p>
+<h4 id="CLOSE-WAIT"><a href="#CLOSE-WAIT" class="headerlink" title="CLOSE_WAIT"></a>CLOSE_WAIT</h4><p>客户端断开的时候发送了 FIN 包，则服务端将会处于 CLOSE_WAIT 状态</p>
+<p>客户端断开的时候未发送 FIN 包，则服务端处还是显示 ESTABLISHED 状态</p>
+<h2 id="数据切分与重组"><a href="#数据切分与重组" class="headerlink" title="数据切分与重组"></a>数据切分与重组</h2><p>数据链路层的数据为数据帧，网络层的数据为数据片，传输层的数据为数据段</p>
+<p>传输分段的原因是 MSS，网络层分片的原因是 MTU，由于一直有 MSS&lt;&#x3D;MTU，所有分段后的每一段 TCP 报文段再加上 IP 首部后的长度不可能超过 MTU，因此也就不需要在网络层进行 IP 分片了</p>
+<h3 id="MTU"><a href="#MTU" class="headerlink" title="MTU"></a>MTU</h3><p>MTU 是数据链路层对数据帧的一个限制，以太网是 1500 字节</p>
+<p>一个 IP 数据报在网络中传输，如果它的长度大于 MTU 值就要进行分片传输，使得每片数据报的长度小于 MTU</p>
+<p>分片传输的 IP 数据报不一定按序到达，但 IP 首部中的信息能让这些数据报片按序组装</p>
+<h3 id="MSS"><a href="#MSS" class="headerlink" title="MSS"></a>MSS</h3><p>MSS 的值一般为 MTU 值减去两个首部大小（网络层首部和传输层首部），以太网是 1460 字节</p>
+<h2 id="IP-层分片"><a href="#IP-层分片" class="headerlink" title="IP 层分片"></a>IP 层分片</h2><p>IP 报文的大小超过最大传输单位 MTU 时就会产生 IP 分片情况</p>
+<p>使用 UDP 很容易导致 IP 分片，TCP 因为有 MSS 所以很难发送一个需要进行分片的报文</p>
+<p>分片和重新组装的过程对传输层是透明的，分片之后的数据报根据需要也可以再次进行分片，由目的端的 IP 层来完成组装</p>
+<p>在传输过程中，如果某一段链路 MTU 小于包长，若在 IP 头设置了 Dont Fragment 则会丢弃这个包并通过 ICMP 告知源主机因为不能分片丢弃了信息，不设置则会在该路由继续分片传输</p>
+<h2 id="MSL"><a href="#MSL" class="headerlink" title="MSL"></a>MSL</h2><p>MSL 是任何 IP 数据报能够在因特网中存活的最长时间</p>
+<p>每个数据报里都包含有一个被称为 TTL（time to live）的 8 位字段，它的最大值为 255</p>
+<p>这个生存时间由源主机设置初始值，它表示的是一个 IP 数据报可以经过的最大跳跃数，每经过一个路由器，就相当于经过了一跳，它的值就减 1，当此值减为 0 时，则所在的路由器会将其丢弃，同时发送 ICMP 报文通知源主机</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" rel="tag"># 网络协议</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-route/" rel="prev" title="路由协议">
+                  <i class="fa fa-chevron-left"></i> 路由协议
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-telnet/" rel="next" title="telnet">
+                  telnet <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

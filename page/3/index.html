@@ -122,18 +122,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">237</span>
+          <span class="site-state-item-count">254</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-count">19</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-count">23</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -159,7 +159,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-stream/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-tar/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-stream/" class="post-title-link" itemprop="url">stream</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-tar/" class="post-title-link" itemprop="url">tar</a>
         </h2>
 
         <div class="post-meta-container">
@@ -188,14 +188,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 21:10:56" itemprop="dateCreated datePublished" datetime="2023-04-20T21:10:56+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:19:50" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:50+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -203,7 +203,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -217,50 +217,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="消息队列存取需求"><a href="#消息队列存取需求" class="headerlink" title="消息队列存取需求"></a>消息队列存取需求</h2><p>在分布式系统中，当两个组件要基于消息队列进行通信时，一个组件会把要处理的数据以消息的形式传递给消息队列，然后这个组件就可以继续执行其他操作了；远端的另一个组件从消息队列中把消息读取出来，再在本地进行处理</p>
-<img src="/2023/04/20/Redis-stream/01.png" class="">
-
-<p>在使用消息队列时，消费者可以异步读取生产者消息，然后再进行处理。这样一来，即使生产者发送消息的速度远远超过了消费者处理消息的速度，生产者已经发送的消息也可以缓存在消息队列中，避免阻塞生产者</p>
-<p>消息队列在存取消息时，必须要满足三个需求，分别是消息保序、处理重复的消息和保证消息可靠性</p>
-<h3 id="消息保序"><a href="#消息保序" class="headerlink" title="消息保序"></a>消息保序</h3><p>消费者是异步处理消息，但是消费者仍然需要按照生产者发送消息的顺序来处理消息，避免后发送的消息被先处理了</p>
-<h3 id="重复消息处理"><a href="#重复消息处理" class="headerlink" title="重复消息处理"></a>重复消息处理</h3><p>消费者从消息队列读取消息时，有时会因为网络堵塞而出现消息重传的情况，消费者可能会收到多条重复的消息</p>
-<h3 id="消息可靠性保证"><a href="#消息可靠性保证" class="headerlink" title="消息可靠性保证"></a>消息可靠性保证</h3><p>消费者在处理消息的时候，可能出现因为故障或宕机导致消息没有处理完成的情况</p>
-<p>消息队列需要能提供消息可靠性的保证，当消费者重启后，可以重新读取消息再次进行处理，否则就会出现消息漏处理的问题了</p>
-<h2 id="基于-List-的解决方案"><a href="#基于-List-的解决方案" class="headerlink" title="基于 List 的解决方案"></a>基于 List 的解决方案</h2><p>生产者可以使用 LPUSH 命令把要发送的消息依次写入 List，而消费者则可以使用 RPOP 命令，从 List 的另一端按照消息的写入顺序，依次读取消息并进行处理</p>
-<h3 id="消息保序-1"><a href="#消息保序-1" class="headerlink" title="消息保序"></a>消息保序</h3><p>在生产者往 List 中写入数据时，List 并不会主动地通知消费者有新消息写入，如果消费者想要及时处理消息，就需要在程序中不停地调用 RPOP 命令，会导致消费者程序的 CPU 一直消耗在执行 RPOP 命令上，带来不必要的性能损失</p>
-<p>Redis 提供了 BRPOP 命令，客户端在没有读到队列数据时，自动阻塞直到有新的数据写入队列，再开始读取新数据。和消费者程序自己不停地调用 RPOP 命令相比，这种方式能节省 CPU 开销</p>
-<h3 id="重复信息处理"><a href="#重复信息处理" class="headerlink" title="重复信息处理"></a>重复信息处理</h3><p>List 本身是不会为每个消息生成 ID 号的，所以消息的全局唯一 ID 号就需要生产者程序在发送消息前自行生成；生成之后，在用 LPUSH 命令把消息插入 List 时，需要在消息中包含这个全局唯一 ID</p>
-<p>消费者程序要把已经处理过的消息的 ID 号记录下来，就可以对比收到的消息 ID 和记录的已处理过的消息 ID，来判断当前收到的消息有没有经过处理</p>
-<h3 id="消息可靠性保证-1"><a href="#消息可靠性保证-1" class="headerlink" title="消息可靠性保证"></a>消息可靠性保证</h3><p>List 类型提供了 BRPOPLPUSH 命令，作用是让消费者程序从一个 List 中读取消息，同时 Redis 会把这个消息再插入到另一个 List（可以叫作备份 List）留存</p>
-<p>如果消费者程序读了消息但没能正常处理，等它重启后，就可以从备份 List 中重新读取消息并进行处理了</p>
-<h3 id="不足"><a href="#不足" class="headerlink" title="不足"></a>不足</h3><p>生产者消息发送很快，而消费者处理消息的速度比较慢，这就导致 List 中的消息越积越多，给 Redis 的内存带来很大压力</p>
-<p>List 作为消息队列不支持消费组，不能启动多个消费者程序一起处理 List 中的消息</p>
-<h2 id="基于-Stream-的解决方案"><a href="#基于-Stream-的解决方案" class="headerlink" title="基于 Stream 的解决方案"></a>基于 Stream 的解决方案</h2><p>Stream 是 Redis 专门为消息队列设计的数据类型，它提供了丰富的消息队列操作命令</p>
-<p>Stream 是一个序列，使用XADD向其中添加的消息不会被自动删除（在 Stream 长度限制之内），所有消息始终在那里</p>
-<h3 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h3><img src="/2023/04/20/Redis-stream/02.png" class="">
-
-<ul>
-<li><p>Consumer Group：消费者组可以看成 Stream 的一种数据结构；消费者可以使用 XREAD 单独消费，也可以多个消费者加入一个消费者组进行组内消费；同一条消息只会被一个消费者消费</p>
-</li>
-<li><p>last_delivered_id：表示消费者组在 Stream 上的消费位置信息；每个消费者组都有一个 Stream 内唯一的名称；消费者组不会自动创建，需要使用 XGROUP CREATE 显示创建，并指明开始消费的消息 ID，用来初始化该变量</p>
-</li>
-<li><p>pending_ids：每个消费者内部的状态变量，表示已经被获取但未 ACK 的消息，用来保证消息被客户端至少消费一次</p>
-</li>
-<li><p>ID：第一部分是数据插入时，以毫秒为单位计算的当前服务器时间，第二部分表示插入消息在当前毫秒内的消息序号；保证了 ID 自增，支持范围查找；支持客户端自定义，但需满足整数-整数格式</p>
-</li>
-<li><p>消息内容：普通键值对</p>
-</li>
-</ul>
-<h3 id="消费者组"><a href="#消费者组" class="headerlink" title="消费者组"></a>消费者组</h3><p>当多个消费者同时消费一个消息队列时，可以重复的消费相同的消息，就是消息队列中有 10 条消息，三个消费者都可以消费到这 10 条消息</p>
-<p>消费者组为需要多个消费者配合协作来消费同一个消息队列，就是消息队列中有 10 条消息，三个消费者分别消费其中的某些消息</p>
-<img src="/2023/04/20/Redis-stream/03.png" class="">
-
-<p>每个消费者组内可以挂多个消费者分担读取消息进行消费，消费完成后，各自向 Redis 发送 XACK，标记自己的消费组已经消费到了哪个位置，而且消费组之间互不影响</p>
-<h3 id="Stream-上限"><a href="#Stream-上限" class="headerlink" title="Stream 上限"></a>Stream 上限</h3><p>消息积累太多，Stream 的链表会变得很长，XDEL 不会删除消息，只是给消息做了个标志位</p>
-<p>Redis 提供了定长的 Stream 功能，在 XADD 的指令提供一个定长长度 maxlen；当 Stream 达到指定长度后会自动淘汰老的信息，确保最多不超过指定长度</p>
-<h3 id="PEL"><a href="#PEL" class="headerlink" title="PEL"></a>PEL</h3><p>Stream 在每个消费者结构中保存了正在处理中的消息 ID 列表 PEL，如果消费者收到了消息处理完了但是没有回复 ACK，就会导致 PEL 列表不断增长，如果有很多消费组的话，那么这个 PEL 占用的内存就会放大</p>
-<p>客户端断开连接重连后，读取数据时使用 0-0 来读取所有 PEL 消息及 last_delivered_id 之后消息</p>
-
+          <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">tar [-cxtzjvfpPN] target source</span><br><span class="line"></span><br><span class="line">-c: 建立一个压缩文件的参数指令</span><br><span class="line">-x: 解开一个压缩文件的参数指令</span><br><span class="line">-t: 查看 target 里面的文件</span><br><span class="line"></span><br><span class="line">-z: 用 gzip 压缩</span><br><span class="line">-j: 用 bzip2 压缩</span><br><span class="line"></span><br><span class="line">-v: 压缩的过程中显示文件</span><br><span class="line">-f: 使用档名，在 f 之后要立即接档名</span><br><span class="line"></span><br><span class="line">-p: 使用原文件的原来属性</span><br><span class="line">-P: 可以使用绝对路径来压缩</span><br><span class="line">-N: 比后面接的日期(yyyy/mm/dd)还要新的才会被打包进新建的文件中</span><br><span class="line"></span><br><span class="line">c、x、t 只能存在一个</span><br><span class="line"></span><br><span class="line">tar -czvf xxx.tar.gz xxx | split -a 2 -b 200M -d  - xxx.tar.gz</span><br><span class="line">采用管道，其中 - 参数表示将所创建的文件输出到标准输出上</span><br><span class="line"></span><br><span class="line">cat xxx.tar.gz.* | tar -zxv</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -286,7 +243,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BB%9F%E8%AE%A1%E6%A8%A1%E5%BC%8F/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-sysctl/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -304,7 +261,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E7%BB%9F%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">统计模式</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-sysctl/" class="post-title-link" itemprop="url">sysctl</a>
         </h2>
 
         <div class="post-meta-container">
@@ -315,14 +272,23 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 21:08:46" itemprop="dateCreated datePublished" datetime="2023-04-20T21:08:46+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:19:43" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:43+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+        </span>
     </span>
 
   
@@ -335,25 +301,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>常见的四种统计模式，包括聚合统计、排序统计、二值状态统计和基数统计</p>
-<p>不同统计模式适合使用不同的集合类型</p>
-<img src="/2023/04/20/Redis-%E7%BB%9F%E8%AE%A1%E6%A8%A1%E5%BC%8F/01.png" class="">
-
-<h2 id="聚合统计"><a href="#聚合统计" class="headerlink" title="聚合统计"></a>聚合统计</h2><p>统计多个集合元素的聚合结果，包括：统计多个集合的共有元素（交集统计）；把两个集合相比，统计其中一个集合独有的元素（差集统计）；统计多个集合的所有元素（并集统计）</p>
-<p>当需要对多个集合进行聚合计算时，Set 类型会是一个非常不错的选择，但 Set 的差集、并集和交集的计算复杂度较高，在数据量较大的情况下，如果直接执行这些计算，会导致 Redis 实例阻塞</p>
-<p>可以从主从集群中选择一个从库，让它专门负责聚合计算，或者是把数据读取到客户端，在客户端来完成聚合统计</p>
-<h2 id="排序统计"><a href="#排序统计" class="headerlink" title="排序统计"></a>排序统计</h2><p>Redis 常用的 4 个集合类型中（List、Hash、Set、Sorted Set），List 和 Sorted Set 就属于有序集合</p>
-<p>List 是按照元素进入 List 的顺序进行排序的，而 Sorted Set 可以根据元素的权重来排序，可以自己来决定每个元素的权重值</p>
-<p>在面对需要展示最新列表、排行榜等场景时，如果数据更新频繁或者需要分页显示，建议优先考虑使用 Sorted Set</p>
-<h2 id="二值状态统计"><a href="#二值状态统计" class="headerlink" title="二值状态统计"></a>二值状态统计</h2><p>二值状态就是指集合元素的取值就只有 0 和 1 两种</p>
-<p>Bitmap 提供了 GETBIT&#x2F;SETBIT 操作，使用一个偏移值 offset 对 bit 数组的某一个 bit 位进行读和写；提供了 BITCOUNT 操作用来统计这个 bit 数组中所有 1 的个数</p>
-<p>Bitmap 支持用 BITOP 命令对多个 Bitmap 按位做与或异或的操作，操作的结果会保存到一个新的 Bitmap 中</p>
-<h2 id="基数统计"><a href="#基数统计" class="headerlink" title="基数统计"></a>基数统计</h2><p>统计一个集合中不重复的元素个数</p>
-<p>Set 和 Hash 类型默认支持去重，但集合较大时会非常消耗内存</p>
-<p>HyperLogLog 是一种用于统计基数的数据集合类型，它的最大优势就在于，当集合元素数量非常多时，它计算基数所需的空间总是固定的，而且还很小</p>
-<p>在 Redis 中，每个 HyperLogLog 只需要花费 12 KB 内存，就可以计算接近 2^64 个元素的基数</p>
-<p>HyperLogLog 的统计规则是基于概率完成的，所以它给出的统计结果是有一定误差的，标准误算率是 0.81%，虽然误差率不算大，但是如果需要精确统计结果的话，最好还是继续用 Set 或 Hash 类型</p>
-
+          <p><code>sysctl</code> 命令被用于在内核运行时动态地修改内核的运行参数，可用的内核参数在目录 &#x2F;proc&#x2F;sys 中</p>
+<p>使用 <code>sysctl</code> 修改系统变量，也可以通过编辑 sysctl.conf 文件来修改系统变量</p>
+<p><code>sysctl</code> 变量的设置通常是字符串、数字或者布尔型，布尔型用 1 来表示 yes，用 0 来表示 no</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">sysctl [opt] [var=val]</span><br><span class="line"></span><br><span class="line"><span class="comment"># opt 选项</span></span><br><span class="line"><span class="comment"># -n：打印值时不打印关键字</span></span><br><span class="line"><span class="comment"># -e：忽略未知关键字错误</span></span><br><span class="line"><span class="comment"># -N：仅打印名称</span></span><br><span class="line"><span class="comment"># -w：当改变 sysctl 设置时使用此项</span></span><br><span class="line"><span class="comment"># -p：从配置文件 /etc/sysctl.conf 加载内核参数设置</span></span><br><span class="line"><span class="comment"># -a：打印当前所有可用的内核参数变量和值</span></span><br><span class="line"><span class="comment"># -A：以表格方式打印当前所有可用的内核参数变量和值</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 常用变量</span></span><br><span class="line"><span class="comment"># 保活时间</span></span><br><span class="line">net.ipv4.tcp_keepalive_time </span><br><span class="line"><span class="comment"># 保活时间间隔</span></span><br><span class="line">net.ipv4.tcp_keepalive_intvl、</span><br><span class="line"><span class="comment"># 保活探测次数</span></span><br><span class="line">net.ipv4.tcp_keepalve_probes</span><br><span class="line"><span class="comment"># TIME_WAIT 的连接阈值</span></span><br><span class="line">net.ipv4.tcp_max_tw_buckets</span><br><span class="line"><span class="comment"># listen blacklog 默认值</span></span><br><span class="line">net.ipv4.tcp_max_syn_backlog</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -379,7 +330,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-stat/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -397,7 +348,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/" class="post-title-link" itemprop="url">切片集群</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-stat/" class="post-title-link" itemprop="url">stat</a>
         </h2>
 
         <div class="post-meta-container">
@@ -408,14 +359,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 21:07:04" itemprop="dateCreated datePublished" datetime="2023-04-20T21:07:04+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:19:28" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:28+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -423,7 +374,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -437,46 +388,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>在使用 RDB 进行持久化时，Redis 会 fork 子进程来完成，fork 操作的用时和 Redis 的数据量是正相关的，而 fork 在执行时会阻塞主线程。数据量越大，fork 操作造成的主线程阻塞的时间越长，Redis 响应变慢</p>
-<p>切片集群，也叫分片集群，就是指启动多个 Redis 实例组成一个集群，然后按照一定的规则，把收到的数据划分成多份，每一份用一个实例来保存</p>
-<img src="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/01.png" class="">
-
-<h2 id="保存大量数据方式"><a href="#保存大量数据方式" class="headerlink" title="保存大量数据方式"></a>保存大量数据方式</h2><ul>
-<li><p>纵向扩展：升级单个 Redis 实例的资源配置，包括增加内存容量、增加磁盘容量、使用更高配置的 CPU；好处是实施起来简单、直接；坏处是数据持久化时阻塞服务，硬件成本较高</p>
-</li>
-<li><p>横向扩展：横向增加当前 Redis 实例的个数；好处是不用担心单个实例的硬件和成本限制；坏处是集群管理困难</p>
-</li>
-</ul>
-<h2 id="数据切片"><a href="#数据切片" class="headerlink" title="数据切片"></a>数据切片</h2><p>切片集群是一种保存大量数据的通用机制，这个机制可以有不同的实现方案</p>
-<p>Redis Cluster 方案中规定了数据和实例的对应规则：Redis Cluster 方案采用哈希槽（Hash Slot）来处理数据和实例之间的映射关系；在 Redis Cluster 方案中，一个切片集群共有 16384 个哈希槽，这些哈希槽类似于数据分区，每个键值对都会根据它的 key，被映射到一个哈希槽中</p>
-<p>具体的映射过程分为两大步：首先根据键值对的 key，按照哈希算法计算一个 16 bit 的值；然后，再用这个 16bit 值对 16384 取模，得到 0~16383 范围内的模数，每个模数代表一个相应编号的哈希槽</p>
-<p>可以使用 cluster create 命令创建集群，此时，Redis 会自动把这些槽平均分布在集群实例上</p>
-<p>使用 cluster addslots 命令手动分配哈希槽，手动分配时需要把 16384 个槽都分配完，否则 Redis 集群无法正常工作</p>
-<p>现代的分布式数据库实现分片基本都是 Range-based 的，能够实现分片的动态调度，但某个 range 内的记录数量很多，这就会导致相应的数据分片比较大，一般也叫做数据倾斜，导致负载不均衡；Redis 用 Hash-based 的设计方式，能把数据打得比较散，不太容易引起数据倾斜，提高访问性能</p>
-<p>Redis Cluster 方案通过哈希槽的方式把键值对分配到不同的实例上，这个过程需要对键值对的 key 做 CRC 计算，然后再和哈希槽做映射，而不是直接对 key 做哈希的理由是：</p>
-<ul>
-<li><p>整个集群存储key的数量是无法预估的，key的数量非常多时，直接记录每个key对应的实例映射关系，这个映射表会非常庞大，这个映射表无论是存储在服务端还是客户端都占用了非常大的内存空间</p>
-</li>
-<li><p>每个节点拥有整个集群完整的路由关系，需要节点之间互相交换路由表，节点之间交换信息也会变得非常庞大，消耗过多的网络资源</p>
-</li>
-<li><p>迁移时需要修改每个key的映射关系，维护成本高</p>
-</li>
-<li><p>中间增加一层哈希槽，可以把数据和节点解耦，让数据分布更均匀，还可以让这个映射表变得很小，利于客户端和服务端保存，节点之间交换信息时也变得轻量</p>
-</li>
-</ul>
-<h2 id="客户端定位槽"><a href="#客户端定位槽" class="headerlink" title="客户端定位槽"></a>客户端定位槽</h2><p>一般来说，客户端和集群实例建立连接后，实例就会把哈希槽的分配信息发给客户端。但是，在集群刚刚创建的时候，每个实例只知道自己被分配了哪些哈希槽，是不知道其他实例拥有的哈希槽信息的</p>
-<p>Redis 实例会把自己的哈希槽信息发给和它相连接的其它实例，来完成哈希槽分配信息的扩散。当实例之间相互连接后，每个实例就有所有哈希槽的映射关系了</p>
-<p>客户端收到哈希槽信息后，会把哈希槽信息缓存在本地。当客户端请求键值对时，会先计算键所对应的哈希槽，然后就可以给相应的实例发送请求了</p>
-<h2 id="重定向机制"><a href="#重定向机制" class="headerlink" title="重定向机制"></a>重定向机制</h2><p>当实例和哈希槽的对应关系发生变化，如实例有新增或删除，Redis 重新分配哈希槽，或为了负载均衡，Redis 把哈希槽在所有实例上重新分布一遍</p>
-<p>实例之间可以通过相互传递消息，获得最新的哈希槽分配信息，但客户端无法主动感知变化</p>
-<p>Redis Cluster 方案提供了一种重定向机制：客户端给一个实例发送数据读写操作时，这个实例上并没有相应的数据，客户端要再给一个新实例发送操作命令；当客户端把一个键值对的操作请求发给一个实例时，如果这个实例上并没有这个键值对映射的哈希槽，那么，这个实例就会给客户端返回下面的 MOVED 命令响应结果，这个结果中就包含了新实例的访问地址</p>
-<img src="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/02.png" class="">
-
-<p>当实例重新分配过程中，槽的一部分数据还未转移成功，此时客户端请求会收到一条 ASK 报错信息，表示客户端请求的键值对所在的哈希槽正在迁移，客户端需要先给新实例发送一个 ASKING 命令，让这个实例允许执行客户端接下来发送的命令。然后，客户端再向这个实例发送 GET 命令，以读取数据</p>
-<img src="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/03.png" class="">
-
-<p>和 MOVED 命令不同，ASK 命令并不会更新客户端缓存的哈希槽分配信息</p>
-
+          <p>显示文件 inode 内容</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">stat</span> [option] file</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -502,7 +415,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-ss/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -520,7 +433,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/" class="post-title-link" itemprop="url">哨兵集群</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-ss/" class="post-title-link" itemprop="url">ss</a>
         </h2>
 
         <div class="post-meta-container">
@@ -531,14 +444,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 21:05:46" itemprop="dateCreated datePublished" datetime="2023-04-20T21:05:46+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:19:24" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:24+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -546,7 +459,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -560,52 +473,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>多个实例组成哨兵集群，即使有哨兵实例出现故障挂掉了，其他哨兵还能继续协作完成主从库切换的工作，包括判定主库是不是处于下线状态，选择新主库，以及通知从库和客户端</p>
-<p>在配置哨兵的信息时，只需要用到主库的 IP 和端口，并没有配置其他哨兵的连接信息</p>
-<h2 id="基于主库的-pub-x2F-sub-机制的哨兵集群"><a href="#基于主库的-pub-x2F-sub-机制的哨兵集群" class="headerlink" title="基于主库的 pub&#x2F;sub 机制的哨兵集群"></a>基于主库的 pub&#x2F;sub 机制的哨兵集群</h2><p>哨兵实例之间可以相互发现，要归功于 Redis 提供的 pub&#x2F;sub 机制</p>
-<p>哨兵只要和主库建立起了连接，就可以在主库上发布消息了，比如说发布它自己的连接信息（IP 和端口）。同时，它也可以从主库上订阅消息，获得其他哨兵发布的连接信息。当多个哨兵实例都在主库上做了发布和订阅操作后，它们之间就能知道彼此的 IP 地址和端口</p>
-<p>除了哨兵实例，编写的应用程序也可以通过 Redis 进行消息的发布和订阅。为了区分不同应用的消息，Redis 会以频道的形式，对这些消息进行分门别类的管理。所谓的频道，就是消息的类别。当消息类别相同时，它们就属于同一个频道。反之，就属于不同的频道。只有订阅了同一个频道的应用，才能通过发布的消息进行信息交换</p>
-<p>在主从集群中，主库上有一个名为 <strong>sentinel</strong>:hello 的频道，不同哨兵就是通过它来相互发现，实现互相通信的</p>
-<p>通过 pub&#x2F;sub 机制，哨兵之间可以组成集群</p>
-<h2 id="INFO-命令"><a href="#INFO-命令" class="headerlink" title="INFO 命令"></a>INFO 命令</h2><p>哨兵除了彼此之间建立起连接形成集群外，还需要和从库建立连接。在哨兵的监控任务中，它需要对主从库都进行心跳判断，而且在主从库切换完成后，它还需要通知从库，让它们和新主库进行同步</p>
-<p>哨兵向主库发送 INFO 命令来获取从库的 IP 地址和端口</p>
-<img src="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/01.png" class="">
-
-<p>哨兵 2 给主库发送 INFO 命令，主库接受到这个命令后，就会把从库列表返回给哨兵。接着，哨兵就可以根据从库列表中的连接信息，和每个从库建立连接，并在这个连接上持续地对从库进行监控。哨兵 1 和 3 可以通过相同的方法和从库建立连接</p>
-<p>通过 INFO 命令，获得了从库连接信息，也能和从库建立连接，并进行监控</p>
-<h2 id="基于哨兵自身的-pub-x2F-sub-机制的客户端事件通知"><a href="#基于哨兵自身的-pub-x2F-sub-机制的客户端事件通知" class="headerlink" title="基于哨兵自身的 pub&#x2F;sub 机制的客户端事件通知"></a>基于哨兵自身的 pub&#x2F;sub 机制的客户端事件通知</h2><p>哨兵需要在完成主从切换后，把新主库的信息告诉客户端，如客户端能够获取到哨兵集群在监控、选主、切换这个过程中发生的各种事件</p>
-<p>可以使用 pub&#x2F;sub 机制，来帮助完成哨兵和客户端间的信息同步</p>
-<p>从本质上说，哨兵就是一个运行在特定模式下的 Redis 实例，只不过它并不服务请求操作，只是完成监控、选主和通知的任务。所以，每个哨兵实例也提供 pub&#x2F;sub 机制，客户端可以从哨兵订阅消息。哨兵提供的消息订阅频道有很多，不同频道包含了主从库切换过程中的不同关键事件</p>
-<img src="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/02.png" class="">
-
-<p>客户端读取哨兵的配置文件后，可以获得哨兵的地址和端口，和哨兵建立网络连接。然后可以在客户端执行订阅命令，来获取不同的事件消息</p>
-<p>有了这些事件通知，客户端不仅可以在主从切换后得到新主库的连接信息，还可以监控到主从库切换过程中发生的各个重要事件。这样客户端就可以知道主从切换进行到哪一步了，有助于了解切换进度</p>
-<h2 id="客观下线仲裁过程"><a href="#客观下线仲裁过程" class="headerlink" title="客观下线仲裁过程"></a>客观下线仲裁过程</h2><ul>
-<li><p>任何一个实例只要自身判断主库主观下线后，就会给其他实例发送 is-master-down-by-addr 命令</p>
-</li>
-<li><p>其他实例会根据自己和主库的连接情况，做出 Y 或 N 的响应，Y 相当于赞成票，N 相当于反对票</p>
-</li>
-</ul>
-<img src="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/03.png" class="">
-
-<ul>
-<li><p>一个哨兵获得了仲裁所需的赞成票数后，就可以标记主库为客观下线。这个所需的赞成票数是通过哨兵配置文件中的 quorum 配置项设定的。例如，现在有 5 个哨兵，quorum 配置的是 3，那么，一个哨兵需要 3 张赞成票，就可以标记主库为客观下线了。这 3 张赞成票包括哨兵自己的一张赞成票和另外两个哨兵的赞成票</p>
-</li>
-<li><p>这个哨兵就可以再给其他哨兵发送命令，表明希望由自己来执行主从切换，并让所有其他哨兵进行投票。这个投票过程称为Leader 选举。因为最终执行主从切换的哨兵称为 Leader，投票过程就是确定 Leader</p>
-</li>
-<li><p>在投票过程中，任何一个想成为 Leader 的哨兵，要满足两个条件：第一，拿到半数以上的赞成票；第二，拿到的票数同时还需要大于等于哨兵配置文件中的 quorum 值</p>
-</li>
-<li><p>投票过程中，未投过票的哨兵会给第一个向它发送投票请求的哨兵回复 Y，给后续再发送投票请求的哨兵回复 N</p>
-</li>
-<li><p>Leader 开始执行选主操作，而且在选定新主库后，会给其他从库和客户端通知新主库的信息</p>
-</li>
-<li><p>此轮如果没有产生 Leader，哨兵集群会等待一段时间（也就是哨兵故障转移超时时间的 2 倍），再重新选举。哨兵集群能够进行成功投票，很大程度上依赖于选举命令的正常网络传播。如果网络压力较大或有短时堵塞，就可能导致没有一个哨兵能拿到半数以上的赞成票。所以，等到网络拥塞好转之后，再进行投票选举，成功的概率就会增加</p>
-</li>
-</ul>
-<p>通常我们至少会配置 3 个哨兵实例</p>
-<p>要保证所有哨兵实例的配置是一致的，尤其是主观下线的判断值 down-after-milliseconds</p>
-<p>哨兵在判定主观下线和选举哨兵领导者时，都需要和其他节点进行通信，交换信息，哨兵实例越多，通信的次数也就越多，而且部署多个哨兵时，会分布在不同机器上，节点越多带来的机器故障风险也会越大，这些问题都会影响到哨兵的通信和选举，出问题时也就意味着选举时间会变长，切换主从的时间变久</p>
-
+          <p><code>ss</code> 命令用来替代 <code>netstat</code> 的</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">-a 显示服务器上所有的 sockets 连接，直接列出所有网络连接</span><br><span class="line">-l 显示正在监听的网络端口</span><br><span class="line">-n 显示数字IP和端口，不通过域名服务器</span><br><span class="line">-p 显示使用 socket 的对应的程序</span><br><span class="line">-t 只显示 TCP sockets</span><br><span class="line">-u 只显 示UDP sockets</span><br><span class="line">-4 -6 只显示 v4 或 v6 版本的 sockets</span><br><span class="line">-s 查看当前服务器的网络连接统计，打印出统计信息。</span><br><span class="line">-0 显示 PACKET sockets</span><br><span class="line">-w 只显示 RAW sockets</span><br><span class="line">-x 只显示 UNIX 域 sockets</span><br><span class="line">-r 尝试进行域名解析，地址/端口</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -631,7 +500,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-split/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -649,7 +518,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">哨兵机制</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-split/" class="post-title-link" itemprop="url">split</a>
         </h2>
 
         <div class="post-meta-container">
@@ -660,14 +529,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 21:04:31" itemprop="dateCreated datePublished" datetime="2023-04-20T21:04:31+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:19:19" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:19+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -675,7 +544,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -689,50 +558,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>如果从库发生故障了，客户端可以继续向主库或其他从库发送请求，进行相关的操作，但是如果主库发生故障了，那就直接会影响到从库的同步，因为从库没有相应的主库可以进行数据复制操作了</p>
-<p>在 Redis 主从集群中，哨兵机制是实现主从库自动切换的关键机制，它有效地解决了主从复制模式下故障转移</p>
-<h2 id="基本流程"><a href="#基本流程" class="headerlink" title="基本流程"></a>基本流程</h2><p>哨兵其实就是一个运行在特殊模式下的 Redis 进程，主从库实例运行的同时它也在运行</p>
-<p>哨兵主要负责的就是三个任务：监控、选主（选择主库）和通知</p>
-<ul>
-<li><p>监控是指哨兵进程在运行时，周期性地给所有的主从库发送 PING 命令，检测它们是否仍然在线运行；如果从库没有在规定时间内响应哨兵的 PING 命令，哨兵就会把它标记为下线状态；果主库也没有在规定时间内响应哨兵的 PING 命令，哨兵就会判定主库下线，然后开始自动切换主库的流程</p>
-</li>
-<li><p>选主是主库挂了以后，哨兵就需要从很多个从库里，按照一定的规则选择一个从库实例，把它作为新的主库</p>
-</li>
-<li><p>通知是哨兵会把新主库的连接信息发给其他从库，让它们执行 replicaof 命令，和新主库建立连接，并进行数据复制；哨兵会把新主库的连接信息通知给客户端，让它们把请求操作发到新主库上</p>
-</li>
-</ul>
-<h2 id="监控机制"><a href="#监控机制" class="headerlink" title="监控机制"></a>监控机制</h2><p>哨兵进程会使用 PING 命令检测它自己和主、从库的网络连接情况，用来判断实例的状态；如果哨兵发现主库或从库对 PING 命令的响应超时了，哨兵就会先把它标记为主观下线</p>
-<p>如果检测的是从库，那么哨兵简单地把它标记为主观下线就行了，因为从库的下线影响一般不太大，集群的对外服务不会间断</p>
-<p>如果检测的是主库，那么哨兵还不能简单地把它标记为主观下线，因为如果哨兵误判了，其实主库并没有故障，一旦启动了主从切换，后续的选主和通知操作都会带来额外的计算和通信开销</p>
-<p>误判一般会发生在集群网络压力较大、网络拥塞，或者是主库本身压力较大的情况下</p>
-<p>哨兵机制通常会采用多实例组成的集群模式进行部署，组成哨兵集群。引入多个哨兵实例一起来判断，就可以避免单个哨兵因为自身网络状况不好，而误判主库下线的情况。同时，多个哨兵的网络同时不稳定的概率较小，由它们一起做决策，误判率也能降低</p>
-<p>只有大多数的哨兵实例都判断主库已经主观下线了，主库才会被标记为客观下线</p>
-<img src="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/01.png" class="">
-
-<p>客观下线的标准就是，当有 N 个哨兵实例时，最好要有 N&#x2F;2 + 1 个实例判断主库为主观下线，才能最终判定主库为客观下线。这样一来，就可以减少误判的概率，也能避免误判带来的无谓的主从库切换</p>
-<h2 id="选主机制"><a href="#选主机制" class="headerlink" title="选主机制"></a>选主机制</h2><p>哨兵选择新主库的过程为筛选 + 打分。简单来说，在多个从库中，先按照一定的筛选条件，把不符合条件的从库去掉。然后，再按照一定的规则，给剩下的从库逐个打分，将得分最高的从库选为新主库</p>
-<img src="/2023/04/20/Redis-%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/02.png" class="">
-
-<h3 id="筛选"><a href="#筛选" class="headerlink" title="筛选"></a>筛选</h3><ul>
-<li><p>保证所选的从库仍然在线运行</p>
-</li>
-<li><p>判断从库之前的网络连接状态</p>
-</li>
-</ul>
-<h3 id="打分"><a href="#打分" class="headerlink" title="打分"></a>打分</h3><p>按照三个规则依次进行三轮打分，打分标准为：</p>
-<ul>
-<li><p>从库优先级</p>
-</li>
-<li><p>从库复制进度</p>
-</li>
-<li><p>从库 ID 号</p>
-</li>
-</ul>
-<p>只要在某一轮中，有从库得分最高，那么它就是主库了，选主过程到此结束；如果没有出现得分最高的从库，那么就继续进行下一轮</p>
-<p>第一轮：优先级最高的从库得分高；通过 slave-priority 配置项，给不同的从库设置不同优先级</p>
-<p>第二轮：和旧主库同步程度最接近的从库得分高；如果选择和旧主库同步最接近的那个从库作为主库，那么这个新主库上就有最新的数据；在主从库同步的命令传播的过程中，主库会用 master_repl_offset 记录当前的最新写操作在 repl_backlog_buffer 中的位置，而从库会用 slave_repl_offset 这个值记录当前的复制进度；从库的 slave_repl_offset 最接近 master_repl_offset，那么它的得分就最高，可以作为新主库</p>
-<p>第三轮：ID 号小的从库得分高；每个实例都会有一个 ID，在优先级和复制进度都相同的情况下，ID 号最小的从库得分最高，会被选为新主库</p>
-
+          <p>分割文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">split [-a suffix_length] [-b byte_count[k|m]] [-l line_count] [-d] [file [name]]</span><br><span class="line"></span><br><span class="line">line_count: 指定每多少行切成一个小文件</span><br><span class="line">byte_count: 指定每多少字节切成一个小文件，单位 M 和 kb</span><br><span class="line">-d: 使用数字作为后缀</span><br><span class="line">-a: 指定后缀长度</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -758,7 +585,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-sed/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -776,7 +603,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/" class="post-title-link" itemprop="url">缓存淘汰</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-sed/" class="post-title-link" itemprop="url">sed</a>
         </h2>
 
         <div class="post-meta-container">
@@ -787,14 +614,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 21:02:47" itemprop="dateCreated datePublished" datetime="2023-04-20T21:02:47+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:19:13" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:13+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -802,7 +629,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -816,61 +643,22 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="缓存淘汰"><a href="#缓存淘汰" class="headerlink" title="缓存淘汰"></a>缓存淘汰</h2><p>应用 Redis 缓存时，如果能缓存会被反复访问的数据，那就能加速业务应用的访问</p>
-<p>在一些场景下，有些数据被访问的次数非常少，甚至只会被访问一次。当这些数据服务完访问请求后，如果还继续留存在缓存中的话，就只会白白占用缓存空间</p>
-<p>为了保证较高的性价比，缓存的空间容量必然要小于后端数据库的数据总量。不过，内存大小毕竟有限，随着要缓存的数据量越来越大，有限的缓存空间不可避免地会被写满</p>
-<p>淘汰机制包括两步：第一，根据一定的策略，筛选出对应用访问来说不重要的数据；第二，将这些数据从缓存中删除，为新来的数据腾出空间</p>
-<h2 id="设置缓存容量"><a href="#设置缓存容量" class="headerlink" title="设置缓存容量"></a>设置缓存容量</h2><h3 id="长尾效应"><a href="#长尾效应" class="headerlink" title="长尾效应"></a>长尾效应</h3><p>20% 的数据贡献了 80% 的访问</p>
-<h3 id="重尾效应"><a href="#重尾效应" class="headerlink" title="重尾效应"></a>重尾效应</h3><p>20% 的数据可能贡献不了 80% 的访问，而剩余的 80% 数据反而贡献了更多的访问量</p>
-<h3 id="经验"><a href="#经验" class="headerlink" title="经验"></a>经验</h3><p>把缓存容量设置为总数据量的 15% 到 30%，兼顾访问性能和内存空间开销</p>
-<h2 id="淘汰策略"><a href="#淘汰策略" class="headerlink" title="淘汰策略"></a>淘汰策略</h2><img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/01.png" class="">
-
-<p>volatie-* 四种淘汰策略，筛选的候选数据范围，被限制在已经设置了过期时间的键值对上，即使缓存没有写满，这些数据如果过期了，也会被删除</p>
-<p>allkeys-* 三种淘汰策略，筛选的候选数据范围，扩大到了所有键值对，无论这些键值对是否设置了过期时间</p>
-<h3 id="noevction"><a href="#noevction" class="headerlink" title="noevction"></a>noevction</h3><p>默认情况下，Redis 在使用的内存空间超过 maxmemory 值时，并不会淘汰数据；一旦缓存被写满了，再有写请求来时，Redis 不再提供服务，而是直接返回错误</p>
-<p>Redis 用作缓存时，实际的数据集通常都是大于缓存容量的，总会有新的数据要写入缓存，这个策略本身不淘汰数据，也就不会腾出新的缓存空间，因此不能把它用在 Redis 缓存中</p>
-<h3 id="volatile-ttl"><a href="#volatile-ttl" class="headerlink" title="volatile-ttl"></a>volatile-ttl</h3><p>针对设置了过期时间的键值对，根据过期时间的先后进行删除，越早过期的越先被删除</p>
-<h3 id="volatile-random"><a href="#volatile-random" class="headerlink" title="volatile-random"></a>volatile-random</h3><p>在设置了过期时间的键值对中，进行随机删除</p>
-<h3 id="volatile-lru"><a href="#volatile-lru" class="headerlink" title="volatile-lru"></a>volatile-lru</h3><p>使用 LRU 算法筛选设置了过期时间的键值对</p>
-<h3 id="volatile-lfu"><a href="#volatile-lfu" class="headerlink" title="volatile-lfu"></a>volatile-lfu</h3><p>使用 LFU 算法选择设置了过期时间的键值对</p>
-<h3 id="allkeys-random"><a href="#allkeys-random" class="headerlink" title="allkeys-random"></a>allkeys-random</h3><p>从所有键值对中随机选择并删除数据</p>
-<h3 id="allkeys-lru"><a href="#allkeys-lru" class="headerlink" title="allkeys-lru"></a>allkeys-lru</h3><p>使用 LRU 算法在所有数据中进行筛选</p>
-<h3 id="allkeys-lfu"><a href="#allkeys-lfu" class="headerlink" title="allkeys-lfu"></a>allkeys-lfu</h3><p>使用 LFU 算法在所有数据中进行筛选</p>
-<h2 id="random"><a href="#random" class="headerlink" title="random"></a>random</h2><p>volatile-random 和 allkeys-random 这两种策略，它们都是采用随机挑选数据的方式，来筛选即将被淘汰的数据</p>
-<p>随机挑选，那么 Redis 就不会根据数据的访问情况来筛选数据，在避免缓存污染这个问题上的效果非常有限</p>
-<h2 id="ttl"><a href="#ttl" class="headerlink" title="ttl"></a>ttl</h2><p>volatile-ttl 针对的是设置了过期时间的数据，把这些数据中剩余存活时间最短的筛选出来并淘汰掉；虽然 volatile-ttl 策略不再是随机选择淘汰数据了，但是剩余存活时间并不能直接反映数据再次访问的情况，所以和按随机方式淘汰数据类似，也可能出现数据被淘汰后，被再次访问导致的缓存缺失问题</p>
-<h2 id="LRU"><a href="#LRU" class="headerlink" title="LRU"></a>LRU</h2><p>LRU 算法的全称是 Least Recently Used，按照最近最少使用的原则来筛选数据，最不常用的数据会被筛选出来，而最近频繁使用的数据会留在缓存中</p>
-<p>LRU 会把所有的数据组织成一个链表，链表的头和尾分别表示 MRU 端和 LRU 端，分别代表最近最常使用的数据和最近最不常用的数据</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/02.png" class="">
-
-<p>LRU 算法选择删除数据时，都是从 LRU 端开始，所以把刚刚被访问的数据移到 MRU 端，就可以让它们尽可能地留在缓存中</p>
-<p>LRU 算法背后的想法非常朴素：它认为刚刚被访问的数据，肯定还会被再次访问，所以就把它放在 MRU 端；长久不访问的数据，肯定就不会再被访问了，所以就让它逐渐后移到 LRU 端，在缓存满时，就优先删除它</p>
-<p>LRU 算法在实际实现时，需要用链表管理所有的缓存数据，会带来额外的空间开销。而且，当有数据被访问时，需要在链表上把该数据移动到 MRU 端，如果有大量数据被访问，就会带来很多链表移动操作，会很耗时，进而会降低 Redis 缓存性能</p>
-<p>在 Redis 中，LRU 算法被做了简化，以减轻数据淘汰对缓存性能的影响：Redis 默认会记录每个数据的最近一次访问的时间戳（由键值对数据结构 RedisObject 中的 lru 字段记录）；Redis 在决定淘汰的数据时，第一次会随机选出 N 个数据，把它们作为一个候选集合；Redis 会比较这 N 个数据的 lru 字段，把 lru 字段值最小的数据从缓存中淘汰出去；不用为所有的数据维护一个大链表，也不用在每次数据访问时都移动链表项，提升了缓存的性能</p>
-<p>因为只看数据的访问时间，使用 LRU 策略在处理扫描式单次查询操作时，无法解决缓存污染</p>
-<p>应用对大量的数据进行一次全体读取，每个数据都会被读取，而且只会被读取一次。此时，因为这些被查询的数据刚刚被访问过，所以 lru 字段值都很大；在使用 LRU 策略淘汰数据时，这些数据会留存在缓存中很长一段时间，造成缓存污染</p>
-<h2 id="LFU"><a href="#LFU" class="headerlink" title="LFU"></a>LFU</h2><p>LFU 缓存策略是在 LRU 策略基础上，为每个数据增加了一个计数器，来统计这个数据的访问次数。当使用 LFU 策略筛选淘汰数据时，首先会根据数据的访问次数进行筛选，把访问次数最低的数据淘汰出缓存。如果两个数据的访问次数相同，LFU 策略再比较这两个数据的访问时效性，把距离上一次访问时间更久的数据淘汰出缓存</p>
-<p>Redis 在实现 LFU 策略的时候，只是把原来 24bit 大小的 lru 字段，又进一步拆分成了两部分</p>
+          <p><code>sed</code> 的工作流程：</p>
 <ol>
-<li><p>ldt 值：lru 字段的前 16bit，表示数据的访问时间戳</p>
+<li><p>读取输入流的一行到模式空间，输入流可以是标准输入也可以是文件</p>
 </li>
-<li><p>counter 值：lru 字段的后 8bit，表示数据的访问次数，最大值是 255</p>
+<li><p>通过行号计数器记录当前行号</p>
+</li>
+<li><p>对模式空间中的内容进行匹配和处理</p>
+</li>
+<li><p>自动输出模式空间内容</p>
+</li>
+<li><p>清空模式空间内容</p>
+</li>
+<li><p>读取输入流的下一行到模式空间</p>
 </li>
 </ol>
-<p>在实现 LFU 策略时，Redis 并没有采用数据每被访问一次，就给对应的 counter 值加 1 的计数规则，而是采用了一个更优化的计数规则：使用配置项 lfu_log_factor、衰减因子配置项 lfu_decay_time 来统计计数</p>
-<p>当 LFU 策略筛选数据时，Redis 会在候选集合中，根据数据 lru 字段的后 8bit 选择访问次数最少的数据进行淘汰。当访问次数相同时，再根据 lru 字段的前 16bit 值大小，选择访问时间最久远的数据进行淘汰</p>
-<h2 id="淘汰操作"><a href="#淘汰操作" class="headerlink" title="淘汰操作"></a>淘汰操作</h2><img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/03.png" class="">
-
-<p>干净数据和脏数据的区别就在于，和最初从后端数据库里读取时的值相比，有没有被修改过。干净数据一直没有被修改，所以后端数据库里的数据也是最新值。在替换时，它可以被直接删除</p>
-<p>脏数据就是曾经被修改过的，已经和后端数据库中保存的数据不一致了。此时，如果不把脏数据写回到数据库中，这个数据的最新值就丢失了，就会影响应用的正常使用</p>
-<h2 id="使用建议"><a href="#使用建议" class="headerlink" title="使用建议"></a>使用建议</h2><ul>
-<li><p>优先使用 allkeys-lru 策略，充分利用 LRU 的优势，把最近最常访问的数据留在缓存中，提升应用的访问性能</p>
-</li>
-<li><p>如果业务应用中的数据访问频率相差不大，没有明显的冷热数据区分，建议使用 allkeys-random 策略</p>
-</li>
-<li><p>有置顶的需求，可以使用 volatile-lru 策略，同时不给这些置顶数据设置过期时间</p>
-</li>
-</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">sed [option]... [-e <span class="string">&#x27;&lt;script&gt;&#x27;</span>]... [-f <span class="string">&#x27;&lt;script 文件&gt;&#x27;</span>] [文本文件]</span><br><span class="line"><span class="comment"># 选项</span></span><br><span class="line"><span class="comment"># -i[&#x27;suffix&#x27;] sed 通过创建一个临时文件并将输出写入到临时文件然后重命名为源文件来实现的对源文件的覆盖的，指定 suffix 后会将源文件备份</span></span><br><span class="line"><span class="comment"># -n 关闭默认输出，即不在屏幕上自动打印</span></span><br><span class="line"><span class="comment"># -r 使用扩展正则</span></span><br><span class="line"><span class="comment"># -e 指定脚本，可指定多个脚本</span></span><br><span class="line"><span class="comment"># -f 指定脚本文件</span></span><br><span class="line"></span><br><span class="line">sed <span class="string">&#x27;[address]op[/pattern][/replacement][/flags]&#x27;</span> fileName</span><br><span class="line"></span><br><span class="line"><span class="comment"># address</span></span><br><span class="line"><span class="comment"># 不给地址时表示对全文进行处理</span></span><br><span class="line"><span class="comment"># n 在第 n 行执行脚本，$ 表示最后一行</span></span><br><span class="line"><span class="comment"># n,m 在 n~m 行执行脚本</span></span><br><span class="line"><span class="comment"># n,+m 在 n~n+m 行执行脚本</span></span><br><span class="line"><span class="comment"># n~m 取行号满足 n+(x*m) 的行</span></span><br><span class="line"><span class="comment"># /RE/ 匹配正则 /RE/ 的行</span></span><br><span class="line"><span class="comment"># n,/RE/  n~匹配 /RE/ 的行执行脚本</span></span><br><span class="line"><span class="comment"># /RE/,m  匹配 /RE/ 的行~m 执行脚本</span></span><br><span class="line"><span class="comment"># /RE1/,/RE2/  匹配 /RE1/ 的行 ~ 匹配 /RE2/ 执行脚本</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># op</span></span><br><span class="line"><span class="comment"># p：打印行</span></span><br><span class="line"><span class="comment"># d：行删除</span></span><br><span class="line"><span class="comment"># a：在当前行下面追加新的行，使用 \n 追加多行</span></span><br><span class="line"><span class="comment"># i：在当前行上面插入新的行</span></span><br><span class="line"><span class="comment"># c：行替换</span></span><br><span class="line"><span class="comment"># s：正则字符替换，对应 flags 有 g 全部替换，p 输出替换后的内容，i 不区分大小写</span></span><br><span class="line"><span class="comment"># w：把行写入文件</span></span><br><span class="line"><span class="comment"># q：退出</span></span><br><span class="line"><span class="comment"># =: 输出行号</span></span><br><span class="line"><span class="comment"># y: 字符替换</span></span><br><span class="line"><span class="comment"># n: 读取下一行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># flags</span></span><br><span class="line"><span class="comment"># g：行内全面替换</span></span><br><span class="line"><span class="comment"># num：只替换行内第 num 个匹配项</span></span><br><span class="line"><span class="comment"># numg：从第 num 处匹配全部</span></span><br><span class="line"><span class="comment"># \1：子串匹配标记</span></span><br><span class="line"><span class="comment"># &amp;：已匹配字符串标记</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 字符替换脚本</span></span><br><span class="line">sed <span class="string">&#x27;s/test/trial/2&#x27;</span> data4.txt</span><br><span class="line">sed <span class="string">&#x27;s/test/trial/w test.txt&#x27;</span> data5.txt</span><br><span class="line">sed <span class="string">&#x27;s/\/bin\/bash/\/bin\/csh/&#x27;</span> /etc/passwd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 替换行脚本</span></span><br><span class="line">sed <span class="string">&#x27;[address]c\用于替换的新文本&#x27;</span> fileName</span><br><span class="line">sed <span class="string">&#x27;3c\This is a changed line of text.&#x27;</span> data6.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除脚本</span></span><br><span class="line">sed <span class="string">&#x27;[address]d&#x27;</span> fileName</span><br><span class="line"><span class="comment"># 删除文本中的特定行</span></span><br><span class="line">sed <span class="string">&#x27;3d&#x27;</span> data6.txt</span><br><span class="line">sed <span class="string">&#x27;2,3d&#x27;</span> data6.txt</span><br><span class="line"><span class="comment"># 删除某个区间内的行</span></span><br><span class="line"><span class="comment"># 第一个模式会打开行删除功能，第二个模式会关闭行删除功能</span></span><br><span class="line">sed <span class="string">&#x27;/1/,/3/d&#x27;</span> data6.txt</span><br><span class="line">sed <span class="string">&#x27;3,$d&#x27;</span> data6.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 插入脚本</span></span><br><span class="line">sed <span class="string">&#x27;[address]a（或 i）\新文本内容&#x27;</span> fileName</span><br><span class="line">sed <span class="string">&#x27;3a\This is an appended line.&#x27;</span> data6.txt</span><br><span class="line"><span class="comment"># 将一个多行数据添加到数据流中，只需对要插入或附加的文本中的每一行末尾（除最后一行）添加反斜线即可</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 转换脚本</span></span><br><span class="line">sed <span class="string">&#x27;[address]y/inchars/outchars/&#x27;</span> fileName</span><br><span class="line"><span class="comment"># 对 inchars 和 outchars 值进行一对一的映射</span></span><br><span class="line"><span class="comment"># inchars 中的第一个字符会被转换为 outchars 中的第一个字符</span></span><br><span class="line"><span class="comment"># 第二个字符会被转换成 outchars 中的第二个字符...</span></span><br><span class="line"><span class="comment"># 转换命令是一个全局命令</span></span><br><span class="line">sed <span class="string">&#x27;y/123/789/&#x27;</span> data8.txt</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -897,7 +685,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-redisObject/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-scp/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -915,7 +703,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-redisObject/" class="post-title-link" itemprop="url">RedisObject</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-scp/" class="post-title-link" itemprop="url">scp</a>
         </h2>
 
         <div class="post-meta-container">
@@ -926,14 +714,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 21:01:29" itemprop="dateCreated datePublished" datetime="2023-04-20T21:01:29+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:19:07" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:07+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -941,7 +729,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -955,287 +743,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>Redis 键值对中的每一个值都是用 <code>redisObject</code> 保存的</p>
-<h2 id="基本对象结构"><a href="#基本对象结构" class="headerlink" title="基本对象结构"></a>基本对象结构</h2><p>因为 Redis 的数据类型有很多，而且不同数据类型都有些相同的元数据要记录（比如最后一次访问的时间、被引用的次数等），所以 Redis 会用一个 <code>redisObject</code> 结构体来统一记录这些元数据，同时指向实际数据</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* The actual Redis Object */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_STRING 0    <span class="comment">/* String object. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_LIST 1      <span class="comment">/* List object. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_SET 2       <span class="comment">/* Set object. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ZSET 3      <span class="comment">/* Sorted set object. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_HASH 4      <span class="comment">/* Hash object. */</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_MODULE 5    <span class="comment">/* Module object. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_STREAM 6    <span class="comment">/* Stream object. */</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">redisObject</span> &#123;</span></span><br><span class="line">    <span class="type">unsigned</span> type:<span class="number">4</span>; <span class="comment">// 0 ~ 15</span></span><br><span class="line">    <span class="type">unsigned</span> encoding:<span class="number">4</span>; <span class="comment">// 0 ~ 15</span></span><br><span class="line">    <span class="comment">/* LRU time (relative to global lru_clock) or</span></span><br><span class="line"><span class="comment">     * LFU data (least significant 8 bits frequency</span></span><br><span class="line"><span class="comment">     * and most significant 16 bits access time). </span></span><br><span class="line"><span class="comment">     * #define LRU_BITS 24</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">unsigned</span> lru:LRU_BITS;  <span class="comment">// 最近使用时的时间戳</span></span><br><span class="line">    <span class="type">int</span> refcount;</span><br><span class="line">    <span class="type">void</span> *ptr;</span><br><span class="line">&#125; robj;</span><br></pre></td></tr></table></figure>
-
-<p>一个 <code>redisObject</code> 占 16 个字节，元数据占 8 个字节，实际数据指针占 8 个字节</p>
-<p><code>encoding</code> 记录了对象使用的底层编码方式，不同的场景同一类型对象可能使用不同的底层编码方式</p>
-<p><code>lru</code> 记录了这个对象最后一次被访问的时间，用于淘汰过期的键值对</p>
-<p><code>refcount</code> 记录了对象的引用计数</p>
-<p><code>ptr</code> 指向数据的指针</p>
-<img src="/2023/04/20/Redis-redisObject/01.png" class="">
-
-<h2 id="各类型对应编码方式"><a href="#各类型对应编码方式" class="headerlink" title="各类型对应编码方式"></a>各类型对应编码方式</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Objects encoding. Some kind of objects like Strings and Hashes can be</span></span><br><span class="line"><span class="comment"> * internally represented in multiple ways. The &#x27;encoding&#x27; field of the object</span></span><br><span class="line"><span class="comment"> * is set to one of this fields for this object. */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_RAW 0     <span class="comment">/* Raw representation */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_INT 1     <span class="comment">/* Encoded as integer */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_HT 2      <span class="comment">/* Encoded as hash table */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_ZIPMAP 3  <span class="comment">/* Encoded as zipmap */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_LINKEDLIST 4 <span class="comment">/* No longer used: old list encoding. */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_ZIPLIST 5 <span class="comment">/* Encoded as ziplist */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_INTSET 6  <span class="comment">/* Encoded as intset */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_SKIPLIST 7  <span class="comment">/* Encoded as skiplist */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_EMBSTR 8  <span class="comment">/* Embedded sds string encoding */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_QUICKLIST 9 <span class="comment">/* Encoded as linked list of ziplists */</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> OBJ_ENCODING_STREAM 10 <span class="comment">/* Encoded as a radix tree of listpacks */</span></span></span><br></pre></td></tr></table></figure>
-
-<img src="/2023/04/20/Redis-redisObject/02.png" class="">
-
-<p>String 类型的底层实现只有一种数据结构，也就是简单动态字符串</p>
-<p>List、Hash、Set 和 Sorted Set 这四种数据类型，都有两种底层实现结构，这四种类型为集合类型，特点是一个键对应一个集合的数据</p>
-<img src="/2023/04/20/Redis-redisObject/03.png" class="">
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">持久化机制</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-20 20:59:46" itemprop="dateCreated datePublished" datetime="2023-04-20T20:59:46+08:00">2023-04-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Redis 的持久化主要有两大机制，即 AOF（Append Only File）日志和 RDB 快照</p>
-<h2 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h2><p>AOF 日志是写后日志，即 Redis 是先执行命令，把数据写入内存，然后才记录日志</p>
-<p>AOF 里记录的是 Redis 收到的每一条命令，这些命令是以文本形式保存的</p>
-<p>以 Redis 收到 set testkey testvalue 命令后记录的日志为例，看看 AOF 日志的内容。其中，*3 表示当前命令有三个部分，每部分都是由 $+数字 开头，后面紧跟着具体的命令、键或值。数字表示这部分中的命令、键或值一共有多少字节。例如，$3 set 表示这部分有 3 个字节，也就是 set 命令</p>
-<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/01.png" class="">
-
-<h3 id="写后日志原因"><a href="#写后日志原因" class="headerlink" title="写后日志原因"></a>写后日志原因</h3><ul>
-<li><p>为了避免额外的检查开销，Redis 在向 AOF 里面记录日志的时候，并不会先去对这些命令进行语法检查。所以如果先记日志再执行命令的话，日志中就有可能记录了错误的命令，Redis 在使用日志恢复数据时，就可能会出错</p>
-</li>
-<li><p>先让系统执行命令，只有命令能执行成功，才会被记录到日志中，可以避免出现记录错误命令的情况</p>
-</li>
-<li><p>在命令执行后才记录日志，不会阻塞当前的写操作</p>
-</li>
-</ul>
-<h3 id="潜在风险"><a href="#潜在风险" class="headerlink" title="潜在风险"></a>潜在风险</h3><ul>
-<li><p>刚执行完一个命令，还没有来得及记日志就宕机了，那么这个命令和相应的数据就有丢失的风险</p>
-</li>
-<li><p>AOF 虽然避免了对当前命令的阻塞，但可能会给下一个操作带来阻塞风险</p>
-</li>
-</ul>
-<h3 id="写回策略"><a href="#写回策略" class="headerlink" title="写回策略"></a>写回策略</h3><p>潜在风险都是和 AOF 写回磁盘的时机相关的，如果能够控制一个写命令执行完后 AOF 日志写回磁盘的时机，风险就解除了</p>
-<p>AOF 配置项 appendfsync 的三个可选值提供了三个选择</p>
-<ul>
-<li><p>Always，同步写回：每个写命令执行完，立马同步地将日志写回磁盘；可以做到基本不丢数据，但是它在每一个写命令后都有一个慢速的落盘操作，不可避免地会影响主线程性能</p>
-</li>
-<li><p>Everysec，每秒写回：每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，每隔一秒把缓冲区中的内容写入磁盘；如果发生宕机，上一秒内未落盘的命令操作仍然会丢失</p>
-</li>
-<li><p>No，操作系统控制的写回：每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，由操作系统决定何时将缓冲区内容写回磁盘；落盘的时机已经不在 Redis 手中了，只要 AOF 记录没有写回磁盘，一旦宕机对应的数据就丢失了</p>
-</li>
-</ul>
-<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/02.png" class="">
-
-<h3 id="重写机制"><a href="#重写机制" class="headerlink" title="重写机制"></a>重写机制</h3><p>AOF 是以文件的形式在记录接收到的所有写命令，随着接收的写命令越来越多，AOF 文件会越来越大</p>
-<p>AOF 文件过大带来的性能问题：</p>
-<ul>
-<li><p>文件系统本身对文件大小有限制，无法保存过大的文件</p>
-</li>
-<li><p>如果文件太大，之后再往里面追加命令记录的话，效率也会变低</p>
-</li>
-<li><p>如果发生宕机，AOF 中记录的命令要一个个被重新执行，用于故障恢复，如果日志文件太大，整个恢复过程就会非常缓慢</p>
-</li>
-</ul>
-<p>AOF 重写机制就是在重写时，Redis 根据数据库的现状创建一个新的 AOF 文件，也就是说，读取数据库中的所有键值对，然后对每一个键值对用一条命令记录它的写入</p>
-<p>重写机制具有多变一功能，旧日志文件中的多条命令，在重写后的新日志中变成了一条命令</p>
-<p>重写过程是由后台子进程 bgrewriteaof 来完成的，这也是为了避免阻塞主线程，导致数据库性能下降</p>
-<p>每次执行重写时，主线程 fork 出后台的 bgrewriteaof 子进程，fork 会把主线程的内存拷贝一份给 bgrewriteaof 子进程，这里面就包含了数据库的最新数据；然后 bgrewriteaof 子进程就可以在不影响主线程的情况下，逐一把拷贝的数据写成操作，记入重写日志</p>
-<p>因为主线程未阻塞，仍然可以处理新来的操作。此时如果有写操作，Redis 会把这个操作写到正在使用的 AOF 日志的缓冲区。这样一来，即使宕机了，这个 AOF 日志的操作仍然是齐全的，可以用于恢复</p>
-<p>新操作也会被写到重写日志的缓冲区，重写日志也不会丢失最新的操作。等到拷贝数据的所有操作记录重写完成后，重写日志记录的这些最新操作也会写入新的 AOF 文件，以保证数据库最新状态的记录。此时就可以用新的 AOF 文件替代旧文件了</p>
-<h3 id="潜在风险-1"><a href="#潜在风险-1" class="headerlink" title="潜在风险"></a>潜在风险</h3><p>fork 瞬间一定是会阻塞主线程，虽然 fork 采用 COW 机制，但 fork 子进程需要拷贝进程必要的数据结构，其中有一项就是拷贝内存页表（虚拟内存和物理内存的映射索引表），这个拷贝过程会消耗大量 CPU 资源，拷贝完成之前整个进程是会阻塞的，阻塞时间取决于整个实例的内存大小，实例越大，内存页表越大，fork 阻塞时间越久</p>
-<p>由于采用 COW 机制，所以在写发生时，才真正拷贝内存真正的数据，这个过程中，父进程也可能会产生阻塞的风险</p>
-<h2 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h2><p>内存快照，就是指内存中的数据在某一个时刻的状态记录</p>
-<p>RDB（Redis DataBase）把某一时刻的状态以文件的形式写到磁盘上，也就是快照；即使宕机，快照文件也不会丢失，数据的可靠性也就得到了保证</p>
-<p>RDB 记录的是某一时刻的数据，并不是操作，所以，在做数据恢复时，可以直接把 RDB 文件读入内存，很快地完成恢复</p>
-<h3 id="全量快照"><a href="#全量快照" class="headerlink" title="全量快照"></a>全量快照</h3><p>Redis 的数据都在内存中，为了提供所有数据的可靠性保证，它执行的是全量快照，也就是说，把内存中的所有数据都记录到磁盘中</p>
-<h3 id="生成快照"><a href="#生成快照" class="headerlink" title="生成快照"></a>生成快照</h3><p>Redis 提供了两个命令来生成 RDB 文件，分别是 save 和 bgsave</p>
-<ul>
-<li><p>save：在主线程中执行，会导致阻塞</p>
-</li>
-<li><p>bgsave：创建一个子进程，专门用于写入 RDB 文件，避免了主线程的阻塞，这也是 Redis RDB 文件生成的默认配置</p>
-</li>
-</ul>
-<p>bgsave 借助 COW，在执行快照的同时，正常处理写操作；bgsave 子进程是由主线程 fork 生成的，可以共享主线程的所有内存数据；bgsave 子进程运行后，开始读取主线程的内存数据，并把它们写入 RDB 文件；如果主线程要修改一块数据，这块数据就会被复制一份，生成该数据的副本；bgsave 子进程会把这个副本数据写入 RDB 文件，而在这个过程中，主线程仍然可以直接修改原来的数据</p>
-<h3 id="增量快照"><a href="#增量快照" class="headerlink" title="增量快照"></a>增量快照</h3><p>虽然 bgsave 执行时不阻塞主线程，但是如果频繁地执行全量快照，也会带来两方面的开销：</p>
-<ul>
-<li><p>频繁将全量数据写入磁盘，会给磁盘带来很大压力</p>
-</li>
-<li><p>虽然子进程在创建后不会再阻塞主线程，但是 fork 这个创建过程本身会阻塞主线程，而且主线程的内存越大，阻塞时间越长</p>
-</li>
-</ul>
-<p>增量快照，即做了一次全量快照后，后续的快照只对修改的数据进行快照记录，这样可以避免每次全量快照的开销</p>
-<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/03.png" class="">
-
-<p>记住哪些数据被修改了需要使用额外的元数据信息去记录哪些数据被修改了，这会带来额外的空间开销问题</p>
-<h2 id="AOF-和-RDB-混合方法"><a href="#AOF-和-RDB-混合方法" class="headerlink" title="AOF 和 RDB 混合方法"></a>AOF 和 RDB 混合方法</h2><p>内存快照以一定的频率执行，在两次 RDB 快照之间，使用 AOF 日志记录这期间的所有命令操作</p>
-<p>RDB 快照不用很频繁地执行，这就避免了频繁 fork 对主线程的影响。而且，AOF 日志也只用记录两次快照间的操作，不需要记录所有操作。因此，就不会出现文件过大的情况了，也可以避免重写开销</p>
-<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/04.png" class="">
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/" class="post-title-link" itemprop="url">内存分配策略</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-20 20:59:10" itemprop="dateCreated datePublished" datetime="2023-04-20T20:59:10+08:00">2023-04-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>当数据删除后，Redis 释放的内存空间会由内存分配器管理，并不会立即返回给操作系统，操作系统仍然会记录着给 Redis 分配了大量内存</p>
-<p>虽然 Redis 管理了大量的内存，但由于内存不连续，这些不连续的内存空间很有可能处于一种闲置的状态，无法用来保存数据</p>
-<h2 id="内存碎片"><a href="#内存碎片" class="headerlink" title="内存碎片"></a>内存碎片</h2><p>虽然操作系统的剩余内存空间总量足够，但是应用申请的是一块连续地址空间的 N 字节，但在剩余的内存空间中，没有大小为 N 字节的连续空间了，这些剩余空间就是内存碎片</p>
-<h2 id="形成"><a href="#形成" class="headerlink" title="形成"></a>形成</h2><p>内因是操作系统的内存分配机制，外因是 Redis 的负载特征</p>
-<h3 id="内存分配机制"><a href="#内存分配机制" class="headerlink" title="内存分配机制"></a>内存分配机制</h3><p>内存分配器一般是按固定大小来分配内存，而不是完全按照应用程序申请的内存空间大小给程序分配</p>
-<p>jemalloc 的分配策略之一，是按照一系列固定的大小划分内存空间，例如 8 字节、16 字节、32 字节、48 字节，…, 2KB、4KB、8KB 等。当程序申请的内存最接近某个固定值时，jemalloc 会给它分配相应大小的空间；将申请的内存分配给程序，将多的部分用链表保存，下次可以再分配给程序</p>
-<h3 id="负载特征"><a href="#负载特征" class="headerlink" title="负载特征"></a>负载特征</h3><p>不同大小的键值对本身就会有大小不一的空间需求，容易造成碎片</p>
-<h2 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h2><p>Redis 自身提供了 INFO 命令，可以用来查询内存使用的详细信息</p>
-<p>有一个 mem_fragmentation_ratio 的指标，它表示的就是 Redis 当前的内存碎片率</p>
-<p>mem_fragmentation_ratio &#x3D; used_memory_rss&#x2F; used_memory，used_memory_rss 是操作系统实际分配给 Redis 的物理内存空间，里面就包含了碎片；而 used_memory 是 Redis 为了保存数据实际申请使用的空间</p>
-<ul>
-<li><p>mem_fragmentation_ratio 大于 1 但小于 1.5，这种情况是合理的</p>
-</li>
-<li><p>mem_fragmentation_ratio 大于 1.5，表明内存碎片率已经超过了 50%</p>
-</li>
-<li><p>mem_fragmentation_ratio 小于 1，操作系统分配给 Redis 进程的物理内存要小于 Redis 实际存储数据的内存，也就是说 Redis 没有足够的物理内存可以使用了，导致 Redis 一部分内存数据会被换到 Swap 中，之后当 Redis 访问 Swap 中的数据时，延迟会变大，性能下降</p>
-</li>
-</ul>
-<h2 id="措施"><a href="#措施" class="headerlink" title="措施"></a>措施</h2><p>当 Redis 发生内存碎片后，一个简单粗暴的方法就是重启 Redis 实例，但容易发生数据丢失，又由于数据恢复，会有一段时间无法提供服务</p>
-<p>Redis 自身提供了一种内存碎片自动清理的方法：当有数据把一块连续的内存空间分割成好几块不连续的空间时，操作系统就会把数据拷贝到别处；数据拷贝需要能把这些数据原来占用的空间都空出来，把原本不连续的内存空间变成连续的空间</p>
-<p>碎片清理是有代价的，操作系统需要把多份数据拷贝到新位置，把原有空间释放出来，这会带来时间开销；在数据拷贝时，Redis 无法及时处理请求，性能就会降低</p>
+          <p>用于跨设备间复制文件和目录</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">scp [-BCpqrv] [-c cipher] [-F ssh_config] [-i identity_file] [-l <span class="built_in">limit</span>] [-P port] [-S program] </span><br><span class="line">      [[user@]host1:]src_file1 [...] [[user@]host2:]dst_file2</span><br><span class="line"></span><br><span class="line">-B  使用批处理模式</span><br><span class="line">-C  允许压缩</span><br><span class="line">-p 保留原文件的修改时间，访问时间和访问权限</span><br><span class="line">-q  不显示传输进度条</span><br><span class="line">-r  递归复制整个目录</span><br><span class="line">-v 详细方式显示输出</span><br><span class="line">-c 将数据传输进行加密</span><br><span class="line">-F 指定一个替代的 ssh 配置文件</span><br><span class="line">-i 从指定文件中读取传输时使用的密钥文件</span><br><span class="line">-l 限定用户所能使用的带宽，以 Kbit/s 为单位。</span><br><span class="line">-P 指定数据传输用到的端口号</span><br><span class="line">-S 指定加密传输时所使用的程序</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -1262,7 +771,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-ps/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1280,7 +789,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" class="post-title-link" itemprop="url">主从同步</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-ps/" class="post-title-link" itemprop="url">ps</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1291,14 +800,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 20:57:16" itemprop="dateCreated datePublished" datetime="2023-04-20T20:57:16+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:19:01" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:01+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1306,7 +815,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -1320,71 +829,177 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>Redis 具有高可靠性：数据尽量少丢失（RDB、AOF）、服务尽量少中断（master、slave）</p>
-<p>Redis 提供了主从库模式，以保证数据副本的一致，主从库之间采用的是读写分离的方式</p>
-<ul>
-<li><p>读操作：主库、从库都可以接收</p>
-</li>
-<li><p>写操作：首先到主库执行，然后主库将写操作同步给从库</p>
-</li>
-</ul>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/01.png" class="">
+          <p>收集运行在系统上的某个特定时间点的进程信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ps [-AaCcEefhjlMmrSTvwXx] [-O fmt | -o fmt] [-G gid[,gid...]]</span><br><span class="line">   [-g grp[,grp...]] [-u uid[,uid...]] [-p pid[,pid...]] [-t tty[,tty...]]</span><br><span class="line">   [-U user[,user...]]</span><br><span class="line"></span><br><span class="line">-e 显示所有运行在系统上的进程</span><br><span class="line">-f 扩展输出</span><br></pre></td></tr></table></figure>
+      
+    </div>
 
-<h2 id="主从库第一次同步"><a href="#主从库第一次同步" class="headerlink" title="主从库第一次同步"></a>主从库第一次同步</h2><p>当启动多个 Redis 实例的时候，它们相互之间就可以通过 replicaof 命令形成主库和从库的关系，之后会按照三个阶段完成数据的第一次同步；执行 replicaof 的实例为从库</p>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/02.png" class="">
+    
+    
+    
 
-<ol>
-<li><p>第一阶段是主从库间建立连接、协商同步的过程，主要是为全量复制做准备；从库和主库建立起连接，并告诉主库即将进行同步，主库确认回复后，主从库间就可以开始同步了；从库给主库发送 psync 命令，表示要进行数据同步，主库根据这个命令的参数来启动复制；psync 命令包含了主库的 runID 和复制进度 offset 两个参数；runID 是每个 Redis 实例启动时都会自动生成的一个随机 ID，用来唯一标记这个实例；当从库和主库第一次复制时，因为不知道主库的 runID，所以将 runID 设为 <code>?</code>；offset 设为 -1，表示第一次复制</p>
-</li>
-<li><p>主库收到 psync 命令后，会用 FULLRESYNC 响应命令带上两个参数：主库 runID 和主库目前的复制进度 offset，返回给从库；从库收到响应后，会记录下这两个参数；FULLRESYNC 响应表示第一次复制采用的全量复制，主库会把当前所有的数据都复制给从库；主库将所有数据同步给从库，从库收到数据后，在本地完成数据加载，这个过程依赖于内存快照生成的 RDB 文件；主库执行 bgsave 命令，生成 RDB 文件，接着将文件发给从库；从库接收到 RDB 文件后，会先清空当前数据库，然后加载 RDB 文件；在主库将数据同步给从库的过程中，主库不会被阻塞，仍然可以正常接收请求；请求中的写操作并没有记录到刚刚生成的 RDB 文件中，为了保证主从库的数据一致性，主库会在内存中用专门的 replication buffer，记录 RDB 文件生成后收到的所有写操作</p>
-</li>
-<li><p>主库会把第二阶段执行过程中新收到的写命令，再发送给从库；当主库完成 RDB 文件发送后，就会把此时 replication buffer 中的修改操作发给从库，从库再重新执行这些操作</p>
-</li>
-</ol>
-<h2 id="主从级联模型"><a href="#主从级联模型" class="headerlink" title="主从级联模型"></a>主从级联模型</h2><p>主从库间第一次数据同步的过程中，对于主库来说，需要完成两个耗时的操作：生成 RDB 文件和传输 RDB 文件</p>
-<p>如果从库数量很多，而且都要和主库进行全量复制的话，就会导致主库忙于 fork 子进程生成 RDB 文件，进行数据全量同步</p>
-<p>fork 这个操作会阻塞主线程处理正常请求，从而导致主库响应应用程序的请求速度变慢</p>
-<p>传输 RDB 文件也会占用主库的网络带宽，同样会给主库的资源使用带来压力</p>
-<p>通过主从级联模式（主-从-从）将主库生成 RDB 和传输 RDB 的压力，以级联的方式分散到从库上</p>
-<p>在部署主从集群的时候，可以手动选择一个从库，用于级联其他的从库；再选择一些从库执行 replicaof，让它们和刚才所选的从库，建立起主从关系</p>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/03.png" class="">
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
 
-<h2 id="主从网络连接"><a href="#主从网络连接" class="headerlink" title="主从网络连接"></a>主从网络连接</h2><p>一旦主从库完成了全量复制，它们之间就会一直维护一个网络连接，主库会通过这个连接将后续陆续收到的命令操作再同步给从库，这个过程也称为基于长连接的命令传播，可以避免频繁建立连接的开销</p>
-<p>网络断了之后，主从库会采用增量复制的方式继续同步，只会把主从库网络断连期间主库收到的命令，同步给从库</p>
-<p>当主从库断连后，主库会把断连期间收到的写操作命令，写入 replication buffer，同时也会把这些操作命令也写入 repl_backlog_buffer 缓冲区</p>
-<p>repl_backlog_buffer 是一个环形缓冲区，主库会记录自己写到的位置，从库则会记录自己已经读到的位置</p>
-<p>刚开始的时候，主库和从库的写读位置在一起，是它们的起始位置；随着主库不断接收新的写操作，它在缓冲区中的写位置会逐步偏离起始位置，对主库来说对应的偏移量就是 master_repl_offset，主库接收的新写操作越多，这个值就会越大；从库在复制完写操作命令后，它在缓冲区中的读位置也开始逐步偏移刚才的起始位置，从库已复制的偏移量 slave_repl_offset 也在不断增加；正常情况下，这两个偏移量基本相等</p>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/04.png" class="">
 
-<p>在网络断连阶段，主库可能会收到新的写操作命令，所以，一般来说，master_repl_offset 会大于 slave_repl_offset；主库只用把 master_repl_offset 和 slave_repl_offset 之间的命令操作同步给从库就行</p>
-<p>主从库的连接恢复之后，从库首先会给主库发送 psync 命令，并把自己当前的 slave_repl_offset 发给主库，主库会判断自己的 master_repl_offset 和 slave_repl_offset 之间的差距</p>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/05.png" class="">
 
-<p>因为 repl_backlog_buffer 是一个环形缓冲区，所以在缓冲区写满后，主库会继续写入，此时，就会覆盖掉之前写入的操作；如果从库的读取速度比较慢，就有可能导致从库还未读取的操作被主库新写的操作覆盖了，这会导致主从库间的数据不一致</p>
-<p>可以调整 repl_backlog_size 这个参数</p>
-<h2 id="主从数据一致性"><a href="#主从数据一致性" class="headerlink" title="主从数据一致性"></a>主从数据一致性</h2><p>主从数据不一致是指客户端从从库中读取到的值和主库中的最新值并不一致，因为主从库间的命令复制是异步进行的</p>
-<p>在主从库命令传播阶段，主库收到新的写命令后，会发送给从库。但是，主库并不会等到从库实际执行完命令后，再把结果返回给客户端，而是主库自己在本地执行完命令后，就会向客户端返回结果了。如果从库还没有执行主库同步过来的命令，主从库间的数据就不一致了</p>
-<p>一方面，主从库间的网络可能会有传输延迟，所以从库不能及时地收到主库发送的命令，从库上执行同步命令的时间就会被延后；一方面，即使从库及时收到了主库的命令，但是，也可能会因为正在处理其它复杂度高的命令（例如集合操作命令）而阻塞</p>
-<p>解决方案：</p>
-<ol>
-<li><p>在硬件环境配置方面，我们要尽量保证主从库间的网络连接状况良好，避免把主从库部署在不同的机房</p>
-</li>
-<li><p>开发一个外部程序来监控主从库间的复制进度；Redis 的 INFO replication 命令可以查看主库接收写命令的进度信息（master_repl_offset）和从库复制写命令的进度信息（slave_repl_offset），如果某个从库的进度差值大于预设的阈值，可以让客户端不再和这个从库连接进行数据读取，这样就可以减少读到不一致数据的情况</p>
-</li>
-</ol>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/06.png" class="">
 
-<h2 id="从数据库读取过期数据"><a href="#从数据库读取过期数据" class="headerlink" title="从数据库读取过期数据"></a>从数据库读取过期数据</h2><p>Redis 同时使用了两种策略来删除过期的数据，分别是惰性删除策略和定期删除策略</p>
-<p>惰性删除策略：当一个数据的过期时间到了以后，并不会立即删除数据，而是等到再有请求来读写这个数据时，对数据进行检查，如果发现数据已经过期了，再删除这个数据；减少删除操作对 CPU 资源的使用，对于用不到的数据，就不再浪费时间进行检查和删除；导致大量已经过期的数据留存在内存中，占用较多的内存资源</p>
-<p>定期删除策略：每隔一段时间（默认 100ms），就会随机选出一定数量的数据，检查它们是否过期，并把其中过期的数据删除，这样就可以及时释放一些内存</p>
-<p>虽然定期删除策略可以释放一些内存，但是 Redis 为了避免过多删除操作对性能产生影响，每次随机检查数据的数量并不多</p>
-<p>惰性删除策略中，如果客户端从主库上读取留存的过期数据，主库会触发删除操作，客户端并不会读到过期数据；从库本身不会执行删除操作，如果客户端在从库中访问留存的过期数据，从库并不会触发数据删除，会返回空值</p>
-<p>同时，Redis 用于设置过期时间的命令在从库上可能会被延后，导致应该过期的数据又在从库上被读取到；设置数据过期时间的命令一共有 4 个，EXPIRE 和 PEXPIRE 给数据设置的是从命令执行时开始计算的存活时间，EXPIREAT 和 PEXPIREAT 会直接把数据的过期时间设置为具体的一个时间点</p>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/07.png" class="">
+    
 
-<p>当主从库全量同步时，如果主库接收到了一条 EXPIRE 命令，那么，主库会直接执行这条命令。这条命令会在全量同步完成后，发给从库执行。而从库在执行时，就会在当前时间的基础上加上数据的存活时间，这样一来，从库上数据的过期时间就会比主库上延后了</p>
-<p>在业务应用中使用 EXPIREAT&#x2F;PEXPIREAT 命令，把数据的过期时间设置为具体的时间点，避免读到过期数据，同时主从节点上的时钟要保持一致</p>
 
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-pidstat/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-pidstat/" class="post-title-link" itemprop="url">pidstat</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-25 21:18:55" itemprop="dateCreated datePublished" datetime="2023-04-25T21:18:55+08:00">2023-04-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pidstat [options] [interval] [<span class="built_in">times</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># -u 默认参数，显示各个进程的 CPU 统计信息</span></span><br><span class="line"><span class="comment"># -r 显示各个进程的内存使用情况</span></span><br><span class="line"><span class="comment"># -d 显示各个进程的 IO 使用</span></span><br><span class="line"><span class="comment"># -w 显示各个进程的上下文切换</span></span><br><span class="line"><span class="comment"># -p PID 指定 PID</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># cswch 每秒自愿上下文切换次数 （进程无法获取所需资源导致的上下文切换）</span></span><br><span class="line"><span class="comment"># 每秒非自愿上下文切换次数 （时间片轮流等系统强制调度）</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-netstat/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-netstat/" class="post-title-link" itemprop="url">netstat</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-25 21:18:45" itemprop="dateCreated datePublished" datetime="2023-04-25T21:18:45+08:00">2023-04-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>查看网络连接状态</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">netstat [-acCeFghilMnNoprstuvVwx][-A&lt;网络类型&gt;][--ip]</span><br><span class="line"></span><br><span class="line">-a 列出所有端口使用情况，netstat 默认不显示 LISTEN 相关选项</span><br><span class="line">-t (tcp) 仅显示tcp相关选项</span><br><span class="line">-u (udp)仅显示udp相关选项</span><br><span class="line">-n 不显示别名，能显示数字的全部转化为数字</span><br><span class="line">-l 仅列出在 Listen 的服务状态</span><br><span class="line">-p 显示建立相关链接的程序名</span><br><span class="line">-e 显示扩展信息</span><br><span class="line">-c 每隔一个固定时间执行命令</span><br><span class="line">-s 显示网络统计信息</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出所有信息</span></span><br><span class="line">netstat -a</span><br><span class="line"><span class="comment"># 不是使用域名</span></span><br><span class="line">netstat -an</span><br><span class="line"><span class="comment"># 只显示监听端口</span></span><br><span class="line">netstat -l</span><br><span class="line"><span class="comment"># 显示PID和进程名称</span></span><br><span class="line">netstat -anp</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1403,7 +1018,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/4/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/26/">26</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/4/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>

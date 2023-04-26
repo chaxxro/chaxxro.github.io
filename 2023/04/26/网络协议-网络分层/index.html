@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="OSI 七层协议分层发送方从最高层开始，从上到下按顺序传输数据，每一层接收到由上层处理的数据时，添加该层的首部并可能会对数据进行处理（如表示层）。而接收端则将顺序反过来，从首层开始，将数据的内容与该层对应的首部拆开，传给上一层   分层 应用层：最靠近用户的一层，是为计算机用户提供应用接口，也为用户直接提供各种网络服务，常见应用层的网络服务协议有：HTTP，HTTPS，FTP，POP3、SMTP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="网络协议分层">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="OSI 七层协议分层发送方从最高层开始，从上到下按顺序传输数据，每一层接收到由上层处理的数据时，添加该层的首部并可能会对数据进行处理（如表示层）。而接收端则将顺序反过来，从首层开始，将数据的内容与该层对应的首部拆开，传给上一层   分层 应用层：最靠近用户的一层，是为计算机用户提供应用接口，也为用户直接提供各种网络服务，常见应用层的网络服务协议有：HTTP，HTTPS，FTP，POP3、SMTP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/02.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/03.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/04.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/05.png">
+<meta property="article:published_time" content="2023-04-26T12:33:20.000Z">
+<meta property="article:modified_time" content="2023-04-26T12:42:48.751Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="网络协议">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/","path":"2023/04/26/网络协议-网络分层/","title":"网络协议分层"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>网络协议分层 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#OSI-%E4%B8%83%E5%B1%82%E5%8D%8F%E8%AE%AE%E5%88%86%E5%B1%82"><span class="nav-text">OSI 七层协议分层</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%B1%82"><span class="nav-text">分层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%84%E5%B1%82%E4%B8%8A%E7%9A%84%E8%AE%BE%E5%A4%87"><span class="nav-text">各层上的设备</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP-x2F-IP-%E5%9B%9B%E5%B1%82%E6%A8%A1%E5%9E%8B"><span class="nav-text">TCP&#x2F;IP 四层模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E6%8E%A5%E5%8F%A3%E5%B1%82"><span class="nav-text">网络接口层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E5%B1%82"><span class="nav-text">网络层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%A0%E8%BE%93%E5%B1%82"><span class="nav-text">传输层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E5%B1%82"><span class="nav-text">应用层</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%9C%A8%E5%90%84%E5%B1%82%E4%B9%8B%E9%97%B4%E7%9A%84%E4%BC%A0%E9%80%92"><span class="nav-text">数据在各层之间的传递</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">254</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="网络协议分层 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          网络协议分层
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-26 20:33:20 / 修改时间：20:42:48" itemprop="dateCreated datePublished" datetime="2023-04-26T20:33:20+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="OSI-七层协议分层"><a href="#OSI-七层协议分层" class="headerlink" title="OSI 七层协议分层"></a>OSI 七层协议分层</h2><p>发送方从最高层开始，从上到下按顺序传输数据，每一层接收到由上层处理的数据时，添加该层的首部并可能会对数据进行处理（如表示层）。而接收端则将顺序反过来，从首层开始，将数据的内容与该层对应的首部拆开，传给上一层</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/01.png" class="">
+
+<h3 id="分层"><a href="#分层" class="headerlink" title="分层"></a>分层</h3><ul>
+<li><p>应用层：最靠近用户的一层，是为计算机用户提供应用接口，也为用户直接提供各种网络服务，常见应用层的网络服务协议有：HTTP，HTTPS，FTP，POP3、SMTP 等</p>
+</li>
+<li><p>表示层：表示层提供各种用于应用层数据的编码和转换功能，确保一个系统的应用层发送的数据能被另一个系统的应用层识别；数据压缩、加密以及数据描述是主要功能</p>
+</li>
+<li><p>会话层：负责建立、管理和终止表示层实体之间的通信会话</p>
+</li>
+<li><p>运输层：传输层建立了主机端到端的链接，传输层的作用是为上层协议提供端到端的可靠和透明的数据传输服务，包括处理差错控制和流量控制等问题（TCP&#x2F;UDP在这一层）</p>
+</li>
+<li><p>网络层：通过 IP 寻址来建立两个节点之间的连接，选择合适的路由和交换节点，正确无误地按照地址传送给目的端的运输层（IP 协议层）</p>
+</li>
+<li><p>数据链路层：在物理层提供的服务基础上，在通信的实体间建立数据链路连接，传输以帧为单位的数据包</p>
+</li>
+<li><p>物理层：利用传输介质为数据链路层提供物理连接，负责处理数据传输</p>
+</li>
+</ul>
+<h3 id="各层上的设备"><a href="#各层上的设备" class="headerlink" title="各层上的设备"></a>各层上的设备</h3><ul>
+<li><p>物理层：网线、集线器</p>
+</li>
+<li><p>数据链路层：网卡、网桥、交换机</p>
+</li>
+<li><p>网络层：路由器</p>
+</li>
+<li><p>传输层、会话层：计算机</p>
+</li>
+<li><p>表示层：不同格式的文件</p>
+</li>
+<li><p>应用层：应用程序</p>
+</li>
+</ul>
+<h2 id="TCP-x2F-IP-四层模型"><a href="#TCP-x2F-IP-四层模型" class="headerlink" title="TCP&#x2F;IP 四层模型"></a>TCP&#x2F;IP 四层模型</h2><img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/02.png" class="">
+
+<h3 id="网络接口层"><a href="#网络接口层" class="headerlink" title="网络接口层"></a>网络接口层</h3><p>网络通信就是把有特定意义的数据通过物理介质传送给对方，单纯的发送 0 和 1 是没有意义的，要传输有意义的数据，就需要以字节为单位对 0 和 1 进行分组，并且要标识好每一组电信号的信息特征，然后按照分组的顺序依次发送。以太网规定一组电信号就是一个数据包，一个数据包被称为一帧</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/03.png" class="">
+
+<p>整个数据帧由首部、数据和尾部三部分组成，首部固定为 14 个字节，包含了目标 MAC 地址、源 MAC 地址和类型；数据最短为 46 个字节，最长为 1500 个字节，如果需要传输的数据很长，就必须分割成多个帧进行发送；尾部固定为 4 个字节，表示数据帧校验序列，用于确定数据包在传输过程中是否损坏</p>
+<p>以太网内采用广播形式，把数据包发给该子网内所有主机，子网内每台主机在接收到这个包以后，都会读取首部里的目标 MAC 地址，然后和自己的 MAC 地址进行对比，如果相同就做下一步处理，如果不同则丢弃这个包</p>
+<p>网络接口层主要工作就是对电信号进行分组并形成具有特定意义的数据帧，然后以广播的形式通过物理介质发送给子网内的接收方</p>
+<p>存在问题：发送者如何知道接收者的 MAC 地址；发送者如何知道接收者和自己同属一个子网；如果接收者和自己不在同一个子网，数据包如何发给对方</p>
+<h3 id="网络层"><a href="#网络层" class="headerlink" title="网络层"></a>网络层</h3><p>网络层的主要工作是定义网络地址，区分网段，子网内 MAC 寻址，对于不同子网的数据包进行路由</p>
+<p>为了解决网络接口层的问题，网络层引入了 IP 协议、ARP 协议、路由协议</p>
+<h3 id="传输层"><a href="#传输层" class="headerlink" title="传输层"></a>传输层</h3><p>网络接口层定义了主机的身份，即 MAC 地址，网络层定义了 IP 地址，明确了主机所在的网段，有了这两个地址，数据包就从可以从一个主机发送到另一台主机。实际上数据包是从一个主机的某个应用程序发出，然后由对方主机的应用程序接收。而每台电脑都有可能同时运行着很多个应用程序，所以当数据包被发送到主机上以后，是无法确定哪个应用程序要接收这个包</p>
+<p>传输层的主要工作是定义端口，标识应用程序身份，实现端口到端口的通信，TCP 协议可以保证数据传输的可靠性</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/04.png" class="">
+
+<h3 id="应用层"><a href="#应用层" class="headerlink" title="应用层"></a>应用层</h3><p>有了前三层协议，数据已经可以从一个主机上的应用程序传输到另一台主机的应用程序了，但此时传过来的数据是字节流，不能很好的被程序识别，操作性差</p>
+<p>应用层定义了各种各样的协议来规范数据格式，常见的有 HTTP、FTP、SMTP 等</p>
+<h2 id="数据在各层之间的传递"><a href="#数据在各层之间的传递" class="headerlink" title="数据在各层之间的传递"></a>数据在各层之间的传递</h2><img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/05.png" class="">
+
+<p>在向下的过程中，需要添加下层协议所需要的首部或者尾部，而在向上的过程中不断拆开首部和尾部</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" rel="tag"># 网络协议</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-websocket/" rel="prev" title="websocket">
+                  <i class="fa fa-chevron-left"></i> websocket
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

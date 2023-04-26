@@ -122,18 +122,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">237</span>
+          <span class="site-state-item-count">254</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-count">19</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-count">23</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -159,7 +159,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-IO%E6%A8%A1%E5%9E%8B/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-nc/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-IO%E6%A8%A1%E5%9E%8B/" class="post-title-link" itemprop="url">IO 模型</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-nc/" class="post-title-link" itemprop="url">nc</a>
         </h2>
 
         <div class="post-meta-container">
@@ -188,14 +188,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 20:56:27" itemprop="dateCreated datePublished" datetime="2023-04-20T20:56:27+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:18:37" itemprop="dateCreated datePublished" datetime="2023-04-25T21:18:37+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -203,7 +203,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -217,35 +217,11 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>Redis 是单线程，主要是指 Redis 的网络 IO 和键值对读写是由一个线程来完成的，这也是 Redis 对外提供键值存储服务的主要流程，但 Redis 的其他功能，比如持久化、异步删除、集群数据同步等，其实是由额外的线程执行的</p>
-<h2 id="多线程开销"><a href="#多线程开销" class="headerlink" title="多线程开销"></a>多线程开销</h2><p>对于一个多线程的系统来说，在有合理的资源分配的情况下，可以增加系统中处理请求操作的资源实体，进而提升系统能够同时处理的请求数</p>
-<p>但是在采用多线程后，如果没有良好的系统设计，进一步增加线程时，系统吞吐率就增长迟缓了，有时甚至还会出现下降的情况</p>
-<p>多线程编程模式面临的共享资源的并发访问控制问题，当有多个线程要修改这个共享资源时，为了保证共享资源的正确性，就需要有额外的机制进行保证，而这个额外的机制，就会带来额外的开销</p>
-<h2 id="单线程-Redis-快"><a href="#单线程-Redis-快" class="headerlink" title="单线程 Redis 快"></a>单线程 Redis 快</h2><ul>
-<li><p>大部分操作在内存上完成</p>
-</li>
-<li><p>采用了高效的数据结构，如哈希表和跳表</p>
-</li>
-<li><p>采用了 IO 复用机制，使其在网络 IO 操作中能并发处理大量的客户端请求，实现高吞吐率</p>
-</li>
-</ul>
-<h2 id="多路复用"><a href="#多路复用" class="headerlink" title="多路复用"></a>多路复用</h2><p>Redis 网络框架调用 epoll 机制，让内核监听套接字，并且提供了基于事件的回调机制；select&#x2F;epoll 一旦监测到 FD 上有请求到达时，就会触发相应的事件，事件会被放进一个事件队列，Redis 单线程对该事件队列不断进行处理</p>
-<h2 id="潜在性能瓶颈"><a href="#潜在性能瓶颈" class="headerlink" title="潜在性能瓶颈"></a>潜在性能瓶颈</h2><ul>
-<li><p>操作 bigkey：写入一个 bigkey 在分配内存时需要消耗更多的时间，同样删除 bigkey 释放内存同样会产生耗时</p>
-</li>
-<li><p>使用复杂度过高的命令</p>
-</li>
-<li><p>Redis 的过期机制也是在主线程中执行的，大量 key 集中过期会导致处理一个请求时，耗时都在删除过期 key，耗时变长</p>
-</li>
-<li><p>淘汰策略也是在主线程执行的，当内存超过 Redis 内存上限后，每次写入都需要淘汰一些 key，也会造成耗时变长</p>
-</li>
-<li><p>AOF 刷盘开启 always 机制</p>
-</li>
-<li><p>主从全量同步生成 RDB，虽然采用 fork 子进程生成数据快照，但 fork 这一瞬间也是会阻塞整个线程的，实例越大，阻塞时间越久</p>
-</li>
-<li><p>并发量非常大时，单线程读写客户端 IO 数据存在性能瓶颈，虽然采用 IO 多路复用机制，但是读写客户端数据依旧是同步 IO，只能单线程依次读取客户端的数据，无法利用到 CPU 多核</p>
-</li>
-</ul>
+          <p>用于模拟一个服务器程序被其他客户端接入，或者模拟一个客户端连接其他服务器，连接之后可以发送数据</p>
+<p><code>nc</code> 默认使用 TCP，<code>-u</code> 使用 UDP</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 显示详细信息</span></span><br><span class="line">nc -v</span><br><span class="line"></span><br><span class="line"><span class="comment"># 开启一个监听服务，方便客户端连接</span></span><br><span class="line">nc -v -l 127.0.0.1 6000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 模拟客户端</span></span><br><span class="line"><span class="comment"># -p 指定客户端的端口</span></span><br><span class="line">nc -v 0.0.0.0 6000</span><br><span class="line">nc -v -p 5555 0.0.0.0 6000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 发送文件</span></span><br><span class="line">nc 0.0.0.0 6000 &lt; file</span><br><span class="line"></span><br><span class="line"><span class="comment"># 接收文件</span></span><br><span class="line">nc -l 0.0.0.0 6000 &gt; file</span><br></pre></td></tr></table></figure>
+
+<p><code>nc</code> 默认使用 <code>\n</code> 作为消息的结束标志，<code>-C</code> 则使用 <code>\r\n</code> 作为消息结束标志</p>
 
       
     </div>
@@ -272,7 +248,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-lsof/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -290,7 +266,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/" class="post-title-link" itemprop="url">全局哈希表</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-lsof/" class="post-title-link" itemprop="url">lsof</a>
         </h2>
 
         <div class="post-meta-container">
@@ -301,14 +277,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 20:54:32" itemprop="dateCreated datePublished" datetime="2023-04-20T20:54:32+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:18:31" itemprop="dateCreated datePublished" datetime="2023-04-25T21:18:31+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -316,7 +292,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -330,43 +306,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>为了实现从键到值的快速访问，Redis 使用了一个哈希表来保存所有键值对</p>
-<p>一个哈希表，其实就是一个数组，数组的每个元素称为一个哈希桶，每个哈希桶中保存了键值对数据；哈希桶中的元素保存的并不是值本身，而是指向具体值的指针；哈希桶中的 entry 元素中保存了 *key 和 *value 指针，分别指向了实际的键和值，这样一来，即使值是一个集合，也可以通过 *value 指针被查找到</p>
-<img src="/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/01.png" class="">
-
-<p>使用哈希表可以很快查找键值对，但哈希表的冲突问题和 rehash 可能带来的操作阻塞</p>
-<h3 id="哈希冲突"><a href="#哈希冲突" class="headerlink" title="哈希冲突"></a>哈希冲突</h3><p>当往哈希表中写入更多数据时，哈希冲突是不可避免的问题，毕竟哈希桶的个数通常要少于 key 的数量，这也就是说，难免会有一些 key 的哈希值对应到了同一个哈希桶中</p>
-<p>Redis 使用开链的方式解决哈希冲突，同一个哈希桶中的多个元素用一个链表来保存，它们之间依次用指针连接</p>
-<img src="/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/02.png" class="">
-
-<h3 id="rehash"><a href="#rehash" class="headerlink" title="rehash"></a>rehash</h3><p>Redis 会对哈希表做 rehash 操作，rehash 也就是增加现有的哈希桶数量，让逐渐增多的 entry 元素能在更多的桶之间分散保存，减少单个桶中的元素数量，从而减少单个桶中的冲突</p>
-<p>Redis 会使用装载因子（load factor）来判断是否需要做 rehash</p>
-<p>在进行 RDB 生成和 AOF 重写时，哈希表的 rehash 是被禁止的，这是为了避免对 RDB 和 AOF 重写造成影响</p>
-<ul>
-<li><p>装载因子 ≥1，同时哈希表没有进行 RDB 和 AOF 重写，则被允许进行 rehash</p>
-</li>
-<li><p>装载因子 ≥5，则立马开始 rehash</p>
-</li>
-</ul>
-<p>为了使 rehash 操作更高效，Redis 默认使用了两个全局哈希表：哈希表 1 和哈希表 2</p>
-<p>一开始，当你刚插入数据时，默认使用哈希表 1，此时的哈希表 2 并没有被分配空间，随着数据逐步增多，Redis 开始执行 rehash</p>
-<ol>
-<li><p>给哈希表 2 分配更大的空间</p>
-</li>
-<li><p>把哈希表 1 中的数据重新映射并拷贝到哈希表 2 中</p>
-</li>
-<li><p>释放哈希表 1 的空间，留作下一次 rehash 扩容备用</p>
-</li>
-</ol>
-<p>第二步涉及大量的数据拷贝，如果一次性把哈希表 1 中的数据都迁移完，会造成 Redis 线程阻塞，无法服务其他请求，所以 Redis 采用了渐进式 rehash</p>
-<p>在第二步拷贝数据时，Redis 仍然正常处理客户端请求，每处理一个请求时，从哈希表 1 中的第一个索引位置开始，顺带着将这个索引位置上的所有 entries 拷贝到哈希表 2 中；等处理下一个请求时，再顺带拷贝哈希表 1 中的下一个索引位置的 entries；把一次性大量拷贝的开销，分摊到了多次处理请求的过程中，避免了耗时操作，保证了数据的快速访问</p>
-<img src="/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/03.png" class="">
-
-<img src="/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/04.png" class="">
-
-<h2 id="内存分配"><a href="#内存分配" class="headerlink" title="内存分配"></a>内存分配</h2><p>Redis 使用内存分配库 jemalloc</p>
-<p>jemalloc 在分配内存时，会根据我们申请的字节数 N，找一个比 N 大，但是最接近 N 的 2 的幂次数作为分配的空间，这样可以减少频繁分配的次数</p>
-<p>dictEntry 结构就占用了 32 字节</p>
+          <p>列出当前系统打开的文件描述符</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"># 显示当前系统打开的文件</span><br><span class="line">lsof </span><br><span class="line"></span><br><span class="line"># 仅查看某个用户打开的文件信息</span><br><span class="line">lsof -u username</span><br><span class="line"></span><br><span class="line"># 仅列出所有 tcp 网络连接</span><br><span class="line">lsof -i tcp</span><br><span class="line"></span><br><span class="line"># 仅列出所有 udp 网络连接</span><br><span class="line">lsof -i udp</span><br><span class="line"></span><br><span class="line"># 列出端口号</span><br><span class="line">lsof -i:port</span><br><span class="line"></span><br><span class="line"># 显示 abc 进程现在打开的文件</span><br><span class="line">lsof -c abc</span><br><span class="line"></span><br><span class="line"># 通过某个进程号显示该进行打开的文件</span><br><span class="line">lsof -p pid</span><br><span class="line"></span><br><span class="line"># 设置显示进程名字符数</span><br><span class="line">lsof +c 15 # 设置进程名最多显示 15 个字符</span><br><span class="line"></span><br><span class="line"># 强制显示 IP 地址而不是别名</span><br><span class="line">lsof -n</span><br><span class="line"></span><br><span class="line"># 强制显示端口号而不是别名</span><br><span class="line">lsof -P</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -393,7 +334,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-kill/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -411,7 +352,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/" class="post-title-link" itemprop="url">缓存异常</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-kill/" class="post-title-link" itemprop="url">kill</a>
         </h2>
 
         <div class="post-meta-container">
@@ -422,14 +363,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 20:52:34" itemprop="dateCreated datePublished" datetime="2023-04-20T20:52:34+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:18:23" itemprop="dateCreated datePublished" datetime="2023-04-25T21:18:23+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -437,7 +378,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -451,54 +392,63 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/01.png" class="">
+          <p>将指定的信号发送到指定的进程或进程组，如果未指定信号，则发送 TERM 信号</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">kill [-s signal] pid</span><br><span class="line"></span><br><span class="line">kill 12345 杀死进程</span><br><span class="line"></span><br><span class="line">kill -KILL 123456 强制杀死进程</span><br><span class="line"></span><br><span class="line">kill -9 123456</span><br></pre></td></tr></table></figure>
 
-<h2 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h2><p>大量的应用请求无法在 Redis 缓存中进行处理，紧接着，应用将大量请求发送到数据库层，导致数据库层的压力激增</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/02.png" class="">
-
-<h3 id="缓存中有大量数据同时过期"><a href="#缓存中有大量数据同时过期" class="headerlink" title="缓存中有大量数据同时过期"></a>缓存中有大量数据同时过期</h3><p>给数据的过期时间增加一个较小的随机数，不同数据的过期时间有所差别，但差别又不会太大，既避免了大量数据同时过期，同时也保证了这些数据基本在相近的时间失效，仍然能满足业务需求</p>
-<p>服务降级，发生缓存雪崩时，针对不同的数据采取不同的处理方式；访问非核心数据时，暂时停止从缓存中查询这些数据，而是直接返回预定义信息、空值或是错误信息；访问核心数据时，允许查询缓存，如果缓存缺失，也可以继续通过数据库读取</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/03.png" class="">
-
-<h3 id="Redis-缓存实例发生故障宕机"><a href="#Redis-缓存实例发生故障宕机" class="headerlink" title="Redis 缓存实例发生故障宕机"></a>Redis 缓存实例发生故障宕机</h3><p>在业务系统中实现服务熔断或请求限流机制：在发生缓存雪崩时，为了防止引发连锁的数据库雪崩，甚至是整个系统的崩溃，我们暂停业务应用对缓存系统的接口访问</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/04.png" class="">
-
-<p>服务熔断虽然可以保证数据库的正常运行，但是暂停了整个缓存系统的访问，对业务应用的影响范围大。为了尽可能减少这种影响，我们也可以进行请求限流；在业务系统的请求入口前端控制每秒进入系统的请求数，避免过多的请求被发送到数据库</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/05.png" class="">
-
-<p>通过主从节点的方式构建 Redis 缓存高可靠集群，主节点故障宕机，从节点还可以切换成为主节点，继续提供缓存服务，避免了由于缓存实例宕机而导致的缓存雪崩问题</p>
-<h2 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h2><p>缓存击穿是指，针对某个访问非常频繁的热点数据的请求，无法在缓存中进行处理，紧接着，访问该数据的大量请求，一下子都发送到了后端数据库，导致了数据库压力激增，会影响数据库处理其他请求</p>
-<p>缓存击穿的情况，经常发生在热点数据过期失效时</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/06.png" class="">
-
-<h3 id="热点数据不设置过期时间"><a href="#热点数据不设置过期时间" class="headerlink" title="热点数据不设置过期时间"></a>热点数据不设置过期时间</h3><p>对于访问特别频繁的热点数据，就不设置过期时间了</p>
-<h2 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h2><p>缓存穿透是指要访问的数据既不在 Redis 缓存中，也不在数据库中，导致请求在访问缓存时，发生缓存缺失，再去访问数据库时，发现数据库中也没有要访问的数据；应用无法从数据库中读取数据再写入缓存来服务后续请求，这样一来缓存也就成了摆设，如果应用持续有大量请求访问数据，就会同时给缓存和数据库带来巨大压力</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/07.png" class="">
-
-<p>原因：</p>
-<ul>
-<li><p>业务层误操作：缓存中的数据和数据库中的数据被误删除了，所以缓存和数据库中都没有数据</p>
-</li>
-<li><p>恶意攻击：专门访问数据库中没有的数据</p>
-</li>
-</ul>
-<h3 id="缓存空值或缺省值"><a href="#缓存空值或缺省值" class="headerlink" title="缓存空值或缺省值"></a>缓存空值或缺省值</h3><p>一旦发生缓存穿透，可以针对查询的数据，在 Redis 中缓存一个空值或是和业务层协商确定的缺省值；应用发送的后续请求再进行查询时，就可以直接从 Redis 中读取空值或缺省值，返回给业务应用了，避免了把大量请求发送给数据库处理，保持了数据库的正常运行</p>
-<h3 id="布隆过滤器"><a href="#布隆过滤器" class="headerlink" title="布隆过滤器"></a>布隆过滤器</h3><p>使用布隆过滤器快速判断数据是否存在，避免从数据库中查询数据是否存在，减轻数据库压力</p>
-<p>工作原理：</p>
-<ul>
-<li><p>布隆过滤器由一个初值都为 0 的 bit 数组和 N 个哈希函数组成，可以用来快速判断某个数据是否存在</p>
-</li>
-<li><p>标记某个数据存在时，使用 N 个哈希函数，分别计算这个数据的哈希值，得到 N 个哈希值</p>
-</li>
-<li><p>把这 N 个哈希值对 bit 数组的长度取模，得到每个哈希值在数组中的对应位置</p>
-</li>
-<li><p>把对应位置的 bit 位设置为 1，这就完成了在布隆过滤器中标记数据的操作</p>
-</li>
-<li><p>如果数据不存在，也就没有用布隆过滤器标记过数据，那么，bit 数组对应 bit 位的值仍然为 0</p>
-</li>
-</ul>
-<p>当需要查询某个数据时，就执行刚刚说的计算过程，先得到这个数据在 bit 数组中对应的 N 个位置；查看 bit 数组中这 N 个位置上的 bit 值；只要这 N 个 bit 值有一个不为 1，这就表明布隆过滤器没有对该数据做过标记，所以，查询的数据一定没有在数据库中保存</p>
-<p>基于布隆过滤器的快速检测特性，可以在把数据写入数据库时，使用布隆过滤器做个标记。当缓存缺失后，应用查询数据库时，可以通过查询布隆过滤器快速判断数据是否存在。如果不存在，就不用再去数据库中查询了。这样一来，即使发生缓存穿透了，大量请求只会查询 Redis 和布隆过滤器，而不会积压到数据库，也就不会影响数据库的正常运行。布隆过滤器可以使用 Redis 实现，本身就能承担较大的并发访问压力</p>
+<table>
+<thead>
+<tr>
+<th>编号</th>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>HUP</td>
+<td>挂起</td>
+</tr>
+<tr>
+<td>2</td>
+<td>INT</td>
+<td>中断</td>
+</tr>
+<tr>
+<td>3</td>
+<td>QUIT</td>
+<td>结束运行</td>
+</tr>
+<tr>
+<td>9</td>
+<td>KILL</td>
+<td>无条件终止</td>
+</tr>
+<tr>
+<td>11</td>
+<td>SEGV</td>
+<td>段错误</td>
+</tr>
+<tr>
+<td>15</td>
+<td>TERM</td>
+<td>尽可能终止</td>
+</tr>
+<tr>
+<td>17</td>
+<td>STOP</td>
+<td>无条件停止运行，但不终止</td>
+</tr>
+<tr>
+<td>18</td>
+<td>TSTP</td>
+<td>停止或暂停，但继续在后台运行</td>
+</tr>
+<tr>
+<td>19</td>
+<td>CONT</td>
+<td>在 STOP 或 TSTP 之后恢复</td>
+</tr>
+</tbody></table>
 
       
     </div>
@@ -525,7 +475,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-curl/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -543,7 +493,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F/" class="post-title-link" itemprop="url">编码方式</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-curl/" class="post-title-link" itemprop="url">curl</a>
         </h2>
 
         <div class="post-meta-container">
@@ -554,14 +504,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 20:51:26" itemprop="dateCreated datePublished" datetime="2023-04-20T20:51:26+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 21:16:40" itemprop="dateCreated datePublished" datetime="2023-04-25T21:16:40+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -569,7 +519,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -583,17 +533,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>当保存 64 位有符号整数时，String 类型会把它保存为一个 8 字节的 Long 类型整数，这种保存方式通常也叫作 int 编码方式</p>
-<p>当你保存的数据中包含字符时，String 类型就会用简单动态字符串（Simple Dynamic String，SDS）结构体来保存</p>
-<img src="/2023/04/20/Redis-%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F/01.png" class="">
-
-<p>buf：字节数组，保存实际数据。为了表示字节数组的结束，Redis 会自动在数组最后加一个 <code>\0</code>，这会额外占用 1 个字节的开销</p>
-<p>len：占 4 个字节，表示 buf 的已用长度</p>
-<p>alloc：也占个 4 字节，表示 buf 的实际分配长度，一般大于 len</p>
-<p>当保存的是 Long 类型整数时，RedisObject 中的指针就直接赋值为整数数据了，这样就不用额外的指针再指向整数了，节省了指针的空间开销，布局方式为 int 编码</p>
-<p>当保存的是字符串数据，并且字符串小于等于 44 字节时，RedisObject 中的元数据、指针和 SDS 是一块连续的内存区域，这样就可以避免内存碎片，布局方式为 embstr 编码</p>
-<p>当字符串大于 44 字节时，SDS 的数据量就开始变多了，Redis 就不再把 SDS 和 RedisObject 布局在一起了，而是会给 SDS 分配独立的空间，并用指针指向 SDS 结构，布局方式为 raw 编码</p>
-<img src="/2023/04/20/Redis-%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F/02.png" class="">
+          <p>模拟发送 HTTP 请求，默认行为是将目标页面输出到标准输出</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">curl url</span><br><span class="line"></span><br><span class="line"><span class="comment"># 页面保存到本地</span></span><br><span class="line">curl url &gt; index.html</span><br><span class="line">curl -o index.html url</span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认使用 GET 方法</span></span><br><span class="line"><span class="comment"># -X 指定具体方法</span></span><br><span class="line">curl -X GET url</span><br><span class="line"><span class="comment"># curl 提供了另外的 -G 或 --get 进行设置使用 GET</span></span><br><span class="line"><span class="comment"># curl 使用 POST 时还需要 -d 指定 POST 数据</span></span><br><span class="line">curl -X POST -d <span class="string">&#x27;data&#x27;</span> url</span><br><span class="line"></span><br><span class="line"><span class="comment"># -H 设置头部信息，多个头部信息需要多次 -H 设置</span></span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -619,7 +560,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-read/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -637,7 +578,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" class="post-title-link" itemprop="url">分布式锁</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-read/" class="post-title-link" itemprop="url">read</a>
         </h2>
 
         <div class="post-meta-container">
@@ -648,14 +589,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 20:50:20" itemprop="dateCreated datePublished" datetime="2023-04-20T20:50:20+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 20:32:27" itemprop="dateCreated datePublished" datetime="2023-04-25T20:32:27+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -663,7 +604,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -677,50 +618,10 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>Redis 属于分布式系统，当有多个客户端需要争抢锁时，我们必须要保证，这把锁不能是某个客户端本地的锁。否则的话，其它客户端是无法访问这把锁的，当然也就不能获取这把锁了</p>
-<p>在分布式系统中，当有多个客户端需要获取锁时，需要分布式锁。此时，锁是保存在一个共享存储系统中的，可以被多个客户端共享访问和获取</p>
-<p>Redis 本身可以被多个客户端共享访问，正好就是一个共享存储系统，可以用来保存分布式锁，而且 Redis 的读写性能高，可以应对高并发的锁操作场景</p>
-<p>和单机上的锁类似，分布式锁同样可以用一个变量来实现。客户端加锁和释放锁的操作逻辑，也和单机上的加锁和释放锁操作逻辑一致：加锁时同样需要判断锁变量的值，根据锁变量值来判断能否加锁成功；释放锁时需要把锁变量值设置为 0，表明客户端不再持有锁</p>
-<p>但是，和线程在单机上操作锁不同的是，在分布式场景下，锁变量需要由一个共享存储系统来维护，只有这样，多个客户端才可以通过访问共享存储系统来访问锁变量。相应的，加锁和释放锁的操作就变成了读取、判断和设置共享存储系统中的锁变量值</p>
-<p>分布式锁的两个要求：</p>
-<ol>
-<li><p>分布式锁的加锁和释放锁的过程，涉及多个操作。所以，在实现分布式锁时，我们需要保证这些锁操作的原子性</p>
-</li>
-<li><p>共享存储系统保存了锁变量，如果共享存储系统发生故障或宕机，那么客户端也就无法进行锁操作了。在实现分布式锁时，我们需要考虑保证共享存储系统的可靠性，进而保证锁的可靠性</p>
-</li>
-</ol>
-<h2 id="基于单个-Redis-节点实现分布式锁"><a href="#基于单个-Redis-节点实现分布式锁" class="headerlink" title="基于单个 Redis 节点实现分布式锁"></a>基于单个 Redis 节点实现分布式锁</h2><p>赋予锁变量一个变量名，把这个变量名作为键值对的键，而锁变量的值，则是键值对的值，这样一来，Redis 就能保存锁变量了，客户端也就可以通过 Redis 的命令操作来实现锁操作</p>
-<img src="/2023/04/20/Redis-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/01.png" class="">
+          <p>从标准输入读取数值</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">read</span> [-ers] [-a aname] [-d delim] [-i text] [-n nchars] [-N nchars] [-p prompt] [-t <span class="built_in">timeout</span>] [-u fd] [name ...]</span><br><span class="line"></span><br><span class="line">-n 指定读取字符</span><br><span class="line">-d 指定结束符，默认按行读取</span><br><span class="line">-p 指定提示信息，即在输入前打印提示信息</span><br><span class="line">-t 指定等待时间</span><br></pre></td></tr></table></figure>
 
-<p>可以用 SETNX 和 DEL 命令组合来实现加锁和释放锁操作</p>
-<p>SETNX 命令用于设置键值对的值，这个命令在执行时会判断键值对是否存在，如果不存在，就设置键值对的值，如果存在，就不做任何设置</p>
-<p>对于释放锁操作来说，使用 DEL 命令删除锁变量</p>
-<h3 id="风险"><a href="#风险" class="headerlink" title="风险"></a>风险</h3><p>假如某个客户端在执行了 SETNX 命令、加锁之后，紧接着却在操作共享数据时发生了异常，结果一直没有执行最后的 DEL 命令释放锁。因此，锁就一直被这个客户端持有，其它客户端无法拿到锁，也无法访问共享数据和执行后续操作，这会给业务应用带来影响</p>
-<p>一个有效的解决方法是，给锁变量设置一个过期时间。这样一来，即使持有锁的客户端发生了异常，无法主动地释放锁，Redis 也会根据锁变量的过期时间，在锁变量过期后，把它删除。其它客户端在锁变量过期后，就可以重新请求加锁，这就不会出现无法加锁的问题了</p>
-<p>如果客户端 A 执行了 SETNX 命令加锁后，假设客户端 B 执行了 DEL 命令释放锁，此时，客户端 A 的锁就被误释放了。如果客户端 C 正好也在申请加锁，就可以成功获得锁，进而开始操作共享数据。这样一来，客户端 A 和 C 同时在对共享数据进行操作，数据就会被修改错误</p>
-<p>在加锁操作时，可以让每个客户端给锁变量设置一个唯一值，这里的唯一值就可以用来标识当前操作的客户端；在释放锁操作时，客户端需要判断，当前锁变量的值是否和自己的唯一标识相等，只有在相等的情况下，才能释放锁；在释放锁操作时，需要判断锁变量的值是否等于执行释放锁操作的客户端的唯一标识，使用 Lua 脚本实现的释放锁操作</p>
-<p>采用主从集群模式部署的单机分布式锁，也不能保证锁的可靠性，由于主从复制是异步的，加锁操作的命令还未同步到 slave，此时主从切换，新 master 节点依旧会丢失该锁，对业务来说相当于锁失效了</p>
-<h2 id="基于多个-Redis-节点实现高可靠的分布式锁"><a href="#基于多个-Redis-节点实现高可靠的分布式锁" class="headerlink" title="基于多个 Redis 节点实现高可靠的分布式锁"></a>基于多个 Redis 节点实现高可靠的分布式锁</h2><p>只用了一个 Redis 实例来保存锁变量，如果这个 Redis 实例发生故障宕机了，那么锁变量就没有了。此时，客户端也无法进行锁操作了，这就会影响到业务的正常执行</p>
-<p>为了避免 Redis 实例故障而导致的锁无法工作的问题，Redis 使用分布式锁算法 Redlock</p>
-<p>Redlock 算法的基本思路，是让客户端和多个独立的 Redis 实例依次请求加锁，如果客户端能够和半数以上的实例成功地完成加锁操作，那么就认为，客户端成功地获得分布式锁了，否则加锁失败。这样一来，即使有单个 Redis 实例发生故障，因为锁变量在其它实例上也有保存，所以，客户端仍然可以正常地进行锁操作，锁变量并不会丢失</p>
-<p>Redlock 算法的实现需要有 N 个独立的 Redis 实例，分成 3 步来完成加锁操作</p>
-<ol>
-<li><p>客户端获取当前时间</p>
-</li>
-<li><p>客户端按顺序依次向 N 个 Redis 实例执行加锁操作，加锁操作和在单实例上执行的加锁操作一样；为避免某个实例宕机，需设置一个超时时间；如果客户端在和一个 Redis 实例请求加锁时，一直到超时都没有成功，那么此时，客户端会和下一个 Redis 实例继续请求加锁；加锁操作的超时时间需要远远地小于锁的有效时间，一般也就是设置为几十毫秒</p>
-</li>
-<li><p>一旦客户端完成了和所有 Redis 实例的加锁操作，客户端就要计算整个加锁过程的总耗时</p>
-</li>
-</ol>
-<p>加锁成功条件：</p>
-<ol>
-<li><p>客户端从超过半数（大于等于 N&#x2F;2+1）的 Redis 实例上成功获取到了锁</p>
-</li>
-<li><p>客户端获取锁的总耗时没有超过锁的有效时间</p>
-</li>
-</ol>
-<p>在满足了这两个条件后，我们需要重新计算这把锁的有效时间，计算的结果是锁的最初有效时间减去客户端为获取锁的总耗时</p>
-<p>如果客户端在和所有实例执行完加锁操作后，没能同时满足这两个条件，那么，客户端向所有 Redis 节点发起释放锁的操作</p>
+
 
       
     </div>
@@ -747,7 +648,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E6%97%81%E8%B7%AF%E7%BC%93%E5%AD%98/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-awk/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -765,7 +666,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E6%97%81%E8%B7%AF%E7%BC%93%E5%AD%98/" class="post-title-link" itemprop="url">旁路缓存</a>
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-awk/" class="post-title-link" itemprop="url">awk</a>
         </h2>
 
         <div class="post-meta-container">
@@ -776,14 +677,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-20 20:47:17" itemprop="dateCreated datePublished" datetime="2023-04-20T20:47:17+08:00">2023-04-20</time>
+      <time title="创建时间：2023-04-25 20:17:47" itemprop="dateCreated datePublished" datetime="2023-04-25T20:17:47+08:00">2023-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -791,7 +692,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
         </span>
     </span>
 
@@ -805,49 +706,110 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>一个系统中的不同层之间的访问速度不一样，所以才需要缓存，把一些需要频繁访问的数据放在缓存中，以加快它们的访问速度</p>
-<p>缓存的容量终究是有限的，缓存中的数据量也是有限的，肯定是没法时刻都满足访问需求的，缓存和后端慢速系统之间，必然存在数据写回和再读取的交互过程；缓存中的数据需要按一定规则淘汰出去，写回后端系统，而新的数据又要从后端系统中读取进来，写入缓存</p>
-<h2 id="缓存处理请求"><a href="#缓存处理请求" class="headerlink" title="缓存处理请求"></a>缓存处理请求</h2><ul>
-<li><p>缓存命中：Redis 中有相应数据，就直接读取 Redis，性能非常快</p>
-</li>
-<li><p>缓存缺失：Redis 中没有保存相应数据，就从后端数据库中读取数据，性能就会变慢。而且，一旦发生缓存缺失，为了让后续请求能从缓存中读取到数据，我们需要把缺失的数据写入 Redis，这个过程叫作缓存更新</p>
-</li>
-</ul>
-<p>使用 Redis 缓存时，基本有三个操作：</p>
-<ol>
-<li><p>应用读取数据时，需要先读取 Redis</p>
-</li>
-<li><p>发生缓存缺失时，需要从数据库读取数据</p>
-</li>
-<li><p>发生缓存缺失时，还需要更新缓存</p>
-</li>
-</ol>
-<h2 id="缓存类型"><a href="#缓存类型" class="headerlink" title="缓存类型"></a>缓存类型</h2><p>分成只读缓存和读写缓存</p>
-<h3 id="只读缓存"><a href="#只读缓存" class="headerlink" title="只读缓存"></a>只读缓存</h3><p>当 Redis 用作只读缓存时，应用要读取数据的话，会先调用 Redis GET 接口，查询数据是否存在</p>
-<p>所有的数据写请求，会直接发往后端的数据库，在数据库中增删改；对于删改的数据来说，如果 Redis 已经缓存了相应的数据，应用需要把这些缓存的数据删除；当应用再次读取这些数据时，会发生缓存缺失，应用会把这些数据从数据库中读出来，并写到缓存中</p>
-<p>所有最新的数据都在数据库中，而数据库是提供数据可靠性保障的，这些数据不会有丢失的风险；当需要缓存图片、短视频这些用户只读的数据时，就可以使用只读缓存这个类型了</p>
-<h3 id="读写缓存"><a href="#读写缓存" class="headerlink" title="读写缓存"></a>读写缓存</h3><p>读请求会发送到缓存进行处理（直接在缓存中查询数据是否存在)，所有的写请求也会发送到缓存，在缓存中直接对数据进行增删改操作</p>
-<p>得益于 Redis 的高性能访问特性，数据的增删改操作可以在缓存中快速完成，处理结果也会快速返回给业务应用，这就可以提升业务应用的响应速度</p>
-<p>在使用读写缓存时，最新的数据是在 Redis 中，而 Redis 是内存数据库，一旦出现掉电或宕机，内存中的数据就会丢失，给应用业务带来风险</p>
-<p>根据业务应用对数据可靠性和缓存性能的不同要求，有同步直写和异步写回两种策略。同步直写策略优先保证数据可靠性，而异步写回策略优先提供快速响应</p>
-<ul>
-<li><p>同步直写：写请求发给缓存的同时，也会发给后端数据库进行处理，等到缓存和数据库都写完数据，才给客户端返回；提供了数据可靠性保证；降低缓存的访问性能，即使缓存很快地处理了写请求，也需要等待数据库处理完所有的写请求，才能给应用返回结果，增加了缓存的响应延迟</p>
-</li>
-<li><p>异步写回：所有写请求都先在缓存中处理，等到这些增改的数据要被从缓存中淘汰出来时，缓存将它们写回后端数据库</p>
-</li>
-</ul>
-<img src="/2023/04/20/Redis-%E6%97%81%E8%B7%AF%E7%BC%93%E5%AD%98/01.png" class="">
+          <p>awk 把文件逐行的读入，以空格和制表符为默认分隔符将每行切片，切开的部分再进行各种分析处理</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line">awk [options] <span class="string">&#x27;[BEGIN&#123; command &#125;] pattern &#123; action &#125; ... [END&#123; command &#125;]&#x27;</span> file</span><br><span class="line"><span class="comment"># 1. 在读取文件之前执行 BEGIN 代码块，只执行一次，无法使用 $0 或其它一些特殊变量</span></span><br><span class="line"><span class="comment"># 2. 逐行扫描文件，每行执行 pattern &#123; action &#125;</span></span><br><span class="line"><span class="comment">#       - pattern 用于筛选行，action 表示在筛选通过后执行的操作</span></span><br><span class="line"><span class="comment">#       - 多个 pattern&#123;action&#125; 可以直接连接连用</span></span><br><span class="line"><span class="comment">#       - action 中多个语句如果写在同一行，则需使用分号分隔</span></span><br><span class="line"><span class="comment">#       - 省略 pattern，等价于对每一行数据都执行 action </span></span><br><span class="line"><span class="comment">#       - 省略代码块 &#123;action&#125;，等价于 &#123;print&#125; 即输出所有行</span></span><br><span class="line"><span class="comment">#       - 省略代码块中的 action，表示对筛选的行什么都不做</span></span><br><span class="line"><span class="comment">#       - BEGIN 和 END 其实是特殊 pattern</span></span><br><span class="line"><span class="comment"># 3. 在读取文件完成之后执行 END 代码块，可以使用 $0 等一些特殊变量，只不过这些特殊变量保存的是最后一行数据</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># pattern 布尔代码块</span></span><br><span class="line">/regular expression/    <span class="comment"># 正则匹配成功与否 /a.*ef/&#123;action&#125;</span></span><br><span class="line"><span class="variable">$n</span> ~ /qq.com/           <span class="comment"># 第 n 列满足正则</span></span><br><span class="line">relational expression   <span class="comment"># 即等值比较、大小比较 3&gt;2&#123;action&#125;</span></span><br><span class="line">pattern &amp;&amp; pattern      <span class="comment"># 逻辑与 3&gt;2 &amp;&amp; 3&gt;1 &#123;action&#125;</span></span><br><span class="line">pattern || pattern      <span class="comment"># 逻辑或 3&gt;2 || 3&lt;1 &#123;action&#125;</span></span><br><span class="line">! pattern               <span class="comment"># 逻辑取反 !/a.*ef/&#123;action&#125;</span></span><br><span class="line">(pattern)               <span class="comment"># 改变优先级</span></span><br><span class="line">pattern ? pattern : pattern  <span class="comment"># 三目运算符决定的布尔值</span></span><br><span class="line"><span class="comment"># pattern 范围代码块</span></span><br><span class="line">pattern1, pattern2      <span class="comment"># 范围</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># options:</span></span><br><span class="line">-F 指定分隔符，默认使用空格分割，等价于 BEGIN 中的 FS</span><br><span class="line">-v var=value 复制一个用户变量，将外部变量传递给 awk</span><br><span class="line">-f 从脚本文件读取 awk 命令</span><br><span class="line"></span><br><span class="line">awk 内置变量：</span><br><span class="line">1. NR 表示文件中的行号，表示当前是第几行</span><br><span class="line">2. NF 表示文件中的当前行被分割的列数</span><br><span class="line">3. 根据分隔符将每一行分为若干字段，依次用 <span class="variable">$1</span>, <span class="variable">$2</span>,<span class="variable">$3</span> 来表示，<span class="variable">$0</span> 表示整行</span><br><span class="line">4. RS 表示读取的分隔符，默认按行读取，通常设置在 BEGIN 代码块中，RS=<span class="string">&quot;&quot;</span> 按段落读取，RS=<span class="string">&quot;\0&quot;</span> 一次性读取所有数据，但有些特殊文件中可能包含了空字符 \0，RS=<span class="string">&quot;^$&quot;</span> 真正的一次性读取所有数据，因为非空文件不可能匹配成功，RS=<span class="string">&quot;\n+&quot;</span>：按行读取，但忽略所有空行</span><br><span class="line">5. FS 表示取列时的分隔符</span><br><span class="line">6. OFS 表示结果输出时的分隔符</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;BEGIN&#123;n=3&#125; /^[0-9]/&#123;$1&gt;5&#123;$1=333;print $1&#125; /Alice/&#123;print &quot;Alice&quot;&#125; END&#123;print &quot;hello&quot;&#125;&#x27;</span> a.txt</span><br><span class="line"></span><br><span class="line">awk -F <span class="string">&#x27;:&#x27;</span> <span class="string">&#x27;&#123;print $1&#125;&#x27;</span> /etc/passwd</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;$2 = &quot;***&quot;; print $0&#125;&#x27;</span> fruit.txt</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;print $1 &quot;\t&quot; $2 &quot;\t&quot; $3&#125;&#x27;</span> fruit.txt</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;print NR &quot;\t&quot; $0&#125;&#x27;</span> fruit.txt</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;print NF &quot;\t&quot; $0&#125;&#x27;</span> fruit.txt</span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;num = 10; if (num % 2 == 0) printf &quot;%d 是偶数\n&quot;, num &#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">    num = 11; </span></span><br><span class="line"><span class="string">    if (num % 2 == 0) printf &quot;%d 是偶数\n&quot;, num; </span></span><br><span class="line"><span class="string">    else printf &quot;%d 是奇数\n&quot;, num </span></span><br><span class="line"><span class="string">&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123; for (i = 1; i &lt;= 5; ++i) print i &#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;i = 1; while (i &lt; 6) &#123; print i; ++i &#125; &#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;</span></span><br><span class="line"><span class="string">   sum = 0; for (i = 0; i &lt; 20; ++i) &#123; </span></span><br><span class="line"><span class="string">      sum += i; if (sum &gt; 50) break; else print &quot;Sum =&quot;, sum </span></span><br><span class="line"><span class="string">   &#125; </span></span><br><span class="line"><span class="string">&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">awk <span class="string">&#x27;&#123;for (i = 1; i &lt;= 20; ++i) &#123;if (i % 2 == 1) continue ; else print i&#125; &#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">引用 shell 中其他变量方式</span><br><span class="line">1. 使用 <span class="string">&quot;&#x27; &#x27;&quot;</span>  双引号+单引号+shell变量+单引号+双引号</span><br><span class="line">shell_var=<span class="string">&quot;abc&quot;</span></span><br><span class="line">awk <span class="string">&#x27;&#123;printf &quot;&#x27;</span><span class="variable">$shell_var</span><span class="string">&#x27;&quot;&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">2. 使用 <span class="string">&quot;&#x27;&quot;</span> <span class="string">&quot;&#x27;&quot;</span>  双引号+单引号+双引号+shell变量+双引号+单引号+双引号</span><br><span class="line">shell_var=<span class="string">&quot;this a test&quot;</span></span><br><span class="line">awk <span class="string">&#x27;&#123;printf &quot;&#x27;</span><span class="string">&quot;<span class="variable">$shell_var</span>&quot;</span><span class="string">&#x27;&quot;&#125;&#x27;</span></span><br><span class="line"></span><br><span class="line">3. -v </span><br><span class="line">shell_var=<span class="string">&quot;this a test&quot;</span></span><br><span class="line">awk -v awk_var=<span class="string">&quot;<span class="variable">$shell_var</span>&quot;</span> <span class="string">&#x27;&#123;print awk_var&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
 
-<p>只读缓存和使用直写策略的读写缓存都会把数据同步写到后端数据库中，它们的区别在于：</p>
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-xargs/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-xargs/" class="post-title-link" itemprop="url">xargs</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-25 10:29:29" itemprop="dateCreated datePublished" datetime="2023-04-25T10:29:29+08:00">2023-04-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>管道实现的是将前面的 stdout 作为后面的 stdin，但是有些命令不接受管道的传递方式，最常见的就是 <code>ls</code> 命令</p>
+<p>有些时候命令希望管道传递的是参数，但是直接用管道有时无法传递到命令的参数位，这时候需要 <code>xargs</code></p>
+<p><code>xargs</code> 实现的是将管道传输过来的 stdin 进行处理然后传递到命令的参数位上</p>
+<p>还可以将 stdin 或者文件 stdin 分割成批，每个批中有很多分割片段，然后将这些片段按批交给 <code>xargs</code> 后面的命令进行处理</p>
+<h2 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h2><p><code>xargs</code> 处理的顺序是先分割，再分批，然后传递到参数位</p>
+<p><code>xargs</code> 中将符号分成两类：文本意义上的空格、制表符、反斜线、引号和非文本意义上的符号</p>
 <ul>
-<li><p>使用只读缓存时，是先把修改写到后端数据库中，再把缓存中的数据删除。当下次访问这个数据时，会以后端数据库中的值为准，重新加载到缓存中。这样做的优点是，数据库和缓存可以保证完全一致，并且缓存中永远保留的是经常访问的热点数据。缺点是每次修改操作都会把缓存中的数据删除，之后访问时都会先触发一次缓存缺失，然后从后端数据库加载数据到缓存中，这个过程访问延迟会变大</p>
+<li><p>文本意义上的空格、制表符、反斜线、引号是未经处理就已经存在的符号，例如文本的内容中出现这些符号以及在文件名上出现了这些符号都是文本意义上的</p>
 </li>
-<li><p>使用读写缓存时，是同时修改数据库和缓存中的值。这样做的优点是，被修改后的数据永远在缓存中存在，下次访问时，能够直接命中缓存，不用再从后端数据库中查询，这个过程拥有比较好的性能，比较适合先修改又立即访问的业务场景。但缺点是在高并发场景下，如果存在多个操作同时修改同一个值的情况，可能会导致缓存和数据库的不一致</p>
-</li>
-<li><p>当使用只读缓存时，如果修改数据库失败了，那么缓存中的数据也不会被删除，此时数据库和缓存中的数据依旧保持一致。而使用读写缓存时，如果是先修改缓存，后修改数据库，如果缓存修改成功，而数据库修改失败了，那么此时数据库和缓存数据就不一致了。如果先修改数据库，再修改缓存，也会产生上面所说的并发场景下的不一致</p>
+<li><p>非文本意义的符号，是处理后出现的符号，例如 <code>ls</code> 命令的结果中每个文件之间的制表符，它原本是不存在的，只是 <code>ls</code> 命令处理后的显示方式</p>
 </li>
 </ul>
-<h2 id="只读缓存是删除数据而不是修改数据"><a href="#只读缓存是删除数据而不是修改数据" class="headerlink" title="只读缓存是删除数据而不是修改数据"></a>只读缓存是删除数据而不是修改数据</h2><p>如果不是删除缓存值，而是直接更新缓存的值，这种情况相当于把 Redis 当做读写缓存使用，删改操作同时操作数据库和缓存</p>
+<p><code>xargs</code> 将管道传递过来的 stdin 内容的所有用来分割的空格、制表符和分行符都替换为空格并压缩到一行，这个整体可能直接交给命令或者作为 stdout 通过管道传递给管道右边的命令</p>
+<img src="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-xargs/01.png" class="">
+
+<p>这时结果将作为整体传递，也可能被 <code>xargs</code> 同时指定的分批选项分批处理</p>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>不指定命令时默认的命令是 <code>echo</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">xargs [-0oprt] [-E eofstr] [-I replstr [-R replacements] [-S replsize]]</span><br><span class="line">           [-J replstr] [-L number] [-n number [-x]] [-P maxprocs] [-s size]</span><br><span class="line">           [utility [argument ...]]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 分割方式</span></span><br><span class="line">-0 使用 `\0` 作为分段符</span><br><span class="line">-d 指定分段符，可以是单个符号、字母或数字，如 xargs -d <span class="string">&quot;o&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 分批方式</span></span><br><span class="line">-n 指定每行将多少项，作为命令行参数，分割时会使用文本意义分隔符</span><br><span class="line">-L 指定每行将多少项，作为命令行参数，分割时不会使用文本意义分隔符</span><br><span class="line"></span><br><span class="line">-p 打印出要执行的命令，询问用户是否要执行</span><br><span class="line">-t 打印出最终要执行的命令，然后直接执行，不需要用户确认</span><br><span class="line"></span><br><span class="line">-i 以大括号 &#123;&#125; 作为替换符号</span><br><span class="line">-I 指定每一项命令行参数的替代字符串</span><br><span class="line"></span><br><span class="line">-e 解释转义字符</span><br><span class="line">-P 并行处理</span><br></pre></td></tr></table></figure>
+
 
       
     </div>
@@ -874,7 +836,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-stream/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -892,7 +854,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/" class="post-title-link" itemprop="url">缓存一致性</a>
+          <a href="/2023/04/20/Redis-stream/" class="post-title-link" itemprop="url">stream</a>
         </h2>
 
         <div class="post-meta-container">
@@ -903,14 +865,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-19 21:30:14" itemprop="dateCreated datePublished" datetime="2023-04-19T21:30:14+08:00">2023-04-19</time>
+      <time title="创建时间：2023-04-20 21:10:56" itemprop="dateCreated datePublished" datetime="2023-04-20T21:10:56+08:00">2023-04-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -932,168 +894,49 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>只要使用 Redis 缓存，就必然会面对缓存和数据库间的一致性保证问题</p>
-<h2 id="一致性"><a href="#一致性" class="headerlink" title="一致性"></a>一致性</h2><p>一致性情况包括：</p>
+          <h2 id="消息队列存取需求"><a href="#消息队列存取需求" class="headerlink" title="消息队列存取需求"></a>消息队列存取需求</h2><p>在分布式系统中，当两个组件要基于消息队列进行通信时，一个组件会把要处理的数据以消息的形式传递给消息队列，然后这个组件就可以继续执行其他操作了；远端的另一个组件从消息队列中把消息读取出来，再在本地进行处理</p>
+<img src="/2023/04/20/Redis-stream/01.png" class="">
+
+<p>在使用消息队列时，消费者可以异步读取生产者消息，然后再进行处理。这样一来，即使生产者发送消息的速度远远超过了消费者处理消息的速度，生产者已经发送的消息也可以缓存在消息队列中，避免阻塞生产者</p>
+<p>消息队列在存取消息时，必须要满足三个需求，分别是消息保序、处理重复的消息和保证消息可靠性</p>
+<h3 id="消息保序"><a href="#消息保序" class="headerlink" title="消息保序"></a>消息保序</h3><p>消费者是异步处理消息，但是消费者仍然需要按照生产者发送消息的顺序来处理消息，避免后发送的消息被先处理了</p>
+<h3 id="重复消息处理"><a href="#重复消息处理" class="headerlink" title="重复消息处理"></a>重复消息处理</h3><p>消费者从消息队列读取消息时，有时会因为网络堵塞而出现消息重传的情况，消费者可能会收到多条重复的消息</p>
+<h3 id="消息可靠性保证"><a href="#消息可靠性保证" class="headerlink" title="消息可靠性保证"></a>消息可靠性保证</h3><p>消费者在处理消息的时候，可能出现因为故障或宕机导致消息没有处理完成的情况</p>
+<p>消息队列需要能提供消息可靠性的保证，当消费者重启后，可以重新读取消息再次进行处理，否则就会出现消息漏处理的问题了</p>
+<h2 id="基于-List-的解决方案"><a href="#基于-List-的解决方案" class="headerlink" title="基于 List 的解决方案"></a>基于 List 的解决方案</h2><p>生产者可以使用 LPUSH 命令把要发送的消息依次写入 List，而消费者则可以使用 RPOP 命令，从 List 的另一端按照消息的写入顺序，依次读取消息并进行处理</p>
+<h3 id="消息保序-1"><a href="#消息保序-1" class="headerlink" title="消息保序"></a>消息保序</h3><p>在生产者往 List 中写入数据时，List 并不会主动地通知消费者有新消息写入，如果消费者想要及时处理消息，就需要在程序中不停地调用 RPOP 命令，会导致消费者程序的 CPU 一直消耗在执行 RPOP 命令上，带来不必要的性能损失</p>
+<p>Redis 提供了 BRPOP 命令，客户端在没有读到队列数据时，自动阻塞直到有新的数据写入队列，再开始读取新数据。和消费者程序自己不停地调用 RPOP 命令相比，这种方式能节省 CPU 开销</p>
+<h3 id="重复信息处理"><a href="#重复信息处理" class="headerlink" title="重复信息处理"></a>重复信息处理</h3><p>List 本身是不会为每个消息生成 ID 号的，所以消息的全局唯一 ID 号就需要生产者程序在发送消息前自行生成；生成之后，在用 LPUSH 命令把消息插入 List 时，需要在消息中包含这个全局唯一 ID</p>
+<p>消费者程序要把已经处理过的消息的 ID 号记录下来，就可以对比收到的消息 ID 和记录的已处理过的消息 ID，来判断当前收到的消息有没有经过处理</p>
+<h3 id="消息可靠性保证-1"><a href="#消息可靠性保证-1" class="headerlink" title="消息可靠性保证"></a>消息可靠性保证</h3><p>List 类型提供了 BRPOPLPUSH 命令，作用是让消费者程序从一个 List 中读取消息，同时 Redis 会把这个消息再插入到另一个 List（可以叫作备份 List）留存</p>
+<p>如果消费者程序读了消息但没能正常处理，等它重启后，就可以从备份 List 中重新读取消息并进行处理了</p>
+<h3 id="不足"><a href="#不足" class="headerlink" title="不足"></a>不足</h3><p>生产者消息发送很快，而消费者处理消息的速度比较慢，这就导致 List 中的消息越积越多，给 Redis 的内存带来很大压力</p>
+<p>List 作为消息队列不支持消费组，不能启动多个消费者程序一起处理 List 中的消息</p>
+<h2 id="基于-Stream-的解决方案"><a href="#基于-Stream-的解决方案" class="headerlink" title="基于 Stream 的解决方案"></a>基于 Stream 的解决方案</h2><p>Stream 是 Redis 专门为消息队列设计的数据类型，它提供了丰富的消息队列操作命令</p>
+<p>Stream 是一个序列，使用XADD向其中添加的消息不会被自动删除（在 Stream 长度限制之内），所有消息始终在那里</p>
+<h3 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h3><img src="/2023/04/20/Redis-stream/02.png" class="">
+
 <ul>
-<li><p>缓存中有数据，缓存的数据值需要和数据库中的值相同</p>
+<li><p>Consumer Group：消费者组可以看成 Stream 的一种数据结构；消费者可以使用 XREAD 单独消费，也可以多个消费者加入一个消费者组进行组内消费；同一条消息只会被一个消费者消费</p>
 </li>
-<li><p>缓存中本身没有数据，数据库中的值必须是最新值</p>
+<li><p>last_delivered_id：表示消费者组在 Stream 上的消费位置信息；每个消费者组都有一个 Stream 内唯一的名称；消费者组不会自动创建，需要使用 XGROUP CREATE 显示创建，并指明开始消费的消息 ID，用来初始化该变量</p>
+</li>
+<li><p>pending_ids：每个消费者内部的状态变量，表示已经被获取但未 ACK 的消息，用来保证消息被客户端至少消费一次</p>
+</li>
+<li><p>ID：第一部分是数据插入时，以毫秒为单位计算的当前服务器时间，第二部分表示插入消息在当前毫秒内的消息序号；保证了 ID 自增，支持范围查找；支持客户端自定义，但需满足整数-整数格式</p>
+</li>
+<li><p>消息内容：普通键值对</p>
 </li>
 </ul>
-<h3 id="读写缓存"><a href="#读写缓存" class="headerlink" title="读写缓存"></a>读写缓存</h3><p>对于读写缓存来说，如果要对数据进行增删改，就需要在缓存中进行，同时还要根据采取的写回策略，决定是否同步写回到数据库中</p>
-<p>同步直写策略：写缓存时，也同步写数据库，缓存和数据库中的数据一致</p>
-<p>异步写回策略：写缓存时不同步写数据库，等到数据从缓存中淘汰时，再写回数据库。使用这种策略时，如果数据还没有写回数据库，缓存就发生了故障，数据库就没有最新的数据了</p>
-<p>要想保证缓存和数据库中的数据一致，就要采用同步直写策略；但如果采用这种策略，就需要同时更新缓存和数据库；要在业务应用中使用事务机制，来保证缓存和数据库的更新具有原子性，也就是说，两者要不一起更新，要不都不更新，返回错误信息，进行重试</p>
-<p>对数据一致性的要求可能不是那么高，可以使用异步写回策略</p>
-<h3 id="只读缓存"><a href="#只读缓存" class="headerlink" title="只读缓存"></a>只读缓存</h3><p>对于只读缓存来说，如果有数据新增，会直接写入数据库；而有数据删改时，就需要把只读缓存中的数据标记为无效；后续再访问这些增删改的数据时，因为缓存中没有相应的数据，就会发生缓存缺失，应用再从数据库中把数据读入缓存，这样后续再访问数据时，就能够直接从缓存中读取了</p>
-<p>新增数据，数据会直接写到数据库中，不用对缓存做任何操作；缓存中本身就没有新增数据，而数据库中是最新值，这种情况符合一致性的第 2 种情况，所以，此时缓存和数据库的数据是一致的</p>
-<p>删改数据既要更新数据库，也要在缓存中删除数据；在更新数据库和删除缓存值的过程中，无论这两个操作的执行顺序谁先谁后，只要有一个操作失败了，就会导致客户端读取到旧值，导致不满足缓存一致性</p>
-<p>先删除缓存，再更新数据库，如果缓存删除成功，但是数据库更新失败，那么应用再访问数据时，缓存中没有数据，就会发生缓存缺失。然后，应用再访问数据库，但是数据库中的值为旧值，应用就访问到旧值了</p>
-<p>先完成了数据库的更新，但是在删除缓存时失败，那么数据库中的值是新值，而缓存中的是旧值，这肯定是不一致的。这个时候，如果有其他的并发请求来访问数据，按照正常的缓存访问流程，就会先在缓存中查询，但此时就会读到旧值了</p>
-<img src="/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/01.png" class="">
+<h3 id="消费者组"><a href="#消费者组" class="headerlink" title="消费者组"></a>消费者组</h3><p>当多个消费者同时消费一个消息队列时，可以重复的消费相同的消息，就是消息队列中有 10 条消息，三个消费者都可以消费到这 10 条消息</p>
+<p>消费者组为需要多个消费者配合协作来消费同一个消息队列，就是消息队列中有 10 条消息，三个消费者分别消费其中的某些消息</p>
+<img src="/2023/04/20/Redis-stream/03.png" class="">
 
-<img src="/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/02.png" class="">
-
-<h2 id="重试机制"><a href="#重试机制" class="headerlink" title="重试机制"></a>重试机制</h2><p>可以把要删除的缓存值或者是要更新的数据库值暂存到消息队列中，当应用没有能够成功地删除缓存值或者是更新数据库值时，可以从消息队列中重新读取这些值，然后再次进行删除或更新；如果能够成功地删除或更新，我们就要把这些值从消息队列中去除，以免重复操作</p>
-<h2 id="高并发"><a href="#高并发" class="headerlink" title="高并发"></a>高并发</h2><p>即使更新数据库和删除缓存值成功，当有大量并发请求时，应用还是有可能读到不一致的数据</p>
-<h3 id="先删除缓存，再更新数据库"><a href="#先删除缓存，再更新数据库" class="headerlink" title="先删除缓存，再更新数据库"></a>先删除缓存，再更新数据库</h3><p>线程 A 删除缓存值后，还没有来得及更新数据库，线程 B 就开始读取数据；线程 B 会发现缓存缺失，就只能去数据库读取</p>
-<p>导致线程 B 读取到了旧值，且会把旧值写入缓存，这可能会导致其他线程从缓存中读到旧值</p>
-<p>等到线程 B 从数据库读取完数据、更新了缓存后，线程 A 才开始更新数据库，此时，缓存中的数据是旧值，而数据库中的是最新值，两者就不一致了</p>
-<img src="/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/03.png" class="">
-
-<p>解决方案：在线程 A 更新完数据库值以后，我们可以让它先 sleep 一小段时间，再进行一次缓存删除操作；线程 A sleep 的时间需要大于线程 B 读取数据再写入缓存的时间；其它线程读取数据时，会发现缓存缺失，所以会从数据库中读取最新值</p>
-<p>这个方案会在第一次删除缓存值后，延迟一段时间再次进行删除，所以我们也把它叫做延迟双删</p>
-<h3 id="先更新数据库值，再删除缓存值"><a href="#先更新数据库值，再删除缓存值" class="headerlink" title="先更新数据库值，再删除缓存值"></a>先更新数据库值，再删除缓存值</h3><p>线程 A 删除了数据库中的值，但还没来得及删除缓存值，线程 B 就开始读取数据；线程 B 查询缓存时，发现缓存命中，就会直接从缓存中读取旧值</p>
-<img src="/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/04.png" class="">
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/" class="post-title-link" itemprop="url">缓冲区</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 21:28:59" itemprop="dateCreated datePublished" datetime="2023-04-19T21:28:59+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>缓冲区就是用一块内存空间来暂时存放命令数据，以免出现因为数据和命令的处理速度慢于发送速度而导致的数据丢失和性能问题。但因为缓冲区的内存空间有限，如果往里面写入数据的速度持续地大于从里面读取数据的速度，就会导致缓冲区需要越来越多的内存来暂存数据。当缓冲区占用的内存超出了设定的上限阈值时，就会出现缓冲区溢出</p>
-<p>缓冲区不设上限，随着累积的数据越来越多，缓冲区占用内存空间越来越大，一旦耗尽了 Redis 实例所在机器的可用内存，就会导致 Redis 实例崩溃</p>
-<p>主要场景：</p>
-<ul>
-<li><p>在客户端和服务器端之间进行通信时，用来暂存客户端发送的命令数据，或者是服务器端返回给客户端的数据结果</p>
-</li>
-<li><p>主从节点间进行数据同步时，用来暂存主节点接收的写命令和数据</p>
-</li>
-</ul>
-<h2 id="客户端输入输出缓冲区"><a href="#客户端输入输出缓冲区" class="headerlink" title="客户端输入输出缓冲区"></a>客户端输入输出缓冲区</h2><p>为了避免客户端和服务器端的请求发送和处理速度不匹配，服务器端给每个连接的客户端都设置了一个输入缓冲区和输出缓冲区</p>
-<p>输入缓冲区会先把客户端发送过来的命令暂存起来，Redis 主线程再从输入缓冲区中读取命令，进行处理。当 Redis 主线程处理完数据后，会把结果写入到输出缓冲区，再通过输出缓冲区返回给客户端</p>
-<h3 id="输入缓冲区溢出"><a href="#输入缓冲区溢出" class="headerlink" title="输入缓冲区溢出"></a>输入缓冲区溢出</h3><p>输入缓冲区就是用来暂存客户端发送的请求命令的，所以可能导致溢出的情况主要是下面两种：</p>
-<ul>
-<li><p>写入了 bigkey，比如一下子写入了多个百万级别的集合类型数据</p>
-</li>
-<li><p>服务器端处理请求的速度过慢，导致客户端发送的请求在缓冲区越积越多</p>
-</li>
-</ul>
-<p>Redis 服务器端不止服务一个客户端，当多个客户端连接占用的内存总量，超过了 Redis 的 maxmemory 配置项时（例如 4GB），就会触发 Redis 进行数据淘汰。一旦数据被淘汰出 Redis，再要访问这部分数据，就需要去后端数据库读取，这就降低了业务应用的访问性能</p>
-<p>Redis 没有提供参数调节客户端输入缓冲区的大小，只能从数据命令的发送和处理速度入手，也就是前面提到的避免客户端写入 bigkey，以及避免 Redis 主线程阻塞</p>
-<h3 id="输出缓冲区溢出"><a href="#输出缓冲区溢出" class="headerlink" title="输出缓冲区溢出"></a>输出缓冲区溢出</h3><p>输出缓冲区暂存的是 Redis 主线程要返回给客户端的数据</p>
-<p>Redis 为每个客户端设置的输出缓冲区也包括两部分：一部分，是一个大小为 16KB 的固定缓冲空间，用来暂存 OK 响应和出错信息；另一部分，是一个可以动态增加的缓冲空间，用来暂存大小可变的响应结果</p>
-<p>输出去缓冲溢出主要情况：</p>
-<ul>
-<li><p>服务器端返回 bigkey 的大量结果</p>
-</li>
-<li><p>执行了 MONITOR 命令</p>
-</li>
-<li><p>缓冲区大小设置得不合理</p>
-</li>
-</ul>
-<p>可以通过 client-output-buffer-limit 配置项，来设置缓冲区的大小；主要包括设置缓冲区大小的上限阈值，设置输出缓冲区持续写入数据的数量上限阈值，和持续写入数据的时间的上限阈值</p>
-<h2 id="主从集群输入输出缓冲区"><a href="#主从集群输入输出缓冲区" class="headerlink" title="主从集群输入输出缓冲区"></a>主从集群输入输出缓冲区</h2><p>主从集群间的数据复制包括全量复制和增量复制两种。全量复制是同步所有数据，而增量复制只会把主从库网络断连期间主库收到的命令，同步给从库</p>
-<h3 id="复制缓冲区溢出"><a href="#复制缓冲区溢出" class="headerlink" title="复制缓冲区溢出"></a>复制缓冲区溢出</h3><p>在全量复制过程中，主节点在向从节点传输 RDB 文件的同时，会继续接收客户端发送的写命令请求。这些写命令就会先保存在复制缓冲区中，等 RDB 文件传输完成后，再发送给从节点去执行</p>
-<p>主节点上会为每个从节点都维护一个复制缓冲区，来保证主从节点间的数据同步</p>
-<img src="/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/01.png" class="">
-
-<p>如果在全量复制时，从节点接收和加载 RDB 较慢，同时主节点接收到了大量的写命令，写命令在复制缓冲区中就会越积越多，最终导致溢出</p>
-<p>主节点上的复制缓冲区，本质上也是一个用于和从节点连接的客户端使用的输出缓冲区，复制缓冲区一旦发生溢出，主节点也会直接关闭和从节点进行复制操作的连接，导致全量复制失败</p>
-<p>控制主节点保存的数据量大小，把主节点的数据量控制在 2~4GB，这样可以让全量同步执行得更快些，避免复制缓冲区累积过多命令</p>
-<p>使用 client-output-buffer-limit 配置项，来设置合理的复制缓冲区大小</p>
-<p>主节点上复制缓冲区的内存开销，会是每个从节点客户端输出缓冲区占用内存的总和，控制和主节点连接的从节点个数，不要使用大规模的主从集群</p>
-<h3 id="复制积压缓冲区溢出"><a href="#复制积压缓冲区溢出" class="headerlink" title="复制积压缓冲区溢出"></a>复制积压缓冲区溢出</h3><p>主节点在把接收到的写命令同步给从节点时，同时会把这些写命令写入复制积压缓冲区。一旦从节点发生网络闪断，再次和主节点恢复连接后，从节点就会从复制积压缓冲区中，读取断连期间主节点接收到的写命令，进而进行增量同步</p>
-<img src="/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/02.png" class="">
-
-<p>复制积压缓冲区 repl_backlog_buffer 是一个大小有限的环形缓冲区，当主节点把复制积压缓冲区写满后，会覆盖缓冲区中的旧命令数据。如果从节点还没有同步这些旧命令数据，就会造成主从节点间重新开始执行全量复制</p>
+<p>每个消费者组内可以挂多个消费者分担读取消息进行消费，消费完成后，各自向 Redis 发送 XACK，标记自己的消费组已经消费到了哪个位置，而且消费组之间互不影响</p>
+<h3 id="Stream-上限"><a href="#Stream-上限" class="headerlink" title="Stream 上限"></a>Stream 上限</h3><p>消息积累太多，Stream 的链表会变得很长，XDEL 不会删除消息，只是给消息做了个标志位</p>
+<p>Redis 提供了定长的 Stream 功能，在 XADD 的指令提供一个定长长度 maxlen；当 Stream 达到指定长度后会自动淘汰老的信息，确保最多不超过指定长度</p>
+<h3 id="PEL"><a href="#PEL" class="headerlink" title="PEL"></a>PEL</h3><p>Stream 在每个消费者结构中保存了正在处理中的消息 ID 列表 PEL，如果消费者收到了消息处理完了但是没有回复 ACK，就会导致 PEL 列表不断增长，如果有很多消费组的话，那么这个 PEL 占用的内存就会放大</p>
+<p>客户端断开连接重连后，读取数据时使用 0-0 来读取所有 PEL 消息及 last_delivered_id 之后消息</p>
 
       
     </div>
@@ -1120,7 +963,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BB%9F%E8%AE%A1%E6%A8%A1%E5%BC%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1138,7 +981,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/Redis-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/" class="post-title-link" itemprop="url">原子操作</a>
+          <a href="/2023/04/20/Redis-%E7%BB%9F%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">统计模式</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1149,23 +992,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-19 21:26:56" itemprop="dateCreated datePublished" datetime="2023-04-19T21:26:56+08:00">2023-04-19</time>
+      <time title="创建时间：2023-04-20 21:08:46" itemprop="dateCreated datePublished" datetime="2023-04-20T21:08:46+08:00">2023-04-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
 
   
@@ -1178,32 +1012,24 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>当客户端需要修改数据时，基本流程分成两步：客户端先把数据读取到本地，在本地进行修改；客户端修改完数据后，再写回 Redis</p>
-<p>读取-修改-写回操作（Read-Modify-Write，简称为 RMW 操作）</p>
-<p>当有多个客户端对同一份数据执行 RMW 操作的话，就需要让 RMW 操作涉及的代码以原子性方式执行；访问同一份数据的 RMW 操作代码，就叫做临界区代码</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">current = GET(id)</span><br><span class="line">current--</span><br><span class="line">SET(id, current)</span><br><span class="line">// 当有多个客户端执行这段代码时，这就是一份临界区代码</span><br></pre></td></tr></table></figure>
+          <p>常见的四种统计模式，包括聚合统计、排序统计、二值状态统计和基数统计</p>
+<p>不同统计模式适合使用不同的集合类型</p>
+<img src="/2023/04/20/Redis-%E7%BB%9F%E8%AE%A1%E6%A8%A1%E5%BC%8F/01.png" class="">
 
-<p>对临界区代码的执行没有控制机制，就会出现数据更新错误</p>
-<img src="/2023/04/19/Redis-%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/01.png" class="">
-
-<p>并发访问控制，是指对多个客户端访问操作同一份数据的过程进行控制，以保证任何一个客户端发送的操作在 Redis 实例上执行时具有互斥性</p>
-<p>Redis 的快照生成、AOF 重写这些操作，可以使用后台线程或者是子进程执行，也就是和主线程的操作并行执行。这些操作只是读取数据，不会修改数据，所以，并不需要对它们做并发控制</p>
-<p>虽然加锁保证了互斥性，但是加锁也会导致系统并发性能降低</p>
-<p>为了实现并发控制要求的临界区代码互斥执行，Redis 的原子操作采用了两种方法</p>
-<ol>
-<li><p>单命令操作</p>
-</li>
-<li><p>单个 Lua 脚本</p>
-</li>
-</ol>
-<h2 id="单命令操作"><a href="#单命令操作" class="headerlink" title="单命令操作"></a>单命令操作</h2><p>把多个操作在 Redis 中实现成一个操作，也就是单命令操作</p>
-<p>Redis 是使用单线程来串行处理客户端的请求操作命令的，所以，当 Redis 执行某个命令操作时，其他命令是无法执行的，这相当于命令操作是互斥执行的</p>
-<p>虽然 Redis 的单个命令操作可以原子性地执行，但是在实际应用中，数据修改时可能包含多个操作，至少包括读数据、数据增减、写回数据三个操作，这显然就不是单个命令操作了；Redis 提供的 INCR&#x2F;DECR 命令，把这三个操作转变为一个原子操作了。INCR&#x2F;DECR 命令可以对数据进行增值 &#x2F; 减值操作，而且它们本身就是单个命令操作，Redis 在执行它们时，本身就具有互斥性</p>
-<p>所以如果执行的 RMW 操作是对数据进行增减值的话，Redis 提供的原子操作 INCR 和 DECR 可以直接帮助我们进行并发控制</p>
-<h2 id="Lua-脚本"><a href="#Lua-脚本" class="headerlink" title="Lua 脚本"></a>Lua 脚本</h2><p>如果要执行的操作不是简单地增减数据，而是有更加复杂的判断逻辑或者是其他操作，那么，Redis 的单命令操作已经无法保证多个操作的互斥执行，所以需要使用第二个方法，也就是 Lua 脚本</p>
-<p>Redis 会把整个 Lua 脚本作为一个整体执行，在执行的过程中不会被其他命令打断，从而保证了 Lua 脚本中操作的原子性</p>
-<p>如果把很多操作都放在 Lua 脚本中原子执行，会导致 Redis 执行脚本的时间增加，同样也会降低 Redis 的并发性能</p>
-<p>在编写 Lua 脚本时，你要避免把不需要做并发控制的操作写入脚本中</p>
+<h2 id="聚合统计"><a href="#聚合统计" class="headerlink" title="聚合统计"></a>聚合统计</h2><p>统计多个集合元素的聚合结果，包括：统计多个集合的共有元素（交集统计）；把两个集合相比，统计其中一个集合独有的元素（差集统计）；统计多个集合的所有元素（并集统计）</p>
+<p>当需要对多个集合进行聚合计算时，Set 类型会是一个非常不错的选择，但 Set 的差集、并集和交集的计算复杂度较高，在数据量较大的情况下，如果直接执行这些计算，会导致 Redis 实例阻塞</p>
+<p>可以从主从集群中选择一个从库，让它专门负责聚合计算，或者是把数据读取到客户端，在客户端来完成聚合统计</p>
+<h2 id="排序统计"><a href="#排序统计" class="headerlink" title="排序统计"></a>排序统计</h2><p>Redis 常用的 4 个集合类型中（List、Hash、Set、Sorted Set），List 和 Sorted Set 就属于有序集合</p>
+<p>List 是按照元素进入 List 的顺序进行排序的，而 Sorted Set 可以根据元素的权重来排序，可以自己来决定每个元素的权重值</p>
+<p>在面对需要展示最新列表、排行榜等场景时，如果数据更新频繁或者需要分页显示，建议优先考虑使用 Sorted Set</p>
+<h2 id="二值状态统计"><a href="#二值状态统计" class="headerlink" title="二值状态统计"></a>二值状态统计</h2><p>二值状态就是指集合元素的取值就只有 0 和 1 两种</p>
+<p>Bitmap 提供了 GETBIT&#x2F;SETBIT 操作，使用一个偏移值 offset 对 bit 数组的某一个 bit 位进行读和写；提供了 BITCOUNT 操作用来统计这个 bit 数组中所有 1 的个数</p>
+<p>Bitmap 支持用 BITOP 命令对多个 Bitmap 按位做与或异或的操作，操作的结果会保存到一个新的 Bitmap 中</p>
+<h2 id="基数统计"><a href="#基数统计" class="headerlink" title="基数统计"></a>基数统计</h2><p>统计一个集合中不重复的元素个数</p>
+<p>Set 和 Hash 类型默认支持去重，但集合较大时会非常消耗内存</p>
+<p>HyperLogLog 是一种用于统计基数的数据集合类型，它的最大优势就在于，当集合元素数量非常多时，它计算基数所需的空间总是固定的，而且还很小</p>
+<p>在 Redis 中，每个 HyperLogLog 只需要花费 12 KB 内存，就可以计算接近 2^64 个元素的基数</p>
+<p>HyperLogLog 的统计规则是基于概率完成的，所以它给出的统计结果是有一定误差的，标准误算率是 0.81%，虽然误差率不算大，但是如果需要精确统计结果的话，最好还是继续用 Set 或 Hash 类型</p>
 
       
     </div>
@@ -1230,7 +1056,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1248,7 +1074,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/Redis-%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">异步机制</a>
+          <a href="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/" class="post-title-link" itemprop="url">切片集群</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1259,14 +1085,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-19 21:24:38" itemprop="dateCreated datePublished" datetime="2023-04-19T21:24:38+08:00">2023-04-19</time>
+      <time title="创建时间：2023-04-20 21:07:04" itemprop="dateCreated datePublished" datetime="2023-04-20T21:07:04+08:00">2023-04-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-04-26 11:33:23" itemprop="dateModified" datetime="2023-04-26T11:33:23+08:00">2023-04-26</time>
+      <time title="修改时间：2023-04-26 20:42:48" itemprop="dateModified" datetime="2023-04-26T20:42:48+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1288,54 +1114,45 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>Redis 实例在运行时，要和许多对象进行交互，这些不同的交互就会涉及不同的操作</p>
-<ul>
-<li><p>客户端：网络 IO，键值对增删改查操作，数据库操作</p>
+          <p>在使用 RDB 进行持久化时，Redis 会 fork 子进程来完成，fork 操作的用时和 Redis 的数据量是正相关的，而 fork 在执行时会阻塞主线程。数据量越大，fork 操作造成的主线程阻塞的时间越长，Redis 响应变慢</p>
+<p>切片集群，也叫分片集群，就是指启动多个 Redis 实例组成一个集群，然后按照一定的规则，把收到的数据划分成多份，每一份用一个实例来保存</p>
+<img src="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/01.png" class="">
+
+<h2 id="保存大量数据方式"><a href="#保存大量数据方式" class="headerlink" title="保存大量数据方式"></a>保存大量数据方式</h2><ul>
+<li><p>纵向扩展：升级单个 Redis 实例的资源配置，包括增加内存容量、增加磁盘容量、使用更高配置的 CPU；好处是实施起来简单、直接；坏处是数据持久化时阻塞服务，硬件成本较高</p>
 </li>
-<li><p>磁盘：生成 RDB 快照，记录 AOF 日志，AOF 日志重写</p>
-</li>
-<li><p>主从节点：主库生成、传输 RDB 文件，从库接收 RDB 文件、清空数据库、加载 RDB 文件</p>
-</li>
-<li><p>切片集群实例：向其他实例传输哈希槽信息，数据迁移</p>
+<li><p>横向扩展：横向增加当前 Redis 实例的个数；好处是不用担心单个实例的硬件和成本限制；坏处是集群管理困难</p>
 </li>
 </ul>
-
-
-<h2 id="阻塞风险"><a href="#阻塞风险" class="headerlink" title="阻塞风险"></a>阻塞风险</h2><h3 id="客户端交互"><a href="#客户端交互" class="headerlink" title="客户端交互"></a>客户端交互</h3><h4 id="网络-IO"><a href="#网络-IO" class="headerlink" title="网络 IO"></a>网络 IO</h4><p>Redis 使用了 IO 多路复用机制，避免了主线程一直处在等待网络连接或请求到来的状态</p>
-<h4 id="键值对操作"><a href="#键值对操作" class="headerlink" title="键值对操作"></a>键值对操作</h4><p>键值对的增删改查操作是 Redis 和客户端交互的主要部分，也是 Redis 主线程执行的主要任务。所以，复杂度高的增删改查操作肯定会阻塞 Redis，复杂度标准为 O(N)</p>
-<p>Redis 中涉及集合的操作复杂度通常为 O(N)，所以集合全量查询和聚合操作在使用时需要重视</p>
-<p>集合自身的删除操作同样也有潜在的阻塞风险：删除操作的本质是要释放键值对占用的内存空间；为了更加高效地管理内存空间，在应用程序释放内存时，操作系统需要把释放掉的内存块插入一个空闲内存块的链表，以便后续进行管理和再分配，这个过程需要一定时间，而且会阻塞当前释放内存的应用程序</p>
-<p>在删除大量键值对数据的时候，最典型的就是删除包含了大量元素的集合，也称为 bigkey 删除</p>
-<p>清空数据库因为涉及到删除和释放所有的键值对，因此也会带来阻塞</p>
-<h3 id="磁盘交互"><a href="#磁盘交互" class="headerlink" title="磁盘交互"></a>磁盘交互</h3><p>磁盘 IO 一般都是比较费时费力的，Redis 因此采用子进程的方式生成 RDB 快照文件，以及执行 AOF 日志重写操作</p>
-<p>Redis 直接记录 AOF 日志时，会根据不同的写回策略对数据做落盘保存；如果有大量的写操作需要记录在 AOF 日志中，并同步写回的话，就会阻塞主线程了</p>
-<h3 id="主从节点交互"><a href="#主从节点交互" class="headerlink" title="主从节点交互"></a>主从节点交互</h3><p>在主从集群中，主库需要生成 RDB 文件，并传输给从库。主库在复制的过程中，创建和传输 RDB 文件都是由子进程来完成的，不会阻塞主线程</p>
-<p>对于从库来说，它在接收了 RDB 文件后，需要使用 FLUSHDB 命令清空当前数据库，因此会阻塞</p>
-<p>从库在清空当前数据库后，还需要把 RDB 文件加载到内存，这个过程的快慢和 RDB 文件的大小密切相关，RDB 文件越大，加载过程越慢，因此会带来阻塞</p>
-<h3 id="切片集群交互"><a href="#切片集群交互" class="headerlink" title="切片集群交互"></a>切片集群交互</h3><p>切片集群在迁移 bigkey 时，由于使用同步迁移，因此会带来阻塞</p>
-<h2 id="异步"><a href="#异步" class="headerlink" title="异步"></a>异步</h2><p>为了避免阻塞式操作，Redis 提供了异步线程机制</p>
-<p>Redis 会启动一些子线程，然后把一些任务交给这些子线程，让它们在后台完成，而不再由主线程来执行这些任务。使用异步线程机制执行操作，可以避免阻塞主线程</p>
-<h3 id="关键路径操作"><a href="#关键路径操作" class="headerlink" title="关键路径操作"></a>关键路径操作</h3><p>如果一个操作能被异步执行，则它不是 Redis 主线程的关键路径上的操作</p>
-<p>主线程接收到操作后不需要给客户端返回具体的数据则可以交给后台子线程，因此不是关键路径操作</p>
-<p>主线程接收到操作后需要给客户端返回具体数据则不能交给后台子线程，因此是关键路径操作</p>
+<h2 id="数据切片"><a href="#数据切片" class="headerlink" title="数据切片"></a>数据切片</h2><p>切片集群是一种保存大量数据的通用机制，这个机制可以有不同的实现方案</p>
+<p>Redis Cluster 方案中规定了数据和实例的对应规则：Redis Cluster 方案采用哈希槽（Hash Slot）来处理数据和实例之间的映射关系；在 Redis Cluster 方案中，一个切片集群共有 16384 个哈希槽，这些哈希槽类似于数据分区，每个键值对都会根据它的 key，被映射到一个哈希槽中</p>
+<p>具体的映射过程分为两大步：首先根据键值对的 key，按照哈希算法计算一个 16 bit 的值；然后，再用这个 16bit 值对 16384 取模，得到 0~16383 范围内的模数，每个模数代表一个相应编号的哈希槽</p>
+<p>可以使用 cluster create 命令创建集群，此时，Redis 会自动把这些槽平均分布在集群实例上</p>
+<p>使用 cluster addslots 命令手动分配哈希槽，手动分配时需要把 16384 个槽都分配完，否则 Redis 集群无法正常工作</p>
+<p>现代的分布式数据库实现分片基本都是 Range-based 的，能够实现分片的动态调度，但某个 range 内的记录数量很多，这就会导致相应的数据分片比较大，一般也叫做数据倾斜，导致负载不均衡；Redis 用 Hash-based 的设计方式，能把数据打得比较散，不太容易引起数据倾斜，提高访问性能</p>
+<p>Redis Cluster 方案通过哈希槽的方式把键值对分配到不同的实例上，这个过程需要对键值对的 key 做 CRC 计算，然后再和哈希槽做映射，而不是直接对 key 做哈希的理由是：</p>
 <ul>
-<li><p>读操作是典型的关键路径操作</p>
+<li><p>整个集群存储key的数量是无法预估的，key的数量非常多时，直接记录每个key对应的实例映射关系，这个映射表会非常庞大，这个映射表无论是存储在服务端还是客户端都占用了非常大的内存空间</p>
 </li>
-<li><p>删除操作不是关键路径操作</p>
+<li><p>每个节点拥有整个集群完整的路由关系，需要节点之间互相交换路由表，节点之间交换信息也会变得非常庞大，消耗过多的网络资源</p>
 </li>
-<li><p>AOF 日志同步写需要保证操作记录落盘，可以让子线程同步写，不是关键路径操作</p>
+<li><p>迁移时需要修改每个key的映射关系，维护成本高</p>
 </li>
-<li><p>从库加载 RDB 文件是关键路径操作，因为加载完 RDB 文件才能提供服务</p>
+<li><p>中间增加一层哈希槽，可以把数据和节点解耦，让数据分布更均匀，还可以让这个映射表变得很小，利于客户端和服务端保存，节点之间交换信息时也变得轻量</p>
 </li>
 </ul>
-<p>除了集合全量查询和聚合操作和从库加载 RDB 文件，其他三个阻塞点涉及的操作都不在关键路径上，所以可以使用 Redis 的异步子线程机制来实现 bigkey 删除，清空数据库，以及 AOF 日志同步写</p>
-<p>集合全量查询和聚合操作：可以使用 SCAN 命令，分批读取数据，再在客户端进行聚合计算</p>
-<p>从库加载 RDB 文件：把主库的数据量大小控制在 2~4GB 左右，以保证 RDB 文件能以较快的速度加载</p>
-<h3 id="异步机制"><a href="#异步机制" class="headerlink" title="异步机制"></a>异步机制</h3><p>Redis 主线程启动后，会使用操作系统提供的 pthread_create 函数创建 3 个子线程，分别由它们负责 AOF 日志写操作、键值对删除以及文件关闭的异步执行</p>
-<p>主线程通过一个链表形式的任务队列和子线程进行交互</p>
-<p>当收到键值对删除和清空数据库的操作时，主线程会把这个操作封装成一个任务，放入到任务队列中，然后给客户端返回一个完成信息，表明删除已经完成；异步删除也称为惰性删除（lazy free），删除或清空操作不会阻塞主线程，这就避免了对主线程的性能影响</p>
-<p>当 AOF 日志配置成 everysec 选项后，主线程会把 AOF 写日志操作封装成一个任务，也放到任务队列中。后台子线程读取任务后，开始自行写入 AOF 日志，这样主线程就不用一直等待 AOF 日志写完了</p>
-<p>当 AOF 日志配置成 always 时，Redis 需要确保每个操作记录日志都写回磁盘，如果用后台子线程异步完成，主线程就无法及时地知道每个操作是否已经完成了，所以 always 策略并不使用后台子线程来执行</p>
+<h2 id="客户端定位槽"><a href="#客户端定位槽" class="headerlink" title="客户端定位槽"></a>客户端定位槽</h2><p>一般来说，客户端和集群实例建立连接后，实例就会把哈希槽的分配信息发给客户端。但是，在集群刚刚创建的时候，每个实例只知道自己被分配了哪些哈希槽，是不知道其他实例拥有的哈希槽信息的</p>
+<p>Redis 实例会把自己的哈希槽信息发给和它相连接的其它实例，来完成哈希槽分配信息的扩散。当实例之间相互连接后，每个实例就有所有哈希槽的映射关系了</p>
+<p>客户端收到哈希槽信息后，会把哈希槽信息缓存在本地。当客户端请求键值对时，会先计算键所对应的哈希槽，然后就可以给相应的实例发送请求了</p>
+<h2 id="重定向机制"><a href="#重定向机制" class="headerlink" title="重定向机制"></a>重定向机制</h2><p>当实例和哈希槽的对应关系发生变化，如实例有新增或删除，Redis 重新分配哈希槽，或为了负载均衡，Redis 把哈希槽在所有实例上重新分布一遍</p>
+<p>实例之间可以通过相互传递消息，获得最新的哈希槽分配信息，但客户端无法主动感知变化</p>
+<p>Redis Cluster 方案提供了一种重定向机制：客户端给一个实例发送数据读写操作时，这个实例上并没有相应的数据，客户端要再给一个新实例发送操作命令；当客户端把一个键值对的操作请求发给一个实例时，如果这个实例上并没有这个键值对映射的哈希槽，那么，这个实例就会给客户端返回下面的 MOVED 命令响应结果，这个结果中就包含了新实例的访问地址</p>
+<img src="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/02.png" class="">
+
+<p>当实例重新分配过程中，槽的一部分数据还未转移成功，此时客户端请求会收到一条 ASK 报错信息，表示客户端请求的键值对所在的哈希槽正在迁移，客户端需要先给新实例发送一个 ASKING 命令，让这个实例允许执行客户端接下来发送的命令。然后，客户端再向这个实例发送 GET 命令，以读取数据</p>
+<img src="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/03.png" class="">
+
+<p>和 MOVED 命令不同，ASK 命令并不会更新客户端缓存的哈希槽分配信息</p>
 
       
     </div>
@@ -1355,7 +1172,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/5/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/26/">26</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/5/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
