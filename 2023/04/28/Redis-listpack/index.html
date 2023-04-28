@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="quicklist 虽然通过控制 quicklistNode 结构里的压缩列表的大小或者元素个数，来减少连锁更新带来的性能影响，但是并没有完全解决连锁更新的问题 listpack 用来替代压缩列表，它最大特点是 listpack 中每个节点不再包含前一个节点的长度 listpack 用一块连续的内存空间来紧凑地保存数据，并且为了节省内存的开销，listpack 节点会采用不同的编码方式保存不同大小">
+<meta property="og:type" content="article">
+<meta property="og:title" content="listpack">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/28/Redis-listpack/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="quicklist 虽然通过控制 quicklistNode 结构里的压缩列表的大小或者元素个数，来减少连锁更新带来的性能影响，但是并没有完全解决连锁更新的问题 listpack 用来替代压缩列表，它最大特点是 listpack 中每个节点不再包含前一个节点的长度 listpack 用一块连续的内存空间来紧凑地保存数据，并且为了节省内存的开销，listpack 节点会采用不同的编码方式保存不同大小">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/28/Redis-listpack/01.png">
+<meta property="article:published_time" content="2023-04-28T13:26:25.000Z">
+<meta property="article:modified_time" content="2023-04-28T13:32:37.456Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/28/Redis-listpack/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/28/Redis-listpack/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/28/Redis-listpack/","path":"2023/04/28/Redis-listpack/","title":"listpack"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>listpack | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E8%88%AC%E7%BB%93%E6%9E%84"><span class="nav-text">一般结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#element-%E7%BB%93%E6%9E%84"><span class="nav-text">element 结构</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">297</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-listpack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="listpack | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          listpack
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-28 21:26:25 / 修改时间：21:32:37" itemprop="dateCreated datePublished" datetime="2023-04-28T21:26:25+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>quicklist 虽然通过控制 quicklistNode 结构里的压缩列表的大小或者元素个数，来减少连锁更新带来的性能影响，但是并没有完全解决连锁更新的问题</p>
+<p>listpack 用来替代压缩列表，它最大特点是 listpack 中每个节点不再包含前一个节点的长度</p>
+<p>listpack 用一块连续的内存空间来紧凑地保存数据，并且为了节省内存的开销，listpack 节点会采用不同的编码方式保存不同大小的数据</p>
+<img src="/2023/04/28/Redis-listpack/01.png" class="">
+
+<ul>
+<li><p>encoding：定义该元素的编码类型，会对不同长度的整数和字符串进行编码</p>
+</li>
+<li><p>data：实际存放的数据</p>
+</li>
+<li><p>len：encoding+data的总长度</p>
+</li>
+</ul>
+<p>listpack 没有压缩列表中记录前一个节点长度的字段了，listpack 只记录当前节点的长度，当向 listpack 加入一个新元素的时候，不会影响其他节点的长度字段的变化，从而避免了压缩列表的连锁更新问题</p>
+<h2 id="一般结构"><a href="#一般结构" class="headerlink" title="一般结构"></a>一般结构</h2><p>listpack 拥有一个固定的 6 字节头部信息，相比 ziplist 的 10 字节的头部信息，listpack 少了指向最后一个 element 的指针</p>
+<p>在 listpack 尾部有一个 255 的终止符</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;tot-bytes&gt; &lt;num-elements&gt; &lt;element-1&gt; ... &lt;element-N&gt; &lt;listpack-end-byte&gt;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>tot-bytes：类型 <code>uint32_t</code>，采用小端存储，表示 listpack 全部字节</p>
+</li>
+<li><p>num-elements：类型 <code>uint16_t</code>，采用小端存储，表示 listpack 包含 element 数量，当 num-elements 被设置为 65535 时表示 element 数量不可知，此时获取 element 数量需要通过扫描整个 listpack</p>
+</li>
+</ul>
+<h2 id="element-结构"><a href="#element-结构" class="headerlink" title="element 结构"></a>element 结构</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;encoding-type&gt;&lt;element-data&gt;&lt;element-tot-len&gt;</span><br><span class="line">|                                            |</span><br><span class="line">+--------------------------------------------+</span><br><span class="line">            (This is an element)</span><br></pre></td></tr></table></figure>
+
+<p>encoding-type 和 element-tot-len 总是存在的，但 data 部分可能会放在 encoding-type 里</p>
+<p>element-tot-len 只能在反向遍历时使用，因为在正向遍历时不需要该字段就能知道数据大小</p>
+<p>encoding-type 第一个字节的前两位表示编码方式，这里有三种编码方式</p>
+<ol>
+<li>当数据是字符串，且可以被表示小数字（0-127）时，encoding 第一位为 0，后七位表示数据</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0|xxxxxxx</span><br><span class="line"></span><br><span class="line">&quot;\x03&quot; -- 0000 0011 --The string &quot;3&quot;</span><br><span class="line">&quot;\x12&quot; -- 0001 0010 --The string &quot;18&quot;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>当数据是小字符串，字符串长度可以用后六位表示（0-63）</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">10|xxxxxx &lt;string-data&gt;</span><br><span class="line"></span><br><span class="line">&quot;\x80&quot; -- 1000 0000 --The empty string</span><br><span class="line">&quot;\x85hello&quot; -- 1000 0101 -- The string &quot;hello&quot;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>高两位都被设置为 1，且紧随的后两位不是 11</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">110|xxxxx yyyyyyyy -- 后面 13 位直接编码有符号整数</span><br><span class="line">1110|xxxx yyyyyyyy -- 编码长度不大于 4095 的字符串</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>高四位都被设置为 1</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1111|0000 &lt;4 字节字符串长度&gt; &lt;大字符串&gt;</span><br><span class="line">1111|0001 -- 编码 int16_t</span><br><span class="line">1111|0010 -- 编码 int24_t</span><br><span class="line">1111|0011 -- 编码 int32_t</span><br><span class="line">1111|0100 -- 编码 int64_t</span><br><span class="line">1111|0101 ~ 1111|1110 未使用</span><br><span class="line">1111|1111 -- 终止符</span><br></pre></td></tr></table></figure>
+
+<p>element-tot-len 使用变长字段存储，并且从右往左存储，每个字节的最高有效位用于指示是否有更多字节，这意味着在每个字节中只使用 7 位</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&quot;\x20&quot; -- 0010 0000 --32 bytes entry length</span><br><span class="line"></span><br><span class="line">500 二进制 1111 0100</span><br><span class="line">&quot;\xf4\x03&quot; -- 0000 0011 1111 0100 -- 500 bytes entry length</span><br><span class="line">[0]000 0011          [1]111 0100</span><br><span class="line"> |                   |</span><br><span class="line"> `- no more bytes    `- more bytes to the left!</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/redis/" rel="tag"># redis</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/28/Redis-list/" rel="prev" title="链表">
+                  <i class="fa fa-chevron-left"></i> 链表
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/28/Redis-quicklist/" rel="next" title="quicklist">
+                  quicklist <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
