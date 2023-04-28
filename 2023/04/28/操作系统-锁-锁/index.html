@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="互斥锁 mutex：用于保证在任何时刻，都只能有一个线程访问该对象。当获取锁操作失败时，线程会释放 CPU；等到锁被释放后，内核会在合适的时机唤醒线程，当这个线程成功获取到锁后，于是就可以继续执行；存在两次线程上下文切换开销  读写锁 rwlock：分为读锁和写锁；处于读操作时，可以允许多个线程同时获得读操作；同一时刻只能有一个线程可以获得写锁，其它获取写锁失败的线程都会进入睡眠状态，直到写锁释">
+<meta property="og:type" content="article">
+<meta property="og:title" content="锁">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E9%94%81/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="互斥锁 mutex：用于保证在任何时刻，都只能有一个线程访问该对象。当获取锁操作失败时，线程会释放 CPU；等到锁被释放后，内核会在合适的时机唤醒线程，当这个线程成功获取到锁后，于是就可以继续执行；存在两次线程上下文切换开销  读写锁 rwlock：分为读锁和写锁；处于读操作时，可以允许多个线程同时获得读操作；同一时刻只能有一个线程可以获得写锁，其它获取写锁失败的线程都会进入睡眠状态，直到写锁释">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-28T13:01:22.000Z">
+<meta property="article:modified_time" content="2023-04-28T13:15:43.247Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E9%94%81/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E9%94%81/","path":"2023/04/28/操作系统-锁-锁/","title":"锁"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>锁 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E5%92%8C%E7%BD%AE%E4%BD%8D%E6%8C%87%E4%BB%A4%E5%AE%9E%E7%8E%B0%E9%94%81"><span class="nav-text">测试和置位指令实现锁</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BF%99%E7%AD%89%E5%BE%85"><span class="nav-text">忙等待</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A0%E5%BF%99%E7%AD%89%E5%BE%85"><span class="nav-text">无忙等待</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%A1%E5%8F%B7%E9%87%8F%E5%AE%9E%E7%8E%B0"><span class="nav-text">信号量实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E5%86%99%E9%94%81%E5%AE%9E%E7%8E%B0"><span class="nav-text">读写锁实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E6%97%8B%E9%94%81"><span class="nav-text">自旋锁</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">289</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E9%94%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="锁 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          锁
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-28 21:01:22 / 修改时间：21:15:43" itemprop="dateCreated datePublished" datetime="2023-04-28T21:01:22+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E9%94%81/" itemprop="url" rel="index"><span itemprop="name">锁</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <ul>
+<li><p>互斥锁 mutex：用于保证在任何时刻，都只能有一个线程访问该对象。当获取锁操作失败时，线程会释放 CPU；等到锁被释放后，内核会在合适的时机唤醒线程，当这个线程成功获取到锁后，于是就可以继续执行；存在两次线程上下文切换开销</p>
+</li>
+<li><p>读写锁 rwlock：分为读锁和写锁；处于读操作时，可以允许多个线程同时获得读操作；同一时刻只能有一个线程可以获得写锁，其它获取写锁失败的线程都会进入睡眠状态，直到写锁释放时被唤醒；写锁会阻塞其它读写锁，当有一个线程获得写锁在写时，读锁也不能被其它线程获取，写锁优先于读锁（一旦有写锁，则后续读者必须等待，唤醒时优先考虑写锁）；适用于读取数据的频率远远大于写数据的频率的场合</p>
+</li>
+<li><p>自旋锁 spinlock：在任何时刻同样只能有一个线程访问对象，但是当获取锁操作失败时，不会释放 CPU，而是会在原地自旋，直到锁被释放；保护的临界区必须小，且操作过程必须短；节省了线程从睡眠状态到被唤醒期间的消耗，在加锁时间短暂的环境下会极大的提高效率；加锁时间过长，则会非常浪费 CPU 资源；自旋锁在用户态完成加锁和解锁，不会主动产生线程上下文切换；被广泛应用于内核</p>
+</li>
+<li><p>RCU(read-copy-update)：在修改数据时首先需要读取数据，然后生成一个副本，对副本进行修改，修改完成后再将老数据 update 成新的数据；读锁几乎不需要同步开销，既不需要获得锁，也不使用原子指令，不会导致锁竞争；对于写锁的同步开销较大，它需要复制被修改的数据，还必须使用锁机制同步并行其它写锁的修改操作；在有大量读操作，少量写操作的情况下效率非常高</p>
+</li>
+</ul>
+<h2 id="测试和置位指令实现锁"><a href="#测试和置位指令实现锁" class="headerlink" title="测试和置位指令实现锁"></a>测试和置位指令实现锁</h2><p>特殊原子操作指令 —— 测试和置位（Test-and-Set）指令</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 形式如下</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">TestAndSet</span><span class="params">(<span class="type">int</span> * old_ptr, <span class="type">int</span> <span class="keyword">new</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> old = *old_ptr;</span><br><span class="line">    *old_ptr = <span class="keyword">new</span>;</span><br><span class="line">    <span class="keyword">return</span> old;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这些代码是原子执行，既可以测试旧值，又可以设置新值</p>
+<h3 id="忙等待"><a href="#忙等待" class="headerlink" title="忙等待"></a>忙等待</h3><p>用 Test-and-Set 指令来实现忙等待锁</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">stuct <span class="type">lock_t</span> &#123;</span><br><span class="line">    <span class="comment">// flag == 0 时锁未被持有</span></span><br><span class="line">    <span class="comment">// flag == 1 时锁被持有</span></span><br><span class="line">    <span class="type">int</span> flag;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="built_in">TestAndSet</span>(lock, <span class="number">1</span>) == <span class="number">1</span>) ;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当获取不到锁时，线程就会一直 while 循环，不做任何事情，所以就被称为忙等待锁，也被称为自旋锁</p>
+<p>自旋锁利用 CPU 周期，一直自旋直到锁可用；在单处理器上，需要抢占式的调度器，因为一个自旋的线程永远不会放弃 CPU</p>
+<h3 id="无忙等待"><a href="#无忙等待" class="headerlink" title="无忙等待"></a>无忙等待</h3><p>当没获取到锁的时候，就把当前线程放入到锁的等待队列，然后执行调度程序，把 CPU 让给其他线程执行</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">stuct <span class="type">lock_t</span> &#123;</span><br><span class="line">    <span class="type">int</span> flag;</span><br><span class="line">    <span class="type">queue_t</span> * q;  <span class="comment">// 等待队列</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">queue_init</span>(lock-&gt;q);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="built_in">TestAndSet</span>(lock, <span class="number">1</span>) == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="comment">// 保存现在运行线程 TCB，并插入等待队列</span></span><br><span class="line">        <span class="comment">// 设置该线程为等待状态</span></span><br><span class="line">        <span class="comment">// 调度</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(lock-&gt;q != <span class="literal">nullptr</span>) &#123;</span><br><span class="line">        <span class="comment">// 移除等待队列的队头元素</span></span><br><span class="line">        <span class="comment">// 将该线程的 TCB 插入到就绪队列</span></span><br><span class="line">        <span class="comment">// 设置线程为就绪状态</span></span><br><span class="line">    &#125;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="信号量实现"><a href="#信号量实现" class="headerlink" title="信号量实现"></a>信号量实现</h2><p>为每类共享资源设置一个信号量 s，其初值为 1，表示该临界资源未被占用</p>
+<p>只要把进入临界区的操作置于 P(s) 和 V(s) 之间，即可实现进程&#x2F;线程互斥</p>
+<p>任何想进入临界区的线程，必先在互斥信号量上执行 P 操作，在完成对临界资源的访问后再执行 V 操作</p>
+<p>由于互斥信号量的初始值为 1，故在第一个线程执行 P 操作后 s 值变为 0，表示临界资源为空闲，</p>
+<p>可分配给该线程，使之进入临界区；第二个线程想进入临界区，也应先执行 P 操作，结果使 s 变为</p>
+<p>负值，这就意味着临界资源已被占用，第二个线程被阻塞；第一个线程执行 V 操作，释放临界资源</p>
+<p>而恢复 s 值为 0 后，才唤醒第二个线程，使之进入临界区，待它完成临界资源的访问后，<br>又执行 V 操作，使 s 恢复到初始值 1</p>
+<p>通过 V 操作的加 1 唤醒一个线程使得达到线程同步效果</p>
+<h2 id="读写锁实现"><a href="#读写锁实现" class="headerlink" title="读写锁实现"></a>读写锁实现</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RWLock</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">RWLock</span>() : <span class="built_in">m_readCount</span>(<span class="number">0</span>), <span class="built_in">m_writeCount</span>(<span class="number">0</span>), <span class="built_in">m_isWriting</span>(<span class="literal">false</span>) &#123;&#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">RWLock</span>() = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lockWrite</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        ++m_writeCount;</span><br><span class="line">        m_writeCond.<span class="built_in">wait</span>(ul, [=]()&#123;<span class="keyword">return</span> !m_isWriting &amp;&amp; m_readCount == <span class="number">0</span>&#125;);</span><br><span class="line">        m_isWriting = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlockWrite</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        m_isWriting = <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">if</span>(<span class="number">0</span> == (--m_writeCount)) &#123;</span><br><span class="line">            m_readCond.<span class="built_in">notify_all</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            m_writeCond.<span class="built_in">notify_one</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lockRead</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        m_readCond.<span class="built_in">wait</span>(ul, [=]()&#123;<span class="keyword">return</span> <span class="number">0</span> == m_writeCount;&#125;);</span><br><span class="line">        ++m_readCount;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlockRead</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        <span class="keyword">if</span>(<span class="number">0</span> == (--m_readCount) &amp;&amp; m_writeCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            m_writeCond.<span class="built_in">notify_one</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">int</span> m_readCount;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">int</span> m_writeCount;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">bool</span> m_isWriting;</span><br><span class="line">    std::mutex m_lock;</span><br><span class="line">    std::condition_variable m_readCond;</span><br><span class="line">    std::condition_variable m_writeCond;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ReadGuard</span> &#123;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">ReadGuard</span><span class="params">(RWLock&amp; lock)</span> : m_lock(lock) &#123;</span></span><br><span class="line">        m_lock.<span class="built_in">lockRead</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">ReadGuard</span>() &#123;</span><br><span class="line">        m_lock.<span class="built_in">unlockRead</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">ReadGuard</span>(<span class="type">const</span> ReadGuard&amp;);</span><br><span class="line">    ReadGuard&amp; <span class="keyword">operator</span>=(<span class="type">const</span> ReadGuard&amp;);</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    RWLock &amp;m_lock;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">WriteGuard</span> &#123;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">WriteGuard</span><span class="params">(RWLock&amp; lock)</span> : m_lock(lock) &#123;</span></span><br><span class="line">        m_lock.<span class="built_in">lockWrite</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">WriteGuard</span>() &#123;</span><br><span class="line">        m_lock.<span class="built_in">unlockWrite</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">WriteGuard</span>(<span class="type">const</span> WriteGuard&amp;);</span><br><span class="line">    WriteGuard&amp; <span class="keyword">operator</span>=(<span class="type">const</span> WriteGuard&amp;);</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">  RWLock&amp; m_lock;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="自旋锁"><a href="#自旋锁" class="headerlink" title="自旋锁"></a>自旋锁</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">spin_lock</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    atomic_flag flag;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">spin_lock</span>() = <span class="keyword">default</span>;</span><br><span class="line">    ~<span class="built_in">spin_lock</span>() = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span>(flag.<span class="built_in">test_and_set</span>());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        flag.<span class="built_in">clear</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"># 操作系统</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E6%AD%BB%E9%94%81/" rel="prev" title="死锁">
+                  <i class="fa fa-chevron-left"></i> 死锁
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/" rel="next" title="文件 IO">
+                  文件 IO <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

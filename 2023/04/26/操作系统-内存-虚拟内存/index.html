@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="虚拟地址空间为了防止不同进程同一时刻在物理内存中运行而对物理内存的争夺和践踏，以及让程序获得更多可用内存，采用了虚拟内存 虚拟内存技术使得不同进程在运行过程中，它所看到的是自己独自占有了当前系统的内存；所有进程共享同一物理内存，每个进程只把自己目前需要的虚拟内存空间映射并存储到物理内存上 操作系统引入了虚拟内存，进程持有的虚拟地址会通过 CPU 芯片中的内存管理单元（MMU）的映射关系，来转换变成">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚拟内存">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="虚拟地址空间为了防止不同进程同一时刻在物理内存中运行而对物理内存的争夺和践踏，以及让程序获得更多可用内存，采用了虚拟内存 虚拟内存技术使得不同进程在运行过程中，它所看到的是自己独自占有了当前系统的内存；所有进程共享同一物理内存，每个进程只把自己目前需要的虚拟内存空间映射并存储到物理内存上 操作系统引入了虚拟内存，进程持有的虚拟地址会通过 CPU 芯片中的内存管理单元（MMU）的映射关系，来转换变成">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/02.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/03.jpg">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/04.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/05.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/06.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/07.jpg">
+<meta property="article:published_time" content="2023-04-26T13:30:08.000Z">
+<meta property="article:modified_time" content="2023-04-28T13:15:43.223Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/","path":"2023/04/26/操作系统-内存-虚拟内存/","title":"虚拟内存"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>虚拟内存 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="nav-text">虚拟地址空间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%88%86%E6%AE%B5"><span class="nav-text">内存分段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%88%86%E9%A1%B5"><span class="nav-text">内存分页</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%BA%E9%A1%B5%E4%B8%AD%E6%96%AD"><span class="nav-text">缺页中断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AE%B5%E9%A1%B5%E5%BC%8F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-text">段页式内存管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A1%B5%E9%9D%A2%E8%AE%BE%E7%BD%AE"><span class="nav-text">页面设置</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">289</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="虚拟内存 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          虚拟内存
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 21:30:08" itemprop="dateCreated datePublished" datetime="2023-04-26T21:30:08+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-04-28 21:15:43" itemprop="dateModified" datetime="2023-04-28T21:15:43+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">内存管理</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="虚拟地址空间"><a href="#虚拟地址空间" class="headerlink" title="虚拟地址空间"></a>虚拟地址空间</h2><p>为了防止不同进程同一时刻在物理内存中运行而对物理内存的争夺和践踏，以及让程序获得更多可用内存，采用了虚拟内存</p>
+<p>虚拟内存技术使得不同进程在运行过程中，它所看到的是自己独自占有了当前系统的内存；所有进程共享同一物理内存，每个进程只把自己目前需要的虚拟内存空间映射并存储到物理内存上</p>
+<p>操作系统引入了虚拟内存，进程持有的虚拟地址会通过 CPU 芯片中的内存管理单元（MMU）的映射关系，来转换变成物理地址，然后再通过物理地址访问内存</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/01.png" class="">
+
+<p>在每个进程创建加载时，内核只是为进程创建了虚拟内存的布局，具体就是初始化进程控制表中内存相关的链表，实际上并不立即就把虚拟内存对应位置的程序数据和代码拷贝到物理内存中，只是建立好虚拟内存和磁盘文件之间的映射就好，等到运行到对应的程序时，才会通过缺页异常，来拷贝数据；进程运行过程中，要动态分配内存，比如 <code>malloc</code> 时，也只是分配了虚拟内存，即为这块虚拟内存对应的页表项做相应设置，当进程真正访问到此数据时，才引发缺页异常</p>
+<p>优点：</p>
+<ul>
+<li><p>扩大地址空间</p>
+</li>
+<li><p>内存保护：每个进程运行在各自的虚拟内存地址空间，互相不能干扰对方；对特定的内存地址提供写保护，可以防止代码或数据被恶意篡改</p>
+</li>
+<li><p>公平内存分配</p>
+</li>
+<li><p>当不同的进程使用同样的代码时，比如库文件中的代码，物理内存中可以只存储一份这样的代码，不同的进程只需要把自己的虚拟内存映射过去就可以了，节省内存</p>
+</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li><p>虚拟地址到物理地址的转换，增加了指令的执行时间</p>
+</li>
+<li><p>页面的换入换出需要磁盘 I&#x2F;O，非常耗时</p>
+</li>
+</ul>
+<h2 id="内存分段"><a href="#内存分段" class="headerlink" title="内存分段"></a>内存分段</h2><p>程序是由若干个逻辑分段组成的，如可由代码分段、数据分段、栈段、堆段组成，不同的段是有不同的属性的，所以就用分段的形式把这些段分离出来</p>
+<p>进程空间中以段为单位进行分配，每个段在内存中占据连续空间，但各段之间可以不相邻；编译程序时会把段名转化为相应的段号，在执行的时候 cpu 是根据段号去寻找地址的</p>
+<p>分段系统的逻辑地址结构由段号和段内偏移量所组成</p>
+<p>程序分多个段，各段离散的装入内存，为了保证程序能正常运行，就必须从物理内存中找到各个逻辑段的存放位置，为此需要为每个进程建立一张段映射表，简称段表</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/02.jpg" class="">
+
+<p>段表里面保存的是这个段的基地址、段的界限和特权等级等，段内偏移量应该位于 0 和段界限之间，如果段内偏移量是合法的，就将段基地址加上段内偏移量得到物理内存地址</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/03.jpg" class="">
+
+<p>分段存在内存碎片和内存交换的效率低的问题</p>
+<p>对于多进程的系统来说，用分段的方式，内存碎片是很容易产生的，产生了内存碎片，那不得不重新 Swap 内存区域，这个过程会产生性能瓶颈</p>
+<p>为了解决内存分段的内存碎片和内存交换效率低的问题，就出现了内存分页</p>
+<h2 id="内存分页"><a href="#内存分页" class="headerlink" title="内存分页"></a>内存分页</h2><p>分页是把整个虚拟和物理内存空间切成一段段固定尺寸的大小，在 Linux 下，每一页的大小为 4KB</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/04.png" class="">
+
+<p>页表实际上存储在 CPU 的内存管理单元 （MMU） 中，于是 CPU 就可以直接通过 MMU，找出要实际要访问的物理内存地址</p>
+<p>当进程访问的虚拟地址在页表中查不到时，系统会产生一个缺页异常，进入系统内核空间分配物理内存、更新进程页表，最后再返回用户空间，恢复进程的运行</p>
+<p>采用了分页，那么释放的内存都是以页为单位释放的，也就不会产生无法给进程使用的小内存</p>
+<p>如果内存空间不够，操作系统会把其他正在运行的进程中的最近没被使用的内存页面给释放掉，<br>也就是暂时写在硬盘上，称为换出（Swap Out）。一旦需要的时候，再加载进来，<br>称为换入（Swap In）。所以，一次性写入磁盘的也只有少数的一个页或者几个页，<br>不会花太多时间，内存交换的效率就相对比较高</p>
+<p>分页的方式使得我们在加载程序的时候，不再需要一次性都把程序加载到物理内存中。我们完全可以在进行虚拟内存和物理内存的页之间的映射之后，并不真的把页加载到物理内存里，而是只有在程序运行中，需要用到对应虚拟内存页里面的指令和数据时，再加载到物理内存里面去</p>
+<p>在分页机制下，虚拟地址分为两部分，页号和页内偏移。页号作为页表的索引，页表包含物理页每页所在物理内存的基地址，这个基地址与页内偏移的组合就形成了物理内存地址</p>
+<p>一个进程对应一张页表</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/05.png" class="">
+
+<p>内存地址转换步骤：</p>
+<ul>
+<li><p>把虚拟内存地址，切分成页号和偏移量</p>
+</li>
+<li><p>根据页号，从页表里面，查询对应的物理页号</p>
+</li>
+<li><p>直接拿物理页号，加上前面的偏移量，就得到了物理内存地址</p>
+</li>
+</ul>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/06.png" class="">
+
+<p>单级分页导致页表占用内存过大，后采用多级页表，64 位系统需要四级页表，</p>
+<p>多级页表虽然解决了空间上的问题，但是虚拟地址到物理地址的转换就多了几道转换的工序，这显然就降低了这俩地址转换的速度，也就是带来了时间上的开销</p>
+<p>在 CPU 芯片中，加入了一个专门存放程序最常访问的页表项的 Cache，这个 Cache 就是 TLB，通常称为页表缓存、转址旁路缓存、快表等</p>
+<p>有了 TLB 后，那么 CPU 在寻址时，会先查 TLB，如果没找到，才会继续查常规的页表</p>
+<h2 id="缺页中断"><a href="#缺页中断" class="headerlink" title="缺页中断"></a>缺页中断</h2><p><code>malloc()</code> 和 <code>mmap()</code> 等内存分配函数，在分配时只是建立了进程虚拟地址空间，并没有分配虚拟内存对应的物理内存；当进程访问这些没有建立映射关系的虚拟内存时，处理器自动触发一个缺页异常</p>
+<p>缺页中断：在请求分页系统中，可以通过查询页表中的状态位来确定所要访问的页面是否存在于内存中。每当所要访问的页面不在内存时，会产生一次缺页中断，此时操作系统会根据页表中的外存地址在外存中找到所缺的一页，将其调入内存</p>
+<h2 id="段页式内存管理"><a href="#段页式内存管理" class="headerlink" title="段页式内存管理"></a>段页式内存管理</h2><p>内存分段和内存分页组合起来后，通常称为段页式内存管理</p>
+<p>段页式内存管理实现的方式：</p>
+<ul>
+<li><p>先将程序划分为多个有逻辑意义的段，也就是前面提到的分段机制</p>
+</li>
+<li><p>接着再把每个段划分为多个页，也就是对分段划分出来的连续空间，再划分固定大小的页</p>
+</li>
+</ul>
+<p>地址结构就由段号、段内页号和页内位移三部分组成</p>
+<p>用于段页式地址变换的数据结构是每一个程序一张段表，每个段又建立一张页表，段表中的地址是页表的起始地址，而页表中的地址则为某页的物理页号</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/07.jpg" class="">
+
+<p>段页式地址变换中要得到物理地址须经过三次内存访问：</p>
+<ul>
+<li><p>第一次访问段表，得到页表起始地址</p>
+</li>
+<li><p>第二次访问页表，得到物理页号</p>
+</li>
+<li><p>第三次将物理页号与页内位移组合，得到物理地址</p>
+</li>
+</ul>
+<h2 id="页面设置"><a href="#页面设置" class="headerlink" title="页面设置"></a>页面设置</h2><p>如果页太小，就会产生大量的页表条目，降低了查询速度的同时还浪费了存放页面的主存空间</p>
+<p>如果页太大，又会容易造成浪费</p>
+<p>在某些对性能要求非常苛刻的场景中，页面会被设置得非常的大，这些页被称之为大页（Huge Page），可以减少页表条目，加快检索速度，提升 TLB 快表的命中率；使用大页的同时一般会禁止页面交换（Swap），大容量交换会让辅存读写成为 CPU 处理的瓶颈</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"># 操作系统</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%B9%B6%E5%8F%91/" rel="prev" title="并发">
+                  <i class="fa fa-chevron-left"></i> 并发
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E6%A0%B8%E6%80%81/" rel="next" title="内核态">
+                  内核态 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
