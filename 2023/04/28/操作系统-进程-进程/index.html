@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="进程是对运行时程序的封装，是系统进行资源调度和分配的的基本单位，实现了操作系统的并发  一个线程只能属于一个进程，而一个进程可以有多个线程，但至少有一个线程，线程依赖于进程而存在  进程在执行过程中拥有独立的内存单元，而多个线程共享进程的内存；资源分配给进程，同一进程的所有线程共享该进程的所有资源，共享代码段（代码和常量），数据段（全局变量和静态变量），扩展段（堆存储）；每个线程拥有自己的栈段，栈">
+<meta property="og:type" content="article">
+<meta property="og:title" content="进程">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="进程是对运行时程序的封装，是系统进行资源调度和分配的的基本单位，实现了操作系统的并发  一个线程只能属于一个进程，而一个进程可以有多个线程，但至少有一个线程，线程依赖于进程而存在  进程在执行过程中拥有独立的内存单元，而多个线程共享进程的内存；资源分配给进程，同一进程的所有线程共享该进程的所有资源，共享代码段（代码和常量），数据段（全局变量和静态变量），扩展段（堆存储）；每个线程拥有自己的栈段，栈">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/02.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/03.png">
+<meta property="article:published_time" content="2023-04-28T12:47:10.000Z">
+<meta property="article:modified_time" content="2023-04-28T12:54:54.335Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/","path":"2023/04/28/操作系统-进程-进程/","title":"进程"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>进程 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E7%8A%B6%E6%80%81"><span class="nav-text">进程状态</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E6%8E%A7%E5%88%B6%E7%BB%93%E6%9E%84"><span class="nav-text">进程控制结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PCB-%E7%BB%93%E6%9E%84%E4%BD%93"><span class="nav-text">PCB 结构体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PCB-%E7%BB%84%E7%BB%87%E6%96%B9%E5%BC%8F"><span class="nav-text">PCB 组织方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E6%8E%A7%E5%88%B6"><span class="nav-text">进程控制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA"><span class="nav-text">创建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%88%E6%AD%A2"><span class="nav-text">终止</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%BB%E5%A1%9E"><span class="nav-text">阻塞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%94%A4%E9%86%92"><span class="nav-text">唤醒</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86"><span class="nav-text">多进程管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E8%BF%9B%E7%A8%8B%E5%B9%B6%E8%A1%8C"><span class="nav-text">多进程并行</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%88%B6%E5%AD%90%E8%BF%9B%E7%A8%8B"><span class="nav-text">父子进程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E9%80%80%E5%87%BA"><span class="nav-text">进程退出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B5%84%E6%BA%90%E5%9B%9E%E6%94%B6"><span class="nav-text">资源回收</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%88%B6%E5%AD%90%E8%BF%9B%E7%A8%8B%E5%85%B1%E4%BA%AB%E7%9A%84%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6"><span class="nav-text">父子进程共享的文件描述符</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%98%E5%85%88%E7%BA%A7"><span class="nav-text">优先级</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#nice"><span class="nav-text">nice</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#priority"><span class="nav-text">priority</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">283</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="进程 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          进程
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-28 20:47:10 / 修改时间：20:54:54" itemprop="dateCreated datePublished" datetime="2023-04-28T20:47:10+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>进程是对运行时程序的封装，是系统进行资源调度和分配的的基本单位，实现了操作系统的并发</p>
+<ul>
+<li><p>一个线程只能属于一个进程，而一个进程可以有多个线程，但至少有一个线程，线程依赖于进程而存在</p>
+</li>
+<li><p>进程在执行过程中拥有独立的内存单元，而多个线程共享进程的内存；资源分配给进程，同一进程的所有线程共享该进程的所有资源，共享代码段（代码和常量），数据段（全局变量和静态变量），扩展段（堆存储）；每个线程拥有自己的栈段，栈段又叫运行时段，用来存放所有局部变量和临时变量</p>
+</li>
+<li><p>进程是资源分配的最小单位，线程是 CPU 调度的最小单位</p>
+</li>
+<li><p>进程切换的开销远大于线程切换的开销；在创建或撤消进程时，系统都要为之分配或回收资源，因此系统开销远大于创建或撤销线程的开销</p>
+</li>
+<li><p>由于同一进程中的多个线程具有相同的地址空间，致使它们之间的同步和通信可以使用直接读写进程数据段（如全局变量）；进程通信需要使用进程同步和互斥手段来保证数据的一致性</p>
+</li>
+<li><p>进程编程调试简单可靠性高，线程编程调试相对复杂</p>
+</li>
+<li><p>进程间不会相互影响；一个线程挂掉将导致整个进程挂掉</p>
+</li>
+<li><p>进程适应于多核、多机分布，线程适用于多核</p>
+</li>
+</ul>
+<h2 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h2><p>在一个进程的基本状态，即创建状态、运行状态、就绪状态、阻塞状态、挂起状态、结束状态</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/01.png" class="">
+
+<ul>
+<li><p>创建状态：进程正在被创建时的状态</p>
+</li>
+<li><p>运行状态：该时刻进程占用 CPU</p>
+</li>
+<li><p>就绪状态：可运行，但因为其他进程正在运行而暂停停止</p>
+</li>
+<li><p>阻塞状态：该进程正在等待某一事件发生而暂时停止运行，即使给它 CPU 控制权，它也无法运行</p>
+</li>
+<li><p>结束状态：进程正在从系统中消失时的状态</p>
+</li>
+</ul>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/02.png" class="">
+
+<p>挂起状态表示进程没有占有物理内存空间（由于虚拟内存管理原因，进程所使用的空间可能并没有映射到物理内存，而是在硬盘上）</p>
+<ul>
+<li><p>阻塞挂起状态：进程在外存（硬盘）并等待某个事件的出现</p>
+</li>
+<li><p>就绪挂起状态：进程在外存（硬盘），但只要进入内存，即刻立刻运行</p>
+</li>
+</ul>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/03.png" class="">
+
+<h2 id="进程控制结构"><a href="#进程控制结构" class="headerlink" title="进程控制结构"></a>进程控制结构</h2><p>在操作系统中，是用进程控制块（process control block，PCB）数据结构来描述进程，PCB 是进程存在的唯一标识</p>
+<p>一个进程的存在，必然会有一个 PCB，如果进程消失了，那么 PCB 也会随之消失</p>
+<h3 id="PCB-结构体"><a href="#PCB-结构体" class="headerlink" title="PCB 结构体"></a>PCB 结构体</h3><h4 id="进程描述信息"><a href="#进程描述信息" class="headerlink" title="进程描述信息"></a>进程描述信息</h4><ul>
+<li><p>进程标识符：标识各个进程，每个进程都有一个并且唯一的标识符</p>
+</li>
+<li><p>用户标识符：进程归属的用户，用户标识符主要为共享和保护服务</p>
+</li>
+</ul>
+<h4 id="进程控制和管理信息"><a href="#进程控制和管理信息" class="headerlink" title="进程控制和管理信息"></a>进程控制和管理信息</h4><ul>
+<li><p>进程当前状态，如 new、ready、running、waiting 或 blocked 等</p>
+</li>
+<li><p>进程优先级：进程抢占 CPU 时的优先级</p>
+</li>
+</ul>
+<h4 id="资源分配清单"><a href="#资源分配清单" class="headerlink" title="资源分配清单"></a>资源分配清单</h4><ul>
+<li><p>内存信息</p>
+</li>
+<li><p>进程打开所有文件的文件描述符表</p>
+</li>
+<li><p>进程的信号处理函数</p>
+</li>
+<li><p>I&#x2F;O 设备</p>
+</li>
+</ul>
+<h4 id="CPU-信息"><a href="#CPU-信息" class="headerlink" title="CPU 信息"></a>CPU 信息</h4><ul>
+<li>CPU 中各个寄存器的值，当进程被切换时，CPU 的状态信息都会被保存在相应的 PCB 中，以便进程重新执行时，能从断点处继续执行</li>
+</ul>
+<h3 id="PCB-组织方式"><a href="#PCB-组织方式" class="headerlink" title="PCB 组织方式"></a>PCB 组织方式</h3><p>通过链表的方式进行组织，把具有相同状态的进程链在一起，组成各种队列</p>
+<ul>
+<li><p>将所有处于就绪状态的进程链在一起，称为就绪队列</p>
+</li>
+<li><p>把所有因等待某事件而处于等待状态的进程链在一起就组成各种阻塞队列</p>
+</li>
+<li><p>对于运行队列，在单核 CPU 系统中则只有一个运行指针了，因为单核 CPU 在某个时间，只能运行一个程序</p>
+</li>
+</ul>
+<p>因为面临进程创建，销毁等调度导致进程状态发生变化，所以使用链表，以便能够更加灵活的插入和删除</p>
+<h2 id="进程控制"><a href="#进程控制" class="headerlink" title="进程控制"></a>进程控制</h2><h3 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h3><p>操作系统允许一个进程创建另一个进程，而且允许子进程继承父进程所拥有的资源，当子进程被终止时，其在父进程处继承的资源应当还给父进程，终止父进程时同时也会终止其所有的子进程</p>
+<ol>
+<li><p>为新进程分配一个唯一的进程标识号，并申请一个空白的 PCB，PCB 是有限的，若申请失败则创建失败</p>
+</li>
+<li><p>为进程分配资源，此处如果资源不足，进程就会进入等待状态，以等待资源</p>
+</li>
+<li><p>初始化 PCB</p>
+</li>
+<li><p>如果进程的调度队列能够接纳新进程，那就将进程插入到就绪队列，等待被调度运行</p>
+</li>
+</ol>
+<h3 id="终止"><a href="#终止" class="headerlink" title="终止"></a>终止</h3><p>进程可以有 3 种终止方式：正常结束、异常结束以及外界干预（信号 kill 掉）</p>
+<ol>
+<li><p>查找需要终止的进程的 PCB</p>
+</li>
+<li><p>如果处于执行状态，则立即终止该进程的执行，然后将 CPU 资源分配给其他进程</p>
+</li>
+<li><p>如果其还有子进程，则应将其所有子进程终止</p>
+</li>
+<li><p>将该进程所拥有的全部资源都归还给父进程或操作系统</p>
+</li>
+<li><p>将其从 PCB 所在队列中删除</p>
+</li>
+</ol>
+<h3 id="阻塞"><a href="#阻塞" class="headerlink" title="阻塞"></a>阻塞</h3><p>当进程需要等待某一事件完成时，它可以调用阻塞语句把自己阻塞等待；一旦被阻塞等待，它只能由另一个进程唤醒</p>
+<ol>
+<li><p>找到将要被阻塞进程标识号对应的 PCB</p>
+</li>
+<li><p>如果该进程为运行状态，则保护其现场，将其状态转为阻塞状态，停止运行</p>
+</li>
+<li><p>将该 PCB 插入的阻塞队列中去</p>
+</li>
+</ol>
+<h3 id="唤醒"><a href="#唤醒" class="headerlink" title="唤醒"></a>唤醒</h3><p>只有当该进程所期待的事件出现时，才由发现者进程用唤醒语句叫醒它</p>
+<ol>
+<li><p>在该事件的阻塞队列中找到相应进程的 PCB</p>
+</li>
+<li><p>将其从阻塞队列中移出，并置其状态为就绪状态</p>
+</li>
+<li><p>把该 PCB 插入到就绪队列中，等待调度程序调度</p>
+</li>
+</ol>
+<h2 id="多进程管理"><a href="#多进程管理" class="headerlink" title="多进程管理"></a>多进程管理</h2><h3 id="多进程并行"><a href="#多进程并行" class="headerlink" title="多进程并行"></a>多进程并行</h3><p>对于一个单核 CPU 来讲，从宏观上是并行的，而从微观上是串行的，它使用时间片划分周期调用来实现；每个任务在一段时间内会分到一段时间片(占 cpu 的时间)，在这段时间内该任务只能运行时间片长度从而达到同时的效果</p>
+<h3 id="父子进程"><a href="#父子进程" class="headerlink" title="父子进程"></a>父子进程</h3><p>Linux 中的进程都是由其它进程启动</p>
+<p>Linux 启动时，0 进程启动 1 号进程 (init) 和 2 号进程(内核线程)，0 号进程退出，其它进程是由 1、2 直接或间接产生</p>
+<ul>
+<li><p>1号进程 (init) 是所有用户进程的祖先</p>
+</li>
+<li><p>2号进程(内核线程)是内核进程的祖先</p>
+</li>
+</ul>
+<h3 id="进程退出"><a href="#进程退出" class="headerlink" title="进程退出"></a>进程退出</h3><ul>
+<li><p>正常退出：<code>main()</code> 中 <code>return</code> 进程的所有线程结束；<code>exit()</code> 代表整个进程的结束，是库函数；<code>_exit()</code> 或者 <code>_Exit()</code> 是系统调用函数；<code>exit()</code> 通过调用 <code>_exit()</code> 来实现退出的，但 <code>exit()</code> 多干了两件事情: 清空缓冲区、调用退出处理函数；退出处理函数可以做一些清理工作，需要先登记才生效，退出处理函数保存在退出处理函数栈中(先进后出的原则)</p>
+</li>
+<li><p>异常退出：被信号打断（ctrl + c、段错误、kill -9）；主线程被取消</p>
+</li>
+</ul>
+<h3 id="资源回收"><a href="#资源回收" class="headerlink" title="资源回收"></a>资源回收</h3><p>子进程退出时, 不管是正常还是异常, 父进程会收到信号；子进程退出后，内核会释放掉该进程资源（打开的文件、占用的内存等），但仍会保留一部分信息由父进程负责回收（进程号、退出状态、<br>运行时间），系统所能使用的进程号是有限的，如果大量的产生僵死进程，将因为没有可用的进程号而导致系统不能产生新的进程</p>
+<ul>
+<li><p>僵尸进程：子进程先结束，会通知父进程(通过信号)，让父进程回收资源，如果父进程不处理信号，子进程则变成僵尸进程；僵尸进程是一个进程必然会经过的过程，这是每个子进程在结束时都要经过的阶段</p>
+</li>
+<li><p>孤儿进程：父进程先结束，子进程就会变成孤儿进程，就会由 1 号进程（ init ）负责回收，但在实际编程中要避免这种情况</p>
+</li>
+</ul>
+<p>僵尸进程是一个早已死亡的进程，但在进程表中仍占了一个位置。由于进程表的容量是有限的，所以僵尸进程不仅占用系统的内存资源，影响系统的性能，而且如果其数目太多，还会导致系统瘫痪</p>
+<p>当子进程结束的时候，它并没有真正的被销毁，而是留下一个称为僵尸进程的数据结构，这些数据会一直保留到系统将它传递给它的父进程为止。此时，该僵尸子进程已经放弃了几乎所有的内存空间，没有任何可执行代码，也不能被调度，仅仅在进程列表中保留一个位置，记载该进程的退出状态信息供其他进程收集</p>
+<p>如果父进程没有捕获 SIGCHLD 信号处理函数调用 <code>wait()</code> 或 <code>waitpid()</code> 等待子进程结束，也没有显式忽略该信号，那么它就一直保持僵尸状态。如果父进程结束时子进程仍为僵尸进程，那么 init 进程会自动接手这个子进程，将它清除掉的。但是如果父进程是一个循环，不会结束，那么子进程就会一直保持僵尸状态</p>
+<p>僵尸进程是不能直接使用 kill -9 命令杀掉的，重启电脑或杀掉父进程可解决僵尸进程</p>
+<p>预防僵尸进程措施：</p>
+<ul>
+<li><p>在父进程创建子进程之前，就向系统申明自己不会对这个子进程的 exit 动作进行任何关注行为，这样子进程退出后，系统不会去等待父进程的操作，而是直接将该子进程的资源回收掉，也就不会出现僵尸进程了</p>
+</li>
+<li><p>在创建完子进程后，用 <code>waitpid()</code> 等待子进程返回</p>
+</li>
+</ul>
+<h3 id="父子进程共享的文件描述符"><a href="#父子进程共享的文件描述符" class="headerlink" title="父子进程共享的文件描述符"></a>父子进程共享的文件描述符</h3><p>PCB 里有个数组专门用于记录打开的文件，数组元素为指向所打开的文件所创建的文件表项，文件表项是用于描述文件当前被某个进程打开后的状态信息，包括文件状态标志，记录当前文件读取的位移量，以及文件的 i 节点指针</p>
+<p>不同进程打开同一个文件后，进程表和文件表的关系；<code>fork()</code> 之后打开文件，与不同进程打开同一文件情况相同</p>
+
+
+<p><code>fork()</code> 之前打开文件，子进程是共享父进程的文件表项</p>
+
+
+<p>进程调用 <code>fork()</code> 后，子进程和父进程的文件描述符所对应的文件表项是共享的，这意味着子进程对文件的读写直接影响父进程的文件位移量(反之同理)</p>
+<h2 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h2><p>自从多任务操作系统诞生以来，进程执行占用 cpu 的能力就是一个必须要可以人为控制的事情</p>
+<p>进程优先级起作用的方式，无论是只有一个 cpu 的时代，还是多核 cpu 时代，都是通过控制进程占用 cpu 时间的长短来实现的</p>
+<p>在同一个调度周期中，优先级高的进程占用的时间长些，而优先级低的进程占用的短些</p>
+<p>cgroup 相较于优先级，更能直观的反馈出资源分配的比例，但实际上从内核目前的进程调度器 cfs 的角度看，同时实现 cpushare 方式的 cgroup 和优先级这两个机制完全是相同的概念</p>
+<h3 id="nice"><a href="#nice" class="headerlink" title="nice"></a>nice</h3><p>nice 值是反应一个进程静态优先级状态的值，其取值范围是 -20 至 19，一共 40 个级别</p>
+<p>nice 越小，表示进程优先级越高，而值越大优先级越低</p>
+<p>可以通过 <code>nice</code> 命令来对一个将要执行的命令进行 <code>nice</code>值设置</p>
+<p>使用 <code>renice</code> 命令可以对一个正在运行的进程进行 nice 值的调整</p>
+<h3 id="priority"><a href="#priority" class="headerlink" title="priority"></a>priority</h3><p>priority 值表示 PRI 和 PR 值，动态优先级</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"># 操作系统</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/" rel="prev" title="进程通信">
+                  <i class="fa fa-chevron-left"></i> 进程通信
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B/" rel="next" title="线程">
+                  线程 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

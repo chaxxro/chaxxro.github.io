@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="每个进程所分配的内存由很多部分组成，通常称之为段   文本段 （text 段） 包含了进程运行的程序机器语言指令  文本段具有只读属性，以防止进程通过错误指针意外修改自身指令  因为多个进程可同时运行同一程序，所以又将文本段设为可共享，一份程序代码的拷贝可以映射到所有这些进程的虚拟地址空间中   初始化的数据段（data 段） 包含显式初始化的全局变量和静态变量  当程序加载到内存时，从可执行文件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="进程的内存结构">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="每个进程所分配的内存由很多部分组成，通常称之为段   文本段 （text 段） 包含了进程运行的程序机器语言指令  文本段具有只读属性，以防止进程通过错误指针意外修改自身指令  因为多个进程可同时运行同一程序，所以又将文本段设为可共享，一份程序代码的拷贝可以映射到所有这些进程的虚拟地址空间中   初始化的数据段（data 段） 包含显式初始化的全局变量和静态变量  当程序加载到内存时，从可执行文件">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/02.png">
+<meta property="article:published_time" content="2023-04-28T12:51:47.000Z">
+<meta property="article:modified_time" content="2023-04-28T12:54:54.339Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/","path":"2023/04/28/操作系统-进程-进程的内存布局/","title":"进程的内存结构"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>进程的内存结构 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E6%9C%AC%E6%AE%B5-%EF%BC%88text-%E6%AE%B5%EF%BC%89"><span class="nav-text">文本段 （text 段）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E7%9A%84%E6%95%B0%E6%8D%AE%E6%AE%B5%EF%BC%88data-%E6%AE%B5%EF%BC%89"><span class="nav-text">初始化的数据段（data 段）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AA%E5%88%9D%E5%A7%8B%E5%8C%96%E6%95%B0%E6%8D%AE%E6%AE%B5%EF%BC%88BSS-%E6%AE%B5%EF%BC%89"><span class="nav-text">未初始化数据段（BSS 段）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A0%86"><span class="nav-text">堆</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88"><span class="nav-text">栈</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8C%85%E5%90%AB-static%E3%80%81virtual-%E7%9A%84%E7%B1%BB%E5%86%85%E5%AD%98%E5%88%86%E5%B8%83"><span class="nav-text">包含 static、virtual 的类内存分布</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A0%86%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D"><span class="nav-text">堆内存分配</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#malloc"><span class="nav-text">malloc()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#calloc"><span class="nav-text">calloc()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#realloc"><span class="nav-text">realloc()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#free"><span class="nav-text">free()</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">283</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="进程的内存结构 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          进程的内存结构
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-04-28 20:51:47 / 修改时间：20:54:54" itemprop="dateCreated datePublished" datetime="2023-04-28T20:51:47+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>每个进程所分配的内存由很多部分组成，通常称之为段</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/01.png" class="">
+
+<h2 id="文本段-（text-段）"><a href="#文本段-（text-段）" class="headerlink" title="文本段 （text 段）"></a>文本段 （text 段）</h2><ul>
+<li><p>包含了进程运行的程序机器语言指令</p>
+</li>
+<li><p>文本段具有只读属性，以防止进程通过错误指针意外修改自身指令</p>
+</li>
+<li><p>因为多个进程可同时运行同一程序，所以又将文本段设为可共享，一份程序代码的拷贝可以映射到所有这些进程的虚拟地址空间中</p>
+</li>
+</ul>
+<h2 id="初始化的数据段（data-段）"><a href="#初始化的数据段（data-段）" class="headerlink" title="初始化的数据段（data 段）"></a>初始化的数据段（data 段）</h2><ul>
+<li><p>包含显式初始化的全局变量和静态变量</p>
+</li>
+<li><p>当程序加载到内存时，从可执行文件中读取这些变量的值</p>
+</li>
+</ul>
+<h2 id="未初始化数据段（BSS-段）"><a href="#未初始化数据段（BSS-段）" class="headerlink" title="未初始化数据段（BSS 段）"></a>未初始化数据段（BSS 段）</h2><ul>
+<li><p>包含了未进行显式初始化的全局变量和静态变量</p>
+</li>
+<li><p>程序启动之前，系统将本段内所有内存初始化为 0</p>
+</li>
+<li><p>程序结束后静态变量资源由系统自动释放</p>
+</li>
+<li><p>将经过初始化的全局变量和静态变量与未初始化的全局变量和静态变量分开存放，其主要原因在于程序在磁盘上存储时，没有必要为未经初始化的变量分配存储空间；可执行文件只需记录未初始化数据段的位置及所需大小，直到运行时再由程序加载器来分配空间</p>
+</li>
+</ul>
+<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><ul>
+<li><p>可在运行时为变量动态进行内存分配的一块区域</p>
+</li>
+<li><p>从低地址位向高地址位增长，采用链式存储结构</p>
+</li>
+</ul>
+<h2 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h2><ul>
+<li><p>一个动态增长和收缩的段，由栈帧组成</p>
+</li>
+<li><p>从高地址位向低地址位增长的，是一块连续的内存区域，最大容量是由系统预先定义好的，用户能从栈中获取的空间较小</p>
+</li>
+<li><p>系统会为每个当前调用的函数分配一个栈帧</p>
+</li>
+</ul>
+<h2 id="包含-static、virtual-的类内存分布"><a href="#包含-static、virtual-的类内存分布" class="headerlink" title="包含 static、virtual 的类内存分布"></a>包含 static、virtual 的类内存分布</h2><ul>
+<li><p><code>static</code> 修饰成员变量在全局数据区分配内存</p>
+</li>
+<li><p><code>static</code> 修饰的成员函数在代码区分配内存</p>
+</li>
+<li><p>虚指针和该类其他成员一起存储，指向只读数据段中的类虚函数表，虚函数表中存放着一个个函数指针，函数指针指向代码段中的具体函数，虚函数表存储在 data 段的只读数据段</p>
+</li>
+</ul>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/02.png" class="">
+
+<h2 id="堆内存分配"><a href="#堆内存分配" class="headerlink" title="堆内存分配"></a>堆内存分配</h2><p>C 标准函数库提供了许多函数来实现对堆上内存管理，其中包括：<code>malloc()</code>、<code>free()</code>、<code>calloc()</code> 和 <code>realloc()</code></p>
+<h3 id="malloc"><a href="#malloc" class="headerlink" title="malloc()"></a>malloc()</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> * <span class="title">malloc</span><span class="params">(<span class="type">size_t</span> n)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> * <span class="title">memset</span> <span class="params">(<span class="type">void</span> * p, <span class="type">int</span> c, <span class="type">size_t</span> n)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果函数执行成功，<code>malloc()</code> 返回获得内存空间的首地址；如果函数执行失败，那么返回值为 <code>NULL</code>。由于 <code>malloc()</code> 函数值的类型为 <code>void*</code>，因此可以将其值类型转换后赋给任意类型指针，这样就可以通过操作该类型指针来操作从堆上获得的内存空间</p>
+<p><code>malloc()</code> 分配得到的内存空间是未初始化的，一般在使用该内存空间时要调用另一个函数 <code>memset()</code> 来将其初始化为全 0</p>
+<h3 id="calloc"><a href="#calloc" class="headerlink" title="calloc()"></a>calloc()</h3><p><code>calloc()</code> 的功能与 <code>malloc()</code> 的功能相似，都是从堆分配内存</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> *<span class="title">calloc</span><span class="params">(<span class="type">size_t</span> n, <span class="type">size_t</span> size)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>函数返回值为 <code>void*</code>，如果执行成功函数从堆上获得 size * n 的字节空间，并返回该空间的首地址，如果执行失败，函数返回 <code>NULL</code>；<code>calloc()</code> 适合为数组申请空间，可以将 size 设置为数组元素的空间长度，将 n 设置为数组的容量</p>
+<p><code>calloc()</code> 得到的内存空间是经过初始化的，其内容全为 0</p>
+<h3 id="realloc"><a href="#realloc" class="headerlink" title="realloc()"></a>realloc()</h3><p><code>realloc()</code> 可以实现内存分配和内存释放的功能</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> * <span class="title">realloc</span><span class="params">(<span class="type">void</span> * p, <span class="type">size_t</span> n)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>指针 p 必须为指向堆内存空间的指针，即由 <code>malloc()</code>、<code>calloc()</code> 或 <code>realloc()</code> 分配空间的指针</p>
+<p><code>realloc()</code>将指针 p 指向的内存块的大小改变为 n 字节，如果 n 小于或等于 p 之前指向的空间大小，那么保持原有状态不变；如果 n 大于原来 p 之前指向的空间大小，那么系统将重新为 p 从堆上分配一块大小为 n 的内存空间，同时将原来指向空间的内容依次复制到新的内存空间上，p 之前指向的空间被释放</p>
+<p><code>realloc()</code>分配的空间也是未初始化的</p>
+<p><code>realloc()</code> 有可能操作失败，返回 <code>NULL</code>，所以不要把它的返回值直接赋值给原来的指针变量，以免原值丢失</p>
+<h3 id="free"><a href="#free" class="headerlink" title="free()"></a>free()</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">free</span><span class="params">(<span class="type">void</span> * p)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>free()</code> 只是释放指针指向的内容，而该指针仍然指向原来指向的地方，此时指针为野指针</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"># 操作系统</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/" rel="prev" title="进程调度">
+                  <i class="fa fa-chevron-left"></i> 进程调度
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
