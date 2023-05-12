@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="auto类型是一个编译期概念，运行时全变成了机器指令，所以类型推导是在编译期进行的 auto 只是一个占位符，用来充当变量类型，它根据出现的位置本着最简单的原则进行类型推导  如果初始化表达式是引用，则去除引用语义  12345int a &#x3D; 10;int &amp;b &#x3D; a;auto c &#x3D; b;&#x2F;&#x2F; c 的类型为 int 而非 int&amp;（去除引用）auto &amp;d &#x3D; b;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="类型自动推导">
+<meta property="og:url" content="https://chaxxro.github.io/2023/05/10/cpp-%E7%B1%BB%E5%9E%8B%E8%87%AA%E5%8A%A8%E6%8E%A8%E5%AF%BC/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="auto类型是一个编译期概念，运行时全变成了机器指令，所以类型推导是在编译期进行的 auto 只是一个占位符，用来充当变量类型，它根据出现的位置本着最简单的原则进行类型推导  如果初始化表达式是引用，则去除引用语义  12345int a &#x3D; 10;int &amp;b &#x3D; a;auto c &#x3D; b;&#x2F;&#x2F; c 的类型为 int 而非 int&amp;（去除引用）auto &amp;d &#x3D; b;">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-05-10T13:32:07.000Z">
+<meta property="article:modified_time" content="2023-05-12T13:28:03.276Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="cpp">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/05/10/cpp-%E7%B1%BB%E5%9E%8B%E8%87%AA%E5%8A%A8%E6%8E%A8%E5%AF%BC/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/05/10/cpp-%E7%B1%BB%E5%9E%8B%E8%87%AA%E5%8A%A8%E6%8E%A8%E5%AF%BC/","path":"2023/05/10/cpp-类型自动推导/","title":"类型自动推导"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>类型自动推导 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#auto"><span class="nav-text">auto</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%87%E8%83%BD%E5%BC%95%E7%94%A8-auto-amp-amp"><span class="nav-text">万能引用 auto&amp;&amp;</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#decltype"><span class="nav-text">decltype</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">302</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/10/cpp-%E7%B1%BB%E5%9E%8B%E8%87%AA%E5%8A%A8%E6%8E%A8%E5%AF%BC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="类型自动推导 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          类型自动推导
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-10 21:32:07" itemprop="dateCreated datePublished" datetime="2023-05-10T21:32:07+08:00">2023-05-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-12 21:28:03" itemprop="dateModified" datetime="2023-05-12T21:28:03+08:00">2023-05-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="auto"><a href="#auto" class="headerlink" title="auto"></a>auto</h2><p>类型是一个编译期概念，运行时全变成了机器指令，所以类型推导是在编译期进行的</p>
+<p><code>auto</code> 只是一个占位符，用来充当变量类型，它根据出现的位置本着最简单的原则进行类型推导</p>
+<ul>
+<li>如果初始化表达式是引用，则去除引用语义</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> a = <span class="number">10</span>;</span><br><span class="line"><span class="type">int</span> &amp;b = a;</span><br><span class="line"></span><br><span class="line"><span class="keyword">auto</span> c = b;<span class="comment">// c 的类型为 int 而非 int&amp;（去除引用）</span></span><br><span class="line"><span class="keyword">auto</span> &amp;d = b;  <span class="comment">// 此时 c 的类型才为 int&amp;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如果初始化表达式为 <code>const</code> 或 <code>volatile</code>，则除去 <code>const</code> 或 <code>volatile</code> 语义</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> a1 = <span class="number">10</span>;</span><br><span class="line"><span class="keyword">auto</span>  b1= a1;  <span class="comment">// b1 的类型为 int 而非 const int（去除 const）</span></span><br><span class="line"><span class="type">const</span> <span class="keyword">auto</span> c1 = a1;  <span class="comment">// 此时 c1 的类型为 const int</span></span><br><span class="line">b1 = <span class="number">100</span>;<span class="comment">//合法</span></span><br><span class="line">c1 = <span class="number">100</span>;<span class="comment">//非法</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如果 <code>auto</code> 关键字带上 <code>&amp;</code> 或 <code>*</code> 时，则不去除 <code>const</code> 或 <code>volatile</code> 语意</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> a2 = <span class="number">10</span>;</span><br><span class="line"><span class="keyword">auto</span> &amp;b2 = a2;  <span class="comment">//因为 auto 带上 &amp;，故不去除 const，b2 类型为 const int &amp;</span></span><br><span class="line">b2 = <span class="number">10</span>; <span class="comment">//非法</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">void</span> (Test::*<span class="type">const</span> pmf)(<span class="type">const</span> <span class="type">int</span>) <span class="type">const</span>;</span><br><span class="line"><span class="keyword">auto</span> e = pmf; <span class="comment">// void (Test::*)(const int) const</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>初始化表达式为数组时，<code>auto</code> 关键字推导类型为指针；若表达式为数组且 <code>auto</code> 带上 <code>&amp;</code>，则推导类型为数组类型</p>
+</li>
+<li><p>函数或者模板参数不能被声明为 <code>auto</code></p>
+</li>
+</ul>
+<h2 id="万能引用-auto-amp-amp"><a href="#万能引用-auto-amp-amp" class="headerlink" title="万能引用 auto&amp;&amp;"></a>万能引用 auto&amp;&amp;</h2><p><code>const auto&amp;&amp;</code> 也是遵循 <code>auto</code> 最简单原则进行类型推导，而 <code>auto&amp;&amp;</code> 是一个特殊情况</p>
+<p><code>auto&amp;&amp;</code> 的特殊性在于它既可以推导左值引用，也可以推导右值引用，这都取决于表达式是左值还是右值</p>
+<p><code>auto&amp;&amp;</code> 接收函数返回的右值引用仍然是右值引用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">f1</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> &amp;<span class="title">f2</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> &amp;&amp;<span class="title">f3</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Demo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e1 = a; <span class="comment">// a 是左值，所以推导 e1 是 int &amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e2 = <span class="number">5</span>; <span class="comment">// 5 是右值，所以推导 e2 是 int &amp;&amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e3 = e2; <span class="comment">// e2 是 int &amp;&amp; 类型，但右值引用本身是左值，所以推导 e3 是 int &amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;ef1 = <span class="built_in">f1</span>(); <span class="comment">// 返回值是右值，所以推导 ef1 是 int &amp;&amp;，</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;ef2 = <span class="built_in">f2</span>(); <span class="comment">// 返回左值引用，所以推导 ef2 是 int &amp;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;ef3 = <span class="built_in">f3</span>(); <span class="comment">// 返回值是右值，所以推导 ef3 是 int &amp;&amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e4 = std::<span class="built_in">move</span>(a); <span class="comment">// 返回值是右值，所以推导 e4 是 int &amp;&amp;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="decltype"><a href="#decltype" class="headerlink" title="decltype"></a>decltype</h2><p><code>decltype</code> 跟 <code>auto</code> 一样有类型推导的作用，但 <code>decltype</code> 是一个编译期的运算符，用于求表达式的类型，它并没有过多的复杂规则，就是简单地返回这个表达式的类型</p>
+<ul>
+<li><p>表达式是标识符、类访问表达式，<code>decltype</code> 和表达式类型一致</p>
+</li>
+<li><p>表达式是函数调用， <code>decltype</code> 和返回值的类型一致；若函数返回的是纯右值，只有类类型可以携带 <code>const/volatile</code>，此外都忽略掉</p>
+</li>
+<li><p>若表达式是一个左值，则 <code>decltype</code> 是左值引用</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;type_traits&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CHECKTYPE(val, type)                           \</span></span><br><span class="line"><span class="meta">do &#123;                                                   \</span></span><br><span class="line"><span class="meta">  using tt = decltype(val);                            \</span></span><br><span class="line"><span class="meta">  std::cout <span class="string">&lt;&lt; #val &lt;&lt; &quot; == &quot; &lt;&lt; #type &lt;&lt; &quot;: &quot; &lt;&lt; std::is_same_v&lt;tt, type&gt;</span> &lt;&lt; std::endl;  \</span></span><br><span class="line"><span class="meta">&#125; while(0)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Widget</span> &#123;</span><br><span class="line">    <span class="type">int</span> x;</span><br><span class="line">    <span class="type">float</span> y;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">f</span><span class="params">(<span class="type">const</span> Widget&amp; w)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">CHECKTYPE</span>(w, <span class="type">const</span> Widget&amp;);</span><br><span class="line">  <span class="built_in">CHECKTYPE</span>(Widget::x, <span class="type">int</span>);</span><br><span class="line">  <span class="built_in">CHECKTYPE</span>(Widget::y, <span class="type">float</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">const</span> <span class="type">int</span> <span class="title">g</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> a;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">const</span> Widget <span class="title">h</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Widget a;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">vector</span> &#123; </span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">T&amp; <span class="keyword">operator</span>[](std::<span class="type">size_t</span> index);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; std::boolalpha;</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> i = <span class="number">0</span>;  </span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(i, <span class="type">const</span> <span class="type">int</span>);</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> arr[<span class="number">5</span>];</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(arr, <span class="type">int</span>[<span class="number">5</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span>* ptr;</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(ptr, <span class="type">int</span>*);</span><br><span class="line"></span><br><span class="line">    Widget w;</span><br><span class="line">    <span class="built_in">f</span>(w);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">f</span>(w), <span class="type">bool</span>);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(f, <span class="built_in">bool</span>(<span class="type">const</span> Widget&amp;));</span><br><span class="line"></span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">g</span>(), <span class="type">int</span>);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">h</span>(), Widget);  <span class="comment">// false</span></span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">h</span>(), <span class="type">const</span> Widget);</span><br><span class="line"></span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; v;</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(v, vector&lt;<span class="type">int</span>&gt;);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(v[<span class="number">0</span>], <span class="type">int</span>&amp;);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> a =<span class="number">0</span>;</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(std::<span class="built_in">move</span>(a), <span class="type">int</span>&amp;&amp;);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在泛型编程中，<code>auto</code> 和 <code>decltype</code> 结合使用达到返回类型后置</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt; <span class="keyword">typename</span> T, <span class="keyword">typename</span> U&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">add</span><span class="params">(T t, U u)</span> -&gt; <span class="title">decltype</span><span class="params">(t+u)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> t + u;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, _TCHAR* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="type">int</span> a = <span class="number">1</span>; <span class="type">float</span> b = <span class="number">2.0</span>;</span><br><span class="line">	<span class="keyword">auto</span> c = <span class="built_in">add</span>(a, b);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cpp/" rel="tag"># cpp</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/05/10/cpp-%E5%BC%95%E7%94%A8/" rel="prev" title="引用">
+                  <i class="fa fa-chevron-left"></i> 引用
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/05/11/cpp-pimpl/" rel="next" title="pimpl">
+                  pimpl <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
