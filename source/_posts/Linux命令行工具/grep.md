@@ -83,7 +83,6 @@ grep [-abcdDEFGHhIiJLlMmnOopqRSsUVvwXxZz] [-A num] [-B num] [-C[num]]
 `-w`、`--word-regexp` 只显示全字符合的列
 
 `-x`、`--line-regexp` 只显示全列符合的列
-```
 
 ```sh
 # 查询以 .Pp 开头的行
@@ -91,5 +90,5 @@ grep '^\.Pp' myfile
 # 查找不包含 foo 或 bar 的行
 grep -v -e 'foo' -e 'bar' myfile
 # 递归查找指定目录下所有 .h 文件
-grep -H -R FIXME --include=*.h /usr/src/sys/arm/
+grep -H -R FIXME --include="*.h" /usr/src/sys/arm/
 ```
