@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">302</span>
+          <span class="site-state-item-count">303</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,89 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/15/cpp-%E4%B8%8D%E6%8E%A8%E8%8D%90%E4%BD%BF%E7%94%A8std-vector-bool/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/15/cpp-%E4%B8%8D%E6%8E%A8%E8%8D%90%E4%BD%BF%E7%94%A8std-vector-bool/" class="post-title-link" itemprop="url">不推荐使用 std::vector<bool></a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-05-15 19:24:18 / 修改时间：20:32:00" itemprop="dateCreated datePublished" datetime="2023-05-15T19:24:18+08:00">2023-05-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>为了优化空间利用，c++98 显示地定义了 <code>std::vector&lt;bool&gt;</code>，其中每个 <code>bool</code> 只占用 1 bit 的空间而不是 1 byte</p>
+<p>由于空间优化，<code>std::vector&lt;bool&gt;</code> 并不具备普通标准容器的所有能力和接口</p>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// stl_bvector.h</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">long</span> _Bit_type;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">_Bit_reference</span> &#123;</span><br><span class="line">  _Bit_type* _M_p;</span><br><span class="line">  _Bit_type  _M_mask;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">operator</span> <span class="title">bool</span><span class="params">()</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> !!(*_M_p &amp; _M_mask);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">templace&lt;<span class="keyword">typename</span> _Alloc&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">vector</span>&lt;<span class="type">bool</span>, _Alloc&gt; : <span class="keyword">protected</span> _Bvector_base&lt;_Alloc&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="keyword">typedef</span> <span class="type">bool</span>              value_type;</span><br><span class="line">  <span class="keyword">typedef</span> _Bit_reference    reference;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="type">bool</span>              const_reference;</span><br><span class="line">  <span class="keyword">typedef</span> _Bit_reference*   pointer;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="type">const</span> <span class="type">bool</span>*       const_pointer;</span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function">reference <span class="title">at</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line">  <span class="function">const_reference <span class="title">at</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function">reference <span class="title">front</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line">  <span class="function">const_reference <span class="title">front</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function">reference <span class="title">back</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line">  <span class="function">const_reference <span class="title">back</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line"></span><br><span class="line">  reference <span class="keyword">operator</span>[](<span class="type">size_t</span> __n);</span><br><span class="line">  const_reference <span class="keyword">operator</span>[](<span class="type">size_t</span> __n);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>std::vector&lt;bool&gt;</code> 的 <code>at</code>、<code>front()</code>、<code>back()</code> 和 <code>[]</code> 并不像普通的 <code>std::vector&lt;T&gt;</code> 一样返回 <code>T&amp;</code>，而是返回一个代理对象来表示 <code>bool</code></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +278,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-12 21:28:03" itemprop="dateModified" datetime="2023-05-12T21:28:03+08:00">2023-05-12</time>
+      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -292,7 +375,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-12 21:28:03" itemprop="dateModified" datetime="2023-05-12T21:28:03+08:00">2023-05-12</time>
+      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -416,7 +499,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-12 21:28:03" itemprop="dateModified" datetime="2023-05-12T21:28:03+08:00">2023-05-12</time>
+      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -512,7 +595,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-12 21:28:03" itemprop="dateModified" datetime="2023-05-12T21:28:03+08:00">2023-05-12</time>
+      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -657,7 +740,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-12 21:28:03" itemprop="dateModified" datetime="2023-05-12T21:28:03+08:00">2023-05-12</time>
+      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -785,7 +868,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-12 21:28:03" itemprop="dateModified" datetime="2023-05-12T21:28:03+08:00">2023-05-12</time>
+      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
     </span>
 
   
@@ -903,7 +986,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-12 21:28:03" itemprop="dateModified" datetime="2023-05-12T21:28:03+08:00">2023-05-12</time>
+      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1132,7 +1215,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-12 21:28:03" itemprop="dateModified" datetime="2023-05-12T21:28:03+08:00">2023-05-12</time>
+      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1218,7 +1301,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-12 21:28:03" itemprop="dateModified" datetime="2023-05-12T21:28:03+08:00">2023-05-12</time>
+      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1261,140 +1344,6 @@
 <p><code>fill</code> 字段大于 0 时 ziplist 中的最大 entry 数</p>
 <p><code>fill</code> 字段小于 0 时，-1 表示 ziplist 大小不能超过 4kb，-2 表示 ziplist 大小不能超过 8kb，-3 表示 ziplist 大小不能超过 16kb，-4 表示 ziplist 大小不能超过 32kb，-5 表示 ziplist 大小不能超过 64kb</p>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-listpack/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/Redis-listpack/" class="post-title-link" itemprop="url">listpack</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:26:25" itemprop="dateCreated datePublished" datetime="2023-04-28T21:26:25+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-12 21:28:03" itemprop="dateModified" datetime="2023-05-12T21:28:03+08:00">2023-05-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>quicklist 虽然通过控制 quicklistNode 结构里的压缩列表的大小或者元素个数，来减少连锁更新带来的性能影响，但是并没有完全解决连锁更新的问题</p>
-<p>listpack 用来替代压缩列表，它最大特点是 listpack 中每个节点不再包含前一个节点的长度</p>
-<p>listpack 用一块连续的内存空间来紧凑地保存数据，并且为了节省内存的开销，listpack 节点会采用不同的编码方式保存不同大小的数据</p>
-<img src="/2023/04/28/Redis-listpack/01.png" class="">
-
-<ul>
-<li><p>encoding：定义该元素的编码类型，会对不同长度的整数和字符串进行编码</p>
-</li>
-<li><p>data：实际存放的数据</p>
-</li>
-<li><p>len：encoding+data的总长度</p>
-</li>
-</ul>
-<p>listpack 没有压缩列表中记录前一个节点长度的字段了，listpack 只记录当前节点的长度，当向 listpack 加入一个新元素的时候，不会影响其他节点的长度字段的变化，从而避免了压缩列表的连锁更新问题</p>
-<h2 id="一般结构"><a href="#一般结构" class="headerlink" title="一般结构"></a>一般结构</h2><p>listpack 拥有一个固定的 6 字节头部信息，相比 ziplist 的 10 字节的头部信息，listpack 少了指向最后一个 element 的指针</p>
-<p>在 listpack 尾部有一个 255 的终止符</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;tot-bytes&gt; &lt;num-elements&gt; &lt;element-1&gt; ... &lt;element-N&gt; &lt;listpack-end-byte&gt;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>tot-bytes：类型 <code>uint32_t</code>，采用小端存储，表示 listpack 全部字节</p>
-</li>
-<li><p>num-elements：类型 <code>uint16_t</code>，采用小端存储，表示 listpack 包含 element 数量，当 num-elements 被设置为 65535 时表示 element 数量不可知，此时获取 element 数量需要通过扫描整个 listpack</p>
-</li>
-</ul>
-<h2 id="element-结构"><a href="#element-结构" class="headerlink" title="element 结构"></a>element 结构</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;encoding-type&gt;&lt;element-data&gt;&lt;element-tot-len&gt;</span><br><span class="line">|                                            |</span><br><span class="line">+--------------------------------------------+</span><br><span class="line">            (This is an element)</span><br></pre></td></tr></table></figure>
-
-<p>encoding-type 和 element-tot-len 总是存在的，但 data 部分可能会放在 encoding-type 里</p>
-<p>element-tot-len 只能在反向遍历时使用，因为在正向遍历时不需要该字段就能知道数据大小</p>
-<p>encoding-type 第一个字节的前两位表示编码方式，这里有三种编码方式</p>
-<ol>
-<li>当数据是字符串，且可以被表示小数字（0-127）时，encoding 第一位为 0，后七位表示数据</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0|xxxxxxx</span><br><span class="line"></span><br><span class="line">&quot;\x03&quot; -- 0000 0011 --The string &quot;3&quot;</span><br><span class="line">&quot;\x12&quot; -- 0001 0010 --The string &quot;18&quot;</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>当数据是小字符串，字符串长度可以用后六位表示（0-63）</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">10|xxxxxx &lt;string-data&gt;</span><br><span class="line"></span><br><span class="line">&quot;\x80&quot; -- 1000 0000 --The empty string</span><br><span class="line">&quot;\x85hello&quot; -- 1000 0101 -- The string &quot;hello&quot;</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
-<li>高两位都被设置为 1，且紧随的后两位不是 11</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">110|xxxxx yyyyyyyy -- 后面 13 位直接编码有符号整数</span><br><span class="line">1110|xxxx yyyyyyyy -- 编码长度不大于 4095 的字符串</span><br></pre></td></tr></table></figure>
-
-<ol start="4">
-<li>高四位都被设置为 1</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1111|0000 &lt;4 字节字符串长度&gt; &lt;大字符串&gt;</span><br><span class="line">1111|0001 -- 编码 int16_t</span><br><span class="line">1111|0010 -- 编码 int24_t</span><br><span class="line">1111|0011 -- 编码 int32_t</span><br><span class="line">1111|0100 -- 编码 int64_t</span><br><span class="line">1111|0101 ~ 1111|1110 未使用</span><br><span class="line">1111|1111 -- 终止符</span><br></pre></td></tr></table></figure>
-
-<p>element-tot-len 使用变长字段存储，并且从右往左存储，每个字节的最高有效位用于指示是否有更多字节，这意味着在每个字节中只使用 7 位</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&quot;\x20&quot; -- 0010 0000 --32 bytes entry length</span><br><span class="line"></span><br><span class="line">500 二进制 1111 0100</span><br><span class="line">&quot;\xf4\x03&quot; -- 0000 0011 1111 0100 -- 500 bytes entry length</span><br><span class="line">[0]000 0011          [1]111 0100</span><br><span class="line"> |                   |</span><br><span class="line"> `- no more bytes    `- more bytes to the left!</span><br></pre></td></tr></table></figure>
       
     </div>
 
