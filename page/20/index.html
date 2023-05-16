@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">303</span>
+          <span class="site-state-item-count">305</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,296 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/" class="post-title-link" itemprop="url">字符串匹配</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-02 17:06:16" itemprop="dateCreated datePublished" datetime="2023-04-02T17:06:16+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-16 16:16:46" itemprop="dateModified" datetime="2023-05-16T16:16:46+08:00">2023-05-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/algorithm/" itemprop="url" rel="index"><span itemprop="name">algorithm</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>在字符串 A 中查找字符串 B，那 A 为主串，长度记为 n，B 为模式串，长度记为 m，n &gt; m</p>
+<h2 id="BF-算法"><a href="#BF-算法" class="headerlink" title="BF 算法"></a>BF 算法</h2><p>暴力匹配算法（Brute Force）</p>
+<p>BF 算法即在主串中，检查起始位置分别是 0、1、2…n-m 且长度为 m 的 n-m+1 个子串，看有没有跟模式串匹配的</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/01.jpg" class="">
+
+<p>BF 的最坏情况时间复杂度是 O(n*m)，但却是实际中运用比较常见的字符串匹配算法，原因：</p>
+<ul>
+<li>实际开发中，模式串和主串的长度都不会太长，而且每次模式串与主串匹配的时候，当中途遇到不能匹配的字符时就停止了</li>
+<li>代码实现简单，不容易出错</li>
+</ul>
+<h2 id="RK-算法"><a href="#RK-算法" class="headerlink" title="RK 算法"></a>RK 算法</h2><p>对 BF 稍加改进，引入哈希算法，时间复杂度就会降低</p>
+<p>RK 算法的思路：通过哈希算法对主串中的 n-m+1 个子串分别求哈希值，然后逐个与模式串的哈希值比较大小。如果某个子串的哈希值与模式串相等，那就说明对应的子串和模式串匹配了（先不考虑哈希冲突的问题）。因为哈希值是一个数字，数字之间比较是否相等是非常快速的，所以模式串和子串比较的效率就提高了</p>
+<p>通过设计哈希算法来提高计算子串哈希值的效率，比如假设要处理的字符串只包含 26 个小写字母，那就可以只用 26 进制表示一个字符串。为了保证将哈希值落在整形数据范围内，可以牺牲一下允许哈希冲突</p>
+<p>当发生哈希冲突，有可能子串和模式串的哈希值相同但本身并不匹配，所以在哈希值相同时再去对比一下子串和模式串本身即可</p>
+<p>RK 算法整体的时间复杂度就是 O(n)，但如果存在大量哈希冲突，将导致时间复杂度退化成 O(n*m)</p>
+<h2 id="BM-算法"><a href="#BM-算法" class="headerlink" title="BM 算法"></a>BM 算法</h2><p>BM 算法包含两部分，分别是坏字符规则和好后缀规则</p>
+<h3 id="坏字符串规则"><a href="#坏字符串规则" class="headerlink" title="坏字符串规则"></a>坏字符串规则</h3><p>BM 算法中的匹配顺序是按照模式串下标从大到小的顺序倒着匹配的，即我们从模式串的末尾往前倒着匹配</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/02.jpg" class="">
+
+<p>当我们发现某个字符没法匹配的时候。我们把这个没有匹配的字符叫作坏字符（主串中的字符）</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/03.jpg" class="">
+
+<p>拿坏字符 c 在模式串中查找，发现模式串中并不存在这个字符，也就是说，字符 c 与模式串中的任何字符都不可能匹配</p>
+<p>这个时候，我们可以将模式串直接往后滑动三位，将模式串滑动到 c 后面的位置，再从模式串的末尾字符开始比较</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/04.jpg" class="">
+
+<p>模式串中最后一个字符 d，还是无法跟主串中的 a 匹配，坏字符 a 在模式串中是存在的，模式串中下标是 0 的位置也是字符 a，可以将模式串往后滑动两位，让两个 a 上下对齐，然后再从模式串的末尾字符开始，重新匹配</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/05.jpg" class="">
+
+<p>当发生不匹配的时候，我们把坏字符对应的模式串中的字符下标记作 si。如果坏字符在模式串中存在，我们把这个坏字符在模式串中的下标记作 xi。如果不存在，我们把 xi 记作 -1。那模式串往后移动的位数就等于 si-xi（下标都是字符在模式串的下标）</p>
+<p>如果坏字符在模式串里多处出现，那我们在计算 xi 的时候，选择最靠后的那个，因为这样不会让模式串滑动过多，导致本来可能匹配的情况被滑动略过</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/06.jpg" class="">
+
+<h3 id="好后缀规则"><a href="#好后缀规则" class="headerlink" title="好后缀规则"></a>好后缀规则</h3><p>当模式串滑动到图中的位置的时候，模式串和主串有 2 个字符是匹配的，倒数第 3 个字符发生了不匹配的情况</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/07.jpg" class="">
+
+<p>把已经匹配的 bc 叫作好后缀，记作 {u}，并拿它在模式串中查找，如果找到了另一个跟 {u} 相匹配的子串 {u*}，那我们就将模式串滑动到子串 {u*} 与主串中 {u} 对齐的位置</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/08.jpg" class="">
+
+<p>如果在模式串中找不到另一个等于 {u} 的子串，我们就直接将模式串，滑动到主串中 {u} 的后面，因为之前的任何一次往后滑动，都没有匹配主串中 {u} 的情况</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/09.jpg" class="">
+
+<p>但这种滑动太过上头，所以不仅要看好后缀在模式串中，是否有另一个匹配的子串，还要考察好后缀的后缀子串，是否存在跟模式串的前缀子串匹配的</p>
+<p>某个字符串 s 的后缀子串，就是最后一个字符跟 s 对齐的子串，比如 abc 的后缀子串就包括 c, bc</p>
+<p>前缀子串，就是起始字符跟 s 对齐的子串，比如 abc 的前缀子串有 a，ab</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/10.jpg" class="">
+
+<p>从好后缀的后缀子串中，找一个最长的并且能跟模式串的前缀子串匹配的</p>
+<h3 id="规则选择"><a href="#规则选择" class="headerlink" title="规则选择"></a>规则选择</h3><p>分别计算好后缀和坏字符往后滑动的位数，然后取两个数中最大的，作为模式串往后滑动的位数</p>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><h4 id="坏字符规则"><a href="#坏字符规则" class="headerlink" title="坏字符规则"></a>坏字符规则</h4><p>如果拿坏字符在模式串中顺序遍历查找，效率比较低</p>
+<p>引入哈希表，将模式串中的每个字符及其下标存进哈希表，这样可以快速找到坏字符在模式串的位置下标</p>
+<p>如果字符串的字符集不是很大，每个字符长度是 1 字节，则可以用大小为 256 的数组来记录每个字符在模式串中出现的位置，数组下标对应字符的 ASCII</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/11.jpg" class="">
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> SIZE = <span class="number">256</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">GenerateHashTable</span><span class="params">(<span class="type">const</span> string &amp; str, <span class="type">int</span> * bc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 初始化</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; SIZE; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        bc[i] = <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 建立</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; str.<span class="built_in">size</span>(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        bc[(<span class="type">int</span>)str[i]] = str[i];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">bm</span><span class="params">(string haystack, string needle)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> * bc = <span class="keyword">new</span> <span class="type">int</span> [SIZE];</span><br><span class="line">    <span class="built_in">GenerateHashTable</span>(needle, bc);</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (i &lt;= n - m)</span><br><span class="line">    &#123;    </span><br><span class="line">        <span class="type">int</span> j; </span><br><span class="line">        <span class="keyword">for</span> (j = m - <span class="number">1</span>; j &gt;= <span class="number">0</span>; --j)  <span class="comment">// 模式串从后往前匹配</span></span><br><span class="line">        &#123;       </span><br><span class="line">            <span class="keyword">if</span> (a[i+j] != b[j])</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">break</span>;  <span class="comment">// 坏字符对应模式串中的下标是j</span></span><br><span class="line">            &#125;    </span><br><span class="line">        &#125;    </span><br><span class="line">        <span class="keyword">if</span> (j &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> i; <span class="comment">// 匹配成功，返回主串与模式串第一个匹配的字符的位置    </span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 这里等同于将模式串往后滑动j-bc[(int)a[i+j]]位    </span></span><br><span class="line">        i = i + (j - bc[(<span class="type">int</span>)a[i+j]]);   <span class="comment">// 没有考虑到为负的情况</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="好后缀规则-1"><a href="#好后缀规则-1" class="headerlink" title="好后缀规则"></a>好后缀规则</h4><ul>
+<li>在模式串中，查找跟好后缀匹配的另一个子串</li>
+</ul>
+<p>因为好后缀也是模式串本身的后缀子串，所以可以在模式串和主串正式匹配之前，通过预处理模式串，预先计算好模式串的每个后缀子串，对应的另一个可匹配子串的位置</p>
+<p>通过长度可以确定一个唯一的后缀子串</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/12.jpg" class="">
+
+<p>引入关键的变量 suffix 数组，suffix 数组的下表 k 表示后缀子串的长度，下标对应的数组值存储的是，在模式串中跟好后缀 {u} 相匹配的子串 {u*} 的起始下标值</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/13.jpg" class="">
+
+<ul>
+<li>在好后缀的后缀子串中，查找最长的、能跟模式串前缀子串匹配的后缀子串</li>
+</ul>
+<p>suffix 只能处理在模式串中查找跟好后缀匹配的另一个子串，所以需要布尔类型数组 prefix，来记录模式串的后缀子串是否能匹配模式串中的前缀子串</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/14.jpg" class="">
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">GenerateGS</span><span class="params">(<span class="type">const</span> string &amp; str, <span class="type">int</span> * suffix, <span class="type">bool</span> * prefix)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 初始化</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; str.<span class="built_in">size</span>(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        suffix[i] = <span class="number">-1</span>;</span><br><span class="line">        prefix[i] = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 建立</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; str.<span class="built_in">size</span>() - <span class="number">1</span>; ++i)  <span class="comment">// str[0, i]</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">int</span> j = i;</span><br><span class="line">        <span class="type">int</span> k = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(j &gt;= <span class="number">0</span> &amp;&amp; str[j] == str[m- <span class="number">1</span> - k])</span><br><span class="line">        &#123;</span><br><span class="line">            suffix[k] == j;</span><br><span class="line">            --j;</span><br><span class="line">            ++k;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(j == <span class="number">-1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            prefix[k] = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>假设好后缀的长度是 k，<code>suffix[k] != -1</code>，则后移 j - suffix[k] + 1 位（j 为坏字符在模式串中的下标）</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/15.jpg" class="">
+
+<p>如果 <code>suffix[k] == -1</code>，表示模式串中不存在另一个跟好后缀匹配的子串片段，好后缀的后缀子串 b[r, m-1]（其中，r 取值从 j+2 到 m-1）的长度 k&#x3D;m-r，如果 prefix[k] 等于 true，表示长度为 k 的后缀子串，有可匹配的前缀子串，这样我们可以把模式串后移 r 位</p>
+<p>如果两条规则都没有找到可以匹配好后缀及其后缀子串的子串，我们就将整个模式串后移 m 位</p>
+<h2 id="KMP"><a href="#KMP" class="headerlink" title="KMP"></a>KMP</h2><p>KMP 核心思想跟 BM 思想非常接近，在模式串与主串匹配的过程中，当遇到不可匹配的字符的时候，我们希望找到一些规律，可以将模式串往后多滑动几位，跳过那些肯定不会匹配的情况</p>
+<p>在模式串和主串匹配的过程中，把不能匹配的那个字符仍然叫作坏字符，把已经匹配的那段字符串叫作好前缀</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/16.jpg" class="">
+
+<p>当遇到坏字符的时候，我们就要把模式串往后滑动，在滑动的过程中，只要模式串和好前缀有上下重合，前面几个字符的比较，就相当于拿好前缀的后缀子串，跟模式串的前缀子串在比较</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/17.jpg" class="">
+
+<p>只需要拿好前缀本身，在它的后缀子串中，查找最长的那个可以跟好前缀的前缀子串匹配的。假设最长的可匹配的那部分前缀子串是{v}，长度是 k。我们把模式串一次性往后滑动 j-k 位，相当于，每次遇到坏字符的时候，我们就把 j 更新为 k，i 不变，然后继续比较</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/18.jpg" class="">
+
+<p>把好前缀的所有后缀子串中，最长的可匹配前缀子串的那个后缀子串，叫作最长可匹配后缀子串；对应的前缀子串，叫作最长可匹配前缀子串</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/19.jpg" class="">
+
+<p>求好前缀的最长可匹配前缀和后缀子串，不涉及主串，只需要通过模式串本身就能求解，先预处理计算好，在模式串和主串匹配的过程中，直接拿过来就用</p>
+<p>KMP 算法可以提前构建一个数组，用来存储模式串中每个前缀（这些前缀都有可能是好前缀）的最长可匹配前缀子串的结尾字符下标，把这个数组定义为 next 数组叫失效函数</p>
+<p>数组的下标是每个前缀结尾字符下标，数组的值是这个前缀的最长可以匹配前缀子串的结尾字符下标</p>
+<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/20.jpg" class="">
+
+<p>我们按照下标从小到大，依次计算 next 数组的值；当我们要计算 next[i] 的时候，前面的 next[0]，next[1]，……，next[i-1] 应该已经计算出来了，利用已经计算出来的 next 值，可以快速推导出 next[i] 的值</p>
+<p>假设 b[0, i] 的最长可匹配后缀子串是 b[r, i]，如果把最后一个字符去掉，那 b[r, i-1] 肯定是 b[0, i-1] 的可匹配后缀子串，但不一定是最长可匹配后缀子串</p>
+<p>既然 b[0, i-1] 最长可匹配后缀子串对应的模式串的前缀子串的下一个字符并不等于 b[i]，那么就可以考察 b[0, i-1] 的次长可匹配后缀子串 b[x, i-1] 对应的可匹配前缀子串 b[0, i-1-x] 的下一个字符 b[i-x] 是否等于 b[i]，如果等于，那 b[x, i] 就是 b[0, i] 的最长可匹配后缀子串</p>
+<p>次长可匹配后缀子串肯定被包含在最长可匹配后缀子串中，而最长可匹配后缀子串又对应最长可匹配前缀子串 b[0, y]；查找 b[0, i-1] 的次长可匹配后缀子串就是查找 b[0, y] 的最长匹配后缀子串的问题</p>
+<p>按照这个思路，我们可以考察完所有的 b[0, i-1] 的可匹配后缀子串 b[y, i-1]，直到找到一个可匹配的后缀子串，它对应的前缀子串的下一个字符等于 b[i]，那这个 b[y, i] 就是 b[0, i] 的最长可匹配后缀子串</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">GenerteNext</span><span class="params">(string &amp; needle, <span class="type">int</span> * next)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    next[<span class="number">0</span>] = <span class="number">-1</span>;</span><br><span class="line">    <span class="type">int</span> k = <span class="number">-1</span>;  <span class="comment">// 记录上一个的 next</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>; i &lt; needle.<span class="built_in">size</span>(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">while</span> (k != <span class="number">-1</span> &amp;&amp; needle[k + <span class="number">1</span>] != b[i]) </span><br><span class="line">        &#123;</span><br><span class="line">            k = next[k]; </span><br><span class="line">        &#125; </span><br><span class="line">        <span class="keyword">if</span> (needle[k + <span class="number">1</span>] == needle[i])</span><br><span class="line">        &#123; </span><br><span class="line">            ++k;</span><br><span class="line">        &#125; </span><br><span class="line">        next[i] = k;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">KMP</span><span class="params">(string &amp; haystack, string &amp; needle)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> * next = <span class="keyword">new</span> <span class="type">int</span>[needle.<span class="built_in">size</span>()];</span><br><span class="line">    <span class="built_in">GenerteNext</span>(needle, next);</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> j = <span class="number">0</span>;  <span class="comment">// needle 字符串的下标</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; haystack.<span class="built_in">size</span>() - needle.<span class="built_in">size</span>() + <span class="number">1</span>; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 滑动</span></span><br><span class="line">        <span class="keyword">while</span> (j &gt; <span class="number">0</span> &amp;&amp; haystack[i] != needle[j])</span><br><span class="line">        &#123;</span><br><span class="line">             <span class="comment">// 一直找到a[i]和b[j] </span></span><br><span class="line">             j = next[j - <span class="number">1</span>] + <span class="number">1</span>; </span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(haystack[i] == needle[j])</span><br><span class="line">        &#123;</span><br><span class="line">            ++j;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(j == needle.<span class="built_in">size</span>())</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> i - j + <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>空间复杂度是 O(m)，m 表示模式串的长度</p>
+<p>计算 next 数组的时间复杂度是 O(m)，查询部分时间复杂度是 O(n)，n 表示主串长度</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/" class="post-title-link" itemprop="url">并查集</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-02 16:43:13" itemprop="dateCreated datePublished" datetime="2023-04-02T16:43:13+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-16 16:16:46" itemprop="dateModified" datetime="2023-05-16T16:16:46+08:00">2023-05-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>并查集既是一种数据结构，也是一种算法，支持查找和合并两种操作，不支持分割一个集合</p>
+<p>用集合的某个元素来来代表这个集合，这个元素称为集合的代表元，集合内的所有元素组织成以代表元为根的树状结构</p>
+<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/01.png" class="">
+
+<p>对于每个元素都有指针指向其父节点，代表元的父节点是自己</p>
+<h2 id="查找操作"><a href="#查找操作" class="headerlink" title="查找操作"></a>查找操作</h2><p>查找元素所在集合的代表元，在树状结构中向上移动，直到到达根节点</p>
+<h3 id="路径压缩"><a href="#路径压缩" class="headerlink" title="路径压缩"></a>路径压缩</h3><p>每次查找的时候，将查找 x 到代表元路径上的所有点父节点设为根节点，使得查找操作平均时间复杂度为 O(1)</p>
+<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/02.png" class="">
+
+<h2 id="合并操作"><a href="#合并操作" class="headerlink" title="合并操作"></a>合并操作</h2><p>把 x 和 y 所在集合合并，其中将秩低的集合合并至秩高的集合，即总是将较矮的树合并至较高的树</p>
+<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/03.png" class="">
+
+<h2 id="用途"><a href="#用途" class="headerlink" title="用途"></a>用途</h2><ul>
+<li>维护无向图的连通性，判断两个点是否在同一连通块内，和判断增加一条边是否产生环</li>
+<li>计算有多少个不相交的集合</li>
+</ul>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">UnionFind</span> &#123;</span><br><span class="line"><span class="keyword">private</span> :</span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; parent;  <span class="comment">// 父节点</span></span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; rank;  <span class="comment">// 秩</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">UnionFind</span>(<span class="type">int</span> n) &#123;</span><br><span class="line">        parent = <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n + <span class="number">1</span>);</span><br><span class="line">        rank = <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n + <span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>; i &lt; parent.<span class="built_in">size</span>(); ++i) &#123;</span><br><span class="line">            parent[i] = i;  <span class="comment">// 初始化时每个结点的父节点都是自己</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">Find</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(x != parent[x]) &#123;</span><br><span class="line">            parent[x] = <span class="built_in">Find</span>(parent[x]);  <span class="comment">// 压缩路径</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> parent[x]; </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">Union</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> px = <span class="built_in">Find</span>(x), py = <span class="built_in">Find</span>(y);</span><br><span class="line">        <span class="keyword">if</span>(px == py) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">if</span>(rank[px] &gt; rank[py]) parent[py] = px;</span><br><span class="line">        <span class="keyword">if</span>(rank[px] &lt; rank[py]) parent[px] = py;</span><br><span class="line">        <span class="keyword">if</span>(rank[px] == rank[py]) &#123;</span><br><span class="line">            parent[py] = px;</span><br><span class="line">            rank[px]++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +485,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
+      <time title="修改时间：2023-05-16 16:16:46" itemprop="dateModified" datetime="2023-05-16T16:16:46+08:00">2023-05-16</time>
     </span>
 
   
@@ -299,7 +589,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-15 20:32:01" itemprop="dateModified" datetime="2023-05-15T20:32:01+08:00">2023-05-15</time>
+      <time title="修改时间：2023-05-16 16:16:46" itemprop="dateModified" datetime="2023-05-16T16:16:46+08:00">2023-05-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -396,7 +686,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-15 20:32:01" itemprop="dateModified" datetime="2023-05-15T20:32:01+08:00">2023-05-15</time>
+      <time title="修改时间：2023-05-16 16:16:46" itemprop="dateModified" datetime="2023-05-16T16:16:46+08:00">2023-05-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -515,7 +805,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-15 20:32:01" itemprop="dateModified" datetime="2023-05-15T20:32:01+08:00">2023-05-15</time>
+      <time title="修改时间：2023-05-16 16:16:46" itemprop="dateModified" datetime="2023-05-16T16:16:46+08:00">2023-05-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -669,7 +959,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-15 20:32:01" itemprop="dateModified" datetime="2023-05-15T20:32:01+08:00">2023-05-15</time>
+      <time title="修改时间：2023-05-16 16:16:46" itemprop="dateModified" datetime="2023-05-16T16:16:46+08:00">2023-05-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -767,7 +1057,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
+      <time title="修改时间：2023-05-16 16:16:46" itemprop="dateModified" datetime="2023-05-16T16:16:46+08:00">2023-05-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -863,7 +1153,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
+      <time title="修改时间：2023-05-16 16:16:46" itemprop="dateModified" datetime="2023-05-16T16:16:46+08:00">2023-05-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -960,7 +1250,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
+      <time title="修改时间：2023-05-16 16:16:46" itemprop="dateModified" datetime="2023-05-16T16:16:46+08:00">2023-05-16</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1059,237 +1349,6 @@
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 有两个相交点，各自的环入口节点即为各自第一次相交的节点</span></span><br></pre></td></tr></table></figure>
 
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%A0%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%A0%86/" class="post-title-link" itemprop="url">堆</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 16:21:33" itemprop="dateCreated datePublished" datetime="2023-04-02T16:21:33+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="堆和堆排序"><a href="#堆和堆排序" class="headerlink" title="堆和堆排序"></a>堆和堆排序</h1><p>堆排序是一种原地的、时间复杂度 O(nlogn)、非稳定的排序</p>
-<p>堆是一种特殊的树</p>
-<ol>
-<li><p>堆是一个完全二叉树；除了最后一层，其他层的节点个数都是满的，最后一层的节点都靠左排列</p>
-</li>
-<li><p>堆中每一个节点的值都大于等于（或小于等于）其子树中每个节点的值；每个节点的值都大于等于子树中每个节点值的堆为“大顶堆”，每个节点都小于等于子节点的堆为“小顶堆”</p>
-</li>
-</ol>
-<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>完全二叉树比较适合用数组来存储，不需要存储左右节点的指针，单纯通过数组的下标就可以找到一个节点的左右子节点和父节点<br>数组下标为 i 的节点，左子节点下标为 2 * i，右子节点下标为 2 * i + 1，父节点下标为 i &#x2F; 2</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%A0%86/01.jpg" class="">
-
-<h3 id="插入"><a href="#插入" class="headerlink" title="插入"></a>插入</h3><p>往堆中插入一个元素后，需要进行调整让其满足堆的特性，叫做堆化</p>
-<p>顺着节点所在路径向上或向下，对比然后交换</p>
-<p>从下往上的堆化：</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%A0%86/02.jpg" class="">
-
-<h3 id="删除堆顶元素"><a href="#删除堆顶元素" class="headerlink" title="删除堆顶元素"></a>删除堆顶元素</h3><p>把最后一个节点放到堆顶，然后利用父子节点对比方法，互换两个节点，直到父子节点之间满足大小关系为止</p>
-<p>从上往下的堆化：</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%A0%86/03.jpg" class="">
-
-<h3 id="复杂度"><a href="#复杂度" class="headerlink" title="复杂度"></a>复杂度</h3><p>堆化的时间复杂度 O(logn)，插入和删除堆顶元素的主要逻辑是堆化所以时间复杂度也是 O(logn)</p>
-<p>堆排序的建堆过程时间复杂度 O(n)</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">heap</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	vector&lt;<span class="type">int</span>&gt; h;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="built_in">heap</span>() : <span class="built_in">h</span>(<span class="number">1</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(<span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">		h.<span class="built_in">push_back</span>(n);</span><br><span class="line">		<span class="type">int</span> pos = h.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br><span class="line">		<span class="keyword">while</span> (pos / <span class="number">2</span> &gt; <span class="number">0</span>) &#123;</span><br><span class="line">			<span class="keyword">if</span> (h[pos] &gt; h[pos / <span class="number">2</span>]) <span class="built_in">swap</span>(h[pos], h[pos / <span class="number">2</span>]);</span><br><span class="line">			pos /= <span class="number">2</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">pop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="type">int</span> pos = h.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br><span class="line">		<span class="built_in">swap</span>(h[pos], h[<span class="number">1</span>]);</span><br><span class="line">		h.<span class="built_in">pop_back</span>();</span><br><span class="line">		pos = <span class="number">1</span>;</span><br><span class="line">		<span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">			<span class="keyword">if</span> (<span class="number">2</span> * pos &gt;= h.<span class="built_in">size</span>()) &#123;</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> <span class="keyword">if</span> (<span class="number">2</span> * pos + <span class="number">1</span> &gt;= h.<span class="built_in">size</span>()) &#123;</span><br><span class="line">				<span class="keyword">if</span> (h[pos] &lt; h[pos * <span class="number">2</span>]) &#123;</span><br><span class="line">					<span class="built_in">swap</span>(h[pos], h[<span class="number">2</span> * pos]);</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> &#123;</span><br><span class="line">				<span class="keyword">if</span> (h[<span class="number">2</span> * pos] &gt; h[<span class="number">2</span> * pos + <span class="number">1</span>]) &#123;</span><br><span class="line">					<span class="keyword">if</span> (h[pos] &lt; h[<span class="number">2</span> * pos]) &#123;</span><br><span class="line">						<span class="built_in">swap</span>(h[pos], h[<span class="number">2</span> * pos]);</span><br><span class="line">						pos = <span class="number">2</span> * pos;</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span> <span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">else</span> &#123;</span><br><span class="line">					<span class="keyword">if</span> (h[pos] &lt; h[<span class="number">2</span> * pos + <span class="number">1</span>]) &#123;</span><br><span class="line">						<span class="built_in">swap</span>(h[pos], h[<span class="number">2</span> * pos + <span class="number">1</span>]);</span><br><span class="line">						pos = <span class="number">2</span> * pos + <span class="number">1</span>;</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">else</span> <span class="keyword">break</span>;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/" class="post-title-link" itemprop="url">哈希表</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 16:19:24" itemprop="dateCreated datePublished" datetime="2023-04-02T16:19:24+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-15 20:32:00" itemprop="dateModified" datetime="2023-05-15T20:32:00+08:00">2023-05-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>哈希表用的是数组支持按照下标随机访问数据特性，所以哈希表其实就是数组的一种扩展，由数组演化而来</p>
-<p>数组存储的值与数组下标形成映射，所以利用数组支持根据下标随机访问时间复杂度 O(1) 的特性，可以快速查找</p>
-<p>存储的值为哈希键（key）<br>将哈希键转换为数组下标的映射方法为哈希函数（hash function），得到的值为哈希值（value)</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/01.png" class="">
-
-<p>我们通过哈希函数把元素的键值映射为下标，然后将数据存储在数组中对应下标的位置</p>
-<p>当我们按照键值查询数据时，可以用同样的哈希函数将键值转化为数组下标，从对应的数组下标的位置获取数据</p>
-<h2 id="哈希函数"><a href="#哈希函数" class="headerlink" title="哈希函数"></a>哈希函数</h2><p>把它定义成 hash(key)，key 表示元素的键值，经过哈希函数计算得到哈希值</p>
-<p>哈希函数设计的基本要求：</p>
-<ul>
-<li><p>哈希函数计算得到的哈希值是一个非负整数；因为数组下标从 0 开始，所以散列值必须是非负整数</p>
-</li>
-<li><p>如果 key1 &#x3D; key2，那 hash(key1) &#x3D;&#x3D; hash(key2)；相同的 key，经过哈希函数得到的值也应该相同</p>
-</li>
-<li><p>如果 key1 !&#x3D; key2，那 hash(key1) !&#x3D; hash(key2)；无法避免哈希冲突</p>
-</li>
-</ul>
-<h2 id="哈希冲突"><a href="#哈希冲突" class="headerlink" title="哈希冲突"></a>哈希冲突</h2><p>再好的哈希函数也无法避免哈希冲突，常用开放寻址法和链表法来解决</p>
-<h3 id="开放寻址法"><a href="#开放寻址法" class="headerlink" title="开放寻址法"></a>开放寻址法</h3><p>核心思想是如果出现了哈希冲突，我们就重新探测一个空闲位置将其插入；插入方法有：线性探测、二次探测和双重哈希</p>
-<ol>
-<li>线性探测：当我们往哈希表中插入数据时，如果某个数据经过哈希函数之后，存储位置已经被占用了，我们就从当前位置开始，依次往后查找，看是否有空闲位置，直到找到为止</li>
-</ol>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/02.png" class="">
-<p>从图中可以看出，哈希表大小为 10，已经有 6 个元素插入到哈希表中；x 经过哈希函数得到哈希值 7，但这个位置已经有数据了，所以产生了冲突；我们按顺序一个一个往后找，看有没有空闲位置，遍历到尾部都没有找到空闲位置，于是再从表头开始找，直到找到空位 2，于是将其值插入到这个位置</p>
-<p>在哈希表中查找元素的过程类似于插入过程；我们通过哈希函数求出查找元素的键值对应的哈希值，然后比较数组中下标为哈希值的元素和要查找的元素；如果相等，说明是要查找的元素，如果不是，则按顺序往后依次查找，如果遍历到数组中的空位位置，还没找到，则说明查找到的元素不在哈希表中</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/03.png" class="">
-
-<p>哈希表跟数组一样，不仅支持插入、查找，还支持删除，对于使用线性探测的哈希表，删除操作有些不同，不能单纯地把要删除的元素设置为空，因为在查找的时候，我们通过找到一个空闲位置来判定数据在不在哈希表中，如果这个空闲位置是我们后来删除的，就会导致原来的查找算法失败，本来存在数据会被认为不存在；为解决这个问题，我们可以将删除的元素特殊标记为 deleteed，当线性探测查找的时候，遇到标记为 deleted 的空间，并不停下来而是继续探测</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%93%88%E5%B8%8C%E8%A1%A8/04.png" class="">
-<p>线性探测存在很大的问题，当散列表插入的数据越来越多时，哈希冲突发生的可能性就越来越大，空闲位置会越来越少，线性探测的时间就会越来越久；极端情况下可能需要探测整个哈希表，所以最坏的时间复杂度是 O(n)；同理，删除和查找时也有可能会线性探测整张哈希表才能查找或删除数据</p>
-<ol start="2">
-<li>二次探测：线性探测每次探测的步长是 1，二次探测步长是线性探测的二次方</li>
-</ol>
-<p>线性探测的下标序列：hash(key)+0、hash(key)+1、hash(key)+2、…</p>
-<p>二次探测的下标序列是：hash(key)+0^2、hash(key)+1^2、hash(key)+2^2、…</p>
-<ol start="3">
-<li>双重哈希：我们先用一个哈希函数，如果计算得到的存储位置被占用，再用第二个哈希函数，以此类推直到找到空闲的存储位置</li>
-</ol>
-<h3 id="链表法"><a href="#链表法" class="headerlink" title="链表法"></a>链表法</h3><p>在每一个表格元素中维护一个 <code>list</code>，哈希函数为元素分配一个 <code>list</code>，然后在 <code>list</code> 上执行元素的插入、搜寻、删除等操作</p>
-<p>使用链表法，装载因子将大于 1</p>
-<p>但不管采用哪种探测方法，当哈希表中位置不多时，哈希冲突的概率大大提高；为了保证哈希表的操作效率，一般情况下尽可能保证哈希表中有一定比例的空闲槽位，用装载因子来表示空位的多少</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">装载因子 = 填入表中的元素个数 / 散列表长度</span><br></pre></td></tr></table></figure>
       
     </div>
 
