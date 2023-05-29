@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">307</span>
+          <span class="site-state-item-count">308</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,109 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-xargs/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-xargs/" class="post-title-link" itemprop="url">xargs</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-25 10:29:29" itemprop="dateCreated datePublished" datetime="2023-04-25T10:29:29+08:00">2023-04-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>管道实现的是将前面的 stdout 作为后面的 stdin，但是有些命令不接受管道的传递方式，最常见的就是 <code>ls</code> 命令</p>
+<p>有些时候命令希望管道传递的是参数，但是直接用管道有时无法传递到命令的参数位，这时候需要 <code>xargs</code></p>
+<p><code>xargs</code> 实现的是将管道传输过来的 stdin 进行处理然后传递到命令的参数位上</p>
+<p>还可以将 stdin 或者文件 stdin 分割成批，每个批中有很多分割片段，然后将这些片段按批交给 <code>xargs</code> 后面的命令进行处理</p>
+<h2 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h2><p><code>xargs</code> 处理的顺序是先分割，再分批，然后传递到参数位</p>
+<p><code>xargs</code> 中将符号分成两类：文本意义上的空格、制表符、反斜线、引号和非文本意义上的符号</p>
+<ul>
+<li><p>文本意义上的空格、制表符、反斜线、引号是未经处理就已经存在的符号，例如文本的内容中出现这些符号以及在文件名上出现了这些符号都是文本意义上的</p>
+</li>
+<li><p>非文本意义的符号，是处理后出现的符号，例如 <code>ls</code> 命令的结果中每个文件之间的制表符，它原本是不存在的，只是 <code>ls</code> 命令处理后的显示方式</p>
+</li>
+</ul>
+<p><code>xargs</code> 将管道传递过来的 stdin 内容的所有用来分割的空格、制表符和分行符都替换为空格并压缩到一行，这个整体可能直接交给命令或者作为 stdout 通过管道传递给管道右边的命令</p>
+<img src="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-xargs/01.png" class="">
+
+<p>这时结果将作为整体传递，也可能被 <code>xargs</code> 同时指定的分批选项分批处理</p>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>不指定命令时默认的命令是 <code>echo</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">xargs [-0oprt] [-E eofstr] [-I replstr [-R replacements] [-S replsize]]</span><br><span class="line">           [-J replstr] [-L number] [-n number [-x]] [-P maxprocs] [-s size]</span><br><span class="line">           [utility [argument ...]]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 分割方式</span></span><br><span class="line">-0 使用 `\0` 作为分段符</span><br><span class="line">-d 指定分段符，可以是单个符号、字母或数字，如 xargs -d <span class="string">&quot;o&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 分批方式</span></span><br><span class="line">-n 指定每行将多少项，作为命令行参数，分割时会使用文本意义分隔符</span><br><span class="line">-L 指定每行将多少项，作为命令行参数，分割时不会使用文本意义分隔符</span><br><span class="line"></span><br><span class="line">-p 打印出要执行的命令，询问用户是否要执行</span><br><span class="line">-t 打印出最终要执行的命令，然后直接执行，不需要用户确认</span><br><span class="line"></span><br><span class="line">-i 以大括号 &#123;&#125; 作为替换符号</span><br><span class="line">-I 指定每一项命令行参数的替代字符串</span><br><span class="line"></span><br><span class="line">-e 解释转义字符</span><br><span class="line">-P 并行处理</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +298,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -322,7 +425,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
 
   
@@ -415,7 +518,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -538,7 +641,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -667,7 +770,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -794,7 +897,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -933,7 +1036,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1034,7 +1137,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1193,7 +1296,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1236,154 +1339,6 @@
 <h2 id="措施"><a href="#措施" class="headerlink" title="措施"></a>措施</h2><p>当 Redis 发生内存碎片后，一个简单粗暴的方法就是重启 Redis 实例，但容易发生数据丢失，又由于数据恢复，会有一段时间无法提供服务</p>
 <p>Redis 自身提供了一种内存碎片自动清理的方法：当有数据把一块连续的内存空间分割成好几块不连续的空间时，操作系统就会把数据拷贝到别处；数据拷贝需要能把这些数据原来占用的空间都空出来，把原本不连续的内存空间变成连续的空间</p>
 <p>碎片清理是有代价的，操作系统需要把多份数据拷贝到新位置，把原有空间释放出来，这会带来时间开销；在数据拷贝时，Redis 无法及时处理请求，性能就会降低</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" class="post-title-link" itemprop="url">主从同步</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-20 20:57:16" itemprop="dateCreated datePublished" datetime="2023-04-20T20:57:16+08:00">2023-04-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Redis 具有高可靠性：数据尽量少丢失（RDB、AOF）、服务尽量少中断（master、slave）</p>
-<p>Redis 提供了主从库模式，以保证数据副本的一致，主从库之间采用的是读写分离的方式</p>
-<ul>
-<li><p>读操作：主库、从库都可以接收</p>
-</li>
-<li><p>写操作：首先到主库执行，然后主库将写操作同步给从库</p>
-</li>
-</ul>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/01.png" class="">
-
-<h2 id="主从库第一次同步"><a href="#主从库第一次同步" class="headerlink" title="主从库第一次同步"></a>主从库第一次同步</h2><p>当启动多个 Redis 实例的时候，它们相互之间就可以通过 replicaof 命令形成主库和从库的关系，之后会按照三个阶段完成数据的第一次同步；执行 replicaof 的实例为从库</p>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/02.png" class="">
-
-<ol>
-<li><p>第一阶段是主从库间建立连接、协商同步的过程，主要是为全量复制做准备；从库和主库建立起连接，并告诉主库即将进行同步，主库确认回复后，主从库间就可以开始同步了；从库给主库发送 psync 命令，表示要进行数据同步，主库根据这个命令的参数来启动复制；psync 命令包含了主库的 runID 和复制进度 offset 两个参数；runID 是每个 Redis 实例启动时都会自动生成的一个随机 ID，用来唯一标记这个实例；当从库和主库第一次复制时，因为不知道主库的 runID，所以将 runID 设为 <code>?</code>；offset 设为 -1，表示第一次复制</p>
-</li>
-<li><p>主库收到 psync 命令后，会用 FULLRESYNC 响应命令带上两个参数：主库 runID 和主库目前的复制进度 offset，返回给从库；从库收到响应后，会记录下这两个参数；FULLRESYNC 响应表示第一次复制采用的全量复制，主库会把当前所有的数据都复制给从库；主库将所有数据同步给从库，从库收到数据后，在本地完成数据加载，这个过程依赖于内存快照生成的 RDB 文件；主库执行 bgsave 命令，生成 RDB 文件，接着将文件发给从库；从库接收到 RDB 文件后，会先清空当前数据库，然后加载 RDB 文件；在主库将数据同步给从库的过程中，主库不会被阻塞，仍然可以正常接收请求；请求中的写操作并没有记录到刚刚生成的 RDB 文件中，为了保证主从库的数据一致性，主库会在内存中用专门的 replication buffer，记录 RDB 文件生成后收到的所有写操作</p>
-</li>
-<li><p>主库会把第二阶段执行过程中新收到的写命令，再发送给从库；当主库完成 RDB 文件发送后，就会把此时 replication buffer 中的修改操作发给从库，从库再重新执行这些操作</p>
-</li>
-</ol>
-<h2 id="主从级联模型"><a href="#主从级联模型" class="headerlink" title="主从级联模型"></a>主从级联模型</h2><p>主从库间第一次数据同步的过程中，对于主库来说，需要完成两个耗时的操作：生成 RDB 文件和传输 RDB 文件</p>
-<p>如果从库数量很多，而且都要和主库进行全量复制的话，就会导致主库忙于 fork 子进程生成 RDB 文件，进行数据全量同步</p>
-<p>fork 这个操作会阻塞主线程处理正常请求，从而导致主库响应应用程序的请求速度变慢</p>
-<p>传输 RDB 文件也会占用主库的网络带宽，同样会给主库的资源使用带来压力</p>
-<p>通过主从级联模式（主-从-从）将主库生成 RDB 和传输 RDB 的压力，以级联的方式分散到从库上</p>
-<p>在部署主从集群的时候，可以手动选择一个从库，用于级联其他的从库；再选择一些从库执行 replicaof，让它们和刚才所选的从库，建立起主从关系</p>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/03.png" class="">
-
-<h2 id="主从网络连接"><a href="#主从网络连接" class="headerlink" title="主从网络连接"></a>主从网络连接</h2><p>一旦主从库完成了全量复制，它们之间就会一直维护一个网络连接，主库会通过这个连接将后续陆续收到的命令操作再同步给从库，这个过程也称为基于长连接的命令传播，可以避免频繁建立连接的开销</p>
-<p>网络断了之后，主从库会采用增量复制的方式继续同步，只会把主从库网络断连期间主库收到的命令，同步给从库</p>
-<p>当主从库断连后，主库会把断连期间收到的写操作命令，写入 replication buffer，同时也会把这些操作命令也写入 repl_backlog_buffer 缓冲区</p>
-<p>repl_backlog_buffer 是一个环形缓冲区，主库会记录自己写到的位置，从库则会记录自己已经读到的位置</p>
-<p>刚开始的时候，主库和从库的写读位置在一起，是它们的起始位置；随着主库不断接收新的写操作，它在缓冲区中的写位置会逐步偏离起始位置，对主库来说对应的偏移量就是 master_repl_offset，主库接收的新写操作越多，这个值就会越大；从库在复制完写操作命令后，它在缓冲区中的读位置也开始逐步偏移刚才的起始位置，从库已复制的偏移量 slave_repl_offset 也在不断增加；正常情况下，这两个偏移量基本相等</p>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/04.png" class="">
-
-<p>在网络断连阶段，主库可能会收到新的写操作命令，所以，一般来说，master_repl_offset 会大于 slave_repl_offset；主库只用把 master_repl_offset 和 slave_repl_offset 之间的命令操作同步给从库就行</p>
-<p>主从库的连接恢复之后，从库首先会给主库发送 psync 命令，并把自己当前的 slave_repl_offset 发给主库，主库会判断自己的 master_repl_offset 和 slave_repl_offset 之间的差距</p>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/05.png" class="">
-
-<p>因为 repl_backlog_buffer 是一个环形缓冲区，所以在缓冲区写满后，主库会继续写入，此时，就会覆盖掉之前写入的操作；如果从库的读取速度比较慢，就有可能导致从库还未读取的操作被主库新写的操作覆盖了，这会导致主从库间的数据不一致</p>
-<p>可以调整 repl_backlog_size 这个参数</p>
-<h2 id="主从数据一致性"><a href="#主从数据一致性" class="headerlink" title="主从数据一致性"></a>主从数据一致性</h2><p>主从数据不一致是指客户端从从库中读取到的值和主库中的最新值并不一致，因为主从库间的命令复制是异步进行的</p>
-<p>在主从库命令传播阶段，主库收到新的写命令后，会发送给从库。但是，主库并不会等到从库实际执行完命令后，再把结果返回给客户端，而是主库自己在本地执行完命令后，就会向客户端返回结果了。如果从库还没有执行主库同步过来的命令，主从库间的数据就不一致了</p>
-<p>一方面，主从库间的网络可能会有传输延迟，所以从库不能及时地收到主库发送的命令，从库上执行同步命令的时间就会被延后；一方面，即使从库及时收到了主库的命令，但是，也可能会因为正在处理其它复杂度高的命令（例如集合操作命令）而阻塞</p>
-<p>解决方案：</p>
-<ol>
-<li><p>在硬件环境配置方面，我们要尽量保证主从库间的网络连接状况良好，避免把主从库部署在不同的机房</p>
-</li>
-<li><p>开发一个外部程序来监控主从库间的复制进度；Redis 的 INFO replication 命令可以查看主库接收写命令的进度信息（master_repl_offset）和从库复制写命令的进度信息（slave_repl_offset），如果某个从库的进度差值大于预设的阈值，可以让客户端不再和这个从库连接进行数据读取，这样就可以减少读到不一致数据的情况</p>
-</li>
-</ol>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/06.png" class="">
-
-<h2 id="从数据库读取过期数据"><a href="#从数据库读取过期数据" class="headerlink" title="从数据库读取过期数据"></a>从数据库读取过期数据</h2><p>Redis 同时使用了两种策略来删除过期的数据，分别是惰性删除策略和定期删除策略</p>
-<p>惰性删除策略：当一个数据的过期时间到了以后，并不会立即删除数据，而是等到再有请求来读写这个数据时，对数据进行检查，如果发现数据已经过期了，再删除这个数据；减少删除操作对 CPU 资源的使用，对于用不到的数据，就不再浪费时间进行检查和删除；导致大量已经过期的数据留存在内存中，占用较多的内存资源</p>
-<p>定期删除策略：每隔一段时间（默认 100ms），就会随机选出一定数量的数据，检查它们是否过期，并把其中过期的数据删除，这样就可以及时释放一些内存</p>
-<p>虽然定期删除策略可以释放一些内存，但是 Redis 为了避免过多删除操作对性能产生影响，每次随机检查数据的数量并不多</p>
-<p>惰性删除策略中，如果客户端从主库上读取留存的过期数据，主库会触发删除操作，客户端并不会读到过期数据；从库本身不会执行删除操作，如果客户端在从库中访问留存的过期数据，从库并不会触发数据删除，会返回空值</p>
-<p>同时，Redis 用于设置过期时间的命令在从库上可能会被延后，导致应该过期的数据又在从库上被读取到；设置数据过期时间的命令一共有 4 个，EXPIRE 和 PEXPIRE 给数据设置的是从命令执行时开始计算的存活时间，EXPIREAT 和 PEXPIREAT 会直接把数据的过期时间设置为具体的一个时间点</p>
-<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/07.png" class="">
-
-<p>当主从库全量同步时，如果主库接收到了一条 EXPIRE 命令，那么，主库会直接执行这条命令。这条命令会在全量同步完成后，发给从库执行。而从库在执行时，就会在当前时间的基础上加上数据的存活时间，这样一来，从库上数据的过期时间就会比主库上延后了</p>
-<p>在业务应用中使用 EXPIREAT&#x2F;PEXPIREAT 命令，把数据的过期时间设置为具体的时间点，避免读到过期数据，同时主从节点上的时钟要保持一致</p>
 
       
     </div>

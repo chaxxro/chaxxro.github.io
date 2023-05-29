@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">307</span>
+          <span class="site-state-item-count">308</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,118 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E8%A1%A8%E6%95%B0%E6%8D%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/09/MySql-%E8%A1%A8%E6%95%B0%E6%8D%AE/" class="post-title-link" itemprop="url">表数据</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-09 15:16:54" itemprop="dateCreated datePublished" datetime="2023-04-09T15:16:54+08:00">2023-04-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>一个 InnoDB 表包含表结构定义和数据</p>
+<p>每个 InnoDB 表数据存储在一个以 .ibd 为后缀的文件中</p>
+<p>一个表单独存储为一个文件更容易管理，在不需要这个表时通过 drop table 命令，系统就会直接删除这个文件</p>
+<h2 id="数据删除流程"><a href="#数据删除流程" class="headerlink" title="数据删除流程"></a>数据删除流程</h2><p>删除某行数据时，InnoDB 引擎只会把记录标记为删除，之后要再插入一个记录时，可能会复用这个位置，磁盘文件的大小并不会因为删除而缩小</p>
+<p>同理，删掉一个数据页上的所有记录，整个数据页都可以被复用</p>
+<p>但是，数据页的复用跟记录的复用是不同的。记录的复用，只限于符合范围条件的数据，而当整个页从 B+ 树里面摘掉以后，可以复用到任何位置</p>
+<p>如果相邻的两个数据页利用率都很小，系统就会把这两个页上的数据合到其中一个页上，另外一个数据页就被标记为可复用</p>
+<p>如果用 delete 命令把整个表的数据删除，所有的数据页都会被标记为可复用，但是磁盘上文件不会变小</p>
+<p>不止是删除数据会造成空洞，插入数据也会；如果数据是按照索引递增顺序插入的，那么索引是紧凑的。但如果数据是随机插入的，就可能造成索引的数据页分裂</p>
+<img src="/2023/04/09/MySql-%E8%A1%A8%E6%95%B0%E6%8D%AE/01.png" class="">
+
+<p>更新索引上的值，可以理解为删除一个旧的值，再插入一个新值</p>
+<h2 id="重建表"><a href="#重建表" class="headerlink" title="重建表"></a>重建表</h2><p>经过大量增删改的表，都是可能是存在空洞的。所以，如果能够把这些空洞去掉，就能达到收缩表空间的目的</p>
+<p>可以使用 alter table A engine&#x3D;InnoDB 命令来重建表，该命令执行流程为新建一个与表 A 结构相同的表 B，然后按照主键 ID 递增的顺序，把数据一行一行地从表 A 里读出来再插入到表 B 中；这个临时表 B 不需要手动创建，MySQL 会自动完成转存数据、交换表名、删除旧表的操作；数据搬运过程中，有新的数据要写入到表 A 的话，就会造成数据丢失</p>
+<p>MySQL 5.6 版本开始引入的 Online DDL，对这个操作流程做了优化</p>
+<ol>
+<li><p>建立一个临时文件，扫描表 A 主键的所有数据页</p>
+</li>
+<li><p>用数据页中表 A 的记录生成 B+ 树，存储到临时文件中</p>
+</li>
+<li><p>生成临时文件的过程中，将所有对 A 的操作记录在一个日志文件（row log）中，对应的是图中 state2 的状态</p>
+</li>
+<li><p>临时文件生成后，将日志文件中的操作应用到临时文件，得到一个逻辑数据上与表 A 相同的数据文件</p>
+</li>
+<li><p>用临时文件替换表 A 的数据文件</p>
+</li>
+</ol>
+<p>由于日志文件记录和重放操作这个功能的存在，这个方案在重建表的过程中，允许对表 A 做增删改操作</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +307,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -287,7 +399,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -476,7 +588,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -620,7 +732,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -821,7 +933,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
     </span>
 
   
@@ -934,7 +1046,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1113,7 +1225,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1461,7 +1573,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1572,7 +1684,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:17" itemprop="dateModified" datetime="2023-05-26T19:35:17+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:49" itemprop="dateModified" datetime="2023-05-29T19:17:49+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1621,107 +1733,6 @@
 <p><code>count(1)</code> 执行得要比 <code>count(主键 id)</code> 快。因为从引擎返回 id 会涉及到解析数据行，以及拷贝字段值的操作</p>
 <p>按照效率排序的话，<code>count(字段)</code> &lt; <code>count(主键 id)</code> &lt; <code>count(1)</code> ≈ <code>count(*)</code>，所以建议尽量使用 <code>count(*)</code></p>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/gcc-%E5%B1%9E%E6%80%A7%E8%AE%BE%E7%BD%AE/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/gcc-%E5%B1%9E%E6%80%A7%E8%AE%BE%E7%BD%AE/" class="post-title-link" itemprop="url">属性设置</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 23:17:37" itemprop="dateCreated datePublished" datetime="2023-04-02T23:17:37+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/gcc/" itemprop="url" rel="index"><span itemprop="name">gcc</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><code>__attribute__</code> 可以设置函数属性、变量属性和类型属性</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">__attribute__ ((attribute-<span class="built_in">list</span>))</span><br></pre></td></tr></table></figure>
-<h2 id="aligned"><a href="#aligned" class="headerlink" title="aligned"></a>aligned</h2><p>设定一个指定大小的对齐格式，以字节为单位</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 指定以 8 字节对齐</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">S</span> &#123;</span></span><br><span class="line">    <span class="type">short</span> b[<span class="number">3</span>];</span><br><span class="line">&#125; __attribute__ ((aligned (<span class="number">8</span>)));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 指定以最优方式对齐</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">S</span> &#123;</span></span><br><span class="line">    <span class="type">short</span> b[<span class="number">3</span>];</span><br><span class="line">&#125; __attribute__ ((aligned));</span><br></pre></td></tr></table></figure>
-
-<p><code>aligned</code> 属性使被设置的对象占用更多的空间</p>
-<h2 id="packed"><a href="#packed" class="headerlink" title="packed"></a>packed</h2><p>取消内存对齐，采用紧密分布方式</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">x</span> &#123;</span></span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">    <span class="type">char</span> b;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">p</span> <span class="title">px</span>;</span></span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">&#125; __attribute__ ((packed))</span><br></pre></td></tr></table></figure>
-
-<p><code>packed</code> 可以减小对象占用的空间</p>
-<h2 id="format"><a href="#format" class="headerlink" title="format"></a>format</h2><p>指定一个函数比如 <code>printf</code> 或 <code>scanf</code>作为参数，使编译器检查函数声明和函数实际调用参数之间的格式化字符串是否匹配</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">format (archetype, <span class="built_in">string</span>-index, first-to-check)</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="type">int</span> <span class="title function_">my_printf</span> <span class="params">(<span class="type">void</span> *my_object, <span class="type">const</span> <span class="type">char</span> *my_format, ...)</span> __<span class="title function_">attribute__</span><span class="params">((format(<span class="built_in">printf</span>, <span class="number">2</span>, <span class="number">3</span>)))</span>;</span><br></pre></td></tr></table></figure>
-
-<p><code>string-index</code> 指定传入函数的第几个参数是格式化字符串</p>
-<p><code>first-to-check</code> 指定从函数的第几个参数开始按上述规则进行检查</p>
-<p>当函数是成员函数时，由于编译器会添加 <code>this</code> 指针，所以 <code>first-to-check</code> 需要后移一位</p>
-<h2 id="noreturn"><a href="#noreturn" class="headerlink" title="noreturn"></a>noreturn</h2><p>通知编译器函数从不返回值，当遇到类似函数需要返回值而却不可能运行到返回值处就已经退出来的情况，该属性可以避免出现错误信息</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">exit</span><span class="params">(<span class="type">int</span>)</span> __<span class="title function_">attribute__</span><span class="params">((<span class="keyword">noreturn</span>))</span>;</span><br></pre></td></tr></table></figure>
       
     </div>
 

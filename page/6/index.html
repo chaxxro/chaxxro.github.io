@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">307</span>
+          <span class="site-state-item-count">308</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,119 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-connect/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-connect/" class="post-title-link" itemprop="url">connect</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 20:48:24" itemprop="dateCreated datePublished" datetime="2023-04-26T20:48:24+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>客户端通过调用 <code>connect()</code>函数来建立与 TCP 服务器的连接</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">connect</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">const</span> <span class="keyword">struct</span> sockaddr *addr, <span class="type">socklen_t</span> addrlen)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">addr：服务器的 socket 地址</span></span><br><span class="line"><span class="comment">addrlen：socket 地址的长度</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>当 <code>connect</code> 函数成功返回后，表明 tcp 的三次握手连接已完成，此时 <code>accept</code> 函数获取到一个客户端连接并返回</p>
+<p>当服务端 syn 队列已满时，新客户端连接的 syn 包会被忽略，但是服务端并不会发送 RST 报文，原因是客户端可以重传 SYN，并期望在超时前未决连接队列找到空位与服务端建立连接</p>
+<h2 id="返回失败"><a href="#返回失败" class="headerlink" title="返回失败"></a>返回失败</h2><ul>
+<li><p>当客户端发送了 SYN 报文后，没有收到确认则返回 <code>ETIMEDOUT</code> 错误；失败一次并不会马上返回 <code>ETIMEDOUT</code> 错误，没有收到确认就等 6s 后再发一个 SYN 报文，还没有收到就等 24s 再发一个，时间是累加的，如果总共等了 75s 后还是没收到确认，那么客户端将返回  <code>ETIMEDOUT</code> 错误</p>
+</li>
+<li><p>客户端连接一个服务器没有侦听的端口，客户端发送了一个 SYN 报文后，然后服务端回复了一个 RST 报文，<code>connect</code> 立即返回 <code>  ECONNREFUSED</code></p>
+</li>
+<li><p>客户端调用 <code>connect</code> 函数向服务端发送了一个 SYN 报文，这个 SYN 报文在网络传输过程中经过某个路由器时，正好这个路由器出问题了，缺少到达目的地的路由，不能把这个 SYN 报文转发给目的地址，那么该路由器会丢弃这个 SYN 报文，并同时给客户端发送一个主机不可达的 ICMP 差错报文，客户端返回 <code>EHOSTUNREACH</code>或 <code>ENETUNREACH</code> 错误</p>
+</li>
+</ul>
+<h2 id="UDP-使用-connect"><a href="#UDP-使用-connect" class="headerlink" title="UDP 使用 connect"></a>UDP 使用 connect</h2><p>UDP <code>connect</code> 函数的调用，并不会引起和服务器目标端的网络交互，但能够接收对端异步错误的信息</p>
+<p>通过对 UDP 套接字进行 <code>connect</code> 操作，将 UDP 套接字建立了上下文，该套接字和服务器端的地址和端口产生了联系，正是这种绑定关系给了操作系统内核必要的信息，能够将操作系统内核收到的信息和对应的套接字进行关联</p>
+<p>当 <code>connect</code> 后调用 <code>sendto</code> 或 <code>send</code>，操作系统开始尝试往对应的地址和端口发送，当对端不可达时，一个 ICMP 报文会返回给操作系统内核，该 ICMP 报文含有目的地址和端口等信息，从而操作系统可以将错误信息返回给 <code>recv</code> 或 <code>recvfrom</code>，而不是阻塞</p>
+<p>客户端通过 <code>connect</code> 绑定服务端的地址和端口，对 UDP 而言，可以有一定程度的性能提升，因为不用每次发送数据时初始化对端地址</p>
+<h2 id="阻塞和非阻塞模式"><a href="#阻塞和非阻塞模式" class="headerlink" title="阻塞和非阻塞模式"></a>阻塞和非阻塞模式</h2><ul>
+<li><p>阻塞模式时，<code>connect</code> 会阻塞到连接成功</p>
+</li>
+<li><p>非阻塞模式时，对非阻塞 socket 调用 <code>connect</code>，无论连接是否成功都会立即返回；返回 -1，不一定表示连接出错，如果此时错误码是 <code>EINPROGRESS</code>，表示正在尝试连接</p>
+</li>
+<li><p>非阻塞模式 <code>connect</code> 需要搭配非阻塞的 socket</p>
+</li>
+<li><p>在指定的时间内判断该 socket 是否可写，如果可写说明连接成功，反之则认为连接失败</p>
+</li>
+<li><p>用 <code>select</code> 或 <code>poll</code> 函数检测其是否可写时，不仅要用 <code>select</code> 检测可写，还要使用 <code>getsockopt</code> 检测此时 socket 是否出错，通过错误码来检测确定是否连接上，错误码为 0 表示连接上，反之为未连接上</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +308,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -285,7 +398,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -378,7 +491,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -521,7 +634,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -658,7 +771,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -833,7 +946,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -935,7 +1048,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1020,7 +1133,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1375,7 +1488,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
+      <time title="修改时间：2023-05-29 19:17:50" itemprop="dateModified" datetime="2023-05-29T19:17:50+08:00">2023-05-29</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1406,113 +1519,6 @@
 <p>路由器负责不同网段之间的通信，每个与路由器端口相连的网络被称为一个子网或网段，也就是一个广播域</p>
 <p>在路由器中有路由表，通过在网络节点上运行路由协议，记录并更新去往不同网段的路径信息</p>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/" class="post-title-link" itemprop="url">icmp</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 19:42:49" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:49+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-26 19:35:18" itemprop="dateModified" datetime="2023-05-26T19:35:18+08:00">2023-05-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>ping 是基于 ICMP(Internet Control Message Protocol，互联网控制报文协议) 协议工作的</p>
-<h2 id="ICMP"><a href="#ICMP" class="headerlink" title="ICMP"></a>ICMP</h2><p>网络包在复杂的网络传输环境里，常常会遇到各种问题，传出消息，报告遇到了什么问题，这样才可以调整传输策略，以此来控制整个局面</p>
-<p>ICMP 主要的功能包括：确认 IP 包是否成功送达目标地址、报告发送过程中 IP 包被废弃的原因和改善网络设置等</p>
-<p>在 IP 通信中如果某个 IP 包因为某种原因未能达到目标地址，那么这个具体的原因将由 ICMP 负责通知</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/01.png" class="">
-
-<p>ICMP 报文是封装在 IP 包里面，它工作在网络层，是 IP 协议的助手</p>
-<h2 id="PING-过程"><a href="#PING-过程" class="headerlink" title="PING 过程"></a>PING 过程</h2><ul>
-<li><p>主机 A ping 主机 B，A 会先构建一个 ICMP 数据包</p>
-</li>
-<li><p>ICMP 协议将这个数据包连同主机 B 地址一起交给 IP 层，IP 层将以该地址作为目的地址，本机 IP 地址作为源地址，构建一个 IP 数据包</p>
-</li>
-<li><p>加入 MAC 头；如果在本地 ARP 映射表中查找出目标 IP 地址所对应的 MAC 地址，则可以直接使用；如果没有，则需要发送 ARP 协议查询 MAC 地址，获得 MAC 地址后，由数据链路层构建一个数据帧，目的地址是 IP 层传过来的 MAC 地址，源地址则是本机的 MAC 地址</p>
-</li>
-<li><p>主机 B 收到这个数据帧后，先检查它的目的 MAC 地址，并和本机的 MAC 地址对比，如符合，则接收，否则就丢弃</p>
-</li>
-<li><p>将 IP 数据包从帧中提取出来，交给本机的 IP 层；IP 层检查后，将有用的信息提取后交给 ICMP 协议</p>
-</li>
-<li><p>主机 B 会构建一个 ICMP 回送响应消息数据包，然后再发送出去给主机 A</p>
-</li>
-<li><p>在规定的时候间内，源主机如果没有接到 ICMP 的应答包，则说明目标主机不可达；如果接收到了 ICMP 回送响应消息，则说明目标主机可达</p>
-</li>
-</ul>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/02.png" class="">
       
     </div>
 
