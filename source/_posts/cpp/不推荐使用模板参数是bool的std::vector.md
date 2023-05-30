@@ -3,7 +3,7 @@ toc:
   enable: true
   number: false
   max_depth: 3
-title: 不推荐使用 std::vector<bool>
+title: 不推荐使用模板参数是 bool 的 std::vector
 date: 2023-05-15 19:24:18
 tags: cpp
 categories: cpp
