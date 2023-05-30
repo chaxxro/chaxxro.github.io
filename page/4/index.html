@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">310</span>
+          <span class="site-state-item-count">332</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,7 +159,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/11/cpp-pimpl/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/" class="post-title-link" itemprop="url">进程</a>
+          <a href="/2023/05/11/cpp-pimpl/" class="post-title-link" itemprop="url">pimpl</a>
         </h2>
 
         <div class="post-meta-container">
@@ -188,14 +188,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-28 20:47:10" itemprop="dateCreated datePublished" datetime="2023-04-28T20:47:10+08:00">2023-04-28</time>
+      <time title="创建时间：2023-05-11 21:05:04" itemprop="dateCreated datePublished" datetime="2023-05-11T21:05:04+08:00">2023-05-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-29 20:43:21" itemprop="dateModified" datetime="2023-05-29T20:43:21+08:00">2023-05-29</time>
+      <time title="修改时间：2023-05-30 11:50:35" itemprop="dateModified" datetime="2023-05-30T11:50:35+08:00">2023-05-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -203,7 +203,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
         </span>
     </span>
 
@@ -217,180 +217,859 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>进程是对运行时程序的封装，是系统进行资源调度和分配的的基本单位，实现了操作系统的并发</p>
+          <p>对于 cpp 而言，提供库给第三方使用时，都需要提供 .h 等头文件，但头文件中可能会暴露大量成员变量和私有函数</p>
+<p>因此，可以使用 pimpl(Pointer to Implementation) 方法，将内部变量和私有函数隐藏，仅保留对外接口</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 前置声明</span></span><br><span class="line"><span class="comment">// 将所有属于 CSocketClient 的成员变量和私有方法转移到 Impl 中</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Impl</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CScoketClient</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    Impl* m_pImpl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    .</span><br><span class="line">    .</span><br><span class="line">    .</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 由于 Impl 类是辅助类，没必要单独存在</span></span><br><span class="line"><span class="comment">// 所以一般将其定义为内部类，然后在 .cpp 文件中定义 Impl</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CSocketClient</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Impl</span>;</span><br><span class="line">    Impl* m_pImpl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    .</span><br><span class="line">    .</span><br><span class="line">    .</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>pimpl 方法优点：</p>
 <ul>
-<li><p>一个线程只能属于一个进程，而一个进程可以有多个线程，但至少有一个线程，线程依赖于进程而存在</p>
+<li><p>核心数据被隐藏，提高安全性</p>
 </li>
-<li><p>进程在执行过程中拥有独立的内存单元，而多个线程共享进程的内存；资源分配给进程，同一进程的所有线程共享该进程的所有资源，共享代码段（代码和常量），数据段（全局变量和静态变量），扩展段（堆存储）；每个线程拥有自己的栈段，栈段又叫运行时段，用来存放所有局部变量和临时变量</p>
+<li><p>降低了编译依赖，提高编译速度</p>
 </li>
-<li><p>进程是资源分配的最小单位，线程是 CPU 调度的最小单位</p>
-</li>
-<li><p>进程切换的开销远大于线程切换的开销；在创建或撤消进程时，系统都要为之分配或回收资源，因此系统开销远大于创建或撤销线程的开销</p>
-</li>
-<li><p>由于同一进程中的多个线程具有相同的地址空间，致使它们之间的同步和通信可以使用直接读写进程数据段（如全局变量）；进程通信需要使用进程同步和互斥手段来保证数据的一致性</p>
-</li>
-<li><p>进程编程调试简单可靠性高，线程编程调试相对复杂</p>
-</li>
-<li><p>进程间不会相互影响；一个线程挂掉将导致整个进程挂掉</p>
-</li>
-<li><p>进程适应于多核、多机分布，线程适用于多核</p>
+<li><p>接口与实现分离</p>
 </li>
 </ul>
-<h2 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h2><p>在一个进程的基本状态，即创建状态、运行状态、就绪状态、阻塞状态、挂起状态、结束状态</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/01.png" class="">
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/10/cpp-%E7%B1%BB%E5%9E%8B%E8%87%AA%E5%8A%A8%E6%8E%A8%E5%AF%BC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/10/cpp-%E7%B1%BB%E5%9E%8B%E8%87%AA%E5%8A%A8%E6%8E%A8%E5%AF%BC/" class="post-title-link" itemprop="url">类型自动推导</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-10 21:32:07" itemprop="dateCreated datePublished" datetime="2023-05-10T21:32:07+08:00">2023-05-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-30 11:50:35" itemprop="dateModified" datetime="2023-05-30T11:50:35+08:00">2023-05-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="auto"><a href="#auto" class="headerlink" title="auto"></a>auto</h2><p>类型是一个编译期概念，运行时全变成了机器指令，所以类型推导是在编译期进行的</p>
+<p><code>auto</code> 只是一个占位符，用来充当变量类型，它根据出现的位置本着最简单的原则进行类型推导</p>
+<ul>
+<li>如果初始化表达式是引用，则去除引用语义</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> a = <span class="number">10</span>;</span><br><span class="line"><span class="type">int</span> &amp;b = a;</span><br><span class="line"></span><br><span class="line"><span class="keyword">auto</span> c = b;<span class="comment">// c 的类型为 int 而非 int&amp;（去除引用）</span></span><br><span class="line"><span class="keyword">auto</span> &amp;d = b;  <span class="comment">// 此时 c 的类型才为 int&amp;</span></span><br></pre></td></tr></table></figure>
 
 <ul>
-<li><p>创建状态：进程正在被创建时的状态</p>
-</li>
-<li><p>运行状态：该时刻进程占用 CPU</p>
-</li>
-<li><p>就绪状态：可运行，但因为其他进程正在运行而暂停停止</p>
-</li>
-<li><p>阻塞状态：该进程正在等待某一事件发生而暂时停止运行，即使给它 CPU 控制权，它也无法运行</p>
-</li>
-<li><p>结束状态：进程正在从系统中消失时的状态</p>
-</li>
+<li>如果初始化表达式为 <code>const</code> 或 <code>volatile</code>，则除去 <code>const</code> 或 <code>volatile</code> 语义</li>
 </ul>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/02.png" class="">
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> a1 = <span class="number">10</span>;</span><br><span class="line"><span class="keyword">auto</span>  b1= a1;  <span class="comment">// b1 的类型为 int 而非 const int（去除 const）</span></span><br><span class="line"><span class="type">const</span> <span class="keyword">auto</span> c1 = a1;  <span class="comment">// 此时 c1 的类型为 const int</span></span><br><span class="line">b1 = <span class="number">100</span>;<span class="comment">//合法</span></span><br><span class="line">c1 = <span class="number">100</span>;<span class="comment">//非法</span></span><br></pre></td></tr></table></figure>
 
-<p>挂起状态表示进程没有占有物理内存空间（由于虚拟内存管理原因，进程所使用的空间可能并没有映射到物理内存，而是在硬盘上）</p>
 <ul>
-<li><p>阻塞挂起状态：进程在外存（硬盘）并等待某个事件的出现</p>
-</li>
-<li><p>就绪挂起状态：进程在外存（硬盘），但只要进入内存，即刻立刻运行</p>
-</li>
+<li>如果 <code>auto</code> 关键字带上 <code>&amp;</code> 或 <code>*</code> 时，则不去除 <code>const</code> 或 <code>volatile</code> 语意</li>
 </ul>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/03.png" class="">
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> a2 = <span class="number">10</span>;</span><br><span class="line"><span class="keyword">auto</span> &amp;b2 = a2;  <span class="comment">//因为 auto 带上 &amp;，故不去除 const，b2 类型为 const int &amp;</span></span><br><span class="line">b2 = <span class="number">10</span>; <span class="comment">//非法</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">void</span> (Test::*<span class="type">const</span> pmf)(<span class="type">const</span> <span class="type">int</span>) <span class="type">const</span>;</span><br><span class="line"><span class="keyword">auto</span> e = pmf; <span class="comment">// void (Test::*)(const int) const</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="进程控制结构"><a href="#进程控制结构" class="headerlink" title="进程控制结构"></a>进程控制结构</h2><p>在操作系统中，是用进程控制块（process control block，PCB）数据结构来描述进程，PCB 是进程存在的唯一标识</p>
-<p>一个进程的存在，必然会有一个 PCB，如果进程消失了，那么 PCB 也会随之消失</p>
-<h3 id="PCB-结构体"><a href="#PCB-结构体" class="headerlink" title="PCB 结构体"></a>PCB 结构体</h3><h4 id="进程描述信息"><a href="#进程描述信息" class="headerlink" title="进程描述信息"></a>进程描述信息</h4><ul>
-<li><p>进程标识符：标识各个进程，每个进程都有一个并且唯一的标识符</p>
-</li>
-<li><p>用户标识符：进程归属的用户，用户标识符主要为共享和保护服务</p>
-</li>
-</ul>
-<h4 id="进程控制和管理信息"><a href="#进程控制和管理信息" class="headerlink" title="进程控制和管理信息"></a>进程控制和管理信息</h4><ul>
-<li><p>进程当前状态，如 new、ready、running、waiting 或 blocked 等</p>
-</li>
-<li><p>进程优先级：进程抢占 CPU 时的优先级</p>
-</li>
-</ul>
-<h4 id="资源分配清单"><a href="#资源分配清单" class="headerlink" title="资源分配清单"></a>资源分配清单</h4><ul>
-<li><p>内存信息</p>
-</li>
-<li><p>进程打开所有文件的文件描述符表</p>
-</li>
-<li><p>进程的信号处理函数</p>
-</li>
-<li><p>I&#x2F;O 设备</p>
-</li>
-</ul>
-<h4 id="CPU-信息"><a href="#CPU-信息" class="headerlink" title="CPU 信息"></a>CPU 信息</h4><ul>
-<li>CPU 中各个寄存器的值，当进程被切换时，CPU 的状态信息都会被保存在相应的 PCB 中，以便进程重新执行时，能从断点处继续执行</li>
-</ul>
-<h3 id="PCB-组织方式"><a href="#PCB-组织方式" class="headerlink" title="PCB 组织方式"></a>PCB 组织方式</h3><p>通过链表的方式进行组织，把具有相同状态的进程链在一起，组成各种队列</p>
 <ul>
-<li><p>将所有处于就绪状态的进程链在一起，称为就绪队列</p>
+<li><p>初始化表达式为数组时，<code>auto</code> 关键字推导类型为指针；若表达式为数组且 <code>auto</code> 带上 <code>&amp;</code>，则推导类型为数组类型</p>
 </li>
-<li><p>把所有因等待某事件而处于等待状态的进程链在一起就组成各种阻塞队列</p>
-</li>
-<li><p>对于运行队列，在单核 CPU 系统中则只有一个运行指针了，因为单核 CPU 在某个时间，只能运行一个程序</p>
+<li><p>函数或者模板参数不能被声明为 <code>auto</code></p>
 </li>
 </ul>
-<p>因为面临进程创建，销毁等调度导致进程状态发生变化，所以使用链表，以便能够更加灵活的插入和删除</p>
-<h2 id="进程控制"><a href="#进程控制" class="headerlink" title="进程控制"></a>进程控制</h2><h3 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h3><p>操作系统允许一个进程创建另一个进程，而且允许子进程继承父进程所拥有的资源，当子进程被终止时，其在父进程处继承的资源应当还给父进程，终止父进程时同时也会终止其所有的子进程</p>
+<h2 id="万能引用-auto-amp-amp"><a href="#万能引用-auto-amp-amp" class="headerlink" title="万能引用 auto&amp;&amp;"></a>万能引用 auto&amp;&amp;</h2><p><code>const auto&amp;&amp;</code> 也是遵循 <code>auto</code> 最简单原则进行类型推导，而 <code>auto&amp;&amp;</code> 是一个特殊情况</p>
+<p><code>auto&amp;&amp;</code> 的特殊性在于它既可以推导左值引用，也可以推导右值引用，这都取决于表达式是左值还是右值</p>
+<p><code>auto&amp;&amp;</code> 接收函数返回的右值引用仍然是右值引用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">f1</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> &amp;<span class="title">f2</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> &amp;&amp;<span class="title">f3</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Demo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e1 = a; <span class="comment">// a 是左值，所以推导 e1 是 int &amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e2 = <span class="number">5</span>; <span class="comment">// 5 是右值，所以推导 e2 是 int &amp;&amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e3 = e2; <span class="comment">// e2 是 int &amp;&amp; 类型，但右值引用本身是左值，所以推导 e3 是 int &amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;ef1 = <span class="built_in">f1</span>(); <span class="comment">// 返回值是右值，所以推导 ef1 是 int &amp;&amp;，</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;ef2 = <span class="built_in">f2</span>(); <span class="comment">// 返回左值引用，所以推导 ef2 是 int &amp;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;ef3 = <span class="built_in">f3</span>(); <span class="comment">// 返回值是右值，所以推导 ef3 是 int &amp;&amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e4 = std::<span class="built_in">move</span>(a); <span class="comment">// 返回值是右值，所以推导 e4 是 int &amp;&amp;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="decltype"><a href="#decltype" class="headerlink" title="decltype"></a>decltype</h2><p><code>decltype</code> 跟 <code>auto</code> 一样有类型推导的作用，但 <code>decltype</code> 是一个编译期的运算符，用于求表达式的类型，它并没有过多的复杂规则，就是简单地返回这个表达式的类型</p>
+<ul>
+<li><p>表达式是标识符、类访问表达式，<code>decltype</code> 和表达式类型一致</p>
+</li>
+<li><p>表达式是函数调用， <code>decltype</code> 和返回值的类型一致；若函数返回的是纯右值，只有类类型可以携带 <code>const/volatile</code>，此外都忽略掉</p>
+</li>
+<li><p>若表达式是一个左值，则 <code>decltype</code> 是左值引用</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;type_traits&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CHECKTYPE(val, type)                           \</span></span><br><span class="line"><span class="meta">do &#123;                                                   \</span></span><br><span class="line"><span class="meta">  using tt = decltype(val);                            \</span></span><br><span class="line"><span class="meta">  std::cout <span class="string">&lt;&lt; #val &lt;&lt; &quot; == &quot; &lt;&lt; #type &lt;&lt; &quot;: &quot; &lt;&lt; std::is_same_v&lt;tt, type&gt;</span> &lt;&lt; std::endl;  \</span></span><br><span class="line"><span class="meta">&#125; while(0)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Widget</span> &#123;</span><br><span class="line">    <span class="type">int</span> x;</span><br><span class="line">    <span class="type">float</span> y;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">f</span><span class="params">(<span class="type">const</span> Widget&amp; w)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">CHECKTYPE</span>(w, <span class="type">const</span> Widget&amp;);</span><br><span class="line">  <span class="built_in">CHECKTYPE</span>(Widget::x, <span class="type">int</span>);</span><br><span class="line">  <span class="built_in">CHECKTYPE</span>(Widget::y, <span class="type">float</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">const</span> <span class="type">int</span> <span class="title">g</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> a;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">const</span> Widget <span class="title">h</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Widget a;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">vector</span> &#123; </span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">T&amp; <span class="keyword">operator</span>[](std::<span class="type">size_t</span> index);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; std::boolalpha;</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> i = <span class="number">0</span>;  </span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(i, <span class="type">const</span> <span class="type">int</span>);</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> arr[<span class="number">5</span>];</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(arr, <span class="type">int</span>[<span class="number">5</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span>* ptr;</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(ptr, <span class="type">int</span>*);</span><br><span class="line"></span><br><span class="line">    Widget w;</span><br><span class="line">    <span class="built_in">f</span>(w);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">f</span>(w), <span class="type">bool</span>);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(f, <span class="built_in">bool</span>(<span class="type">const</span> Widget&amp;));</span><br><span class="line"></span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">g</span>(), <span class="type">int</span>);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">h</span>(), Widget);  <span class="comment">// false</span></span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">h</span>(), <span class="type">const</span> Widget);</span><br><span class="line"></span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; v;</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(v, vector&lt;<span class="type">int</span>&gt;);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(v[<span class="number">0</span>], <span class="type">int</span>&amp;);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> a =<span class="number">0</span>;</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(std::<span class="built_in">move</span>(a), <span class="type">int</span>&amp;&amp;);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在泛型编程中，<code>auto</code> 和 <code>decltype</code> 结合使用达到返回类型后置</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt; <span class="keyword">typename</span> T, <span class="keyword">typename</span> U&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">add</span><span class="params">(T t, U u)</span> -&gt; <span class="title">decltype</span><span class="params">(t+u)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> t + u;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, _TCHAR* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="type">int</span> a = <span class="number">1</span>; <span class="type">float</span> b = <span class="number">2.0</span>;</span><br><span class="line">	<span class="keyword">auto</span> c = <span class="built_in">add</span>(a, b);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/10/cpp-%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/10/cpp-%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/" class="post-title-link" itemprop="url">引用</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-10 20:54:59" itemprop="dateCreated datePublished" datetime="2023-05-10T20:54:59+08:00">2023-05-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-30 11:50:35" itemprop="dateModified" datetime="2023-05-30T11:50:35+08:00">2023-05-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>指针只是引用的一种实现方式，这本身跟引用语义无关</p>
+<h2 id="const-与引用"><a href="#const-与引用" class="headerlink" title="const 与引用"></a>const 与引用</h2><p>指针本身可以是 <code>const</code>，解类型也可以是 <code>const</code>，但引用本身是没有 <code>const</code> 的</p>
+<h2 id="快照"><a href="#快照" class="headerlink" title="快照"></a>快照</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 本机序是小端的情况</span></span><br><span class="line"><span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> &amp;r = a;</span><br><span class="line">a = <span class="number">8</span>;</span><br><span class="line">std::cout &lt;&lt; r &lt;&lt; std::endl; <span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="type">uint32_t</span> b = <span class="number">0</span>;</span><br><span class="line"><span class="type">uint16_t</span> &amp;r2 = <span class="built_in">reinterpret_cast</span>&lt;<span class="type">uint16_t</span> &amp;r&gt;(b);</span><br><span class="line">b = <span class="number">0xabcd1234</span>;</span><br><span class="line">std::cout &lt;&lt; std::hex &lt;&lt; r2 &lt;&lt; std::endl; <span class="comment">// 1234</span></span><br><span class="line"></span><br><span class="line"><span class="type">uint32_t</span> c = <span class="number">10</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">uint16_t</span> &amp;r1 = c;</span><br><span class="line">c = <span class="number">8</span>;</span><br><span class="line">std::cout &lt;&lt; std::dec &lt;&lt; r1 &lt;&lt; std::endl; <span class="comment">// 10</span></span><br></pre></td></tr></table></figure>
+
+<p><code>const</code> 引用的快照只在两种场景触发</p>
 <ol>
-<li><p>为新进程分配一个唯一的进程标识号，并申请一个空白的 PCB，PCB 是有限的，若申请失败则创建失败</p>
+<li><p>绑定纯右值</p>
 </li>
-<li><p>为进程分配资源，此处如果资源不足，进程就会进入等待状态，以等待资源</p>
-</li>
-<li><p>初始化 PCB</p>
-</li>
-<li><p>如果进程的调度队列能够接纳新进程，那就将进程插入到就绪队列，等待被调度运行</p>
+<li><p>绑定不同类型，并且允许发生隐式构造时</p>
 </li>
 </ol>
-<h3 id="终止"><a href="#终止" class="headerlink" title="终止"></a>终止</h3><p>进程可以有 3 种终止方式：正常结束、异常结束以及外界干预（信号 kill 掉）</p>
-<ol>
-<li><p>查找需要终止的进程的 PCB</p>
+<p>触发快照时，编译器会构造一个临时匿名变量，并用快照的值来初始化引用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> cs[] = <span class="string">&quot;Hello!&quot;</span>;</span><br><span class="line"><span class="type">const</span> std::string &amp;str = cs; <span class="comment">// 隐式构造</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/09/cpp-%E6%8C%87%E9%92%88%E5%92%8C%E6%95%B0%E7%BB%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/09/cpp-%E6%8C%87%E9%92%88%E5%92%8C%E6%95%B0%E7%BB%84/" class="post-title-link" itemprop="url">指针和数组</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-09 20:39:33" itemprop="dateCreated datePublished" datetime="2023-05-09T20:39:33+08:00">2023-05-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-30 11:50:35" itemprop="dateModified" datetime="2023-05-30T11:50:35+08:00">2023-05-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="指针"><a href="#指针" class="headerlink" title="指针"></a>指针</h2><ul>
+<li><p>指针变量存储的是内存地址，它的值仅仅表示地址</p>
 </li>
-<li><p>如果处于执行状态，则立即终止该进程的执行，然后将 CPU 资源分配给其他进程</p>
+<li><p>指针的解类型是指用什么方式来解释内存地址的数据</p>
 </li>
-<li><p>如果其还有子进程，则应将其所有子进程终止</p>
+<li><p>多级指针本质是解类型是指针类型的指针类型</p>
 </li>
-<li><p>将该进程所拥有的全部资源都归还给父进程或操作系统</p>
+<li><p>指针类型转换的本质是解类型的转换</p>
 </li>
-<li><p>将其从 PCB 所在队列中删除</p>
+<li><p>将含有解类型的指针转换为不含解类型的指针 <code>void*</code> 是安全的静态转换，可以使用 <code>static_cast</code> 替换 C 风格的转换，支持隐式转换</p>
+</li>
+<li><p>将不含解类型的指针转换为一个含有解类型指针也是安全的静态转换，可以使用 <code>static_cast</code>，但不支持隐式转换</p>
+</li>
+<li><p>将解类型 A 的指针转换为解类型 B 的指针是不安全的转换，需要使用 <code>reinterpret_cast</code></p>
+</li>
+<li><p>主要区分 <code>const</code> 修饰的是指针类型还是解类型</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span>* p;           <span class="comment">// p 可变，解类型 const int</span></span><br><span class="line"><span class="type">int</span>* <span class="type">const</span> p;           <span class="comment">// p 不可变，解类型 int</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span>* <span class="type">const</span> p;     <span class="comment">// p 不可变，解类型 const int</span></span><br><span class="line"><span class="type">int</span> * <span class="type">const</span> * p;        <span class="comment">// p 可变，解类型 int * const</span></span><br><span class="line"><span class="type">int</span> ** <span class="type">const</span> * p;       <span class="comment">// p 可变，解类型 int ** const</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span>** p;          <span class="comment">// p 可变，解类型 const int*</span></span><br><span class="line"><span class="type">int</span> * <span class="type">const</span> * <span class="type">const</span> p;  <span class="comment">// p 不可变，解类型 int * const</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><code>arr</code> 的类型是 <code>int[3]</code>，它是一个数组类型，不是指针类型</p>
+<p>数组类型本身含有元素类型信息和元素个数信息，它是独立存在的一种类型，而不是指针的语法糖</p>
+<p>数据是数组，指针是指针，只是数组类型可以隐式转换为首元素的指针类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">std::shared_ptr&lt;<span class="type">int</span>*&gt; p = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">5</span>];</span><br><span class="line"><span class="comment">// p 是 int* 类型的智能指针，那么在析构时只会调用 delete 而不是 delete[]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确写法</span></span><br><span class="line">std::shared_ptr&lt;<span class="type">int</span>[]&gt; p = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<p>对于模板的自动类型推导，传入数组时也会被识别为数组类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Test</span> &#123;</span><br><span class="line">  <span class="built_in">Test</span>(<span class="type">const</span> T&amp;) = <span class="keyword">default</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">auto</span> p = arr;</span><br><span class="line"></span><br><span class="line">Test t1&#123;arr&#125;; <span class="comment">// T 为 int[3]</span></span><br><span class="line">Test t2&#123;p&#125;;   <span class="comment">// T 为 int*</span></span><br></pre></td></tr></table></figure>
+
+<p><code>sizeof</code> 能够识别数据类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">auto</span> p = arr</span><br><span class="line"></span><br><span class="line"><span class="built_in">sizeof</span>(arr);  <span class="comment">// 12</span></span><br><span class="line"><span class="built_in">sizeof</span>(p);    <span class="comment">// 8</span></span><br></pre></td></tr></table></figure>
+
+<p><code>const int [10]</code> 和 <code>int const [10]</code> 是等价的，<code>const</code> 都是修饰 <code>int</code></p>
+<h2 id="数组指针"><a href="#数组指针" class="headerlink" title="数组指针"></a>数组指针</h2><p>数组指针是指解类型是数组类型的指针，数组类型不能转换成数组指针，需要通过取地址操作获得数组指针</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">auto</span> p = &amp;arr;  <span class="comment">// p 的类型是 int (*)[3]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="指针数组"><a href="#指针数组" class="headerlink" title="指针数组"></a>指针数组</h2><p>数组元素是指针类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> *q[<span class="number">3</span>];</span><br></pre></td></tr></table></figure>
+
+<h2 id="更复杂的情况"><a href="#更复杂的情况" class="headerlink" title="更复杂的情况"></a>更复杂的情况</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// p0 是一个数组，其元素类型是指针，指向一个 int[3]</span></span><br><span class="line"><span class="built_in">int</span> (*p0[<span class="number">4</span>])[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// p1 是一个指针，其解类型是另一个解类型是 int[3] 的指针</span></span><br><span class="line"><span class="built_in">int</span> (**p1)[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// p2 是一个指针，其解类型是 int* [3]</span></span><br><span class="line"><span class="type">int</span> *(*p2)[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// p3 是一个数组，元素类型是 int**</span></span><br><span class="line"><span class="type">int</span> **p3[<span class="number">3</span>];</span><br></pre></td></tr></table></figure>
+
+<h2 id="typedef-和-using"><a href="#typedef-和-using" class="headerlink" title="typedef 和 using"></a>typedef 和 using</h2><p>当类型复杂时推荐使用 <code>typedef</code> 和 <code>using</code> 进行类型重命名</p>
+<p><code>typedef</code> 的新类型名处于变量名位置</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// type1 是 int[3]</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">int</span> type1[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// type2 是 int (*)[2];</span></span><br><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">int</span> <span class="params">(*type2)</span>[2]</span>;</span><br><span class="line"><span class="comment">// type3 是 int *(*[4])[5]</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">int</span> *(*type3[<span class="number">4</span>])[<span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<p><code>using</code> 更直观一点</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> type1 = <span class="type">int</span>[<span class="number">3</span>];</span><br><span class="line"><span class="keyword">using</span> type2 = <span class="built_in">int</span> (*)[<span class="number">2</span>];</span><br><span class="line"><span class="keyword">using</span> type3 = <span class="type">int</span> *(*[<span class="number">4</span>])[<span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<h2 id="函数指针"><a href="#函数指针" class="headerlink" title="函数指针"></a>函数指针</h2><p>在冯诺依曼体系中，存储上不区分数据和指令，函数在编译后会成为一段指令同样被加载到内存中，因此函数也有地址</p>
+<p>函数拥有内存地址，因此就会有函数指针</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// p 是一个指针，解类型是 void (int)</span></span><br><span class="line"><span class="built_in">void</span> (*p)(<span class="type">int</span>);</span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line"><span class="keyword">using</span> <span class="type">fnc_t</span> = <span class="built_in">void</span> (<span class="type">int</span>);</span><br><span class="line"><span class="type">fuc_t</span>* p;</span><br><span class="line"></span><br><span class="line"><span class="built_in">int</span> (*<span class="built_in">f</span>())[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// f 是一个函数，没有形参，返回一个指针，解类型是 int[3]</span></span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line"><span class="keyword">using</span> <span class="type">ret_t</span> = <span class="built_in">int</span> (*)[<span class="number">3</span>];</span><br><span class="line"><span class="function"><span class="type">ret_t</span> <span class="title">f</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>函数可以隐式转换为函数指针，取地址也能得到函数指针</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">f</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// p1 p2 p3 p4 都是 void (*)()</span></span><br><span class="line"><span class="keyword">auto</span> p1 = f;</span><br><span class="line"><span class="keyword">auto</span> p2 = &amp;f;</span><br><span class="line"><span class="keyword">auto</span> p3 = *f;</span><br><span class="line"><span class="keyword">auto</span> p4 = *******f;</span><br><span class="line"></span><br><span class="line"><span class="comment">// p5 是 void (**)() 类型</span></span><br><span class="line"><span class="keyword">auto</span> p5 = &amp;p2;</span><br></pre></td></tr></table></figure>
+
+<p>对于非静态成员函数，需要指明函数所属的类</p>
+<p>对于静态函数，需要指明函数所属的类</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Test</span> &#123;</span><br><span class="line">  <span class="keyword">using</span> type1 = <span class="built_in">int</span> (*)[<span class="number">3</span>];</span><br><span class="line">  <span class="keyword">using</span> type2 = <span class="built_in">void</span> (*)(<span class="type">int</span>);</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f1</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f2</span><span class="params">(<span class="type">const</span> <span class="type">int</span> *)</span> &amp;&amp;</span>;</span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">f3</span><span class="params">()</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f4</span><span class="params">(<span class="type">int</span>)</span> &amp; <span class="keyword">noexcept</span></span>;</span><br><span class="line">  <span class="function">type1 <span class="title">f5</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">  <span class="function">type2 <span class="title">f6</span><span class="params">(<span class="type">double</span>)</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">void</span> (Test::)() <span class="type">const</span>;                  <span class="comment">// f1 类型</span></span><br><span class="line"><span class="built_in">void</span> (Test::)(<span class="type">const</span> <span class="type">int</span> *) &amp;&amp;;          <span class="comment">// f2 类型</span></span><br><span class="line"><span class="built_in">int</span> (Test::)() <span class="keyword">noexcept</span>;                <span class="comment">// f3 类型</span></span><br><span class="line"><span class="built_in">void</span> (Test::)(<span class="type">int</span>) &amp;<span class="keyword">noexcept</span>;           <span class="comment">// f4 类型</span></span><br><span class="line"><span class="built_in">int</span> (*(Test::)() <span class="type">const</span>)[<span class="number">3</span>];             <span class="comment">// f5 类型</span></span><br><span class="line"><span class="built_in">void</span>(*(Test::)(<span class="type">double</span>) <span class="keyword">noexcept</span>)(<span class="type">int</span>);  <span class="comment">// f6 类型</span></span><br></pre></td></tr></table></figure>
+
+<p>非静态成员函数的函数指针占 2 个指针大小，这是因为虚函数表的组织方式是基址加偏移</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/06/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-GNUInstallDirs/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/06/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-GNUInstallDirs/" class="post-title-link" itemprop="url">GNUInstallDirs</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-06 19:51:17" itemprop="dateCreated datePublished" datetime="2023-05-06T19:51:17+08:00">2023-05-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-30 11:50:34" itemprop="dateModified" datetime="2023-05-30T11:50:34+08:00">2023-05-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 引入模块</span><br><span class="line">include(GNUInstallDirs)</span><br></pre></td></tr></table></figure>
+
+<p>定义了一些 GNU 标准安装目录</p>
+<ul>
+<li><p><code>CMAKE_INSTALL_&lt;dir&gt;</code> 相对地址</p>
+</li>
+<li><p><code>CMAKE_INSTALL_FULL_&lt;dir&gt;</code> 绝对地址，如果还是相对地址则是相对于 <code>CMAKE_INSTALL_PREFIX</code></p>
+</li>
+</ul>
+<p><code>dir</code> 包括</p>
+<ul>
+<li><p><code>BINDIR</code> – bin</p>
+</li>
+<li><p><code>SBINDIR</code> – sbin</p>
+</li>
+<li><p><code>LIBEXEDIR</code> – libexec</p>
+</li>
+<li><p><code>SYSCONFDIR</code> – etc</p>
+</li>
+<li><p><code>SHAREDSTATEDIR</code> – com</p>
+</li>
+<li><p><code>LOCALSTATDIR</code> – var</p>
+</li>
+<li><p><code>RUNSTATEDIR</code> – LOCALSTATEDIR&#x2F;run</p>
+</li>
+<li><p><code>LIBDIR</code> – lib&#x2F;lib64</p>
+</li>
+<li><p><code>INCLUDEDIR</code> – include</p>
+</li>
+<li><p><code>OLDINCLUDEDIR</code> – &#x2F;usr&#x2F;include</p>
+</li>
+<li><p><code>DATAROOTDIR</code> – share</p>
+</li>
+<li><p><code>DATADIR</code> – DATAROOTDIR</p>
+</li>
+<li><p><code>INFODIR</code> – DATAROOTDIR&#x2F;info</p>
+</li>
+<li><p><code>LOCALDIR</code> – datarootdir&#x2F;local</p>
+</li>
+<li><p><code>MANDIR</code> – datarootdir&#x2F;man</p>
+</li>
+<li><p><code>DOCDIR</code> – datarootdir&#x2F;doc&#x2F;PROJECT_NAME</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-sds/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/Redis-sds/" class="post-title-link" itemprop="url">sds</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 21:30:54" itemprop="dateCreated datePublished" datetime="2023-04-28T21:30:54+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-30 11:50:34" itemprop="dateModified" datetime="2023-05-30T11:50:34+08:00">2023-05-30</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Redis 构建了一种简单动态字符串的抽象类型，作为 Redis 默认字符串的底层结构</p>
+<h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_5     0   <span class="comment">// 000</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_8     1   <span class="comment">// 001</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_16    2   <span class="comment">// 010</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_32    3   <span class="comment">// 011</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_64    4   <span class="comment">// 100</span></span></span><br><span class="line"><span class="comment">// 所有 sds 类型的 flags 低三位表示类型</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr5 &#123;</span><br><span class="line">    <span class="comment">// 高五位表示长度，长度最大 31</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr8 &#123;</span><br><span class="line">    <span class="comment">// 长度范围 32 ～ 255</span></span><br><span class="line">    <span class="type">uint8_t</span> len;</span><br><span class="line">    <span class="type">uint8_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr16 &#123;</span><br><span class="line">    <span class="comment">// 长度范围 256 ～ 65535</span></span><br><span class="line">    <span class="type">uint16_t</span> len;</span><br><span class="line">    <span class="type">uint16_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr32 &#123;</span><br><span class="line">    <span class="type">uint32_t</span> len;</span><br><span class="line">    <span class="type">uint32_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr64 &#123;</span><br><span class="line">    <span class="type">uint32_t</span> len;</span><br><span class="line">    <span class="type">uint32_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// __attribute__ 设置属性</span></span><br><span class="line"><span class="comment">// __packed__ 取消内存对齐</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>len</code> 当前已使用的字节数，不包括 <code>\0</code></p>
+</li>
+<li><p><code>alloc</code> 总共分配的字节数量，不包括 <code>\0</code></p>
+</li>
+<li><p><code>flags</code> 低三位表示当前字节数组的属性，是 <code>SDS_TYPE_5</code> 还是 <code>SDS_TYPE_8</code> 等</p>
+</li>
+<li><p><code>buf</code> 数组，用于保存字符串，包括结尾空白符 <code>\0</code></p>
+</li>
+</ul>
+<h2 id="选择依据"><a href="#选择依据" class="headerlink" title="选择依据"></a>选择依据</h2><p>根据所需长度返回 <code>sds::flags</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">char</span> <span class="title">sdsReqType</span><span class="params">(<span class="type">size_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">5</span>) . <span class="comment">// 32</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_5;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">8</span>)   <span class="comment">// 258</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_8;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">16</span>)  <span class="comment">// 65536</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_16;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (LONG_MAX == LLONG_MAX)</span></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1ll</span> &lt;&lt; <span class="number">32</span>)</span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_32;</span><br><span class="line">    <span class="keyword">return</span> SDS_TYPE_64;</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    <span class="keyword">return</span> SDS_TYPE_5;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="获取-sds-长度"><a href="#获取-sds-长度" class="headerlink" title="获取 sds 长度"></a>获取 sds 长度</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">char</span>* sds;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_BITS 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_MASK  7   <span class="comment">// 111</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_5_LEN(f) ((f)&gt;&gt;SDS_TYPE_BITS)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 因为 buf 是柔性数组，所以可以这么根据 buf 获取首地址</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_HDR_VAR(T, s) \</span></span><br><span class="line"><span class="meta">    struct sdshdr##T* sh = (void*)((s) - (sizeof(struct sdshdr##T)));</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_HDR(T, s) \</span></span><br><span class="line"><span class="meta">        ((struct sdshdr##T*)((s)- (sizeof(struct sdshdr##T))))</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">size_t</span> <span class="title">sdslen</span><span class="params">(cosnt sds s)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// sdshdr* 取消了内存对齐，因此这里可以直接取到 flags</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags = s[<span class="number">-1</span>];</span><br><span class="line">    <span class="keyword">switch</span> (flags &amp; SDS_TYPE_MASK) &#123;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_5:</span><br><span class="line">            <span class="comment">// 高五位表示长度</span></span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_TYPE_5_LEN</span>(flags);</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_8:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">8</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_16:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">16</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_32:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">32</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_64:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">64</span>, s)-&gt;len;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="扩容机制"><a href="#扩容机制" class="headerlink" title="扩容机制"></a>扩容机制</h2><ol>
+<li><p>判断预留空间是否满足要求，若满足要求则不扩容</p>
+</li>
+<li><p>计算新 sds 占用空间大小，若小于 1M 则进行所需大小 2 倍的扩容</p>
+</li>
+<li><p>若新空间不小于 1M 时每次扩容 1M</p>
+</li>
+<li><p>根据新长度重新计算 sds 类型，若新类型与就类型一致则进行 <code>s_realloc</code> 动态扩容，若不一致则重新申请空构造新对象，并释放久对象</p>
 </li>
 </ol>
-<h3 id="阻塞"><a href="#阻塞" class="headerlink" title="阻塞"></a>阻塞</h3><p>当进程需要等待某一事件完成时，它可以调用阻塞语句把自己阻塞等待；一旦被阻塞等待，它只能由另一个进程唤醒</p>
-<ol>
-<li><p>找到将要被阻塞进程标识号对应的 PCB</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_MAX_PREALLOC (1024 * 1024)</span></span><br><span class="line"><span class="function">sds <span class="title">sdsMakeRoomFor</span><span class="params">(sds s, <span class="type">size_t</span> addlen)</span> </span>&#123;</span><br><span class="line">    <span class="type">void</span> *sh, *newsh;</span><br><span class="line">    <span class="type">size_t</span> avail = <span class="built_in">sdsavail</span>(s);  <span class="comment">// 当前可用空间</span></span><br><span class="line">    <span class="type">size_t</span> len, newlen, reqlen;</span><br><span class="line">    <span class="type">char</span> type, oldtype = s[<span class="number">-1</span>] &amp; SDS_TYPE_MASK;</span><br><span class="line">    <span class="type">int</span> hdrlen;</span><br><span class="line">    <span class="type">size_t</span> usable;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (avail &gt;= addlen) <span class="keyword">return</span> s;</span><br><span class="line">    len = <span class="built_in">sdslen</span>(s);  <span class="comment">// 当前长度</span></span><br><span class="line">    sh = (<span class="type">char</span>*)s - <span class="built_in">sdsHdrSize</span>(oldtype);  <span class="comment">// 旧对象指针</span></span><br><span class="line">    reqlen = newlen = len + addlen;  <span class="comment">// 期望长度</span></span><br><span class="line">    <span class="built_in">assert</span>(newlen &gt; len);  <span class="comment">// catch size_t overflow</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (newlen &lt; SDS_MAX_PREALLOC)</span><br><span class="line">        newlen *= <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        newlen += SDS_MAX_PREALLOC;</span><br><span class="line"></span><br><span class="line">    type = <span class="built_in">sdsReqType</span>(newlen);  <span class="comment">// 期望对象类型</span></span><br><span class="line">    <span class="keyword">if</span> (type == SDS_TYPE_5) type = SDS_TYPE_8;</span><br><span class="line"></span><br><span class="line">    hdrlen = <span class="built_in">sdsHdrSize</span>(type);  <span class="comment">// 期望对象所占内存大小</span></span><br><span class="line">    <span class="built_in">assert</span>(hdrlen + newlen + <span class="number">1</span> &gt; reqlen);  <span class="comment">// catch size_t overflow</span></span><br><span class="line">    <span class="keyword">if</span> (oldtype == type) &#123;</span><br><span class="line">        newsh = <span class="built_in">s_realloc_usable</span>(sh, hdrlen + newlen + <span class="number">1</span>, &amp;usable);</span><br><span class="line">        <span class="keyword">if</span> (newsh == <span class="literal">nullptr</span>) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">        s = (<span class="type">char</span>*)newsh + hdrlen;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        newsh = <span class="built_in">s_malloc_usable</span>(hdrlen + newlen + <span class="number">1</span>, &amp;usable);</span><br><span class="line">        <span class="keyword">if</span> (newsh == <span class="literal">nullptr</span>) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">        <span class="built_in">memcpy</span>((<span class="type">char</span>*)newsh + hdrlen, s, len + <span class="number">1</span>);</span><br><span class="line">        <span class="built_in">s_free</span>(sh);</span><br><span class="line">        s = (<span class="type">char</span>*)newsh + hdflen;</span><br><span class="line">        s[<span class="number">-1</span>] = type;</span><br><span class="line">        <span class="built_in">sdssetlen</span>(s, len);</span><br><span class="line">    &#125;</span><br><span class="line">    usable = usable - hdrlen - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (usable &gt; <span class="built_in">sdsTypeMaxSize</span>(type))</span><br><span class="line">        usable = <span class="built_in">sdsTypeMaxSize</span>(type);</span><br><span class="line">    <span class="built_in">sdssetalloc</span>(s, usable);</span><br><span class="line">    <span class="keyword">return</span> s;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每次新开空间都会额外多加 1 字节，是为了保证最后可以写入一个 <code>\0</code></p>
+<h2 id="与-C-字符串区别"><a href="#与-C-字符串区别" class="headerlink" title="与 C 字符串区别"></a>与 C 字符串区别</h2><ul>
+<li><p>获取字符串长度时间复杂度 O(1)</p>
 </li>
-<li><p>如果该进程为运行状态，则保护其现场，将其状态转为阻塞状态，停止运行</p>
+<li><p>杜绝缓冲区溢出，C 字符串每次增长都需要重新分配新的内存，每次缩短如果不重新分配内存会导致内存浪费</p>
 </li>
-<li><p>将该 PCB 插入的阻塞队列中去</p>
+<li><p>惰性空间释放</p>
+</li>
+<li><p>二进制安全，C 字符串必须符合某种编码，并且除字符串末尾外不能包涵空白字符，否者空白字符会被当作字符结尾，导致只能保存文本数据，不能保存图片视频等二进制数据，SDS 是通过 <code>len</code> 字段判断字符串结束</p>
+</li>
+<li><p>兼容性，SDS 的 API 都是二进制安全的，但也遵循 C 字符串以空白结尾的惯例</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-ziplist/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/Redis-ziplist/" class="post-title-link" itemprop="url">ziplist</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 21:29:42" itemprop="dateCreated datePublished" datetime="2023-04-28T21:29:42+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-30 11:50:34" itemprop="dateModified" datetime="2023-05-30T11:50:34+08:00">2023-05-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="内存布局"><a href="#内存布局" class="headerlink" title="内存布局"></a>内存布局</h2><p>ziplist 不是一个用结构体定义的数据结构，而是一块连续的内存，这样不仅可以利用 CPU 缓存，而且会针对不同长度的数据，进行相应编码，这种方法可以有效地节省内存开销</p>
+<p>数组中的每一个元素都对应保存一个数据</p>
+<p>entry 会挨个放置在内存中，不需要再用额外的指针进行连接，这样就可以节省指针所占用的空间</p>
+<p>压缩列表在表头有三个字段 zlbytes、zltail 和 zllen，分别表示列表长度、列表尾的偏移量和列表中的 entry 个数</p>
+<p>压缩列表在表尾还有一个 zlend，表示列表结束</p>
+<img src="/2023/04/28/Redis-ziplist/01.png" class="">
+
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>长度</th>
+<th>值</th>
+<th>字节序</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>zlbytes</td>
+<td>uint32_t</td>
+<td>整个 ziplist 占用的内存字节数</td>
+<td>小端</td>
+</tr>
+<tr>
+<td>zltail</td>
+<td>uint32_t</td>
+<td>起始位置与最后一个元素的偏移量</td>
+<td>小端</td>
+</tr>
+<tr>
+<td>zllen</td>
+<td>uint16_t</td>
+<td>ziplist 中节点的数量，当这个值小于 UINT16_MAX （65535）时，这个值就是 ziplist 中节点的数量； 当这个值等于 UINT16_MAX 时，节点的数量需要遍历整个 ziplist 才能计算得出</td>
+<td>小端</td>
+</tr>
+<tr>
+<td>zlend</td>
+<td>uint8_t</td>
+<td>255 的二进制值 1111 1111 （UINT8_MAX） ，用于标记 ziplist 的末端</td>
+<td>小端</td>
+</tr>
+</tbody></table>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ziplist 结束标志位</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIP_END 255</span></span><br><span class="line"><span class="comment">// zlbytes(32) + zltail(32) + zllen(16)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_HEADER_SIZE     (sizeof(uint32_t)*2+sizeof(uint16_t))</span></span><br><span class="line"><span class="comment">// zlend(8)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_END_SIZE        (sizeof(uint8_t))</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取 zlbytes 值</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_BYTES(zl)       (*((uint32_t*)(zl)))</span></span><br><span class="line"><span class="comment">// 获取 zltail 值</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_TAIL_OFFSET(zl) (*((uint32_t*)((zl)+sizeof(uint32_t))))</span></span><br><span class="line"><span class="comment">// 获取 zllen 值</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_LENGTH(zl)      (*((uint16_t*)((zl)+sizeof(uint32_t)*2)))</span></span><br><span class="line"><span class="comment">// 获取 ziplist 最后一个字节的指针</span></span><br><span class="line"><span class="comment">// 由于需要从 zlbytes 取值所以需要大小端转换</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_ENTRY_END(zl)   ((zl)+intrev32ifbe(ZIPLIST_BYTES(zl))-1)</span></span><br></pre></td></tr></table></figure>
+
+<p>在压缩列表中，如果要查找定位第一个元素和最后一个元素，可以通过表头三个字段的长度直接定位，复杂度是 O(1)</p>
+<p>查找其他元素则只能逐个查找，此时的复杂度就是 O(N)</p>
+<h2 id="entry"><a href="#entry" class="headerlink" title="entry"></a>entry</h2><p>压缩列表之所以能节省内存，就在于它是用一系列连续的 entry 保存数据</p>
+<img src="/2023/04/28/Redis-ziplist/02.png" class="">
+
+<ul>
+<li><p>prev_len：表示前一个 entry 的长度，可能会占用 1 字节或 5 字节。占用 1 字节时，表示上一个 entry 的长度小于 254 字节。虽然 1 字节的值能表示的数值范围是 0 到 255，但是压缩列表中 zlend 的取值默认是 255，因此，就默认用 255 表示整个压缩列表的结束，其他表示长度的地方就不能再用 255 这个值了。所以，当上一个 entry 长度小于 254 字节时，prev_len 占用 1 字节，否则，就占用 5 字节，并通过最低字节 254 做标记</p>
+</li>
+<li><p>encoding：可以表示整型和字符串；当高两位是 11 时表示编码方式是整型，高两位其他情况时表示编码方式是字符串，并且还表示字符串长度</p>
+</li>
+<li><p>data：保存实际数据，当 data 存储整型时，都会使用小端表示，即便运行的机器是大端序</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> ZIP_BIG_PREVLEN 254</span></span><br><span class="line"><span class="comment">// 获取第一个 entry 地址</span></span><br><span class="line"><span class="comment">// 这里不需要打小端转换是因为 ZIPLIST_HEADER_SIZE 不从 ziplist 中取值</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_ENTRY_HEAD(zl)  ((zl)+ZIPLIST_HEADER_SIZE)</span></span><br><span class="line"><span class="comment">// 获取最后一个 entry 地址</span></span><br><span class="line"><span class="comment">// 由于需要从 zltail 取值所以需要大小端转换</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_ENTRY_TAIL(zl)  ((zl)+intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl)))</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ptr 指向 entry</span></span><br><span class="line"><span class="comment">// 因为数据都是小端存储，所以可以直接通过 ptr[0] 取到低位的数据，从而判断与 254 的关系</span></span><br><span class="line"><span class="comment">// 返回本 entry 的 prevlen 字段所占内存大小</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIP_DECODE_PREVLENSIZE(ptr, prevlensize) do &#123;                          \</span></span><br><span class="line"><span class="meta">    <span class="keyword">if</span> ((ptr)[0] &lt; ZIP_BIG_PREVLEN) &#123;                                          \</span></span><br><span class="line"><span class="meta">        (prevlensize) = 1;                                                     \</span></span><br><span class="line"><span class="meta">    &#125; <span class="keyword">else</span> &#123;                                                                   \</span></span><br><span class="line"><span class="meta">        (prevlensize) = 5;                                                     \</span></span><br><span class="line"><span class="meta">    &#125;                                                                          \</span></span><br><span class="line"><span class="meta">&#125; while(0)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 返回 entry prevlen 字段和 prevlen 字段所占内存</span></span><br><span class="line"><span class="comment">// 当 prevlen 占 5 个字节时，不会占用最低位的一个字节</span></span><br><span class="line"><span class="comment">// </span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIP_DECODE_PREVLEN(ptr, prevlensize, prevlen) do &#123;                     \</span></span><br><span class="line"><span class="meta">    ZIP_DECODE_PREVLENSIZE(ptr, prevlensize);                                  \</span></span><br><span class="line"><span class="meta">    <span class="keyword">if</span> ((prevlensize) == 1) &#123;                                                  \</span></span><br><span class="line"><span class="meta">        (prevlen) = (ptr)[0];                                                  \</span></span><br><span class="line"><span class="meta">    &#125; <span class="keyword">else</span> &#123; <span class="comment">/* prevlensize == 5 */</span>                                            \</span></span><br><span class="line"><span class="meta">        (prevlen) = ((ptr)[4] &lt;&lt; 24) |                                         \</span></span><br><span class="line"><span class="meta">                    ((ptr)[3] &lt;&lt; 16) |                                         \</span></span><br><span class="line"><span class="meta">                    ((ptr)[2] &lt;&lt;  8) |                                         \</span></span><br><span class="line"><span class="meta">                    ((ptr)[1]);                                                \</span></span><br><span class="line"><span class="meta">    &#125;                                                                          \</span></span><br><span class="line"><span class="meta">&#125; while(0)</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>编码</th>
+<th>encoding 长度</th>
+<th>data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>00pppppp</td>
+<td>1 字节</td>
+<td>字符串长度小于等于 63（2^6 -1），后 6 位表示长度</td>
+</tr>
+<tr>
+<td>01pppppp,qqqqqqqq</td>
+<td>2 字节，后 14 位使用大端存储</td>
+<td>字符串长度小于等于 16383（2^14 -1），后 14 位表示长度，大端序</td>
+</tr>
+<tr>
+<td>10000000,qqqqqqqq,rrrrrrrr,ssssssss,tttttttt</td>
+<td>5 字节，后 32 位使用大端存储</td>
+<td>字符串长度小于等于 2^32 -1，第一个字节的后六位未使用，大端序</td>
+</tr>
+<tr>
+<td>11000000</td>
+<td>1 字节</td>
+<td>int16_t</td>
+</tr>
+<tr>
+<td>11010000</td>
+<td>1 字节</td>
+<td>int32_t</td>
+</tr>
+<tr>
+<td>11100000</td>
+<td>1 字节</td>
+<td>int64_t</td>
+</tr>
+<tr>
+<td>11110000</td>
+<td>1 字节</td>
+<td>int24 类型</td>
+</tr>
+<tr>
+<td>11111110</td>
+<td>1 字节</td>
+<td>int8_t</td>
+</tr>
+<tr>
+<td>1111xxxx</td>
+<td>1 字节</td>
+<td>xxxx 是 0001(1) 到 1101(13)，分别用来表示 0～12，此时没有 data 数据</td>
+</tr>
+</tbody></table>
+<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">/*</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *  [0f 00 00 00] [0c 00 00 00] [02 00] [00 f3] [02 f6] [ff]</span></span><br><span class="line"><span class="comment"> *        |             |          |       |       |     |</span></span><br><span class="line"><span class="comment"> *     zlbytes        zltail    entries   &quot;2&quot;     &quot;5&quot;   end</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// zlbytes 表示整个 ziplist 占 15 个字节</span></span><br><span class="line"><span class="comment">// zltail 最后一个元素离 ziplist 开始处 12 个字节</span></span><br><span class="line"><span class="comment">// entries 表示整个 ziplist 有两个元素</span></span><br><span class="line"><span class="comment">// 第一个 entry 的 prev_len 是 0，占一个字节</span></span><br><span class="line"><span class="comment">// 第一个 entry 的 f3 表示 encoding 是 1111xxxx，所以这个 entry 存储的值是 3 - 1 = 2</span></span><br><span class="line"><span class="comment">// 第二个 entry 的 prev_len 是 2</span></span><br><span class="line"><span class="comment">// 第二个 entry 的 f6 表示 encoding 是 1111xxxx，所以这个 entry 存储的值是 6 - 1 = 5</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="zlentry"><a href="#zlentry" class="headerlink" title="zlentry"></a>zlentry</h2><p>插入一个 entry 的全部信息，但并不是 entry 的实际信息</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">zlentry</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> prevrawlensize;  <span class="comment">// 前一个 entry 的 prevlen 占内存大小</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> prevrawlen;      <span class="comment">// </span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> lensize;         <span class="comment">// 本 entry encoding 的内存大小</span></span><br><span class="line">                                  <span class="comment">// 字符串对应 1、2、5 字节，整形 1 字节</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> len;             <span class="comment">// data 所占大小</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> headersize;      <span class="comment">// prevrawlensize + lensize</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> encoding;       <span class="comment">// entry 的 encoding</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *p;             <span class="comment">// entry 的插入位置</span></span><br><span class="line">&#125; zlentry;</span><br></pre></td></tr></table></figure>
+
+<h2 id="插入过程"><a href="#插入过程" class="headerlink" title="插入过程"></a>插入过程</h2><ol>
+<li><p>计算插入位置</p>
+</li>
+<li><p>重新分配空间，将后面元素后移</p>
+</li>
+<li><p>插入元素</p>
+</li>
+<li><p>调整 ziplist 大小</p>
 </li>
 </ol>
-<h3 id="唤醒"><a href="#唤醒" class="headerlink" title="唤醒"></a>唤醒</h3><p>只有当该进程所期待的事件出现时，才由发现者进程用唤醒语句叫醒它</p>
-<ol>
-<li><p>在该事件的阻塞队列中找到相应进程的 PCB</p>
+<h2 id="删除过程"><a href="#删除过程" class="headerlink" title="删除过程"></a>删除过程</h2><ol>
+<li><p>将后面的元素向前覆盖</p>
 </li>
-<li><p>将其从阻塞队列中移出，并置其状态为就绪状态</p>
-</li>
-<li><p>把该 PCB 插入到就绪队列中，等待调度程序调度</p>
+<li><p>调整 ziplist 大小</p>
 </li>
 </ol>
-<h2 id="多进程管理"><a href="#多进程管理" class="headerlink" title="多进程管理"></a>多进程管理</h2><h3 id="多进程并行"><a href="#多进程并行" class="headerlink" title="多进程并行"></a>多进程并行</h3><p>对于一个单核 CPU 来讲，从宏观上是并行的，而从微观上是串行的，它使用时间片划分周期调用来实现；每个任务在一段时间内会分到一段时间片(占 cpu 的时间)，在这段时间内该任务只能运行时间片长度从而达到同时的效果</p>
-<h3 id="父子进程"><a href="#父子进程" class="headerlink" title="父子进程"></a>父子进程</h3><p>Linux 中的进程都是由其它进程启动</p>
-<p>Linux 启动时，0 进程启动 1 号进程 (init) 和 2 号进程(内核线程)，0 号进程退出，其它进程是由 1、2 直接或间接产生</p>
-<ul>
-<li><p>1号进程 (init) 是所有用户进程的祖先</p>
+<h2 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h2><ul>
+<li><p>查找复杂度高</p>
 </li>
-<li><p>2号进程(内核线程)是内核进程的祖先</p>
+<li><p>压缩列表新增某个元素或修改某个元素时，如果空间不够，压缩列表占用的内存空间就需要重新分配</p>
 </li>
-</ul>
-<h3 id="进程退出"><a href="#进程退出" class="headerlink" title="进程退出"></a>进程退出</h3><ul>
-<li><p>正常退出：<code>main()</code> 中 <code>return</code> 进程的所有线程结束；<code>exit()</code> 代表整个进程的结束，是库函数；<code>_exit()</code> 或者 <code>_Exit()</code> 是系统调用函数；<code>exit()</code> 通过调用 <code>_exit()</code> 来实现退出的，但 <code>exit()</code> 多干了两件事情: 清空缓冲区、调用退出处理函数；退出处理函数可以做一些清理工作，需要先登记才生效，退出处理函数保存在退出处理函数栈中(先进后出的原则)</p>
-</li>
-<li><p>异常退出：被信号打断（ctrl + c、段错误、kill -9）；主线程被取消</p>
+<li><p>当新插入的元素较大时，因为压缩列表节点的 prevlen 属性会根据前一个节点的长度进行不同的空间大小分配，所以可能会导致后续元素的 prevlen 占用空间都发生变化，从而引起连锁更新问题，导致每个元素的空间都要重新分配，造成访问压缩列表性能的下降</p>
 </li>
 </ul>
-<h3 id="资源回收"><a href="#资源回收" class="headerlink" title="资源回收"></a>资源回收</h3><p>子进程退出时, 不管是正常还是异常, 父进程会收到信号；子进程退出后，内核会释放掉该进程资源（打开的文件、占用的内存等），但仍会保留一部分信息由父进程负责回收（进程号、退出状态、<br>运行时间），系统所能使用的进程号是有限的，如果大量的产生僵死进程，将因为没有可用的进程号而导致系统不能产生新的进程</p>
-<ul>
-<li><p>僵尸进程：子进程先结束，会通知父进程(通过信号)，让父进程回收资源，如果父进程不处理信号，子进程则变成僵尸进程；僵尸进程是一个进程必然会经过的过程，这是每个子进程在结束时都要经过的阶段</p>
-</li>
-<li><p>孤儿进程：父进程先结束，子进程就会变成孤儿进程，就会由 1 号进程（ init ）负责回收，但在实际编程中要避免这种情况</p>
-</li>
-</ul>
-<p>僵尸进程是一个早已死亡的进程，但在进程表中仍占了一个位置。由于进程表的容量是有限的，所以僵尸进程不仅占用系统的内存资源，影响系统的性能，而且如果其数目太多，还会导致系统瘫痪</p>
-<p>当子进程结束的时候，它并没有真正的被销毁，而是留下一个称为僵尸进程的数据结构，这些数据会一直保留到系统将它传递给它的父进程为止。此时，该僵尸子进程已经放弃了几乎所有的内存空间，没有任何可执行代码，也不能被调度，仅仅在进程列表中保留一个位置，记载该进程的退出状态信息供其他进程收集</p>
-<p>如果父进程没有捕获 SIGCHLD 信号处理函数调用 <code>wait()</code> 或 <code>waitpid()</code> 等待子进程结束，也没有显式忽略该信号，那么它就一直保持僵尸状态。如果父进程结束时子进程仍为僵尸进程，那么 init 进程会自动接手这个子进程，将它清除掉的。但是如果父进程是一个循环，不会结束，那么子进程就会一直保持僵尸状态</p>
-<p>僵尸进程是不能直接使用 kill -9 命令杀掉的，重启电脑或杀掉父进程可解决僵尸进程</p>
-<p>预防僵尸进程措施：</p>
-<ul>
-<li><p>在父进程创建子进程之前，就向系统申明自己不会对这个子进程的 exit 动作进行任何关注行为，这样子进程退出后，系统不会去等待父进程的操作，而是直接将该子进程的资源回收掉，也就不会出现僵尸进程了</p>
-</li>
-<li><p>在创建完子进程后，用 <code>waitpid()</code> 等待子进程返回</p>
-</li>
-</ul>
-<h3 id="父子进程共享的文件描述符"><a href="#父子进程共享的文件描述符" class="headerlink" title="父子进程共享的文件描述符"></a>父子进程共享的文件描述符</h3><p>PCB 里有个数组专门用于记录打开的文件，数组元素为指向所打开的文件所创建的文件表项，文件表项是用于描述文件当前被某个进程打开后的状态信息，包括文件状态标志，记录当前文件读取的位移量，以及文件的 i 节点指针</p>
-<p>不同进程打开同一个文件后，进程表和文件表的关系；<code>fork()</code> 之后打开文件，与不同进程打开同一文件情况相同</p>
+<p>压缩列表只会用于保存的节点数量不多的场景，只要节点数量足够小，即使发生连锁更新，也是能接受的</p>
+<h2 id="主要函数"><a href="#主要函数" class="headerlink" title="主要函数"></a>主要函数</h2><h3 id="ziplistNew"><a href="#ziplistNew" class="headerlink" title="ziplistNew"></a>ziplistNew</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// intrev32ifbe 本机序转换成小端</span></span><br><span class="line"><span class="function"><span class="type">unsigned</span> <span class="type">char</span> *<span class="title">ziplistNew</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> bytes = ZIPLIST_HEADER_SIZE+ZIPLIST_END_SIZE;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *zl = <span class="built_in">zmalloc</span>(bytes);</span><br><span class="line">    <span class="comment">// 设置 zlbytes</span></span><br><span class="line">    <span class="built_in">ZIPLIST_BYTES</span>(zl) = <span class="built_in">intrev32ifbe</span>(bytes);</span><br><span class="line">    <span class="comment">// 设置 zltail，直接指向 zlend</span></span><br><span class="line">    <span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl) = <span class="built_in">intrev32ifbe</span>(ZIPLIST_HEADER_SIZE);</span><br><span class="line">    <span class="comment">// 设置 zllen</span></span><br><span class="line">    <span class="built_in">ZIPLIST_LENGTH</span>(zl) = <span class="number">0</span>;</span><br><span class="line">    zl[bytes<span class="number">-1</span>] = ZIP_END;</span><br><span class="line">    <span class="keyword">return</span> zl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
-<p><code>fork()</code> 之前打开文件，子进程是共享父进程的文件表项</p>
-
-
-<p>进程调用 <code>fork()</code> 后，子进程和父进程的文件描述符所对应的文件表项是共享的，这意味着子进程对文件的读写直接影响父进程的文件位移量(反之同理)</p>
-<h2 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h2><p>自从多任务操作系统诞生以来，进程执行占用 cpu 的能力就是一个必须要可以人为控制的事情</p>
-<p>进程优先级起作用的方式，无论是只有一个 cpu 的时代，还是多核 cpu 时代，都是通过控制进程占用 cpu 时间的长短来实现的</p>
-<p>在同一个调度周期中，优先级高的进程占用的时间长些，而优先级低的进程占用的短些</p>
-<p>cgroup 相较于优先级，更能直观的反馈出资源分配的比例，但实际上从内核目前的进程调度器 cfs 的角度看，同时实现 cpushare 方式的 cgroup 和优先级这两个机制完全是相同的概念</p>
-<h3 id="nice"><a href="#nice" class="headerlink" title="nice"></a>nice</h3><p>nice 值是反应一个进程静态优先级状态的值，其取值范围是 -20 至 19，一共 40 个级别</p>
-<p>nice 越小，表示进程优先级越高，而值越大优先级越低</p>
-<p>可以通过 <code>nice</code> 命令来对一个将要执行的命令进行 <code>nice</code>值设置</p>
-<p>使用 <code>renice</code> 命令可以对一个正在运行的进程进行 nice 值的调整</p>
-<h3 id="priority"><a href="#priority" class="headerlink" title="priority"></a>priority</h3><p>priority 值表示 PRI 和 PR 值，动态优先级</p>
+<h3 id="ziplistPush"><a href="#ziplistPush" class="headerlink" title="ziplistPush"></a>ziplistPush</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_HEAD 0</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_TAIL 1</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">unsigned</span> <span class="type">char</span> *<span class="title">ziplistPush</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span> *zl, <span class="type">unsigned</span> <span class="type">char</span> *s, <span class="type">unsigned</span> <span class="type">int</span> slen, <span class="type">int</span> where)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *p;</span><br><span class="line">    p = (where == ZIPLIST_HEAD) ? <span class="built_in">ZIPLIST_ENTRY_HEAD</span>(zl) : <span class="built_in">ZIPLIST_ENTRY_END</span>(zl);</span><br><span class="line">    <span class="keyword">return</span> __ziplistInsert(zl,p,s,slen);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> <span class="type">char</span> *__ziplistInsert(<span class="type">unsigned</span> <span class="type">char</span> *zl, <span class="type">unsigned</span> <span class="type">char</span> *p, <span class="type">unsigned</span> <span class="type">char</span> *s, <span class="type">unsigned</span> <span class="type">int</span> slen) &#123;</span><br><span class="line">    <span class="type">size_t</span> curlen = <span class="built_in">intrev32ifbe</span>(<span class="built_in">ZIPLIST_BYTES</span>(zl)), reqlen, newlen;</span><br><span class="line">    <span class="comment">// prevlensize 表示 entry 的 encoding 长度</span></span><br><span class="line">    <span class="comment">// prevlen 表示 entry 的 encoding 长度</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> prevlensize, prevlen = <span class="number">0</span>;</span><br><span class="line">    <span class="type">size_t</span> offset;</span><br><span class="line">    <span class="type">int</span> nextdiff = <span class="number">0</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> encoding = <span class="number">0</span>;</span><br><span class="line">    <span class="type">long</span> <span class="type">long</span> value = <span class="number">123456789</span>; </span><br><span class="line">    zlentry tail;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (p[<span class="number">0</span>] != ZIP_END) &#123;</span><br><span class="line">        <span class="comment">// 头部插入</span></span><br><span class="line">        <span class="comment">// 利用 p 指向的 entry 解析 prevlensize 和 prevlen</span></span><br><span class="line">        <span class="built_in">ZIP_DECODE_PREVLEN</span>(p, prevlensize, prevlen);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 尾部插入，插入处是 zlend</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">char</span> *ptail = <span class="built_in">ZIPLIST_ENTRY_TAIL</span>(zl);  <span class="comment">// 指向最后一个 entry</span></span><br><span class="line">        <span class="keyword">if</span> (ptail[<span class="number">0</span>] != ZIP_END) &#123;</span><br><span class="line">            <span class="comment">// ziplist 尾部插入，ziplist 中有元素</span></span><br><span class="line">            prevlen = <span class="built_in">zipRawEntryLengthSafe</span>(zl, curlen, ptail);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* See if the entry can be encoded */</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">zipTryEncoding</span>(s,slen,&amp;value,&amp;encoding)) &#123;</span><br><span class="line">        <span class="comment">/* &#x27;encoding&#x27; is set to the appropriate integer encoding */</span></span><br><span class="line">        reqlen = <span class="built_in">zipIntSize</span>(encoding);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* &#x27;encoding&#x27; is untouched, however zipStoreEntryEncoding will use the</span></span><br><span class="line"><span class="comment">         * string length to figure out how to encode it. */</span></span><br><span class="line">        reqlen = slen;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* We need space for both the length of the previous entry and</span></span><br><span class="line"><span class="comment">     * the length of the payload. */</span></span><br><span class="line">    reqlen += <span class="built_in">zipStorePrevEntryLength</span>(<span class="literal">NULL</span>,prevlen);</span><br><span class="line">    reqlen += <span class="built_in">zipStoreEntryEncoding</span>(<span class="literal">NULL</span>,encoding,slen);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* When the insert position is not equal to the tail, we need to</span></span><br><span class="line"><span class="comment">     * make sure that the next entry can hold this entry&#x27;s length in</span></span><br><span class="line"><span class="comment">     * its prevlen field. */</span></span><br><span class="line">    <span class="type">int</span> forcelarge = <span class="number">0</span>;</span><br><span class="line">    nextdiff = (p[<span class="number">0</span>] != ZIP_END) ? <span class="built_in">zipPrevLenByteDiff</span>(p,reqlen) : <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (nextdiff == <span class="number">-4</span> &amp;&amp; reqlen &lt; <span class="number">4</span>) &#123;</span><br><span class="line">        nextdiff = <span class="number">0</span>;</span><br><span class="line">        forcelarge = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Store offset because a realloc may change the address of zl. */</span></span><br><span class="line">    offset = p-zl;</span><br><span class="line">    newlen = curlen+reqlen+nextdiff;</span><br><span class="line">    zl = <span class="built_in">ziplistResize</span>(zl,newlen);</span><br><span class="line">    p = zl+offset;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Apply memory move when necessary and update tail offset. */</span></span><br><span class="line">    <span class="keyword">if</span> (p[<span class="number">0</span>] != ZIP_END) &#123;</span><br><span class="line">        <span class="comment">/* Subtract one because of the ZIP_END bytes */</span></span><br><span class="line">        <span class="built_in">memmove</span>(p+reqlen,p-nextdiff,curlen-offset<span class="number">-1</span>+nextdiff);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Encode this entry&#x27;s raw length in the next entry. */</span></span><br><span class="line">        <span class="keyword">if</span> (forcelarge)</span><br><span class="line">            <span class="built_in">zipStorePrevEntryLengthLarge</span>(p+reqlen,reqlen);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="built_in">zipStorePrevEntryLength</span>(p+reqlen,reqlen);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Update offset for tail */</span></span><br><span class="line">        <span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl) =</span><br><span class="line">            <span class="built_in">intrev32ifbe</span>(<span class="built_in">intrev32ifbe</span>(<span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl))+reqlen);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* When the tail contains more than one entry, we need to take</span></span><br><span class="line"><span class="comment">         * &quot;nextdiff&quot; in account as well. Otherwise, a change in the</span></span><br><span class="line"><span class="comment">         * size of prevlen doesn&#x27;t have an effect on the *tail* offset. */</span></span><br><span class="line">        <span class="built_in">assert</span>(<span class="built_in">zipEntrySafe</span>(zl, newlen, p+reqlen, &amp;tail, <span class="number">1</span>));</span><br><span class="line">        <span class="keyword">if</span> (p[reqlen+tail.headersize+tail.len] != ZIP_END) &#123;</span><br><span class="line">            <span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl) =</span><br><span class="line">                <span class="built_in">intrev32ifbe</span>(<span class="built_in">intrev32ifbe</span>(<span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl))+nextdiff);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* This element will be the new tail. */</span></span><br><span class="line">        <span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl) = <span class="built_in">intrev32ifbe</span>(p-zl);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* When nextdiff != 0, the raw length of the next entry has changed, so</span></span><br><span class="line"><span class="comment">     * we need to cascade the update throughout the ziplist */</span></span><br><span class="line">    <span class="keyword">if</span> (nextdiff != <span class="number">0</span>) &#123;</span><br><span class="line">        offset = p-zl;</span><br><span class="line">        zl = __ziplistCascadeUpdate(zl,p+reqlen);</span><br><span class="line">        p = zl+offset;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Write the entry */</span></span><br><span class="line">    p += <span class="built_in">zipStorePrevEntryLength</span>(p,prevlen);</span><br><span class="line">    p += <span class="built_in">zipStoreEntryEncoding</span>(p,encoding,slen);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">ZIP_IS_STR</span>(encoding)) &#123;</span><br><span class="line">        <span class="built_in">memcpy</span>(p,s,slen);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">zipSaveInteger</span>(p,value,encoding);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">ZIPLIST_INCR_LENGTH</span>(zl,<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> zl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -417,7 +1096,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-skiplist/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -435,7 +1114,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/" class="post-title-link" itemprop="url">进程通信</a>
+          <a href="/2023/04/28/Redis-skiplist/" class="post-title-link" itemprop="url">skiplist</a>
         </h2>
 
         <div class="post-meta-container">
@@ -446,14 +1125,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-28 20:42:15" itemprop="dateCreated datePublished" datetime="2023-04-28T20:42:15+08:00">2023-04-28</time>
+      <time title="创建时间：2023-04-28 21:28:41" itemprop="dateCreated datePublished" datetime="2023-04-28T21:28:41+08:00">2023-04-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-29 20:43:21" itemprop="dateModified" datetime="2023-05-29T20:43:21+08:00">2023-05-29</time>
+      <time title="修改时间：2023-05-30 11:50:34" itemprop="dateModified" datetime="2023-05-30T11:50:34+08:00">2023-05-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -461,7 +1140,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
         </span>
     </span>
 
@@ -475,49 +1154,8 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>每个进程的用户地址空间都是独立的，一般而言是不能互相访问的，但内核空间是每个进程都共享的，<br>所以进程之间要通信必须通过内核</p>
-<p>进程间通信主要包括管道、消息队列、信号量、信号、共享内存、以及套接字 socket 等</p>
-<h2 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h2><p>主要包括匿名管道和命名管道，匿名管道用于具有亲缘关系的父子进程通信，命名管道还可允许无亲缘关系进程通信</p>
-<p>管道的实质是一个内核缓冲区，进程以先进先出的方式从缓冲区存取数据，管道一端的进程顺序的将数据写入缓冲区，另一端的进程则顺序的读出数据</p>
-<ul>
-<li><p>匿名管道：半双工的，数据只能在一个方向上流动，具有固定的读端和写端；只能用于具有亲缘关系的进程之间的通信（父子进程或者兄弟进程之间）；可以看成是一种特殊的文件，对于它的读写也可以使用普通的 <code>read</code>、<code>write</code> 等函数，但不是普通的文件，并不属于其他任何文件系统，并且只存在于内存中；缓冲区是有限，所传送的是无格式字节流，这就要求管道的读出方和写入方必须事先约定好数据的格式</p>
-</li>
-<li><p>命名管道：可以在无关的进程之间交换数据；有路径名与之相关联，它以一种特殊设备文件形式存在于文件系统中；</p>
-</li>
-</ul>
-<p>命名管道严格遵循先进先出</p>
-<p>管道的效率低，不适合进程间频繁地交换数据</p>
-<h3 id="匿名管道创建"><a href="#匿名管道创建" class="headerlink" title="匿名管道创建"></a>匿名管道创建</h3><p>通过系统调用 <code>int pipe(int fd[2])</code> 创建匿名管道， 并返回了两个描述符，一个是管道的读取端描述符 fd[0]，另一个是管道的写入端描述符 fd[1]</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/01.png" class="">
-
-<p>使用 <code>fork</code> 创建子进程，创建的子进程会复制父进程的文件描述符，这样就做到了两个进程各有两个 <code>fd[0]</code> 与 <code>fd[1]</code>，两个进程就可以通过各自的 <code>fd</code> 写入和读取同一个管道文件实现跨<br>进程通信了</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/02.png" class="">
-
-<p>如果需要双向通信，则应该创建两个管道</p>
-<h3 id="命名管道创建"><a href="#命名管道创建" class="headerlink" title="命名管道创建"></a>命名管道创建</h3><p>通过系统调用 <code>int mkfifo(const char * filename, mode_t mode)</code>，创建成功则返回 0，否则返回 -1，使用 <code>open()</code> 打开命名管道</p>
-<p>当前进程以写方式（且设置了阻塞标识）打开命名管道时，如果已有别的进程以读打开该命名管道时，则当前的打开操作成功返回，否则一直阻塞直到有进程为读打开该命名管道</p>
-<p>当前进程以读方式（且设置了阻塞标识）打开命名管道时，如果已有别的进程为写打开该命名管道时，则当前的打开操作成功返回，否则一直阻塞直到有进程为写打开该管道</p>
-<h2 id="共享内存"><a href="#共享内存" class="headerlink" title="共享内存"></a>共享内存</h2><p>系统加载一个进程的时候，分配给进程的内存并不是实际物理内存，而是虚拟内存空间；让两个进程各自拿出一块虚拟地址空间来，然后映射到相同的物理内存中，两个进程虽然有着独立的虚拟内存空间，但有一部分却是映射到相同的物理内存，解决了由用户态向内核态拷贝所消耗的时间；需要依靠某种进程同步操作，如互斥锁和信号量等</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/03.png" class="">
-
-<h2 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h2><p>消息队列存放在内核中，具有写权限的进程可以按照一定得规则向消息队列中添加新信息，有读权限的进程则可以从消息队列中读取信息；消息队列是面向记录的，其中的消息具有特定的格式以及特定的优先级；消息队列独立于发送与接收进程，进程终止时，消息队列及其内容并不会被删除；消息队列可以实现消息的随机查询，消息不一定要以先进先出的次序读取，也可以按消息的类型读取；消息队列存放在内核中，只有在内核重启或者显示地删除一个消息队列时，该消息队列才会被真正的删除；消息队列克服了信号承载信息量少，管道只能承载无格式字节流以及缓冲区大小受限等缺点</p>
-<p>消息队列不适合比较大数据的传输，因为在内核中每个消息体都有一个最大长度的限制，同时所有队列所包含的全部消息体的总长度也是有上限</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/04.png" class="">
-
-<h2 id="socket"><a href="#socket" class="headerlink" title="socket"></a>socket</h2><p>特性由 3 个属性确定，它们分别是：域、端口号、协议类型；域指定套接字通信中使用的网络介质（网络或 UNIX 文件系统）</p>
-<p>同一主机不同进程使用 socket 通信时，可以使用 UNIX Domain Socket，其优势：</p>
-<ul>
-<li><p>传输不需要经过网络协议栈，不需要打包拆包等操作，只是数据的拷贝过程</p>
-</li>
-<li><p>分为 SOCK_STREAM 和 SOCK_DGRAM，由于是在本机通过内核通信，不会丢包也不会出现发送包的次序和接收包的次序不一致的问题</p>
-</li>
-</ul>
-<h2 id="信号"><a href="#信号" class="headerlink" title="信号"></a>信号</h2><p>信号是进程间通信机制中唯一的异步通信机制，因为可以在任何时候发送信号给某一进程</p>
-<h2 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h2><p>信号量是是一个计数器，可以用来控制多个进程对共享资源的访问，用于实现进程间的互斥与同步，<br>而不是用于存储进程间通信数据</p>
-<p>若要在进程间传递数据需要结合共享内存</p>
-<p>程序对信号量的操作都是原子操作</p>
-<p>通过对信号量进行 PV 操作，获取共享资源；P 操作将信号量减一，若减一后大于等于 0，则继续执行，否者进入等待队列；S 操作将信号量加一，若加一后大于 0，则继续执行，否则释放等待队列中第一个进程</p>
-<p>互斥信号量的初值一般为 1，P、V 操作必须成对出现，先做 P 操作，进临界区，后做 V 操作，出临界区</p>
+          <p>在链表的基础上，增加了多级索引，通过索引位置的几个跳转，实现数据的快速定位</p>
+<p><img src="/../../Picture/Redis/src/skiplist/01.png"></p>
 
       
     </div>
@@ -544,7 +1182,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%8D%8F%E7%A8%8B/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-quicklist/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -562,7 +1200,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%8D%8F%E7%A8%8B/" class="post-title-link" itemprop="url">协程</a>
+          <a href="/2023/04/28/Redis-quicklist/" class="post-title-link" itemprop="url">quicklist</a>
         </h2>
 
         <div class="post-meta-container">
@@ -573,14 +1211,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-28 20:41:25" itemprop="dateCreated datePublished" datetime="2023-04-28T20:41:25+08:00">2023-04-28</time>
+      <time title="创建时间：2023-04-28 21:27:31" itemprop="dateCreated datePublished" datetime="2023-04-28T21:27:31+08:00">2023-04-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-29 20:43:21" itemprop="dateModified" datetime="2023-05-29T20:43:21+08:00">2023-05-29</time>
+      <time title="修改时间：2023-05-30 11:50:34" itemprop="dateModified" datetime="2023-05-30T11:50:34+08:00">2023-05-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -588,7 +1226,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
         </span>
     </span>
 
@@ -602,10 +1240,26 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>协程是一种由程序来管理的用户空间线程，具有对内核来说不可见的特性</p>
-<p>线程的切换由操作系统负责调度，协程由用户自己进行调度，因此减少了上下文切换，提高了效率</p>
-<p>协程由于在同一个线程上，因此可以避免竞争关系而使用锁</p>
-<p>适用于被阻塞的，且需要大量并发的场景</p>
+          <ol>
+<li><p>双向链表的问题：内存碎片、保存前后节点指针导致内存开销大</p>
+</li>
+<li><p>ziplist 有连锁更新隐患</p>
+</li>
+</ol>
+<p>quicklist 是一个双向链表，链表中的每个元素是一个压缩列表</p>
+<p>quicklist 通过控制每个链表节点中的压缩列表的大小或者元素个数，来规避连锁更新的问题，从而提供了更好的访问性能</p>
+<img src="/2023/04/28/Redis-quicklist/01.png" class="">
+
+<p>在向 quicklist 添加一个元素的时候，不会像普通的链表那样，直接新建一个链表节点，而是会检查插入位置的压缩列表是否能容纳该元素，如果能容纳就直接保存到 quicklistNode 结构里的压缩列表，如果不能容纳，才会新建一个新的 quicklistNode 结构</p>
+<p>quicklistNode 中的 ziplist 越短，内存碎片增多，影响存储效率。当一个 ziplist 只存一个元素时，quicklist 又退化成双向链表</p>
+<p>quicklistNode 中的 ziplist 越长，为 ziplist 分配大的连续的内存空间难度也就越大，会造成很多小块的内存空间被浪费，当 quicklist 只有一个节点，元素都存在一个 ziplist 上时，quicklist 又退化成 ziplist 了</p>
+<p>可以在 redis.conf 中通过如下参数 list-max-ziplist-size 来决定 ziplist 能存的节点元素</p>
+<h2 id="quicklistNode"><a href="#quicklistNode" class="headerlink" title="quicklistNode"></a>quicklistNode</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 一个 node 占 32 个字节，位域类型对于规则</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">quicklistNode</span> &#123;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">quicklistNode</span> *prev;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">quicklistNode</span> *next;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *zl;  <span class="comment">// 数据指针，数据没有压缩时指向 ziplist，否则指向 quicklisLZF</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> sz;  <span class="comment">// ziplist 占内存大小，被压缩后仍是未压缩的大小</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> count : <span class="number">16</span>;     <span class="comment">// ziplist entry 数量</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> encoding : <span class="number">2</span>;   <span class="comment">// RAW==1 没有压缩 LZF==2 使用 LZF 算法压缩</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> container : <span class="number">2</span>;  <span class="comment">// 固定为 ZIPLIST==2，表示使用 ziplist 作为数据容器</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> recompress : <span class="number">1</span>; <span class="comment">// 数据压缩后被临时解压，将这个字段置为 1，后面有机会再将数据压缩</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> attempted_compress : <span class="number">1</span>; <span class="comment">// node can&#x27;t compress; too small</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> extra : <span class="number">10</span>; <span class="comment">// 扩展字段</span></span><br><span class="line">&#125; quicklistNode;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">quicklistLZF</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> sz; <span class="comment">// compressed 长度</span></span><br><span class="line">    <span class="type">char</span> compressed[];</span><br><span class="line">&#125; quicklistLZF;</span><br></pre></td></tr></table></figure>
+
+<h2 id="quicklist"><a href="#quicklist" class="headerlink" title="quicklist"></a>quicklist</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">quicklistBookmark</span> &#123;</span><br><span class="line">    quicklistNode *node;</span><br><span class="line">    <span class="type">char</span> *name;</span><br><span class="line">&#125; quicklistBookmark;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在 64 为系统下占 40 个字节</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">quicklist</span> &#123;</span><br><span class="line">    quicklistNode *head;  <span class="comment">// 指向头节点</span></span><br><span class="line">    quicklistNode *tail;  <span class="comment">// 指向尾节点</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> count;  <span class="comment">// 所有 ziplist 中 entry 的数量</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> len;    <span class="comment">// quicklistNodes 数量</span></span><br><span class="line">    <span class="type">int</span> fill : <span class="number">16</span>;  <span class="comment">// 单个 ziplist 大小阈值，存放 list-max-ziplist-size</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> compress : <span class="number">16</span>; <span class="comment">// 压缩深度，默认 0 表示不压缩，否则表示从两端开始有多少个节点不压缩，实际深度由 ist-compress-depth 决定</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> bookmark_count: <span class="number">4</span>;</span><br><span class="line">    quicklistBookmark bookmarks[];</span><br><span class="line">&#125; quicklist;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> FILL_MAX ((1 &lt;&lt; (QL_FILL_BITS - 1)))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> COMPRESS_MAX ((1 &lt;&lt; (QL_COMP_BITS - 1)))</span></span><br></pre></td></tr></table></figure>
+
+<p><code>fill</code> 字段大于 0 时 ziplist 中的最大 entry 数</p>
+<p><code>fill</code> 字段小于 0 时，-1 表示 ziplist 大小不能超过 4kb，-2 表示 ziplist 大小不能超过 8kb，-3 表示 ziplist 大小不能超过 16kb，-4 表示 ziplist 大小不能超过 32kb，-5 表示 ziplist 大小不能超过 64kb</p>
 
       
     </div>
@@ -632,7 +1286,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E4%B8%8A%E4%B8%8B%E6%96%87/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-listpack/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -650,7 +1304,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E4%B8%8A%E4%B8%8B%E6%96%87/" class="post-title-link" itemprop="url">上下文</a>
+          <a href="/2023/04/28/Redis-listpack/" class="post-title-link" itemprop="url">listpack</a>
         </h2>
 
         <div class="post-meta-container">
@@ -661,14 +1315,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-28 20:38:16" itemprop="dateCreated datePublished" datetime="2023-04-28T20:38:16+08:00">2023-04-28</time>
+      <time title="创建时间：2023-04-28 21:26:25" itemprop="dateCreated datePublished" datetime="2023-04-28T21:26:25+08:00">2023-04-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-29 20:43:21" itemprop="dateModified" datetime="2023-05-29T20:43:21+08:00">2023-05-29</time>
+      <time title="修改时间：2023-05-30 11:50:34" itemprop="dateModified" datetime="2023-05-30T11:50:34+08:00">2023-05-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -676,7 +1330,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
         </span>
     </span>
 
@@ -690,705 +1344,57 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="CPU-上下文"><a href="#CPU-上下文" class="headerlink" title="CPU 上下文"></a>CPU 上下文</h2><p>在每个任务运行前，CPU 需要知道任务从哪里加载，又从哪里开始运行；操作系统需要事先帮 CPU 设置好 CPU 寄存器和程序计数器</p>
-<p>CPU 寄存器和程序计数器是 CPU 在运行任何任务前，所必须依赖的环境，这些环境就叫做 CPU 上下文</p>
-<p>CPU 上下文切换就是先把前一个任务的 CPU 上下文（CPU 寄存器和程序计数器）保存起来，然后加载新任务的上下文到这些寄存器和程序计数器，最后再跳转到程序计数器所指的新位置，运行新任务</p>
-<p>系统内核会存储保持下来的上下文信息，当此任务再次被分配给 CPU 运行时，CPU 会重新加载这些上下文，这样就能保证任务原来的状态不受影响，让任务看起来还是连续运行</p>
-<p>CPU 上下文切换分成：进程上下文切换、线程上下文切换和中断上下文切换</p>
-<h2 id="进程上下文"><a href="#进程上下文" class="headerlink" title="进程上下文"></a>进程上下文</h2><p>进程是由内核管理和调度的，所以进程的切换只能发生在内核态</p>
-<p>进程的上下文切换不仅包含了虚拟内存、栈、全局变量等用户空间的资源，还包括了内核堆栈、<br>寄存器等内核空间的资源</p>
-<p>系统会把交换的信息保存在进程的 PCB，当要运行另外一个进程的时候，我们需要从这个进程的 PCB<br>取出上下文，然后恢复到 CPU 中，这使得这个进程可以继续执行</p>
-<p>为了保证所有进程可以得到公平调度，CPU 时间被划分为一段段的时间片，这些时间片再被轮流分配给各个进程。<br>这样，当某个进程的时间片耗尽了，就会被系统挂起，切换到其它正在等待 CPU 的进程运行</p>
-<p>进程在系统资源不足（比如内存不足）时，要等到资源满足后才可以运行，这个时候进程也会被挂起，<br>并由系统调度其他进程运行</p>
-<p>当进程通过睡眠函数 sleep 这样的方法将自己主动挂起时，自然也会重新调度</p>
-<p>当有优先级更高的进程运行时，为了保证高优先级进程的运行，当前进程会被挂起，由高优先级进程来运行</p>
-<p>发生硬件中断时，CPU 上的进程会被中断挂起，转而执行内核中的中断服务程序</p>
-<h2 id="线程上下文"><a href="#线程上下文" class="headerlink" title="线程上下文"></a>线程上下文</h2><p>同一个进程内多个线程之间可以共享代码段、数据段、打开的文件等资源，但每个线程都有独立一套的寄存器和栈，这样可以确保线程的控制流是相对独立的</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E4%B8%8A%E4%B8%8B%E6%96%87/01.png" class="">
-
-<p>系统的任务调度，实际上的调度对象是线程，而进程只是给线程提供了虚拟内存、全局变量等资源</p>
-<p>线程上下文切换分为同一进程线程切换和不同进程线程切换：当两个线程不是属于同一个进程，则切换的过程就跟进程上下文切换一样；当两个线程是属于同一个进程，因为虚拟内存是共享的，所以在切换时，虚拟内存这些资源就保持不动，只需要切换线程的私有数据、寄存器等不共享的数据</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E6%A0%B8%E6%80%81/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E6%A0%B8%E6%80%81/" class="post-title-link" itemprop="url">内核态</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 21:31:07" itemprop="dateCreated datePublished" datetime="2023-04-26T21:31:07+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-29 20:43:21" itemprop="dateModified" datetime="2023-05-29T20:43:21+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">操作系统</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>在 cpu 的一些指令中，有的指令如果用错，将会导致整个系统崩溃；分了内核态和用户态后，当用户需要操作这些指令时候，内核为其提供了API，可以通过系统调用陷入内核，让内核去执行这些操作</p>
-<p>用户态和内核态是操作系统的两种运行级别，两者最大的区别就是特权级不同</p>
-<p>用户态拥有最低的特权级，内核态拥有较高的特权级，运行在用户态的程序不能直接访问操作系统内核数据结构和程序</p>
-<p>内核态和用户态之间的转换方式主要包括：系统调用，异常和中断</p>
-<ul>
-<li><p>系统调用：用户进程通过系统调用申请操作系统提供的服务程序完成工作</p>
-</li>
-<li><p>异常：当 CPU 在执行运行在用户态下的程序时，发生了某些事先不可知的异常，就会触发由当前运行进程切换到处理此异常的内核相关程序中，也就转到了内核态，比如缺页异常</p>
-</li>
-<li><p>中断：当外围设备完成用户请求的操作之后，会向 CPU 发出相应的中断信号，这时 CPU 会暂停执行下一条将要执行的指令，转而去执行中断信号的处理程序，如果先执行的指令是用户态下的程序，那么这个转换的过程自然也就发生了有用户态到内核态的切换</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/" class="post-title-link" itemprop="url">虚拟内存</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 21:30:08" itemprop="dateCreated datePublished" datetime="2023-04-26T21:30:08+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-29 20:43:21" itemprop="dateModified" datetime="2023-05-29T20:43:21+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">内存管理</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="虚拟地址空间"><a href="#虚拟地址空间" class="headerlink" title="虚拟地址空间"></a>虚拟地址空间</h2><p>为了防止不同进程同一时刻在物理内存中运行而对物理内存的争夺和践踏，以及让程序获得更多可用内存，采用了虚拟内存</p>
-<p>虚拟内存技术使得不同进程在运行过程中，它所看到的是自己独自占有了当前系统的内存；所有进程共享同一物理内存，每个进程只把自己目前需要的虚拟内存空间映射并存储到物理内存上</p>
-<p>操作系统引入了虚拟内存，进程持有的虚拟地址会通过 CPU 芯片中的内存管理单元（MMU）的映射关系，来转换变成物理地址，然后再通过物理地址访问内存</p>
-<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/01.png" class="">
-
-<p>在每个进程创建加载时，内核只是为进程创建了虚拟内存的布局，具体就是初始化进程控制表中内存相关的链表，实际上并不立即就把虚拟内存对应位置的程序数据和代码拷贝到物理内存中，只是建立好虚拟内存和磁盘文件之间的映射就好，等到运行到对应的程序时，才会通过缺页异常，来拷贝数据；进程运行过程中，要动态分配内存，比如 <code>malloc</code> 时，也只是分配了虚拟内存，即为这块虚拟内存对应的页表项做相应设置，当进程真正访问到此数据时，才引发缺页异常</p>
-<p>优点：</p>
-<ul>
-<li><p>扩大地址空间</p>
-</li>
-<li><p>内存保护：每个进程运行在各自的虚拟内存地址空间，互相不能干扰对方；对特定的内存地址提供写保护，可以防止代码或数据被恶意篡改</p>
-</li>
-<li><p>公平内存分配</p>
-</li>
-<li><p>当不同的进程使用同样的代码时，比如库文件中的代码，物理内存中可以只存储一份这样的代码，不同的进程只需要把自己的虚拟内存映射过去就可以了，节省内存</p>
-</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li><p>虚拟地址到物理地址的转换，增加了指令的执行时间</p>
-</li>
-<li><p>页面的换入换出需要磁盘 I&#x2F;O，非常耗时</p>
-</li>
-</ul>
-<h2 id="内存分段"><a href="#内存分段" class="headerlink" title="内存分段"></a>内存分段</h2><p>程序是由若干个逻辑分段组成的，如可由代码分段、数据分段、栈段、堆段组成，不同的段是有不同的属性的，所以就用分段的形式把这些段分离出来</p>
-<p>进程空间中以段为单位进行分配，每个段在内存中占据连续空间，但各段之间可以不相邻；编译程序时会把段名转化为相应的段号，在执行的时候 cpu 是根据段号去寻找地址的</p>
-<p>分段系统的逻辑地址结构由段号和段内偏移量所组成</p>
-<p>程序分多个段，各段离散的装入内存，为了保证程序能正常运行，就必须从物理内存中找到各个逻辑段的存放位置，为此需要为每个进程建立一张段映射表，简称段表</p>
-<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/02.jpg" class="">
-
-<p>段表里面保存的是这个段的基地址、段的界限和特权等级等，段内偏移量应该位于 0 和段界限之间，如果段内偏移量是合法的，就将段基地址加上段内偏移量得到物理内存地址</p>
-<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/03.jpg" class="">
-
-<p>分段存在内存碎片和内存交换的效率低的问题</p>
-<p>对于多进程的系统来说，用分段的方式，内存碎片是很容易产生的，产生了内存碎片，那不得不重新 Swap 内存区域，这个过程会产生性能瓶颈</p>
-<p>为了解决内存分段的内存碎片和内存交换效率低的问题，就出现了内存分页</p>
-<h2 id="内存分页"><a href="#内存分页" class="headerlink" title="内存分页"></a>内存分页</h2><p>分页是把整个虚拟和物理内存空间切成一段段固定尺寸的大小，在 Linux 下，每一页的大小为 4KB</p>
-<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/04.png" class="">
-
-<p>页表实际上存储在 CPU 的内存管理单元 （MMU） 中，于是 CPU 就可以直接通过 MMU，找出要实际要访问的物理内存地址</p>
-<p>当进程访问的虚拟地址在页表中查不到时，系统会产生一个缺页异常，进入系统内核空间分配物理内存、更新进程页表，最后再返回用户空间，恢复进程的运行</p>
-<p>采用了分页，那么释放的内存都是以页为单位释放的，也就不会产生无法给进程使用的小内存</p>
-<p>如果内存空间不够，操作系统会把其他正在运行的进程中的最近没被使用的内存页面给释放掉，<br>也就是暂时写在硬盘上，称为换出（Swap Out）。一旦需要的时候，再加载进来，<br>称为换入（Swap In）。所以，一次性写入磁盘的也只有少数的一个页或者几个页，<br>不会花太多时间，内存交换的效率就相对比较高</p>
-<p>分页的方式使得我们在加载程序的时候，不再需要一次性都把程序加载到物理内存中。我们完全可以在进行虚拟内存和物理内存的页之间的映射之后，并不真的把页加载到物理内存里，而是只有在程序运行中，需要用到对应虚拟内存页里面的指令和数据时，再加载到物理内存里面去</p>
-<p>在分页机制下，虚拟地址分为两部分，页号和页内偏移。页号作为页表的索引，页表包含物理页每页所在物理内存的基地址，这个基地址与页内偏移的组合就形成了物理内存地址</p>
-<p>一个进程对应一张页表</p>
-<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/05.png" class="">
-
-<p>内存地址转换步骤：</p>
-<ul>
-<li><p>把虚拟内存地址，切分成页号和偏移量</p>
-</li>
-<li><p>根据页号，从页表里面，查询对应的物理页号</p>
-</li>
-<li><p>直接拿物理页号，加上前面的偏移量，就得到了物理内存地址</p>
-</li>
-</ul>
-<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/06.png" class="">
-
-<p>单级分页导致页表占用内存过大，后采用多级页表，64 位系统需要四级页表，</p>
-<p>多级页表虽然解决了空间上的问题，但是虚拟地址到物理地址的转换就多了几道转换的工序，这显然就降低了这俩地址转换的速度，也就是带来了时间上的开销</p>
-<p>在 CPU 芯片中，加入了一个专门存放程序最常访问的页表项的 Cache，这个 Cache 就是 TLB，通常称为页表缓存、转址旁路缓存、快表等</p>
-<p>有了 TLB 后，那么 CPU 在寻址时，会先查 TLB，如果没找到，才会继续查常规的页表</p>
-<h2 id="缺页中断"><a href="#缺页中断" class="headerlink" title="缺页中断"></a>缺页中断</h2><p><code>malloc()</code> 和 <code>mmap()</code> 等内存分配函数，在分配时只是建立了进程虚拟地址空间，并没有分配虚拟内存对应的物理内存；当进程访问这些没有建立映射关系的虚拟内存时，处理器自动触发一个缺页异常</p>
-<p>缺页中断：在请求分页系统中，可以通过查询页表中的状态位来确定所要访问的页面是否存在于内存中。每当所要访问的页面不在内存时，会产生一次缺页中断，此时操作系统会根据页表中的外存地址在外存中找到所缺的一页，将其调入内存</p>
-<h2 id="段页式内存管理"><a href="#段页式内存管理" class="headerlink" title="段页式内存管理"></a>段页式内存管理</h2><p>内存分段和内存分页组合起来后，通常称为段页式内存管理</p>
-<p>段页式内存管理实现的方式：</p>
-<ul>
-<li><p>先将程序划分为多个有逻辑意义的段，也就是前面提到的分段机制</p>
-</li>
-<li><p>接着再把每个段划分为多个页，也就是对分段划分出来的连续空间，再划分固定大小的页</p>
-</li>
-</ul>
-<p>地址结构就由段号、段内页号和页内位移三部分组成</p>
-<p>用于段页式地址变换的数据结构是每一个程序一张段表，每个段又建立一张页表，段表中的地址是页表的起始地址，而页表中的地址则为某页的物理页号</p>
-<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/07.jpg" class="">
-
-<p>段页式地址变换中要得到物理地址须经过三次内存访问：</p>
-<ul>
-<li><p>第一次访问段表，得到页表起始地址</p>
-</li>
-<li><p>第二次访问页表，得到物理页号</p>
-</li>
-<li><p>第三次将物理页号与页内位移组合，得到物理地址</p>
-</li>
-</ul>
-<h2 id="页面设置"><a href="#页面设置" class="headerlink" title="页面设置"></a>页面设置</h2><p>如果页太小，就会产生大量的页表条目，降低了查询速度的同时还浪费了存放页面的主存空间</p>
-<p>如果页太大，又会容易造成浪费</p>
-<p>在某些对性能要求非常苛刻的场景中，页面会被设置得非常的大，这些页被称之为大页（Huge Page），可以减少页表条目，加快检索速度，提升 TLB 快表的命中率；使用大页的同时一般会禁止页面交换（Swap），大容量交换会让辅存读写成为 CPU 处理的瓶颈</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%B9%B6%E5%8F%91/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%B9%B6%E5%8F%91/" class="post-title-link" itemprop="url">并发</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 21:29:13" itemprop="dateCreated datePublished" datetime="2023-04-26T21:29:13+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-29 20:43:21" itemprop="dateModified" datetime="2023-05-29T20:43:21+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>并发：指宏观上看起来两个程序在同时运行，比如说在单核 cpu 上的多任务；但是从微观上看两个程序的指令是交织着运行的，你的指令之间穿插着我的指令，我的指令之间穿插着你的，在单个周期内只运行了一个指令；这种并发并不能提高计算机的性能，只能提高效率</p>
-<p>并行：指严格物理意义上的同时运行，比如多核 cpu，两个程序分别运行在两个核上，两者之间互不影响，单个周期内每个程序都运行了自己的指令，也就是运行了两条指令；并行提高了计算机的效率</p>
-<h2 id="互斥与同步"><a href="#互斥与同步" class="headerlink" title="互斥与同步"></a>互斥与同步</h2><p>互斥：是指某一资源同时只允许一个访问者对其进行访问，具有唯一性和排它性；互斥无法限制访问者对资源的访问顺序，即访问是无序的</p>
-<p>同步：是指在互斥的基础上（大多数情况），通过其它机制实现访问者对资源的有序访问</p>
-<h2 id="多核、多进程、多线程"><a href="#多核、多进程、多线程" class="headerlink" title="多核、多进程、多线程"></a>多核、多进程、多线程</h2><ul>
-<li><p>计算机的 cpu 核数是同时可以并行的线程数量（cpu 只能看到线程，线程是 cpu 调度分配的最小单位）</p>
-</li>
-<li><p>如果计算机有多个 cpu 核，且计算机中的总的线程数量小于核数，那线程就可以并行运行在不同的核中</p>
-</li>
-<li><p>如果是单核多线程，那多线程之间就不是并行而是并发，为了均衡负载，cpu 调度器会不断的在单核上切换不同的线程执行</p>
-</li>
-<li><p>如果是多核多线程且线程数量大于核数，其中有些线程就会不断切换，并发执行，但实际上最大的并行数量还是当前这个进程中的核的数量，所以盲目增加线程数不仅不会让你的程序更快，反而会给你的程序增加额外的开销</p>
-</li>
-<li><p>对计算密集型任务，可以使用核心数个线程，就可以占满 cpu 资源，进而可以充分利用 cpu，如果再多，就会造成额外的开销</p>
-</li>
-<li><p>对于 IO 密集型任务，线程由于被 IO 阻塞，如果仍然用核心数个线程，cpu 是跑不满的，于是可以使用更多个线程来提高 cpu 使用率</p>
-</li>
-</ul>
-<h2 id="单核机器的多线程需要加锁"><a href="#单核机器的多线程需要加锁" class="headerlink" title="单核机器的多线程需要加锁"></a>单核机器的多线程需要加锁</h2><p>线程锁通常用来实现线程的同步和通信，单核机器上的多线程程序，仍然存在线程同步的问题；在抢占式操作系统中，通常为每个线程分配一个时间片，当某个线程时间片耗尽时，操作系统会将其挂起，然后运行另一个线程。如果这两个线程共享某些数据，不使用线程锁的前提下，可能会导致共享数据修改引起冲突</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-socket/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-socket/" class="post-title-link" itemprop="url">socket</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 21:23:51" itemprop="dateCreated datePublished" datetime="2023-04-26T21:23:51+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-29 20:43:21" itemprop="dateModified" datetime="2023-05-29T20:43:21+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">网络编程</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Unix&#x2F;Linux 基本哲学之一就是一切皆文件，都可以用 open –&gt; write&#x2F;read –&gt; close 模式来操作</p>
-<p>socket 即是一种特殊的文件，一些 socket 函数就是对其进行的操作（读&#x2F;写 IO、打开、关闭）</p>
-<h2 id="套接字描述符"><a href="#套接字描述符" class="headerlink" title="套接字描述符"></a>套接字描述符</h2><p>套接字描述符是一个整数，我们最熟悉的句柄是 0、1、2 三个，0 是标准输入，1 是标准输出，2 是标准错误输出，分别对应 <code>FILE*</code> 结构 <code>stdin</code>、<code>stdout</code>、<code>stderr</code></p>
-<p>当应用程序要创建一个套接字时，操作系统就返回一个小整数作为描述符来标识这个套接字，应用程序则使用这个描述符作为传递参数，通过调用函数来完成操作</p>
-<p>应用程序只需记住这个描述符，并在以后操作该文件时使用它</p>
-<p>系统为每个运行的进程维护一张单独的文件描述符表，当进程打开一个文件时，系统把一个指向此文件内部数据结构的指针写入文件描述符表，并把该表的索引值返回给调用者</p>
-<h2 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h2><ul>
-<li>tcp</li>
-</ul>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-socket/01.png" class="">
+          <p>quicklist 虽然通过控制 quicklistNode 结构里的压缩列表的大小或者元素个数，来减少连锁更新带来的性能影响，但是并没有完全解决连锁更新的问题</p>
+<p>listpack 用来替代压缩列表，它最大特点是 listpack 中每个节点不再包含前一个节点的长度</p>
+<p>listpack 用一块连续的内存空间来紧凑地保存数据，并且为了节省内存的开销，listpack 节点会采用不同的编码方式保存不同大小的数据</p>
+<img src="/2023/04/28/Redis-listpack/01.png" class="">
 
 <ul>
-<li>udp</li>
+<li><p>encoding：定义该元素的编码类型，会对不同长度的整数和字符串进行编码</p>
+</li>
+<li><p>data：实际存放的数据</p>
+</li>
+<li><p>len：encoding+data的总长度</p>
+</li>
 </ul>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-socket/02.png" class="">
+<p>listpack 没有压缩列表中记录前一个节点长度的字段了，listpack 只记录当前节点的长度，当向 listpack 加入一个新元素的时候，不会影响其他节点的长度字段的变化，从而避免了压缩列表的连锁更新问题</p>
+<h2 id="一般结构"><a href="#一般结构" class="headerlink" title="一般结构"></a>一般结构</h2><p>listpack 拥有一个固定的 6 字节头部信息，相比 ziplist 的 10 字节的头部信息，listpack 少了指向最后一个 element 的指针</p>
+<p>在 listpack 尾部有一个 255 的终止符</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;tot-bytes&gt; &lt;num-elements&gt; &lt;element-1&gt; ... &lt;element-N&gt; &lt;listpack-end-byte&gt;</span><br></pre></td></tr></table></figure>
 
-<h2 id="socket-异常"><a href="#socket-异常" class="headerlink" title="socket 异常"></a>socket 异常</h2><p>TCP 连接建立之后，能感知 TCP 链路的方式是有限的，一种是以 <code>read</code> 为核心的读操作，另一种是以 <code>write</code> 为核心的写操作</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-socket/03.png" class="">
-
-<h3 id="客户端连接服务器未监听端口"><a href="#客户端连接服务器未监听端口" class="headerlink" title="客户端连接服务器未监听端口"></a>客户端连接服务器未监听端口</h3><p>服务端会对收到的 SYN 回应一个 RST，客户端收到 RST 之后，终止连接并进入 CLOSED 状态，返回 <code>ECONNREFUSED</code></p>
-<h3 id="服务器不可达"><a href="#服务器不可达" class="headerlink" title="服务器不可达"></a>服务器不可达</h3><p>服务端地址不可访问，返回 <code>EHOSTUNREACH</code></p>
-<h3 id="超时连接"><a href="#超时连接" class="headerlink" title="超时连接"></a>超时连接</h3><p>客户端发送的 SYN 丢失在网络中，没有得到确认，客户端的 TCP 会超时重发 SYN，发送 7 个 SYN 后等待一个超时时间，仍然没有收到 ACK，则 <code>connect()</code> 返回超时</p>
-<h3 id="服务器端-SYN-ACK-丢失"><a href="#服务器端-SYN-ACK-丢失" class="headerlink" title="服务器端 SYN-ACK 丢失"></a>服务器端 SYN-ACK 丢失</h3><p>客户端没有收到 SYN-ACK 包，类似于超时连接错误</p>
-<p>服务器端由 LISTEN 进入 SYN_RECV，服务端的 TCP 会重发 SYN-ACK，直到超时，即 SYN 攻击</p>
-<h3 id="客户端-ACK-丢失"><a href="#客户端-ACK-丢失" class="headerlink" title="客户端 ACK 丢失"></a>客户端 ACK 丢失</h3><p>服务器端没有收到 ACK 包，类似于 SYN 攻击</p>
-<p>对于客户端来讲，由 SYN_SENT 状态进入了 ESTABLISED 状态，即连接成功，客户端可以发送数据，但实际上数据是发送不到服务端；客户端发送出去的数据得不到确认，最终，客户端产生一个复位信号并终止连接</p>
-<h3 id="网络断开且互相不发送数据"><a href="#网络断开且互相不发送数据" class="headerlink" title="网络断开且互相不发送数据"></a>网络断开且互相不发送数据</h3><p>在没有 ICMP 报文的情况下，TCP 程序并不能理解感应到连接异常，双方都不知道网络已经不通，会一直保持 ESTABLISHDED 状态</p>
-<p>如果程序是阻塞在 <code>read</code> 调用上，那么程序无法从异常中恢复，需要通过给 <code>read</code> 操作设置超时来解决</p>
-<h3 id="网络断开但仍需发送数据"><a href="#网络断开但仍需发送数据" class="headerlink" title="网络断开但仍需发送数据"></a>网络断开但仍需发送数据</h3><p>接收一方不知道网络出问题，会一直等待数据到来</p>
-<p>对于发送方发送数据，TCP 协议栈会不断尝试将发送缓冲区的数据发送出去，大概在重传 12 次、合计时间约为 9 分钟之后，协议栈会标识该连接异常</p>
-<p>如果应用层 <code>write</code> 完数据后阻塞的 <code>read</code>，则 <code>read</code> 调用会返回一条 TIMEOUT 的错误信息，如果此时程序还执着地往这条连接写数据，写操作会立即失败，返回一个 SIGPIPE 信号给应用程序</p>
-<p>需要引入心跳机制</p>
-<h3 id="网络断开后重启"><a href="#网络断开后重启" class="headerlink" title="网络断开后重启"></a>网络断开后重启</h3><p>当重传的 TCP 分组到达重启后的系统，由于系统中没有该 TCP 分组对应的连接数据，系统会返回一个 RST，TCP 程序通过 <code>read()</code> 或 <code>write()</code> 调用可以分别对 RST 进行错误处理</p>
-<p><code>read()</code> 会立即返回一个错误，错误信息为连接重置</p>
-<p><code>write()</code> 会立即失败，应用程序会被返回一个 SIGPIPE 信号</p>
-<h3 id="对端进程奔溃但仍接受数据"><a href="#对端进程奔溃但仍接受数据" class="headerlink" title="对端进程奔溃但仍接受数据"></a>对端进程奔溃但仍接受数据</h3><p>linux 下，按 ctrl+c 结束程序，会调用 <code>close()</code>，发送 FIN</p>
-<p>接收方调用 <code>recv()</code> 返回 0</p>
-<h3 id="对端进程奔溃但仍发送数据"><a href="#对端进程奔溃但仍发送数据" class="headerlink" title="对端进程奔溃但仍发送数据"></a>对端进程奔溃但仍发送数据</h3><p>对端奔溃后内核会做一些清理的事情，为这个套接字发送一个 FIN 包；根据 TCP 协议，收到对方的 FIN 包只意味着对方不会再发送任何消息， 在一个双方正常关闭的流程中，收到 FIN 包的一端将剩余数据发送给对面（通过一次或多次 <code>write</code>），然后关闭套接字；当数据到达服务器端时，内核发现这是一个指向关闭的套接字，会再次向客户端发送一个 RST 包，对于发送端而言如果此时再执行 <code>write</code> 操作，立即会返回一个 RST 错误信息</p>
-<p>第一次调用 <code>send()</code> 返回成功，数据会被发送到奔溃的对端，奔溃端会回一个 RST</p>
-<p>再次调用 <code>send()</code> 返回 -1，errno 设置为 32 Broken pipe，会向应用程序发送 <code>SIGPIPE</code> 信号</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-fcntl/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-fcntl/" class="post-title-link" itemprop="url">fcntl</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 21:16:53" itemprop="dateCreated datePublished" datetime="2023-04-26T21:16:53+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-29 20:43:21" itemprop="dateModified" datetime="2023-05-29T20:43:21+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><code>fcntl</code> 函数可以改变或者查看已打开文件的性质</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">fcntl</span><span class="params">(<span class="type">int</span> fd, <span class="type">int</span> cmd)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">fcntl</span><span class="params">(<span class="type">int</span> fd, <span class="type">int</span> cmd, <span class="type">long</span> arg)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">fcntl</span><span class="params">(<span class="type">int</span> fd, <span class="type">int</span> cmd, <span class="keyword">struct</span> flock *lock)</span></span>; </span><br><span class="line"><span class="comment">//返回值：如果成功则依赖于 cmd，出错则返回 -1</span></span><br></pre></td></tr></table></figure>
-
-<p><code>fcntl</code> 有 5 中功能</p>
 <ul>
-<li><p>复制一个现有文件描述符 <code>cmd = F_DUPFD</code></p>
+<li><p>tot-bytes：类型 <code>uint32_t</code>，采用小端存储，表示 listpack 全部字节</p>
 </li>
-<li><p>获取&#x2F;设置文件描述符标记 <code>cmd = F_SETFD / F_GETFD</code></p>
-</li>
-<li><p>获取&#x2F;设置文件状态标记 <code>cmd = F_SETFL / F_GETFL</code></p>
-</li>
-<li><p>获取&#x2F;设置异步I&#x2F;O所有权 <code>cmd = F_SETOWN / F_GETOWN</code></p>
-</li>
-<li><p>获取&#x2F;设置记录锁 <code>cmd = F_SETLK / F_GETLK / F_SETLKW</code></p>
+<li><p>num-elements：类型 <code>uint16_t</code>，采用小端存储，表示 listpack 包含 element 数量，当 num-elements 被设置为 65535 时表示 element 数量不可知，此时获取 element 数量需要通过扫描整个 listpack</p>
 </li>
 </ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将 socket 设置为非阻塞</span></span><br><span class="line"><span class="type">int</span> flag = <span class="built_in">fcntl</span>(socket_fd, F_GETFL, <span class="number">0</span>);</span><br><span class="line"><span class="built_in">fcntl</span>(socket_fd, F_SETFL, flag | O_NONBLOCK);</span><br><span class="line"><span class="comment">// 将 socket 设置为阻塞</span></span><br><span class="line"><span class="type">int</span> flag = <span class="built_in">fcntl</span>(socket_fd, F_GETFL, <span class="number">0</span>);</span><br><span class="line"><span class="built_in">fcntl</span>(socket_fd, F_SETFL, flag &amp; ~O_NONBLOCK);</span><br></pre></td></tr></table></figure>
-      
-    </div>
+<h2 id="element-结构"><a href="#element-结构" class="headerlink" title="element 结构"></a>element 结构</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;encoding-type&gt;&lt;element-data&gt;&lt;element-tot-len&gt;</span><br><span class="line">|                                            |</span><br><span class="line">+--------------------------------------------+</span><br><span class="line">            (This is an element)</span><br></pre></td></tr></table></figure>
 
-    
-    
-    
+<p>encoding-type 和 element-tot-len 总是存在的，但 data 部分可能会放在 encoding-type 里</p>
+<p>element-tot-len 只能在反向遍历时使用，因为在正向遍历时不需要该字段就能知道数据大小</p>
+<p>encoding-type 第一个字节的前两位表示编码方式，这里有三种编码方式</p>
+<ol>
+<li>当数据是字符串，且可以被表示小数字（0-127）时，encoding 第一位为 0，后七位表示数据</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0|xxxxxxx</span><br><span class="line"></span><br><span class="line">&quot;\x03&quot; -- 0000 0011 --The string &quot;3&quot;</span><br><span class="line">&quot;\x12&quot; -- 0001 0010 --The string &quot;18&quot;</span><br></pre></td></tr></table></figure>
 
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
+<ol start="2">
+<li>当数据是小字符串，字符串长度可以用后六位表示（0-63）</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">10|xxxxxx &lt;string-data&gt;</span><br><span class="line"></span><br><span class="line">&quot;\x80&quot; -- 1000 0000 --The empty string</span><br><span class="line">&quot;\x85hello&quot; -- 1000 0101 -- The string &quot;hello&quot;</span><br></pre></td></tr></table></figure>
 
+<ol start="3">
+<li>高两位都被设置为 1，且紧随的后两位不是 11</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">110|xxxxx yyyyyyyy -- 后面 13 位直接编码有符号整数</span><br><span class="line">1110|xxxx yyyyyyyy -- 编码长度不大于 4095 的字符串</span><br></pre></td></tr></table></figure>
 
+<ol start="4">
+<li>高四位都被设置为 1</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1111|0000 &lt;4 字节字符串长度&gt; &lt;大字符串&gt;</span><br><span class="line">1111|0001 -- 编码 int16_t</span><br><span class="line">1111|0010 -- 编码 int24_t</span><br><span class="line">1111|0011 -- 编码 int32_t</span><br><span class="line">1111|0100 -- 编码 int64_t</span><br><span class="line">1111|0101 ~ 1111|1110 未使用</span><br><span class="line">1111|1111 -- 终止符</span><br></pre></td></tr></table></figure>
 
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-getaddrinfo/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-api-getaddrinfo/" class="post-title-link" itemprop="url">getaddrinfo</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 21:15:36" itemprop="dateCreated datePublished" datetime="2023-04-26T21:15:36+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-29 20:43:21" itemprop="dateModified" datetime="2023-05-29T20:43:21+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">getaddrinfo</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* node, <span class="type">const</span> <span class="type">char</span>* service,</span></span></span><br><span class="line"><span class="params"><span class="function">                <span class="type">const</span> <span class="keyword">struct</span> addrinfo* hints,</span></span></span><br><span class="line"><span class="params"><span class="function">                <span class="keyword">struct</span> addrinfo** res)</span></span>;</span><br><span class="line"><span class="comment">// 成功返回 0。否则返回非 0</span></span><br><span class="line"><span class="comment">// 结果存储在 res 中</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">addrinfo</span> &#123;</span><br><span class="line">    <span class="type">int</span> ai_flags;</span><br><span class="line">    <span class="type">int</span> ai_family;</span><br><span class="line">    <span class="type">int</span> ai_socktype;</span><br><span class="line">    <span class="type">int</span> ai_protocol;</span><br><span class="line">    <span class="type">socklen_t</span> ai_addrlen;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">sockaddr</span>* ai_addr;</span><br><span class="line">    <span class="type">char</span>* ai_canonname;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">addrinfo</span>* ai_next;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 释放 res</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">freeaddrinfo</span><span class="params">(<span class="keyword">struct</span> addrinfo* res)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">addrinfo</span> hints = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">hints.ai_flags = AI_CANONNAME;</span><br><span class="line">hints.ai_family = family;</span><br><span class="line">hints.ai_socktype = socktype;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">addrinfo</span>* res;</span><br><span class="line"><span class="type">int</span> n = <span class="built_in">getaddrinfo</span>(host, service, &amp;hints, &amp;res);</span><br><span class="line"><span class="keyword">if</span> (n == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">freeaddr</span>(res);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>element-tot-len 使用变长字段存储，并且从右往左存储，每个字节的最高有效位用于指示是否有更多字节，这意味着在每个字节中只使用 7 位</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&quot;\x20&quot; -- 0010 0000 --32 bytes entry length</span><br><span class="line"></span><br><span class="line">500 二进制 1111 0100</span><br><span class="line">&quot;\xf4\x03&quot; -- 0000 0011 1111 0100 -- 500 bytes entry length</span><br><span class="line">[0]000 0011          [1]111 0100</span><br><span class="line"> |                   |</span><br><span class="line"> `- no more bytes    `- more bytes to the left!</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1407,7 +1413,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/5/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/34/">34</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/5/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
