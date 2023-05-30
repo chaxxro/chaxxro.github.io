@@ -3,7 +3,7 @@ toc:
   enable: true
   number: false
   max_depth: 3
-title: post
+title: dhcp
 date: 2023-04-26 19:40:19
 tags: 网络协议
 categories: 网络协议
