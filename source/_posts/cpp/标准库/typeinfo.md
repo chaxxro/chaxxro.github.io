@@ -3,7 +3,7 @@ toc:
   enable: true
   number: false
   max_depth: 3
-title: typeinfo 用法
+title: typeinfo
 date: 2023-05-26 19:45:09
 tags: cpp
 categories: cpp

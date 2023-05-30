@@ -3,7 +3,7 @@ toc:
   enable: true
   number: false
   max_depth: 3
-title: type_trait 用法
+title: type_trait
 date: 2023-05-26 19:46:35
 tags: cpp
 categories: cpp
