@@ -5,7 +5,7 @@ toc:
   max_depth: 3
 title: fcntl
 date: 2023-04-26 21:16:53
-tags: 网络编程
+tags: LinuxApi
 categories: LinuxApi
 ---
 

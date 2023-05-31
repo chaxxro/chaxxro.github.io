@@ -5,8 +5,8 @@ toc:
   max_depth: 3
 title: sockopt
 date: 2023-04-26 20:49:53
-tags:
-categories:
+tags: LinuxApi
+categories: LinuxApi
 ---
 
 ```cpp

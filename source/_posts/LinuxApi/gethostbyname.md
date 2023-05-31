@@ -5,7 +5,7 @@ toc:
   max_depth: 3
 title: gethostbyname
 date: 2023-04-26 20:49:27
-tags: 网络编程
+tags: LinuxApi
 categories: LinuxApi
 ---
 

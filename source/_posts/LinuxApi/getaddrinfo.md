@@ -5,7 +5,7 @@ toc:
   max_depth: 3
 title: getaddrinfo
 date: 2023-04-26 21:15:36
-tags: 网络编程
+tags: LinuxApi
 categories: LinuxApi
 ---
 
