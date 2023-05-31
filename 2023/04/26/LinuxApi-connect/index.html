@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="客户端通过调用 connect()函数来建立与 TCP 服务器的连接 123456int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);&#x2F;*addr：服务器的 socket 地址addrlen：socket 地址的长度*&#x2F;  当 connect 函数成功返回后，表明 tcp 的三次握手连接已完成，此时 acc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="connect">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/26/LinuxApi-connect/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="客户端通过调用 connect()函数来建立与 TCP 服务器的连接 123456int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);&#x2F;*addr：服务器的 socket 地址addrlen：socket 地址的长度*&#x2F;  当 connect 函数成功返回后，表明 tcp 的三次握手连接已完成，此时 acc">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-26T12:48:24.000Z">
+<meta property="article:modified_time" content="2023-05-31T03:24:06.715Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="LinuxApi">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/26/LinuxApi-connect/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/26/LinuxApi-connect/","path":"2023/04/26/LinuxApi-connect/","title":"connect"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>connect | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%94%E5%9B%9E%E5%A4%B1%E8%B4%A5"><span class="nav-text">返回失败</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UDP-%E4%BD%BF%E7%94%A8-connect"><span class="nav-text">UDP 使用 connect</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%BB%E5%A1%9E%E5%92%8C%E9%9D%9E%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F"><span class="nav-text">阻塞和非阻塞模式</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">332</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-connect/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="connect | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          connect
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 20:48:24" itemprop="dateCreated datePublished" datetime="2023-04-26T20:48:24+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>客户端通过调用 <code>connect()</code>函数来建立与 TCP 服务器的连接</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">connect</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">const</span> <span class="keyword">struct</span> sockaddr *addr, <span class="type">socklen_t</span> addrlen)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">addr：服务器的 socket 地址</span></span><br><span class="line"><span class="comment">addrlen：socket 地址的长度</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>当 <code>connect</code> 函数成功返回后，表明 tcp 的三次握手连接已完成，此时 <code>accept</code> 函数获取到一个客户端连接并返回</p>
+<p>当服务端 syn 队列已满时，新客户端连接的 syn 包会被忽略，但是服务端并不会发送 RST 报文，原因是客户端可以重传 SYN，并期望在超时前未决连接队列找到空位与服务端建立连接</p>
+<h2 id="返回失败"><a href="#返回失败" class="headerlink" title="返回失败"></a>返回失败</h2><ul>
+<li><p>当客户端发送了 SYN 报文后，没有收到确认则返回 <code>ETIMEDOUT</code> 错误；失败一次并不会马上返回 <code>ETIMEDOUT</code> 错误，没有收到确认就等 6s 后再发一个 SYN 报文，还没有收到就等 24s 再发一个，时间是累加的，如果总共等了 75s 后还是没收到确认，那么客户端将返回  <code>ETIMEDOUT</code> 错误</p>
+</li>
+<li><p>客户端连接一个服务器没有侦听的端口，客户端发送了一个 SYN 报文后，然后服务端回复了一个 RST 报文，<code>connect</code> 立即返回 <code>  ECONNREFUSED</code></p>
+</li>
+<li><p>客户端调用 <code>connect</code> 函数向服务端发送了一个 SYN 报文，这个 SYN 报文在网络传输过程中经过某个路由器时，正好这个路由器出问题了，缺少到达目的地的路由，不能把这个 SYN 报文转发给目的地址，那么该路由器会丢弃这个 SYN 报文，并同时给客户端发送一个主机不可达的 ICMP 差错报文，客户端返回 <code>EHOSTUNREACH</code>或 <code>ENETUNREACH</code> 错误</p>
+</li>
+</ul>
+<h2 id="UDP-使用-connect"><a href="#UDP-使用-connect" class="headerlink" title="UDP 使用 connect"></a>UDP 使用 connect</h2><p>UDP <code>connect</code> 函数的调用，并不会引起和服务器目标端的网络交互，但能够接收对端异步错误的信息</p>
+<p>通过对 UDP 套接字进行 <code>connect</code> 操作，将 UDP 套接字建立了上下文，该套接字和服务器端的地址和端口产生了联系，正是这种绑定关系给了操作系统内核必要的信息，能够将操作系统内核收到的信息和对应的套接字进行关联</p>
+<p>当 <code>connect</code> 后调用 <code>sendto</code> 或 <code>send</code>，操作系统开始尝试往对应的地址和端口发送，当对端不可达时，一个 ICMP 报文会返回给操作系统内核，该 ICMP 报文含有目的地址和端口等信息，从而操作系统可以将错误信息返回给 <code>recv</code> 或 <code>recvfrom</code>，而不是阻塞</p>
+<p>客户端通过 <code>connect</code> 绑定服务端的地址和端口，对 UDP 而言，可以有一定程度的性能提升，因为不用每次发送数据时初始化对端地址</p>
+<h2 id="阻塞和非阻塞模式"><a href="#阻塞和非阻塞模式" class="headerlink" title="阻塞和非阻塞模式"></a>阻塞和非阻塞模式</h2><ul>
+<li><p>阻塞模式时，<code>connect</code> 会阻塞到连接成功</p>
+</li>
+<li><p>非阻塞模式时，对非阻塞 socket 调用 <code>connect</code>，无论连接是否成功都会立即返回；返回 -1，不一定表示连接出错，如果此时错误码是 <code>EINPROGRESS</code>，表示正在尝试连接</p>
+</li>
+<li><p>非阻塞模式 <code>connect</code> 需要搭配非阻塞的 socket</p>
+</li>
+<li><p>在指定的时间内判断该 socket 是否可写，如果可写说明连接成功，反之则认为连接失败</p>
+</li>
+<li><p>用 <code>select</code> 或 <code>poll</code> 函数检测其是否可写时，不仅要用 <code>select</code> 检测可写，还要使用 <code>getsockopt</code> 检测此时 socket 是否出错，通过错误码来检测确定是否连接上，错误码为 0 表示连接上，反之为未连接上</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/LinuxApi/" rel="tag"># LinuxApi</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/26/LinuxApi-bind/" rel="prev" title="bind">
+                  <i class="fa fa-chevron-left"></i> bind
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/26/LinuxApi-epoll/" rel="next" title="epoll">
+                  epoll <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
