@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">332</span>
+          <span class="site-state-item-count">350</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,7 +159,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E8%A1%8C%E4%B8%BA%E5%8F%98%E9%87%8F/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E8%A1%8C%E4%B8%BA%E5%8F%98%E9%87%8F/" class="post-title-link" itemprop="url">行为变量</a>
+          <a href="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">持久化机制</a>
         </h2>
 
         <div class="post-meta-container">
@@ -188,14 +188,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-19 19:58:23" itemprop="dateCreated datePublished" datetime="2023-04-19T19:58:23+08:00">2023-04-19</time>
+      <time title="创建时间：2023-04-20 20:59:46" itemprop="dateCreated datePublished" datetime="2023-04-20T20:59:46+08:00">2023-04-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -203,7 +203,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
         </span>
     </span>
 
@@ -217,770 +217,445 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <table>
-<thead>
-<tr>
-<th>变量名</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>BUILD_SHARED_LIBS</td>
-<td>被设置为 on 时，ADD_LIBRARY 默认生成动态库</td>
-</tr>
-<tr>
-<td>CMAKE_BUILD_TYPE</td>
-<td>使用单一构建工具时的构建类型，该变量不区分大小写，包括 None (CMAKE_C_FLAGS 和 CMAKE_CXX_FLAGS 使用)、Debug (CMAKE_C_FLAGS_DEBUG 和 CMAKE_CXX_FLAGS_DEBUG 使用)、Release (CMAKE_C_FLAGS_RELEASE 和 CMAKE_CXX_FLAGS_RELEASE 使用)、RelWithDebInfo (CMAKE_C_FLAGS_RELWITHDEBINFO 和 CMAKE_CXX_FLAGS_RELWITHDEBINFO 使用）、MinSizeRel (CMAKE_C_FLAGS_MINSIZEREL 和 CMAKE_CXX_FLAGS_MINSIZEREL 使用)</td>
-</tr>
-<tr>
-<td>CMAKE_INCLUDE_PATH</td>
-<td><code>find_file</code> 和 <code>find_path</code> 使用，默认空</td>
-</tr>
-<tr>
-<td>CMAKE_LIBRARY_PATH</td>
-<td><code>find_library</code> 使用么，默认空</td>
-</tr>
-<tr>
-<td>CMAKE_PREFIX_PATH</td>
-<td>搜索头文件、二进制文件和库文件时的搜索路径前缀</td>
-</tr>
-<tr>
-<td>CMAKE_MODULE_PATH</td>
-<td><code>find_package</code> 首先搜索第三方库的路径</td>
-</tr>
-</tbody></table>
+          <p>Redis 的持久化主要有两大机制，即 AOF（Append Only File）日志和 RDB 快照</p>
+<h2 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h2><p>AOF 日志是写后日志，即 Redis 是先执行命令，把数据写入内存，然后才记录日志</p>
+<p>AOF 里记录的是 Redis 收到的每一条命令，这些命令是以文本形式保存的</p>
+<p>以 Redis 收到 set testkey testvalue 命令后记录的日志为例，看看 AOF 日志的内容。其中，*3 表示当前命令有三个部分，每部分都是由 $+数字 开头，后面紧跟着具体的命令、键或值。数字表示这部分中的命令、键或值一共有多少字节。例如，$3 set 表示这部分有 3 个字节，也就是 set 命令</p>
+<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/01.png" class="">
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E4%BF%A1%E6%81%AF%E5%8F%98%E9%87%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E4%BF%A1%E6%81%AF%E5%8F%98%E9%87%8F/" class="post-title-link" itemprop="url">信息变量</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 19:50:50" itemprop="dateCreated datePublished" datetime="2023-04-19T19:50:50+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <table>
-<thead>
-<tr>
-<th>变量名</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>CMAKE_PROJECT_NAME、CMAKE_PROJECT_DESCRIPTION、CMAKE_PROJECT_HOMEPAGE_URL、CMAKE_PROJECT_VERSION</td>
-<td>顶层 <code>project</code> 设置的工程属性</td>
-</tr>
-<tr>
-<td>PROJECT_NAME、PROJECT_DESCRIPTION、PROJECT_HOMEPAGE_URL、PROJECT_VERSION</td>
-<td>最近 <code>project</code> 设置的工程属性</td>
-</tr>
-<tr>
-<td>CMAKE_SOURCE_DIR</td>
-<td>顶层 CMakeLists.txt 所在路径</td>
-</tr>
-<tr>
-<td>CMAKE_CURRENT_SOURCE_DIR</td>
-<td>当前处理的 CMakeLists.txt 所在的路径</td>
-</tr>
-<tr>
-<td>CMAKE_BINARY_DIR</td>
-<td>工程编译发生的目录，in-source 编译时等同于 CMAKE_CURRENT_BINARY_DIR</td>
-</tr>
-<tr>
-<td>CMAKE_CURRRENT_BINARY_DIR</td>
-<td>in-source 编译时等同于 CMAKE_CURRENT_SOURCE_DIR，否则是当前 CMakeLists.txt 将要生效的目录地址</td>
-</tr>
-<tr>
-<td>CMAKE_CURRENT_LIST_FILE</td>
-<td>当前文件的带绝对地址的文件名</td>
-</tr>
-<tr>
-<td>CMAKE_CURRENT_LIST_DIR</td>
-<td>当前文件所在文件的绝对路径</td>
-</tr>
-<tr>
-<td>PROJECT-NAME_BINARY_DIR、PROJECT-NAME_SOURCE_DIR</td>
-<td>指定工程对应的地址</td>
-</tr>
-<tr>
-<td>PROJECT_BINARY_DIR、PROJECT_SOURCE_DIR</td>
-<td>当前工程对应地址</td>
-</tr>
-<tr>
-<td>CMAKE_GENERATOR</td>
-<td>当前使用的构建工具</td>
-</tr>
-<tr>
-<td>CMAKE_MATCH_COUNT</td>
-<td>匹配结果数量</td>
-</tr>
-<tr>
-<td>CMAKE_MATCH_&lt;n&gt;</td>
-<td>最近的一次正则匹配结果，n 从 0 到 9，0 表示所有匹配结果，1 到 9 表示匹配结果索引</td>
-</tr>
-</tbody></table>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%86%85%E7%BD%AE%E7%BC%96%E8%AF%91%E7%B1%BB%E5%9E%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E5%86%85%E7%BD%AE%E7%BC%96%E8%AF%91%E7%B1%BB%E5%9E%8B/" class="post-title-link" itemprop="url">内置编译类型</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 19:47:31" itemprop="dateCreated datePublished" datetime="2023-04-19T19:47:31+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>CMake 有多种预置的编译类型</p>
+<h3 id="写后日志原因"><a href="#写后日志原因" class="headerlink" title="写后日志原因"></a>写后日志原因</h3><ul>
+<li><p>为了避免额外的检查开销，Redis 在向 AOF 里面记录日志的时候，并不会先去对这些命令进行语法检查。所以如果先记日志再执行命令的话，日志中就有可能记录了错误的命令，Redis 在使用日志恢复数据时，就可能会出错</p>
+</li>
+<li><p>先让系统执行命令，只有命令能执行成功，才会被记录到日志中，可以避免出现记录错误命令的情况</p>
+</li>
+<li><p>在命令执行后才记录日志，不会阻塞当前的写操作</p>
+</li>
+</ul>
+<h3 id="潜在风险"><a href="#潜在风险" class="headerlink" title="潜在风险"></a>潜在风险</h3><ul>
+<li><p>刚执行完一个命令，还没有来得及记日志就宕机了，那么这个命令和相应的数据就有丢失的风险</p>
+</li>
+<li><p>AOF 虽然避免了对当前命令的阻塞，但可能会给下一个操作带来阻塞风险</p>
+</li>
+</ul>
+<h3 id="写回策略"><a href="#写回策略" class="headerlink" title="写回策略"></a>写回策略</h3><p>潜在风险都是和 AOF 写回磁盘的时机相关的，如果能够控制一个写命令执行完后 AOF 日志写回磁盘的时机，风险就解除了</p>
+<p>AOF 配置项 appendfsync 的三个可选值提供了三个选择</p>
 <ul>
-<li><p><code>Release</code> 对应 <code>-O3 -DNDEBUG</code></p>
+<li><p>Always，同步写回：每个写命令执行完，立马同步地将日志写回磁盘；可以做到基本不丢数据，但是它在每一个写命令后都有一个慢速的落盘操作，不可避免地会影响主线程性能</p>
 </li>
-<li><p><code>Debug</code> 对应 <code>-g</code></p>
+<li><p>Everysec，每秒写回：每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，每隔一秒把缓冲区中的内容写入磁盘；如果发生宕机，上一秒内未落盘的命令操作仍然会丢失</p>
 </li>
-<li><p><code>MinSizeRel</code> 对应 <code>-Os -DNDEBUG</code></p>
-</li>
-<li><p><code>RelWithDebInfo</code> 对应 <code>-O2 -g -DNDEBUG</code></p>
+<li><p>No，操作系统控制的写回：每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，由操作系统决定何时将缓冲区内容写回磁盘；落盘的时机已经不在 Redis 手中了，只要 AOF 记录没有写回磁盘，一旦宕机对应的数据就丢失了</p>
 </li>
 </ul>
-<p>可以通过 <code>cmake .. -DCMAKE_BUILD_TYPE=Release</code> 来设置编译类型</p>
-<p>CMake 默认不使用任何的编译参数，但可以设置默认的编译类型</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_BUILD_TYPE <span class="keyword">AND</span> <span class="keyword">NOT</span> CMAKE_CONFIGURATION_TYPES)</span><br><span class="line">  <span class="keyword">message</span>(<span class="string">&quot;Setting build type to &#x27;RelWithDebInfo&#x27; as none was specified.&quot;</span>)</span><br><span class="line">  <span class="keyword">set</span>(CMAKE_BUILD_TYPE RelWithDebInfo CACHE <span class="keyword">STRING</span> <span class="string">&quot;Choose the type of build.&quot;</span> FORCE)</span><br><span class="line">  <span class="comment"># Set the possible values of build type for cmake-gui</span></span><br><span class="line">  <span class="keyword">set_property</span>(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS <span class="string">&quot;Debug&quot;</span> <span class="string">&quot;Release&quot;</span> <span class="string">&quot;MinSizeRel&quot;</span> <span class="string">&quot;RelWithDebInfo&quot;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br></pre></td></tr></table></figure>
-      
-    </div>
+<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/02.png" class="">
 
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-ExtractVersion/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-ExtractVersion/" class="post-title-link" itemprop="url">ExtractVersion</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 19:43:22" itemprop="dateCreated datePublished" datetime="2023-04-19T19:43:22+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ExtractVersion.cmake</span></span><br><span class="line"><span class="keyword">function</span>(extract_version)</span><br><span class="line">    <span class="keyword">file</span>(READ <span class="string">&quot;version.h&quot;</span> file_contents)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">string</span>(REGEX MATCH <span class="string">&quot;VER_MAJOR ([0-9]+)&quot;</span> _ <span class="string">&quot;$&#123;file_contents&#125;&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_MATCH_COUNT <span class="keyword">EQUAL</span> <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">message</span>(FATAL_ERROR <span class="string">&quot;Could not extract major version number from version.h&quot;</span>)</span><br><span class="line">    <span class="keyword">endif</span>()</span><br><span class="line">    <span class="keyword">set</span>(ver_major <span class="variable">$&#123;CMAKE_MATCH_1&#125;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">string</span>(REGEX MATCH <span class="string">&quot;VER_MINOR ([0-9]+)&quot;</span> _ <span class="string">&quot;$&#123;file_contents&#125;&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_MATCH_COUNT <span class="keyword">EQUAL</span> <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">message</span>(FATAL_ERROR <span class="string">&quot;Could not extract minor version number from version.h&quot;</span>)</span><br><span class="line">    <span class="keyword">endif</span>()</span><br><span class="line">    <span class="keyword">set</span>(ver_minor <span class="variable">$&#123;CMAKE_MATCH_1&#125;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">string</span>(REGEX MATCH <span class="string">&quot;VER_PATCH ([0-9]+)&quot;</span> _ <span class="string">&quot;$&#123;file_contents&#125;&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_MATCH_COUNT <span class="keyword">EQUAL</span> <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">message</span>(FATAL_ERROR <span class="string">&quot;Could not extract patch version number from version.h&quot;</span>)</span><br><span class="line">    <span class="keyword">endif</span>()</span><br><span class="line">    <span class="keyword">set</span>(ver_patch <span class="variable">$&#123;CMAKE_MATCH_1&#125;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">set</span>(VERSION_MAJOR <span class="variable">$&#123;ver_major&#125;</span> PARENT_SCOPE)</span><br><span class="line">    <span class="keyword">set</span>(VERSION_MINOR <span class="variable">$&#123;ver_minor&#125;</span> PARENT_SCOPE)</span><br><span class="line">    <span class="keyword">set</span>(VERSION_PATCH <span class="variable">$&#123;ver_patch&#125;</span> PARENT_SCOPE)</span><br><span class="line">    <span class="keyword">set</span>(VERSION <span class="string">&quot;$&#123;ver_major&#125;.$&#123;ver_minor&#125;.$&#123;ver_patch&#125;&quot;</span> PARENT_SCOPE)</span><br><span class="line"><span class="keyword">endfunction</span>()</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> VER_MAJOR 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> VER_MINOR 10</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> VER_PATCH 0</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-CheckIncludeFiles/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-CheckIncludeFiles/" class="post-title-link" itemprop="url">CheckIncludeFiles</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 19:38:38" itemprop="dateCreated datePublished" datetime="2023-04-19T19:38:38+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span>(CheckIncludeFiles)</span><br><span class="line">CHECK_INCLUDE_FILES(<span class="string">&quot;&lt;includes&gt;&quot;</span> &lt;variable&gt; [LANGUAGE &lt;language&gt;])</span><br><span class="line"><span class="comment"># LANGUAGE 支持 c 和 cxx</span></span><br></pre></td></tr></table></figure>
-
-<p>不同平台的差异通常使用一个头文件来进行处理，通常为 config.h，其他文件可以 <code>include</code> 该 config.h 来进行平台检查</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// config.h</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HAVE_MALLOC_H 1</span></span><br><span class="line"><span class="comment">/* #undef HAVE_SYS_MNTTAB_H 1 */</span></span><br><span class="line"><span class="comment">/* #undef HAVE_SYS_MNTENT_H 1 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HAVE_SYS_MOUNT_H 1</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;config.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> HAVE_MALLOC_H</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;malloc.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">do_something</span><span class="params">()</span> </span>&#123;</span><br><span class="line"> <span class="type">void</span> *buf=<span class="built_in">malloc</span>(<span class="number">1024</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>一些使用自动工具的软件，在编译时需要在 <code>make</code> 前使用 <code>./configure</code> 来自动生成 config.h 文件</p>
-<p>CMake 在 &#x2F;usr&#x2F;local&#x2F;share&#x2F;CMake&#x2F;Modules 中提供了一些平台检查的 cmake 脚本，使用这些脚本时需要将脚本引入 CMakeLists.txt</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span>(CheckIncludeFiles)</span><br><span class="line">CHECK_INCLUDE_FILES(malloc.h HAVE_MALLOC_H)</span><br><span class="line">CHECK_INCLUDE_FILES(<span class="string">&quot;sys/param.h;sys/mount.h&quot;</span> HAVE_SYS_MOUNT_H)</span><br><span class="line"><span class="keyword">CONFIGURE_FILE</span>(<span class="variable">$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;</span>/config.h.in <span class="variable">$&#123;CMAKE_CURRENT_BINARY_DIR&#125;</span>/config.h)</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-FetchContent/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-FetchContent/" class="post-title-link" itemprop="url">FetchContent</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 19:31:30" itemprop="dateCreated datePublished" datetime="2023-04-19T19:31:30+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 引入模块</span></span><br><span class="line"><span class="keyword">include</span>(FetchContent)</span><br></pre></td></tr></table></figure>
-
-<p>使用 <code>FetchContent</code> 的步骤总结起来就是：</p>
+<h3 id="重写机制"><a href="#重写机制" class="headerlink" title="重写机制"></a>重写机制</h3><p>AOF 是以文件的形式在记录接收到的所有写命令，随着接收的写命令越来越多，AOF 文件会越来越大</p>
+<p>AOF 文件过大带来的性能问题：</p>
 <ul>
-<li><p>使用 <code>FetchContent_Declare(Name)</code> 获取项目，可以是一个 URL 也可以是一个 Git 仓库</p>
+<li><p>文件系统本身对文件大小有限制，无法保存过大的文件</p>
 </li>
-<li><p>使用 <code>FetchContent_MakeAvailabe(name1 ...)</code> 引入依赖</p>
+<li><p>如果文件太大，之后再往里面追加命令记录的话，效率也会变低</p>
 </li>
-</ul>
-<h2 id="FetchContent-Declare"><a href="#FetchContent-Declare" class="headerlink" title="FetchContent_Declare"></a>FetchContent_Declare</h2><p>声明依赖</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">FetchContent_Declare(</span><br><span class="line">  &lt;name&gt;</span><br><span class="line">  &lt;contentOptions&gt;...</span><br><span class="line">  [OVERRIDE_FIND_PACKAGE |</span><br><span class="line">   FIND_PACKAGE_ARGS args...]</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 支持 option</span></span><br><span class="line"><span class="comment"># GIT_REPOSITORY GIT_TAG URL URL_HASH SVN_REPOSITORY SVN_REVISION</span></span><br><span class="line"></span><br><span class="line">FetchContent_Declare(</span><br><span class="line">  googletest</span><br><span class="line">  GIT_REPOSITORY https://github.com/google/googletest.git</span><br><span class="line">  GIT_TAG        <span class="number">703</span>bd9caab50b139428cea1aaff9974ebee5742e <span class="comment"># release-1.10.0</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
-
-<h2 id="FetchContent-MakeAvailable"><a href="#FetchContent-MakeAvailable" class="headerlink" title="FetchContent_MakeAvailable"></a>FetchContent_MakeAvailable</h2><p>构建依赖</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FetchContent_MakeAvailable(&lt;name1&gt; [&lt;name2&gt;...])</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-list/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-list/" class="post-title-link" itemprop="url">list</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 17:35:57" itemprop="dateCreated datePublished" datetime="2023-04-19T17:35:57+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>列表也是字符串，这个变量有多个值，每个值用分号 <code>;</code> 进行分隔</p>
-<p>引用列表不加引号时，cmake 将自动在分号处进行切分成多个列表元素，并把它们作为多个独立的参数传给命令</p>
-<p>引用列表加了引号时，cmake 不会进行切分并保持分号不动，整个引号内的内容当作一个参数传给命令</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(list_var <span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span>) <span class="comment"># list_var = 1;2;3;4</span></span><br><span class="line"><span class="keyword">set</span>(list_foo <span class="string">&quot;5;6;7;8&quot;</span>) <span class="comment"># list_foo = 5;6;7;8</span></span><br><span class="line"><span class="keyword">message</span>(<span class="variable">$&#123;list_var&#125;</span>)<span class="comment">#输出： 1234</span></span><br><span class="line"><span class="keyword">message</span>(<span class="variable">$&#123;list_foo&#125;</span>)<span class="comment">#输出：5678</span></span><br><span class="line"><span class="keyword">message</span>(<span class="string">&quot;$&#123;list_var&#125;&quot;</span>)<span class="comment">#输出：1;2;3;4</span></span><br><span class="line"><span class="keyword">message</span>(<span class="string">&quot;$&#123;list_foo&#125;&quot;</span>)<span class="comment">#输出：5;6;7;8</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="读"><a href="#读" class="headerlink" title="读"></a>读</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">list</span>(LENGTH &lt;<span class="keyword">list</span>&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">list</span>(GET &lt;<span class="keyword">list</span>&gt; &lt;element index&gt; [&lt;index&gt; ...] &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">list</span>(JOIN &lt;<span class="keyword">list</span>&gt; &lt;glue&gt; &lt;out-var&gt;)</span><br><span class="line"><span class="keyword">list</span>(SUBLIST &lt;<span class="keyword">list</span>&gt; &lt;begin&gt; &lt;length&gt; &lt;out-var&gt;)</span><br></pre></td></tr></table></figure>
-
-<p><code>GET</code> 获取部分元素存储在结果列表中</p>
-<p><code>JOIN</code> 将列表元素以 <code>glue</code> 拼接成字符串</p>
-<h2 id="查找"><a href="#查找" class="headerlink" title="查找"></a>查找</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">list</span>(FIND &lt;<span class="keyword">list</span>&gt; &lt;value&gt; &lt;out-var&gt;)</span><br></pre></td></tr></table></figure>
-
-<p>返回索引</p>
-<h2 id="修改"><a href="#修改" class="headerlink" title="修改"></a>修改</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">list</span>(APPEND &lt;<span class="keyword">list</span>&gt; [&lt;element&gt;...])</span><br><span class="line"><span class="keyword">list</span>(FILTER &lt;<span class="keyword">list</span>&gt; &#123;<span class="keyword">INCLUDE</span> | EXCLUDE&#125; REGEX &lt;regex&gt;)</span><br><span class="line"><span class="keyword">list</span>(INSERT &lt;<span class="keyword">list</span>&gt; &lt;index&gt; [&lt;element&gt;...])</span><br><span class="line"><span class="keyword">list</span>(POP_BACK &lt;<span class="keyword">list</span>&gt; [&lt;out-var&gt;...])</span><br><span class="line"><span class="keyword">list</span>(POP_FRONT &lt;<span class="keyword">list</span>&gt; [&lt;out-var&gt;...])</span><br><span class="line"><span class="keyword">list</span>(PREPEND &lt;<span class="keyword">list</span>&gt; [&lt;element&gt;...])</span><br><span class="line"><span class="keyword">list</span>(REMOVE_ITEM &lt;<span class="keyword">list</span>&gt; &lt;value&gt;...)</span><br><span class="line"><span class="keyword">list</span>(REMOVE_AT &lt;<span class="keyword">list</span>&gt; &lt;index&gt;...)</span><br><span class="line"><span class="keyword">list</span>(REMOVE_DUPLICATES &lt;<span class="keyword">list</span>&gt;)</span><br><span class="line"><span class="keyword">list</span>(TRANSFORM &lt;<span class="keyword">list</span>&gt; &lt;ACTION&gt; [...])</span><br></pre></td></tr></table></figure>
-
-<p>当前作用域没有 <code>list</code>变量时，<code>APPEND</code>、<code>INSERT</code>、<code>PREPEND</code> 会创建新的列表 </p>
-<h2 id="排序"><a href="#排序" class="headerlink" title="排序"></a>排序</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">list</span>(REVERSE &lt;<span class="keyword">list</span>&gt;)</span><br><span class="line"><span class="keyword">list</span>(SORT &lt;<span class="keyword">list</span>&gt; [...])</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-set/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-set/" class="post-title-link" itemprop="url">set</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 17:26:05" itemprop="dateCreated datePublished" datetime="2023-04-19T17:26:05+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <ul>
-<li><p>CMake 将所有的变量的值视为字符串</p>
-</li>
-<li><p>CMake 使用空格或者分号作为字符串的分隔符</p>
-</li>
-<li><p>变量的值可以包含换行，也可以包含引号，不过需要转义</p>
+<li><p>如果发生宕机，AOF 中记录的命令要一个个被重新执行，用于故障恢复，如果日志文件太大，整个恢复过程就会非常缓慢</p>
 </li>
 </ul>
-<h2 id="变量作用域"><a href="#变量作用域" class="headerlink" title="变量作用域"></a>变量作用域</h2><p>在 <code>function</code> 中定义的变量，变量仅在函数内和函数调用中可见</p>
-<p>非 <code>function</code> 内定义变量的默认变量作用域是文件夹作用域，在处理当前文件夹下的 CMakeLists.txt 时，会将父目录中的变量拷贝至当前目录中</p>
-<p>全局变量，仅能被显式修改</p>
-<h2 id="普通变量"><a href="#普通变量" class="headerlink" title="普通变量"></a>普通变量</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(&lt;variable&gt; &lt;value&gt;... [PARENT_SCOPE])</span><br><span class="line"><span class="comment"># value 可以是一个以空格或者分号隔开的字符串，这样定义的变量将是一个列表</span></span><br></pre></td></tr></table></figure>
-
-<p>作用域是当前函数作用域或当前文件夹作用域</p>
-<p>如果使用 <code>PARENT_SCOPE</code> 则会修改父目录中 CMakeLists.txt 的该变量值，而不会修改当前作用域该变量的值</p>
-<h2 id="缓存变量"><a href="#缓存变量" class="headerlink" title="缓存变量"></a>缓存变量</h2><p>与普通变量不同，缓存变量的值会缓存到 CMakeCache.txt 文件中，所以缓存变量的作用域是全局的</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(&lt;variable&gt; &lt;value&gt;... CACHE &lt;type&gt; &lt;docstring&gt; [FORCE])</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(CACHE_VAL <span class="string">&quot;666&quot;</span> CACHE <span class="keyword">STRING</span> INTERNAL)</span><br></pre></td></tr></table></figure>
-<p>默认情况下，不能覆盖已存在的缓存变量，除非使用 <code>FORCE</code></p>
-<p><code>type</code> 包括：</p>
+<p>AOF 重写机制就是在重写时，Redis 根据数据库的现状创建一个新的 AOF 文件，也就是说，读取数据库中的所有键值对，然后对每一个键值对用一条命令记录它的写入</p>
+<p>重写机制具有多变一功能，旧日志文件中的多条命令，在重写后的新日志中变成了一条命令</p>
+<p>重写过程是由后台子进程 bgrewriteaof 来完成的，这也是为了避免阻塞主线程，导致数据库性能下降</p>
+<p>每次执行重写时，主线程 fork 出后台的 bgrewriteaof 子进程，fork 会把主线程的内存拷贝一份给 bgrewriteaof 子进程，这里面就包含了数据库的最新数据；然后 bgrewriteaof 子进程就可以在不影响主线程的情况下，逐一把拷贝的数据写成操作，记入重写日志</p>
+<p>因为主线程未阻塞，仍然可以处理新来的操作。此时如果有写操作，Redis 会把这个操作写到正在使用的 AOF 日志的缓冲区。这样一来，即使宕机了，这个 AOF 日志的操作仍然是齐全的，可以用于恢复</p>
+<p>新操作也会被写到重写日志的缓冲区，重写日志也不会丢失最新的操作。等到拷贝数据的所有操作记录重写完成后，重写日志记录的这些最新操作也会写入新的 AOF 文件，以保证数据库最新状态的记录。此时就可以用新的 AOF 文件替代旧文件了</p>
+<h3 id="潜在风险-1"><a href="#潜在风险-1" class="headerlink" title="潜在风险"></a>潜在风险</h3><p>fork 瞬间一定是会阻塞主线程，虽然 fork 采用 COW 机制，但 fork 子进程需要拷贝进程必要的数据结构，其中有一项就是拷贝内存页表（虚拟内存和物理内存的映射索引表），这个拷贝过程会消耗大量 CPU 资源，拷贝完成之前整个进程是会阻塞的，阻塞时间取决于整个实例的内存大小，实例越大，内存页表越大，fork 阻塞时间越久</p>
+<p>由于采用 COW 机制，所以在写发生时，才真正拷贝内存真正的数据，这个过程中，父进程也可能会产生阻塞的风险</p>
+<h2 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h2><p>内存快照，就是指内存中的数据在某一个时刻的状态记录</p>
+<p>RDB（Redis DataBase）把某一时刻的状态以文件的形式写到磁盘上，也就是快照；即使宕机，快照文件也不会丢失，数据的可靠性也就得到了保证</p>
+<p>RDB 记录的是某一时刻的数据，并不是操作，所以，在做数据恢复时，可以直接把 RDB 文件读入内存，很快地完成恢复</p>
+<h3 id="全量快照"><a href="#全量快照" class="headerlink" title="全量快照"></a>全量快照</h3><p>Redis 的数据都在内存中，为了提供所有数据的可靠性保证，它执行的是全量快照，也就是说，把内存中的所有数据都记录到磁盘中</p>
+<h3 id="生成快照"><a href="#生成快照" class="headerlink" title="生成快照"></a>生成快照</h3><p>Redis 提供了两个命令来生成 RDB 文件，分别是 save 和 bgsave</p>
 <ul>
-<li><p><code>BOOL</code>：<code>ON</code>、<code>OFF</code>、<code>TRUE</code>、<code>FALSE</code>、<code>1</code>、<code>0</code></p>
+<li><p>save：在主线程中执行，会导致阻塞</p>
 </li>
-<li><p><code>FILEPATH</code>：文件地址</p>
-</li>
-<li><p><code>PATH</code>：文件夹地址</p>
-</li>
-<li><p><code>STRING</code>：字符串</p>
-</li>
-<li><p><code>INTERNAL</code>：内部变量，不显示在 cmake-gui</p>
+<li><p>bgsave：创建一个子进程，专门用于写入 RDB 文件，避免了主线程的阻塞，这也是 Redis RDB 文件生成的默认配置</p>
 </li>
 </ul>
-<p><code>doctring</code>：提示文字</p>
-<p>对于 <code>BOOL</code> 类型的缓存变量，CMake 提供了等价的 <code>option</code></p>
-<h2 id="环境变量"><a href="#环境变量" class="headerlink" title="环境变量"></a>环境变量</h2><figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(ENV&#123;&lt;variable&gt;&#125; [&lt;value&gt;])</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span>(ENV&#123;DEFINE&#125; DEFINE)</span><br></pre></td></tr></table></figure>
-
-<p>使用格式 <code>$ENV&#123;DEFINE&#125;</code></p>
-<h1 id="unset"><a href="#unset" class="headerlink" title="unset"></a>unset</h1><p>复原变量</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">unset</span>(&lt;variable&gt; [CACHE | PARENT_SCOPE])</span><br><span class="line"></span><br><span class="line"><span class="keyword">unset</span>(ENV&#123;&lt;variable&gt;&#125;)</span><br></pre></td></tr></table></figure>
-
+<p>bgsave 借助 COW，在执行快照的同时，正常处理写操作；bgsave 子进程是由主线程 fork 生成的，可以共享主线程的所有内存数据；bgsave 子进程运行后，开始读取主线程的内存数据，并把它们写入 RDB 文件；如果主线程要修改一块数据，这块数据就会被复制一份，生成该数据的副本；bgsave 子进程会把这个副本数据写入 RDB 文件，而在这个过程中，主线程仍然可以直接修改原来的数据</p>
+<h3 id="增量快照"><a href="#增量快照" class="headerlink" title="增量快照"></a>增量快照</h3><p>虽然 bgsave 执行时不阻塞主线程，但是如果频繁地执行全量快照，也会带来两方面的开销：</p>
 <ul>
-<li><p><code>CACHE</code>：删除一个 cache 变量而不是普通变量</p>
+<li><p>频繁将全量数据写入磁盘，会给磁盘带来很大压力</p>
 </li>
-<li><p><code>PARENT_SCOPE</code>：删除父目录中的当前变量</p>
+<li><p>虽然子进程在创建后不会再阻塞主线程，但是 fork 这个创建过程本身会阻塞主线程，而且主线程的内存越大，阻塞时间越长</p>
+</li>
+</ul>
+<p>增量快照，即做了一次全量快照后，后续的快照只对修改的数据进行快照记录，这样可以避免每次全量快照的开销</p>
+<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/03.png" class="">
+
+<p>记住哪些数据被修改了需要使用额外的元数据信息去记录哪些数据被修改了，这会带来额外的空间开销问题</p>
+<h2 id="AOF-和-RDB-混合方法"><a href="#AOF-和-RDB-混合方法" class="headerlink" title="AOF 和 RDB 混合方法"></a>AOF 和 RDB 混合方法</h2><p>内存快照以一定的频率执行，在两次 RDB 快照之间，使用 AOF 日志记录这期间的所有命令操作</p>
+<p>RDB 快照不用很频繁地执行，这就避免了频繁 fork 对主线程的影响。而且，AOF 日志也只用记录两次快照间的操作，不需要记录所有操作。因此，就不会出现文件过大的情况了，也可以避免重写开销</p>
+<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/04.png" class="">
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/20/Redis-%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/" class="post-title-link" itemprop="url">内存分配策略</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-20 20:59:10" itemprop="dateCreated datePublished" datetime="2023-04-20T20:59:10+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>当数据删除后，Redis 释放的内存空间会由内存分配器管理，并不会立即返回给操作系统，操作系统仍然会记录着给 Redis 分配了大量内存</p>
+<p>虽然 Redis 管理了大量的内存，但由于内存不连续，这些不连续的内存空间很有可能处于一种闲置的状态，无法用来保存数据</p>
+<h2 id="内存碎片"><a href="#内存碎片" class="headerlink" title="内存碎片"></a>内存碎片</h2><p>虽然操作系统的剩余内存空间总量足够，但是应用申请的是一块连续地址空间的 N 字节，但在剩余的内存空间中，没有大小为 N 字节的连续空间了，这些剩余空间就是内存碎片</p>
+<h2 id="形成"><a href="#形成" class="headerlink" title="形成"></a>形成</h2><p>内因是操作系统的内存分配机制，外因是 Redis 的负载特征</p>
+<h3 id="内存分配机制"><a href="#内存分配机制" class="headerlink" title="内存分配机制"></a>内存分配机制</h3><p>内存分配器一般是按固定大小来分配内存，而不是完全按照应用程序申请的内存空间大小给程序分配</p>
+<p>jemalloc 的分配策略之一，是按照一系列固定的大小划分内存空间，例如 8 字节、16 字节、32 字节、48 字节，…, 2KB、4KB、8KB 等。当程序申请的内存最接近某个固定值时，jemalloc 会给它分配相应大小的空间；将申请的内存分配给程序，将多的部分用链表保存，下次可以再分配给程序</p>
+<h3 id="负载特征"><a href="#负载特征" class="headerlink" title="负载特征"></a>负载特征</h3><p>不同大小的键值对本身就会有大小不一的空间需求，容易造成碎片</p>
+<h2 id="指标"><a href="#指标" class="headerlink" title="指标"></a>指标</h2><p>Redis 自身提供了 INFO 命令，可以用来查询内存使用的详细信息</p>
+<p>有一个 mem_fragmentation_ratio 的指标，它表示的就是 Redis 当前的内存碎片率</p>
+<p>mem_fragmentation_ratio &#x3D; used_memory_rss&#x2F; used_memory，used_memory_rss 是操作系统实际分配给 Redis 的物理内存空间，里面就包含了碎片；而 used_memory 是 Redis 为了保存数据实际申请使用的空间</p>
+<ul>
+<li><p>mem_fragmentation_ratio 大于 1 但小于 1.5，这种情况是合理的</p>
+</li>
+<li><p>mem_fragmentation_ratio 大于 1.5，表明内存碎片率已经超过了 50%</p>
+</li>
+<li><p>mem_fragmentation_ratio 小于 1，操作系统分配给 Redis 进程的物理内存要小于 Redis 实际存储数据的内存，也就是说 Redis 没有足够的物理内存可以使用了，导致 Redis 一部分内存数据会被换到 Swap 中，之后当 Redis 访问 Swap 中的数据时，延迟会变大，性能下降</p>
+</li>
+</ul>
+<h2 id="措施"><a href="#措施" class="headerlink" title="措施"></a>措施</h2><p>当 Redis 发生内存碎片后，一个简单粗暴的方法就是重启 Redis 实例，但容易发生数据丢失，又由于数据恢复，会有一段时间无法提供服务</p>
+<p>Redis 自身提供了一种内存碎片自动清理的方法：当有数据把一块连续的内存空间分割成好几块不连续的空间时，操作系统就会把数据拷贝到别处；数据拷贝需要能把这些数据原来占用的空间都空出来，把原本不连续的内存空间变成连续的空间</p>
+<p>碎片清理是有代价的，操作系统需要把多份数据拷贝到新位置，把原有空间释放出来，这会带来时间开销；在数据拷贝时，Redis 无法及时处理请求，性能就会降低</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/" class="post-title-link" itemprop="url">主从同步</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-20 20:57:16" itemprop="dateCreated datePublished" datetime="2023-04-20T20:57:16+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Redis 具有高可靠性：数据尽量少丢失（RDB、AOF）、服务尽量少中断（master、slave）</p>
+<p>Redis 提供了主从库模式，以保证数据副本的一致，主从库之间采用的是读写分离的方式</p>
+<ul>
+<li><p>读操作：主库、从库都可以接收</p>
+</li>
+<li><p>写操作：首先到主库执行，然后主库将写操作同步给从库</p>
+</li>
+</ul>
+<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/01.png" class="">
+
+<h2 id="主从库第一次同步"><a href="#主从库第一次同步" class="headerlink" title="主从库第一次同步"></a>主从库第一次同步</h2><p>当启动多个 Redis 实例的时候，它们相互之间就可以通过 replicaof 命令形成主库和从库的关系，之后会按照三个阶段完成数据的第一次同步；执行 replicaof 的实例为从库</p>
+<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/02.png" class="">
+
+<ol>
+<li><p>第一阶段是主从库间建立连接、协商同步的过程，主要是为全量复制做准备；从库和主库建立起连接，并告诉主库即将进行同步，主库确认回复后，主从库间就可以开始同步了；从库给主库发送 psync 命令，表示要进行数据同步，主库根据这个命令的参数来启动复制；psync 命令包含了主库的 runID 和复制进度 offset 两个参数；runID 是每个 Redis 实例启动时都会自动生成的一个随机 ID，用来唯一标记这个实例；当从库和主库第一次复制时，因为不知道主库的 runID，所以将 runID 设为 <code>?</code>；offset 设为 -1，表示第一次复制</p>
+</li>
+<li><p>主库收到 psync 命令后，会用 FULLRESYNC 响应命令带上两个参数：主库 runID 和主库目前的复制进度 offset，返回给从库；从库收到响应后，会记录下这两个参数；FULLRESYNC 响应表示第一次复制采用的全量复制，主库会把当前所有的数据都复制给从库；主库将所有数据同步给从库，从库收到数据后，在本地完成数据加载，这个过程依赖于内存快照生成的 RDB 文件；主库执行 bgsave 命令，生成 RDB 文件，接着将文件发给从库；从库接收到 RDB 文件后，会先清空当前数据库，然后加载 RDB 文件；在主库将数据同步给从库的过程中，主库不会被阻塞，仍然可以正常接收请求；请求中的写操作并没有记录到刚刚生成的 RDB 文件中，为了保证主从库的数据一致性，主库会在内存中用专门的 replication buffer，记录 RDB 文件生成后收到的所有写操作</p>
+</li>
+<li><p>主库会把第二阶段执行过程中新收到的写命令，再发送给从库；当主库完成 RDB 文件发送后，就会把此时 replication buffer 中的修改操作发给从库，从库再重新执行这些操作</p>
+</li>
+</ol>
+<h2 id="主从级联模型"><a href="#主从级联模型" class="headerlink" title="主从级联模型"></a>主从级联模型</h2><p>主从库间第一次数据同步的过程中，对于主库来说，需要完成两个耗时的操作：生成 RDB 文件和传输 RDB 文件</p>
+<p>如果从库数量很多，而且都要和主库进行全量复制的话，就会导致主库忙于 fork 子进程生成 RDB 文件，进行数据全量同步</p>
+<p>fork 这个操作会阻塞主线程处理正常请求，从而导致主库响应应用程序的请求速度变慢</p>
+<p>传输 RDB 文件也会占用主库的网络带宽，同样会给主库的资源使用带来压力</p>
+<p>通过主从级联模式（主-从-从）将主库生成 RDB 和传输 RDB 的压力，以级联的方式分散到从库上</p>
+<p>在部署主从集群的时候，可以手动选择一个从库，用于级联其他的从库；再选择一些从库执行 replicaof，让它们和刚才所选的从库，建立起主从关系</p>
+<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/03.png" class="">
+
+<h2 id="主从网络连接"><a href="#主从网络连接" class="headerlink" title="主从网络连接"></a>主从网络连接</h2><p>一旦主从库完成了全量复制，它们之间就会一直维护一个网络连接，主库会通过这个连接将后续陆续收到的命令操作再同步给从库，这个过程也称为基于长连接的命令传播，可以避免频繁建立连接的开销</p>
+<p>网络断了之后，主从库会采用增量复制的方式继续同步，只会把主从库网络断连期间主库收到的命令，同步给从库</p>
+<p>当主从库断连后，主库会把断连期间收到的写操作命令，写入 replication buffer，同时也会把这些操作命令也写入 repl_backlog_buffer 缓冲区</p>
+<p>repl_backlog_buffer 是一个环形缓冲区，主库会记录自己写到的位置，从库则会记录自己已经读到的位置</p>
+<p>刚开始的时候，主库和从库的写读位置在一起，是它们的起始位置；随着主库不断接收新的写操作，它在缓冲区中的写位置会逐步偏离起始位置，对主库来说对应的偏移量就是 master_repl_offset，主库接收的新写操作越多，这个值就会越大；从库在复制完写操作命令后，它在缓冲区中的读位置也开始逐步偏移刚才的起始位置，从库已复制的偏移量 slave_repl_offset 也在不断增加；正常情况下，这两个偏移量基本相等</p>
+<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/04.png" class="">
+
+<p>在网络断连阶段，主库可能会收到新的写操作命令，所以，一般来说，master_repl_offset 会大于 slave_repl_offset；主库只用把 master_repl_offset 和 slave_repl_offset 之间的命令操作同步给从库就行</p>
+<p>主从库的连接恢复之后，从库首先会给主库发送 psync 命令，并把自己当前的 slave_repl_offset 发给主库，主库会判断自己的 master_repl_offset 和 slave_repl_offset 之间的差距</p>
+<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/05.png" class="">
+
+<p>因为 repl_backlog_buffer 是一个环形缓冲区，所以在缓冲区写满后，主库会继续写入，此时，就会覆盖掉之前写入的操作；如果从库的读取速度比较慢，就有可能导致从库还未读取的操作被主库新写的操作覆盖了，这会导致主从库间的数据不一致</p>
+<p>可以调整 repl_backlog_size 这个参数</p>
+<h2 id="主从数据一致性"><a href="#主从数据一致性" class="headerlink" title="主从数据一致性"></a>主从数据一致性</h2><p>主从数据不一致是指客户端从从库中读取到的值和主库中的最新值并不一致，因为主从库间的命令复制是异步进行的</p>
+<p>在主从库命令传播阶段，主库收到新的写命令后，会发送给从库。但是，主库并不会等到从库实际执行完命令后，再把结果返回给客户端，而是主库自己在本地执行完命令后，就会向客户端返回结果了。如果从库还没有执行主库同步过来的命令，主从库间的数据就不一致了</p>
+<p>一方面，主从库间的网络可能会有传输延迟，所以从库不能及时地收到主库发送的命令，从库上执行同步命令的时间就会被延后；一方面，即使从库及时收到了主库的命令，但是，也可能会因为正在处理其它复杂度高的命令（例如集合操作命令）而阻塞</p>
+<p>解决方案：</p>
+<ol>
+<li><p>在硬件环境配置方面，我们要尽量保证主从库间的网络连接状况良好，避免把主从库部署在不同的机房</p>
+</li>
+<li><p>开发一个外部程序来监控主从库间的复制进度；Redis 的 INFO replication 命令可以查看主库接收写命令的进度信息（master_repl_offset）和从库复制写命令的进度信息（slave_repl_offset），如果某个从库的进度差值大于预设的阈值，可以让客户端不再和这个从库连接进行数据读取，这样就可以减少读到不一致数据的情况</p>
+</li>
+</ol>
+<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/06.png" class="">
+
+<h2 id="从数据库读取过期数据"><a href="#从数据库读取过期数据" class="headerlink" title="从数据库读取过期数据"></a>从数据库读取过期数据</h2><p>Redis 同时使用了两种策略来删除过期的数据，分别是惰性删除策略和定期删除策略</p>
+<p>惰性删除策略：当一个数据的过期时间到了以后，并不会立即删除数据，而是等到再有请求来读写这个数据时，对数据进行检查，如果发现数据已经过期了，再删除这个数据；减少删除操作对 CPU 资源的使用，对于用不到的数据，就不再浪费时间进行检查和删除；导致大量已经过期的数据留存在内存中，占用较多的内存资源</p>
+<p>定期删除策略：每隔一段时间（默认 100ms），就会随机选出一定数量的数据，检查它们是否过期，并把其中过期的数据删除，这样就可以及时释放一些内存</p>
+<p>虽然定期删除策略可以释放一些内存，但是 Redis 为了避免过多删除操作对性能产生影响，每次随机检查数据的数量并不多</p>
+<p>惰性删除策略中，如果客户端从主库上读取留存的过期数据，主库会触发删除操作，客户端并不会读到过期数据；从库本身不会执行删除操作，如果客户端在从库中访问留存的过期数据，从库并不会触发数据删除，会返回空值</p>
+<p>同时，Redis 用于设置过期时间的命令在从库上可能会被延后，导致应该过期的数据又在从库上被读取到；设置数据过期时间的命令一共有 4 个，EXPIRE 和 PEXPIRE 给数据设置的是从命令执行时开始计算的存活时间，EXPIREAT 和 PEXPIREAT 会直接把数据的过期时间设置为具体的一个时间点</p>
+<img src="/2023/04/20/Redis-%E4%B8%BB%E4%BB%8E%E5%90%8C%E6%AD%A5/07.png" class="">
+
+<p>当主从库全量同步时，如果主库接收到了一条 EXPIRE 命令，那么，主库会直接执行这条命令。这条命令会在全量同步完成后，发给从库执行。而从库在执行时，就会在当前时间的基础上加上数据的存活时间，这样一来，从库上数据的过期时间就会比主库上延后了</p>
+<p>在业务应用中使用 EXPIREAT&#x2F;PEXPIREAT 命令，把数据的过期时间设置为具体的时间点，避免读到过期数据，同时主从节点上的时钟要保持一致</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-IO%E6%A8%A1%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/20/Redis-IO%E6%A8%A1%E5%9E%8B/" class="post-title-link" itemprop="url">IO 模型</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-20 20:56:27" itemprop="dateCreated datePublished" datetime="2023-04-20T20:56:27+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Redis 是单线程，主要是指 Redis 的网络 IO 和键值对读写是由一个线程来完成的，这也是 Redis 对外提供键值存储服务的主要流程，但 Redis 的其他功能，比如持久化、异步删除、集群数据同步等，其实是由额外的线程执行的</p>
+<h2 id="多线程开销"><a href="#多线程开销" class="headerlink" title="多线程开销"></a>多线程开销</h2><p>对于一个多线程的系统来说，在有合理的资源分配的情况下，可以增加系统中处理请求操作的资源实体，进而提升系统能够同时处理的请求数</p>
+<p>但是在采用多线程后，如果没有良好的系统设计，进一步增加线程时，系统吞吐率就增长迟缓了，有时甚至还会出现下降的情况</p>
+<p>多线程编程模式面临的共享资源的并发访问控制问题，当有多个线程要修改这个共享资源时，为了保证共享资源的正确性，就需要有额外的机制进行保证，而这个额外的机制，就会带来额外的开销</p>
+<h2 id="单线程-Redis-快"><a href="#单线程-Redis-快" class="headerlink" title="单线程 Redis 快"></a>单线程 Redis 快</h2><ul>
+<li><p>大部分操作在内存上完成</p>
+</li>
+<li><p>采用了高效的数据结构，如哈希表和跳表</p>
+</li>
+<li><p>采用了 IO 复用机制，使其在网络 IO 操作中能并发处理大量的客户端请求，实现高吞吐率</p>
+</li>
+</ul>
+<h2 id="多路复用"><a href="#多路复用" class="headerlink" title="多路复用"></a>多路复用</h2><p>Redis 网络框架调用 epoll 机制，让内核监听套接字，并且提供了基于事件的回调机制；select&#x2F;epoll 一旦监测到 FD 上有请求到达时，就会触发相应的事件，事件会被放进一个事件队列，Redis 单线程对该事件队列不断进行处理</p>
+<h2 id="潜在性能瓶颈"><a href="#潜在性能瓶颈" class="headerlink" title="潜在性能瓶颈"></a>潜在性能瓶颈</h2><ul>
+<li><p>操作 bigkey：写入一个 bigkey 在分配内存时需要消耗更多的时间，同样删除 bigkey 释放内存同样会产生耗时</p>
+</li>
+<li><p>使用复杂度过高的命令</p>
+</li>
+<li><p>Redis 的过期机制也是在主线程中执行的，大量 key 集中过期会导致处理一个请求时，耗时都在删除过期 key，耗时变长</p>
+</li>
+<li><p>淘汰策略也是在主线程执行的，当内存超过 Redis 内存上限后，每次写入都需要淘汰一些 key，也会造成耗时变长</p>
+</li>
+<li><p>AOF 刷盘开启 always 机制</p>
+</li>
+<li><p>主从全量同步生成 RDB，虽然采用 fork 子进程生成数据快照，但 fork 这一瞬间也是会阻塞整个线程的，实例越大，阻塞时间越久</p>
+</li>
+<li><p>并发量非常大时，单线程读写客户端 IO 数据存在性能瓶颈，虽然采用 IO 多路复用机制，但是读写客户端数据依旧是同步 IO，只能单线程依次读取客户端的数据，无法利用到 CPU 多核</p>
 </li>
 </ul>
 
@@ -1009,7 +684,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-marco/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1027,7 +702,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-marco/" class="post-title-link" itemprop="url">marco</a>
+          <a href="/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/" class="post-title-link" itemprop="url">全局哈希表</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1038,14 +713,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-19 15:25:39" itemprop="dateCreated datePublished" datetime="2023-04-19T15:25:39+08:00">2023-04-19</time>
+      <time title="创建时间：2023-04-20 20:54:32" itemprop="dateCreated datePublished" datetime="2023-04-20T20:54:32+08:00">2023-04-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1053,7 +728,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
         </span>
     </span>
 
@@ -1067,38 +742,44 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">macro</span>(&lt;name&gt; [&lt;arg1&gt; ...])</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">endmacro</span>()</span><br></pre></td></tr></table></figure>
+          <p>为了实现从键到值的快速访问，Redis 使用了一个哈希表来保存所有键值对</p>
+<p>一个哈希表，其实就是一个数组，数组的每个元素称为一个哈希桶，每个哈希桶中保存了键值对数据；哈希桶中的元素保存的并不是值本身，而是指向具体值的指针；哈希桶中的 entry 元素中保存了 *key 和 *value 指针，分别指向了实际的键和值，这样一来，即使值是一个集合，也可以通过 *value 指针被查找到</p>
+<img src="/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/01.png" class="">
 
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(var <span class="string">&quot;ABC&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">macro</span>(Moo arg)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;arg = $&#123;arg&#125;&quot;</span>)  <span class="comment"># 输出原值 ABC</span></span><br><span class="line">    <span class="keyword">set</span>(arg <span class="string">&quot;abc&quot;</span>)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;# After change the value of arg.&quot;</span>)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;arg = $&#123;arg&#125;&quot;</span>)  <span class="comment"># 输出原值 ABC</span></span><br><span class="line"><span class="keyword">endmacro</span>()</span><br></pre></td></tr></table></figure>
+<p>使用哈希表可以很快查找键值对，但哈希表的冲突问题和 rehash 可能带来的操作阻塞</p>
+<h3 id="哈希冲突"><a href="#哈希冲突" class="headerlink" title="哈希冲突"></a>哈希冲突</h3><p>当往哈希表中写入更多数据时，哈希冲突是不可避免的问题，毕竟哈希桶的个数通常要少于 key 的数量，这也就是说，难免会有一些 key 的哈希值对应到了同一个哈希桶中</p>
+<p>Redis 使用开链的方式解决哈希冲突，同一个哈希桶中的多个元素用一个链表来保存，它们之间依次用指针连接</p>
+<img src="/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/02.png" class="">
 
-<p>调用宏时，cmake 会像 c 的预处理一样将宏命令复制到调用处，然后对宏中的 <code>$&#123;xx&#125;</code> 做字符替换，所以在宏中需要引用参数的话必须写 <code>$&#123;arg&#125;</code></p>
-<p>因为是直接简单粗暴地替换，所以宏定义中的 <code>set</code> 方法试图改变宏定义中传进来的参数 <code>arg</code> 是不可能的</p>
-<table>
-<thead>
-<tr>
-<th>变量</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>ARGV#</td>
-<td>ARGV0 为第一个参数，ARGV1 为第二个参数，依次类推</td>
-</tr>
-<tr>
-<td>ARGV</td>
-<td>定义宏（函数）时参数为 2 个，实际传了 4 个，则 ARGV 代表实际传入的两个</td>
-</tr>
-<tr>
-<td>ARGN</td>
-<td>定义宏（函数）时参数为 2 个，实际传了 4 个，则ARGN代表剩下的 2 个</td>
-</tr>
-<tr>
-<td>ARGC</td>
-<td>实际传入的参数的个数</td>
-</tr>
-</tbody></table>
-<p>同理，<code>ARGN</code>、<code>ARGV</code> 也是字符串的简单替换，因此不能直接使用这些参数，也需要带 <code>$&#123;xx&#125;</code></p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 错误用法</span></span><br><span class="line"><span class="keyword">if</span>(ARGV1)</span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">DEFINED</span> ARGV2)</span><br><span class="line"><span class="keyword">if</span>(ARGC <span class="keyword">GREATER</span> <span class="number">2</span>)</span><br><span class="line"><span class="keyword">foreach</span>(var IN LISTS ARGN)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正确用法</span></span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$&#123;ARGV1&#125;</span>)</span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">DEFINED</span> <span class="variable">$&#123;ARGV2&#125;</span>)</span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$&#123;ARGC&#125;</span> <span class="keyword">GREATER</span> <span class="number">2</span>)</span><br><span class="line"><span class="keyword">foreach</span>(var IN LISTS <span class="variable">$&#123;ARGN&#125;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="rehash"><a href="#rehash" class="headerlink" title="rehash"></a>rehash</h3><p>Redis 会对哈希表做 rehash 操作，rehash 也就是增加现有的哈希桶数量，让逐渐增多的 entry 元素能在更多的桶之间分散保存，减少单个桶中的元素数量，从而减少单个桶中的冲突</p>
+<p>Redis 会使用装载因子（load factor）来判断是否需要做 rehash</p>
+<p>在进行 RDB 生成和 AOF 重写时，哈希表的 rehash 是被禁止的，这是为了避免对 RDB 和 AOF 重写造成影响</p>
+<ul>
+<li><p>装载因子 ≥1，同时哈希表没有进行 RDB 和 AOF 重写，则被允许进行 rehash</p>
+</li>
+<li><p>装载因子 ≥5，则立马开始 rehash</p>
+</li>
+</ul>
+<p>为了使 rehash 操作更高效，Redis 默认使用了两个全局哈希表：哈希表 1 和哈希表 2</p>
+<p>一开始，当你刚插入数据时，默认使用哈希表 1，此时的哈希表 2 并没有被分配空间，随着数据逐步增多，Redis 开始执行 rehash</p>
+<ol>
+<li><p>给哈希表 2 分配更大的空间</p>
+</li>
+<li><p>把哈希表 1 中的数据重新映射并拷贝到哈希表 2 中</p>
+</li>
+<li><p>释放哈希表 1 的空间，留作下一次 rehash 扩容备用</p>
+</li>
+</ol>
+<p>第二步涉及大量的数据拷贝，如果一次性把哈希表 1 中的数据都迁移完，会造成 Redis 线程阻塞，无法服务其他请求，所以 Redis 采用了渐进式 rehash</p>
+<p>在第二步拷贝数据时，Redis 仍然正常处理客户端请求，每处理一个请求时，从哈希表 1 中的第一个索引位置开始，顺带着将这个索引位置上的所有 entries 拷贝到哈希表 2 中；等处理下一个请求时，再顺带拷贝哈希表 1 中的下一个索引位置的 entries；把一次性大量拷贝的开销，分摊到了多次处理请求的过程中，避免了耗时操作，保证了数据的快速访问</p>
+<img src="/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/03.png" class="">
+
+<img src="/2023/04/20/Redis-%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/04.png" class="">
+
+<h2 id="内存分配"><a href="#内存分配" class="headerlink" title="内存分配"></a>内存分配</h2><p>Redis 使用内存分配库 jemalloc</p>
+<p>jemalloc 在分配内存时，会根据我们申请的字节数 N，找一个比 N 大，但是最接近 N 的 2 的幂次数作为分配的空间，这样可以减少频繁分配的次数</p>
+<p>dictEntry 结构就占用了 32 字节</p>
+
       
     </div>
 
@@ -1124,7 +805,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-function/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -1142,7 +823,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E8%84%9A%E6%9C%AC%E5%91%BD%E4%BB%A4-function/" class="post-title-link" itemprop="url">function</a>
+          <a href="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/" class="post-title-link" itemprop="url">缓存异常</a>
         </h2>
 
         <div class="post-meta-container">
@@ -1153,14 +834,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-19 14:50:32" itemprop="dateCreated datePublished" datetime="2023-04-19T14:50:32+08:00">2023-04-19</time>
+      <time title="创建时间：2023-04-20 20:52:34" itemprop="dateCreated datePublished" datetime="2023-04-20T20:52:34+08:00">2023-04-20</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1168,7 +849,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
         </span>
     </span>
 
@@ -1182,44 +863,520 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>cmake 函数名不区分大小写</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span>(&lt;name&gt; [&lt;arg1&gt; ...])</span><br><span class="line">  &lt;commands&gt;</span><br><span class="line"><span class="keyword">endfunction</span>()</span><br></pre></td></tr></table></figure>
+          <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/01.png" class="">
 
-<p>一个函数将新建一个作用域</p>
-<table>
-<thead>
-<tr>
-<th>变量</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>ARGV#</td>
-<td>ARGV0 为第一个参数，ARGV1 为第二个参数，依次类推</td>
-</tr>
-<tr>
-<td>ARGV</td>
-<td>定义宏（函数）时参数为 2 个，实际传了 4 个，则 ARGV 代表实际传入的两个</td>
-</tr>
-<tr>
-<td>ARGN</td>
-<td>定义宏（函数）时参数为 2 个，实际传了 4 个，则ARGN代表剩下的 2 个</td>
-</tr>
-<tr>
-<td>ARGC</td>
-<td>实际传入的参数的个数</td>
-</tr>
-</tbody></table>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span>(var <span class="string">&quot;ABC&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span>(Foo arg)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;arg = $&#123;arg&#125;&quot;</span>)  <span class="comment"># 输出原值 ABC</span></span><br><span class="line">    <span class="keyword">set</span>(arg <span class="string">&quot;abc&quot;</span>)</span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;# After change the value of arg.&quot;</span>)  <span class="comment"># 输出修改后的值 abc</span></span><br><span class="line">    <span class="keyword">message</span>(<span class="string">&quot;arg = $&#123;arg&#125;&quot;</span>)</span><br><span class="line"><span class="keyword">endfunction</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">message</span>(<span class="string">&quot;=== Call function ===&quot;</span>)</span><br><span class="line">Foo(<span class="variable">$&#123;var&#125;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h2><p>大量的应用请求无法在 Redis 缓存中进行处理，紧接着，应用将大量请求发送到数据库层，导致数据库层的压力激增</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/02.png" class="">
 
-<p>函数把每个参数都当作是 CMake 变量，所以这些参数都符合 CMake 变量的行为</p>
-<p>通过 <code>Foo($&#123;var&#125;)</code> 调用函数时，CMake 会将变量进行展开，依次匹配函数声明中的参数列表，相当于传统函数调用中的值传递</p>
-<p>在 <code>function</code> 中定义的变量，变量仅在函数内和函数调用中可见</p>
-<p><code>CMAKE_CURRENT_FUNCTION</code> 当前函数名称</p>
-<p><code>CMAKE_CURRENT_FUNCTION_LIST_DIR</code> 当前函数路径</p>
-<p><code>CMAKE_CURRENT_FUNCTION_LIST_FILE</code> 当前函数所属文件</p>
-<p><code>CMAKE_CURRENT_FUNCTION_LIST_LINE</code> 当前函数定义的起始行数</p>
+<h3 id="缓存中有大量数据同时过期"><a href="#缓存中有大量数据同时过期" class="headerlink" title="缓存中有大量数据同时过期"></a>缓存中有大量数据同时过期</h3><p>给数据的过期时间增加一个较小的随机数，不同数据的过期时间有所差别，但差别又不会太大，既避免了大量数据同时过期，同时也保证了这些数据基本在相近的时间失效，仍然能满足业务需求</p>
+<p>服务降级，发生缓存雪崩时，针对不同的数据采取不同的处理方式；访问非核心数据时，暂时停止从缓存中查询这些数据，而是直接返回预定义信息、空值或是错误信息；访问核心数据时，允许查询缓存，如果缓存缺失，也可以继续通过数据库读取</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/03.png" class="">
 
+<h3 id="Redis-缓存实例发生故障宕机"><a href="#Redis-缓存实例发生故障宕机" class="headerlink" title="Redis 缓存实例发生故障宕机"></a>Redis 缓存实例发生故障宕机</h3><p>在业务系统中实现服务熔断或请求限流机制：在发生缓存雪崩时，为了防止引发连锁的数据库雪崩，甚至是整个系统的崩溃，我们暂停业务应用对缓存系统的接口访问</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/04.png" class="">
+
+<p>服务熔断虽然可以保证数据库的正常运行，但是暂停了整个缓存系统的访问，对业务应用的影响范围大。为了尽可能减少这种影响，我们也可以进行请求限流；在业务系统的请求入口前端控制每秒进入系统的请求数，避免过多的请求被发送到数据库</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/05.png" class="">
+
+<p>通过主从节点的方式构建 Redis 缓存高可靠集群，主节点故障宕机，从节点还可以切换成为主节点，继续提供缓存服务，避免了由于缓存实例宕机而导致的缓存雪崩问题</p>
+<h2 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h2><p>缓存击穿是指，针对某个访问非常频繁的热点数据的请求，无法在缓存中进行处理，紧接着，访问该数据的大量请求，一下子都发送到了后端数据库，导致了数据库压力激增，会影响数据库处理其他请求</p>
+<p>缓存击穿的情况，经常发生在热点数据过期失效时</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/06.png" class="">
+
+<h3 id="热点数据不设置过期时间"><a href="#热点数据不设置过期时间" class="headerlink" title="热点数据不设置过期时间"></a>热点数据不设置过期时间</h3><p>对于访问特别频繁的热点数据，就不设置过期时间了</p>
+<h2 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h2><p>缓存穿透是指要访问的数据既不在 Redis 缓存中，也不在数据库中，导致请求在访问缓存时，发生缓存缺失，再去访问数据库时，发现数据库中也没有要访问的数据；应用无法从数据库中读取数据再写入缓存来服务后续请求，这样一来缓存也就成了摆设，如果应用持续有大量请求访问数据，就会同时给缓存和数据库带来巨大压力</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/07.png" class="">
+
+<p>原因：</p>
+<ul>
+<li><p>业务层误操作：缓存中的数据和数据库中的数据被误删除了，所以缓存和数据库中都没有数据</p>
+</li>
+<li><p>恶意攻击：专门访问数据库中没有的数据</p>
+</li>
+</ul>
+<h3 id="缓存空值或缺省值"><a href="#缓存空值或缺省值" class="headerlink" title="缓存空值或缺省值"></a>缓存空值或缺省值</h3><p>一旦发生缓存穿透，可以针对查询的数据，在 Redis 中缓存一个空值或是和业务层协商确定的缺省值；应用发送的后续请求再进行查询时，就可以直接从 Redis 中读取空值或缺省值，返回给业务应用了，避免了把大量请求发送给数据库处理，保持了数据库的正常运行</p>
+<h3 id="布隆过滤器"><a href="#布隆过滤器" class="headerlink" title="布隆过滤器"></a>布隆过滤器</h3><p>使用布隆过滤器快速判断数据是否存在，避免从数据库中查询数据是否存在，减轻数据库压力</p>
+<p>工作原理：</p>
+<ul>
+<li><p>布隆过滤器由一个初值都为 0 的 bit 数组和 N 个哈希函数组成，可以用来快速判断某个数据是否存在</p>
+</li>
+<li><p>标记某个数据存在时，使用 N 个哈希函数，分别计算这个数据的哈希值，得到 N 个哈希值</p>
+</li>
+<li><p>把这 N 个哈希值对 bit 数组的长度取模，得到每个哈希值在数组中的对应位置</p>
+</li>
+<li><p>把对应位置的 bit 位设置为 1，这就完成了在布隆过滤器中标记数据的操作</p>
+</li>
+<li><p>如果数据不存在，也就没有用布隆过滤器标记过数据，那么，bit 数组对应 bit 位的值仍然为 0</p>
+</li>
+</ul>
+<p>当需要查询某个数据时，就执行刚刚说的计算过程，先得到这个数据在 bit 数组中对应的 N 个位置；查看 bit 数组中这 N 个位置上的 bit 值；只要这 N 个 bit 值有一个不为 1，这就表明布隆过滤器没有对该数据做过标记，所以，查询的数据一定没有在数据库中保存</p>
+<p>基于布隆过滤器的快速检测特性，可以在把数据写入数据库时，使用布隆过滤器做个标记。当缓存缺失后，应用查询数据库时，可以通过查询布隆过滤器快速判断数据是否存在。如果不存在，就不用再去数据库中查询了。这样一来，即使发生缓存穿透了，大量请求只会查询 Redis 和布隆过滤器，而不会积压到数据库，也就不会影响数据库的正常运行。布隆过滤器可以使用 Redis 实现，本身就能承担较大的并发访问压力</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/20/Redis-%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F/" class="post-title-link" itemprop="url">编码方式</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-20 20:51:26" itemprop="dateCreated datePublished" datetime="2023-04-20T20:51:26+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>当保存 64 位有符号整数时，String 类型会把它保存为一个 8 字节的 Long 类型整数，这种保存方式通常也叫作 int 编码方式</p>
+<p>当你保存的数据中包含字符时，String 类型就会用简单动态字符串（Simple Dynamic String，SDS）结构体来保存</p>
+<img src="/2023/04/20/Redis-%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F/01.png" class="">
+
+<p>buf：字节数组，保存实际数据。为了表示字节数组的结束，Redis 会自动在数组最后加一个 <code>\0</code>，这会额外占用 1 个字节的开销</p>
+<p>len：占 4 个字节，表示 buf 的已用长度</p>
+<p>alloc：也占个 4 字节，表示 buf 的实际分配长度，一般大于 len</p>
+<p>当保存的是 Long 类型整数时，RedisObject 中的指针就直接赋值为整数数据了，这样就不用额外的指针再指向整数了，节省了指针的空间开销，布局方式为 int 编码</p>
+<p>当保存的是字符串数据，并且字符串小于等于 44 字节时，RedisObject 中的元数据、指针和 SDS 是一块连续的内存区域，这样就可以避免内存碎片，布局方式为 embstr 编码</p>
+<p>当字符串大于 44 字节时，SDS 的数据量就开始变多了，Redis 就不再把 SDS 和 RedisObject 布局在一起了，而是会给 SDS 分配独立的空间，并用指针指向 SDS 结构，布局方式为 raw 编码</p>
+<img src="/2023/04/20/Redis-%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F/02.png" class="">
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/20/Redis-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" class="post-title-link" itemprop="url">分布式锁</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-20 20:50:20" itemprop="dateCreated datePublished" datetime="2023-04-20T20:50:20+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Redis 属于分布式系统，当有多个客户端需要争抢锁时，我们必须要保证，这把锁不能是某个客户端本地的锁。否则的话，其它客户端是无法访问这把锁的，当然也就不能获取这把锁了</p>
+<p>在分布式系统中，当有多个客户端需要获取锁时，需要分布式锁。此时，锁是保存在一个共享存储系统中的，可以被多个客户端共享访问和获取</p>
+<p>Redis 本身可以被多个客户端共享访问，正好就是一个共享存储系统，可以用来保存分布式锁，而且 Redis 的读写性能高，可以应对高并发的锁操作场景</p>
+<p>和单机上的锁类似，分布式锁同样可以用一个变量来实现。客户端加锁和释放锁的操作逻辑，也和单机上的加锁和释放锁操作逻辑一致：加锁时同样需要判断锁变量的值，根据锁变量值来判断能否加锁成功；释放锁时需要把锁变量值设置为 0，表明客户端不再持有锁</p>
+<p>但是，和线程在单机上操作锁不同的是，在分布式场景下，锁变量需要由一个共享存储系统来维护，只有这样，多个客户端才可以通过访问共享存储系统来访问锁变量。相应的，加锁和释放锁的操作就变成了读取、判断和设置共享存储系统中的锁变量值</p>
+<p>分布式锁的两个要求：</p>
+<ol>
+<li><p>分布式锁的加锁和释放锁的过程，涉及多个操作。所以，在实现分布式锁时，我们需要保证这些锁操作的原子性</p>
+</li>
+<li><p>共享存储系统保存了锁变量，如果共享存储系统发生故障或宕机，那么客户端也就无法进行锁操作了。在实现分布式锁时，我们需要考虑保证共享存储系统的可靠性，进而保证锁的可靠性</p>
+</li>
+</ol>
+<h2 id="基于单个-Redis-节点实现分布式锁"><a href="#基于单个-Redis-节点实现分布式锁" class="headerlink" title="基于单个 Redis 节点实现分布式锁"></a>基于单个 Redis 节点实现分布式锁</h2><p>赋予锁变量一个变量名，把这个变量名作为键值对的键，而锁变量的值，则是键值对的值，这样一来，Redis 就能保存锁变量了，客户端也就可以通过 Redis 的命令操作来实现锁操作</p>
+<img src="/2023/04/20/Redis-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/01.png" class="">
+
+<p>可以用 SETNX 和 DEL 命令组合来实现加锁和释放锁操作</p>
+<p>SETNX 命令用于设置键值对的值，这个命令在执行时会判断键值对是否存在，如果不存在，就设置键值对的值，如果存在，就不做任何设置</p>
+<p>对于释放锁操作来说，使用 DEL 命令删除锁变量</p>
+<h3 id="风险"><a href="#风险" class="headerlink" title="风险"></a>风险</h3><p>假如某个客户端在执行了 SETNX 命令、加锁之后，紧接着却在操作共享数据时发生了异常，结果一直没有执行最后的 DEL 命令释放锁。因此，锁就一直被这个客户端持有，其它客户端无法拿到锁，也无法访问共享数据和执行后续操作，这会给业务应用带来影响</p>
+<p>一个有效的解决方法是，给锁变量设置一个过期时间。这样一来，即使持有锁的客户端发生了异常，无法主动地释放锁，Redis 也会根据锁变量的过期时间，在锁变量过期后，把它删除。其它客户端在锁变量过期后，就可以重新请求加锁，这就不会出现无法加锁的问题了</p>
+<p>如果客户端 A 执行了 SETNX 命令加锁后，假设客户端 B 执行了 DEL 命令释放锁，此时，客户端 A 的锁就被误释放了。如果客户端 C 正好也在申请加锁，就可以成功获得锁，进而开始操作共享数据。这样一来，客户端 A 和 C 同时在对共享数据进行操作，数据就会被修改错误</p>
+<p>在加锁操作时，可以让每个客户端给锁变量设置一个唯一值，这里的唯一值就可以用来标识当前操作的客户端；在释放锁操作时，客户端需要判断，当前锁变量的值是否和自己的唯一标识相等，只有在相等的情况下，才能释放锁；在释放锁操作时，需要判断锁变量的值是否等于执行释放锁操作的客户端的唯一标识，使用 Lua 脚本实现的释放锁操作</p>
+<p>采用主从集群模式部署的单机分布式锁，也不能保证锁的可靠性，由于主从复制是异步的，加锁操作的命令还未同步到 slave，此时主从切换，新 master 节点依旧会丢失该锁，对业务来说相当于锁失效了</p>
+<h2 id="基于多个-Redis-节点实现高可靠的分布式锁"><a href="#基于多个-Redis-节点实现高可靠的分布式锁" class="headerlink" title="基于多个 Redis 节点实现高可靠的分布式锁"></a>基于多个 Redis 节点实现高可靠的分布式锁</h2><p>只用了一个 Redis 实例来保存锁变量，如果这个 Redis 实例发生故障宕机了，那么锁变量就没有了。此时，客户端也无法进行锁操作了，这就会影响到业务的正常执行</p>
+<p>为了避免 Redis 实例故障而导致的锁无法工作的问题，Redis 使用分布式锁算法 Redlock</p>
+<p>Redlock 算法的基本思路，是让客户端和多个独立的 Redis 实例依次请求加锁，如果客户端能够和半数以上的实例成功地完成加锁操作，那么就认为，客户端成功地获得分布式锁了，否则加锁失败。这样一来，即使有单个 Redis 实例发生故障，因为锁变量在其它实例上也有保存，所以，客户端仍然可以正常地进行锁操作，锁变量并不会丢失</p>
+<p>Redlock 算法的实现需要有 N 个独立的 Redis 实例，分成 3 步来完成加锁操作</p>
+<ol>
+<li><p>客户端获取当前时间</p>
+</li>
+<li><p>客户端按顺序依次向 N 个 Redis 实例执行加锁操作，加锁操作和在单实例上执行的加锁操作一样；为避免某个实例宕机，需设置一个超时时间；如果客户端在和一个 Redis 实例请求加锁时，一直到超时都没有成功，那么此时，客户端会和下一个 Redis 实例继续请求加锁；加锁操作的超时时间需要远远地小于锁的有效时间，一般也就是设置为几十毫秒</p>
+</li>
+<li><p>一旦客户端完成了和所有 Redis 实例的加锁操作，客户端就要计算整个加锁过程的总耗时</p>
+</li>
+</ol>
+<p>加锁成功条件：</p>
+<ol>
+<li><p>客户端从超过半数（大于等于 N&#x2F;2+1）的 Redis 实例上成功获取到了锁</p>
+</li>
+<li><p>客户端获取锁的总耗时没有超过锁的有效时间</p>
+</li>
+</ol>
+<p>在满足了这两个条件后，我们需要重新计算这把锁的有效时间，计算的结果是锁的最初有效时间减去客户端为获取锁的总耗时</p>
+<p>如果客户端在和所有实例执行完加锁操作后，没能同时满足这两个条件，那么，客户端向所有 Redis 节点发起释放锁的操作</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E6%97%81%E8%B7%AF%E7%BC%93%E5%AD%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/20/Redis-%E6%97%81%E8%B7%AF%E7%BC%93%E5%AD%98/" class="post-title-link" itemprop="url">旁路缓存</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-20 20:47:17" itemprop="dateCreated datePublished" datetime="2023-04-20T20:47:17+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>一个系统中的不同层之间的访问速度不一样，所以才需要缓存，把一些需要频繁访问的数据放在缓存中，以加快它们的访问速度</p>
+<p>缓存的容量终究是有限的，缓存中的数据量也是有限的，肯定是没法时刻都满足访问需求的，缓存和后端慢速系统之间，必然存在数据写回和再读取的交互过程；缓存中的数据需要按一定规则淘汰出去，写回后端系统，而新的数据又要从后端系统中读取进来，写入缓存</p>
+<h2 id="缓存处理请求"><a href="#缓存处理请求" class="headerlink" title="缓存处理请求"></a>缓存处理请求</h2><ul>
+<li><p>缓存命中：Redis 中有相应数据，就直接读取 Redis，性能非常快</p>
+</li>
+<li><p>缓存缺失：Redis 中没有保存相应数据，就从后端数据库中读取数据，性能就会变慢。而且，一旦发生缓存缺失，为了让后续请求能从缓存中读取到数据，我们需要把缺失的数据写入 Redis，这个过程叫作缓存更新</p>
+</li>
+</ul>
+<p>使用 Redis 缓存时，基本有三个操作：</p>
+<ol>
+<li><p>应用读取数据时，需要先读取 Redis</p>
+</li>
+<li><p>发生缓存缺失时，需要从数据库读取数据</p>
+</li>
+<li><p>发生缓存缺失时，还需要更新缓存</p>
+</li>
+</ol>
+<h2 id="缓存类型"><a href="#缓存类型" class="headerlink" title="缓存类型"></a>缓存类型</h2><p>分成只读缓存和读写缓存</p>
+<h3 id="只读缓存"><a href="#只读缓存" class="headerlink" title="只读缓存"></a>只读缓存</h3><p>当 Redis 用作只读缓存时，应用要读取数据的话，会先调用 Redis GET 接口，查询数据是否存在</p>
+<p>所有的数据写请求，会直接发往后端的数据库，在数据库中增删改；对于删改的数据来说，如果 Redis 已经缓存了相应的数据，应用需要把这些缓存的数据删除；当应用再次读取这些数据时，会发生缓存缺失，应用会把这些数据从数据库中读出来，并写到缓存中</p>
+<p>所有最新的数据都在数据库中，而数据库是提供数据可靠性保障的，这些数据不会有丢失的风险；当需要缓存图片、短视频这些用户只读的数据时，就可以使用只读缓存这个类型了</p>
+<h3 id="读写缓存"><a href="#读写缓存" class="headerlink" title="读写缓存"></a>读写缓存</h3><p>读请求会发送到缓存进行处理（直接在缓存中查询数据是否存在)，所有的写请求也会发送到缓存，在缓存中直接对数据进行增删改操作</p>
+<p>得益于 Redis 的高性能访问特性，数据的增删改操作可以在缓存中快速完成，处理结果也会快速返回给业务应用，这就可以提升业务应用的响应速度</p>
+<p>在使用读写缓存时，最新的数据是在 Redis 中，而 Redis 是内存数据库，一旦出现掉电或宕机，内存中的数据就会丢失，给应用业务带来风险</p>
+<p>根据业务应用对数据可靠性和缓存性能的不同要求，有同步直写和异步写回两种策略。同步直写策略优先保证数据可靠性，而异步写回策略优先提供快速响应</p>
+<ul>
+<li><p>同步直写：写请求发给缓存的同时，也会发给后端数据库进行处理，等到缓存和数据库都写完数据，才给客户端返回；提供了数据可靠性保证；降低缓存的访问性能，即使缓存很快地处理了写请求，也需要等待数据库处理完所有的写请求，才能给应用返回结果，增加了缓存的响应延迟</p>
+</li>
+<li><p>异步写回：所有写请求都先在缓存中处理，等到这些增改的数据要被从缓存中淘汰出来时，缓存将它们写回后端数据库</p>
+</li>
+</ul>
+<img src="/2023/04/20/Redis-%E6%97%81%E8%B7%AF%E7%BC%93%E5%AD%98/01.png" class="">
+
+<p>只读缓存和使用直写策略的读写缓存都会把数据同步写到后端数据库中，它们的区别在于：</p>
+<ul>
+<li><p>使用只读缓存时，是先把修改写到后端数据库中，再把缓存中的数据删除。当下次访问这个数据时，会以后端数据库中的值为准，重新加载到缓存中。这样做的优点是，数据库和缓存可以保证完全一致，并且缓存中永远保留的是经常访问的热点数据。缺点是每次修改操作都会把缓存中的数据删除，之后访问时都会先触发一次缓存缺失，然后从后端数据库加载数据到缓存中，这个过程访问延迟会变大</p>
+</li>
+<li><p>使用读写缓存时，是同时修改数据库和缓存中的值。这样做的优点是，被修改后的数据永远在缓存中存在，下次访问时，能够直接命中缓存，不用再从后端数据库中查询，这个过程拥有比较好的性能，比较适合先修改又立即访问的业务场景。但缺点是在高并发场景下，如果存在多个操作同时修改同一个值的情况，可能会导致缓存和数据库的不一致</p>
+</li>
+<li><p>当使用只读缓存时，如果修改数据库失败了，那么缓存中的数据也不会被删除，此时数据库和缓存中的数据依旧保持一致。而使用读写缓存时，如果是先修改缓存，后修改数据库，如果缓存修改成功，而数据库修改失败了，那么此时数据库和缓存数据就不一致了。如果先修改数据库，再修改缓存，也会产生上面所说的并发场景下的不一致</p>
+</li>
+</ul>
+<h2 id="只读缓存是删除数据而不是修改数据"><a href="#只读缓存是删除数据而不是修改数据" class="headerlink" title="只读缓存是删除数据而不是修改数据"></a>只读缓存是删除数据而不是修改数据</h2><p>如果不是删除缓存值，而是直接更新缓存的值，这种情况相当于把 Redis 当做读写缓存使用，删改操作同时操作数据库和缓存</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/" class="post-title-link" itemprop="url">缓存一致性</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-19 21:30:14" itemprop="dateCreated datePublished" datetime="2023-04-19T21:30:14+08:00">2023-04-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>只要使用 Redis 缓存，就必然会面对缓存和数据库间的一致性保证问题</p>
+<h2 id="一致性"><a href="#一致性" class="headerlink" title="一致性"></a>一致性</h2><p>一致性情况包括：</p>
+<ul>
+<li><p>缓存中有数据，缓存的数据值需要和数据库中的值相同</p>
+</li>
+<li><p>缓存中本身没有数据，数据库中的值必须是最新值</p>
+</li>
+</ul>
+<h3 id="读写缓存"><a href="#读写缓存" class="headerlink" title="读写缓存"></a>读写缓存</h3><p>对于读写缓存来说，如果要对数据进行增删改，就需要在缓存中进行，同时还要根据采取的写回策略，决定是否同步写回到数据库中</p>
+<p>同步直写策略：写缓存时，也同步写数据库，缓存和数据库中的数据一致</p>
+<p>异步写回策略：写缓存时不同步写数据库，等到数据从缓存中淘汰时，再写回数据库。使用这种策略时，如果数据还没有写回数据库，缓存就发生了故障，数据库就没有最新的数据了</p>
+<p>要想保证缓存和数据库中的数据一致，就要采用同步直写策略；但如果采用这种策略，就需要同时更新缓存和数据库；要在业务应用中使用事务机制，来保证缓存和数据库的更新具有原子性，也就是说，两者要不一起更新，要不都不更新，返回错误信息，进行重试</p>
+<p>对数据一致性的要求可能不是那么高，可以使用异步写回策略</p>
+<h3 id="只读缓存"><a href="#只读缓存" class="headerlink" title="只读缓存"></a>只读缓存</h3><p>对于只读缓存来说，如果有数据新增，会直接写入数据库；而有数据删改时，就需要把只读缓存中的数据标记为无效；后续再访问这些增删改的数据时，因为缓存中没有相应的数据，就会发生缓存缺失，应用再从数据库中把数据读入缓存，这样后续再访问数据时，就能够直接从缓存中读取了</p>
+<p>新增数据，数据会直接写到数据库中，不用对缓存做任何操作；缓存中本身就没有新增数据，而数据库中是最新值，这种情况符合一致性的第 2 种情况，所以，此时缓存和数据库的数据是一致的</p>
+<p>删改数据既要更新数据库，也要在缓存中删除数据；在更新数据库和删除缓存值的过程中，无论这两个操作的执行顺序谁先谁后，只要有一个操作失败了，就会导致客户端读取到旧值，导致不满足缓存一致性</p>
+<p>先删除缓存，再更新数据库，如果缓存删除成功，但是数据库更新失败，那么应用再访问数据时，缓存中没有数据，就会发生缓存缺失。然后，应用再访问数据库，但是数据库中的值为旧值，应用就访问到旧值了</p>
+<p>先完成了数据库的更新，但是在删除缓存时失败，那么数据库中的值是新值，而缓存中的是旧值，这肯定是不一致的。这个时候，如果有其他的并发请求来访问数据，按照正常的缓存访问流程，就会先在缓存中查询，但此时就会读到旧值了</p>
+<img src="/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/01.png" class="">
+
+<img src="/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/02.png" class="">
+
+<h2 id="重试机制"><a href="#重试机制" class="headerlink" title="重试机制"></a>重试机制</h2><p>可以把要删除的缓存值或者是要更新的数据库值暂存到消息队列中，当应用没有能够成功地删除缓存值或者是更新数据库值时，可以从消息队列中重新读取这些值，然后再次进行删除或更新；如果能够成功地删除或更新，我们就要把这些值从消息队列中去除，以免重复操作</p>
+<h2 id="高并发"><a href="#高并发" class="headerlink" title="高并发"></a>高并发</h2><p>即使更新数据库和删除缓存值成功，当有大量并发请求时，应用还是有可能读到不一致的数据</p>
+<h3 id="先删除缓存，再更新数据库"><a href="#先删除缓存，再更新数据库" class="headerlink" title="先删除缓存，再更新数据库"></a>先删除缓存，再更新数据库</h3><p>线程 A 删除缓存值后，还没有来得及更新数据库，线程 B 就开始读取数据；线程 B 会发现缓存缺失，就只能去数据库读取</p>
+<p>导致线程 B 读取到了旧值，且会把旧值写入缓存，这可能会导致其他线程从缓存中读到旧值</p>
+<p>等到线程 B 从数据库读取完数据、更新了缓存后，线程 A 才开始更新数据库，此时，缓存中的数据是旧值，而数据库中的是最新值，两者就不一致了</p>
+<img src="/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/03.png" class="">
+
+<p>解决方案：在线程 A 更新完数据库值以后，我们可以让它先 sleep 一小段时间，再进行一次缓存删除操作；线程 A sleep 的时间需要大于线程 B 读取数据再写入缓存的时间；其它线程读取数据时，会发现缓存缺失，所以会从数据库中读取最新值</p>
+<p>这个方案会在第一次删除缓存值后，延迟一段时间再次进行删除，所以我们也把它叫做延迟双删</p>
+<h3 id="先更新数据库值，再删除缓存值"><a href="#先更新数据库值，再删除缓存值" class="headerlink" title="先更新数据库值，再删除缓存值"></a>先更新数据库值，再删除缓存值</h3><p>线程 A 删除了数据库中的值，但还没来得及删除缓存值，线程 B 就开始读取数据；线程 B 查询缓存时，发现缓存命中，就会直接从缓存中读取旧值</p>
+<img src="/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/04.png" class="">
       
     </div>
 
@@ -1238,7 +1395,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/14/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><span class="space">&hellip;</span><a class="page-number" href="/page/34/">34</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/16/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/14/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><span class="space">&hellip;</span><a class="page-number" href="/page/35/">35</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/16/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>

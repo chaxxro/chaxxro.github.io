@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">332</span>
+          <span class="site-state-item-count">350</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,7 +159,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-stat/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-stat/" class="post-title-link" itemprop="url">stat</a>
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/" class="post-title-link" itemprop="url">tcp</a>
         </h2>
 
         <div class="post-meta-container">
@@ -188,14 +188,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-25 21:19:28" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:28+08:00">2023-04-25</time>
+      <time title="创建时间：2023-04-26 19:43:07" itemprop="dateCreated datePublished" datetime="2023-04-26T19:43:07+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -203,7 +203,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
         </span>
     </span>
 
@@ -217,8 +217,278 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>显示文件 inode 内容</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">stat</span> [option] file</span><br></pre></td></tr></table></figure>
+          <p>TCP（Transmission Control Protocol）是面向连接的，提供可靠交付，有流量控制，拥塞控制，提供全双工通信，面向字节流（把应用层传下来的报文看成字节流，把字节流组织成大小不等的数据块），每一条 TCP 连接只能是点对点的</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/01.png" class="">
+
+<p>TCP 数据包和 UDP 一样，都是由首部和数据两部分组成，唯一不同的是，TCP 数据包没有长度限制，理论上可以无限长，但是为了保证网络的效率，通常 TCP 数据包的长度不会超过 IP 数据包的长度，以确保单个 TCP 数据包不必再分割</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/02.png" class="">
+
+<p>TCP 负责应用软件和网络软件之间的通信：IP 负责计算机之间的通信；TCP 负责将数据分割并装入 IP 包，然后在它们到达的时候重新组合它们；IP 负责将包发送至接受者</p>
+<ul>
+<li><p>32 位序列号：用于对字节流进行编号，例如序号为 301，表示第一个字节的编号为 301，如果携带的数据长度为 100 字节，那么下一个报文段的序号应为 401</p>
+</li>
+<li><p>32 位确认号：期望收到的下一个报文段的序号。例如 B 正确收到 A 发送来的一个报文段，序号为 501，携带的数据长度为 200 字节，因此 B 期望下一个报文段的序号为 701，B 发送给 A 的确认报文段中确认号就为 701</p>
+</li>
+<li><p>4 位首部长度：数据部分距离报文段起始处的偏移量，实际上指的是首部的长度</p>
+</li>
+<li><p>源端口号&#x2F;目的端口号: 表示数据从哪个进程来, 到哪个进程去</p>
+</li>
+<li><p>16 位窗口大小：作为接收方让发送方设置其发送窗口的依据</p>
+</li>
+<li><p>6 位标志域：紧急标志 URG (1 表示有效)、有意义的应答标志 ACK （1 时确认号字段有效，否则无效，在连接建立后所有传送的报文段都必须把 ACK 置 1）、推 PSH （1 时表示接收端不将该数据进行队列处理，而是尽可能快地将数据转由应用处理）、重置连接标志 RST 、同步序列号标志 SYN (仅在三次握手建立 TCP 连接时有效，当 SYN&#x3D;1，ACK&#x3D;0 时表示这是一个连接请求报文段。若对方同意建立连接，则响应报文中 SYN&#x3D;1，ACK&#x3D;1)、完成发送数据标志 FIN (1 表示此报文段的发送方的数据已发送完毕，并要求释放连接)</p>
+</li>
+<li><p>TCP 校验和会覆盖首部和数据</p>
+</li>
+</ul>
+<h2 id="TCP-三次握手"><a href="#TCP-三次握手" class="headerlink" title="TCP 三次握手"></a>TCP 三次握手</h2><p>建立一个 TCP 连接时，需要客户端和服务端总共发送 3 个包以确认连接的建立，在 socket 编程中，这一过程由客户端执行 connect 来触发</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/03.png" class="">
+
+<ul>
+<li><p>第一次：客户端 - - &gt; 服务器。此时服务器知道了客户端要建立连接了  Client 将标志位 SYN 置为 1，随机产生一个值 seq &#x3D; J，并将该数据包发送给 Server，Client 进入 SYN_SENT 状态，等待 Server 确认</p>
+</li>
+<li><p>第二次：客户端 &lt; - - 服务器。此时客户端知道服务器收到连接请求了 Server 收到数据包后由标志位 SYN &#x3D; 1 知道 Client 请求建立连接，Server 将标志位 SYN 和 ACK 都置为 1，ack &#x3D; J + 1，随机产生一个值 seq&#x3D;K ，并将该数据包发送给 Client 以确认连接请求，Server 进入 SYN_RCVD 状态</p>
+</li>
+<li><p>第三次：客户端 - - &gt; 服务器。此时服务器知道客户端收到了自己的回应 Client 收到确认后，检查 ack 是否为 J + 1 ，ACK 是否为 1，如果正确则将标志位 ACK 置为 1，ack &#x3D; K + 1，并将该数据包发送给 Server，Server 检查 ack 是否为 K + 1，ACK 是否为 1，如果正确则连接建立成功，Client 和 Server 进入 ESTABLISHED 状态</p>
+</li>
+</ul>
+<h2 id="为什么不两次握手"><a href="#为什么不两次握手" class="headerlink" title="为什么不两次握手"></a>为什么不两次握手</h2><h3 id="避免历史连接"><a href="#避免历史连接" class="headerlink" title="避免历史连接"></a>避免历史连接</h3><p>为了防止已经失效的连接请求报文突然又传送到了服务器，从而产生错误</p>
+<p>如果是历史连接（序列号过期或超时），则第三次握手发送的报文是 RST 报文，终止历史连接</p>
+<h3 id="同步双方初始序列号"><a href="#同步双方初始序列号" class="headerlink" title="同步双方初始序列号"></a>同步双方初始序列号</h3><p>确保双方的初始序列号能被可靠的同步，保证 TCP 的可靠性</p>
+<h3 id="避免资源浪费"><a href="#避免资源浪费" class="headerlink" title="避免资源浪费"></a>避免资源浪费</h3><p>客户端发送的连接请求如果在网络中滞留，那么就会隔很长一段时间才能收到服务器端发回的连接确认。客户端等待一个超时重传时间之后，就会重新请求连接。但是这个滞留的连接请求最后还是会到达服务器，如果不进行三次握手，那么服务器就会打开两个连接。如果有第三次握手，客户端会忽略服务器之后发送的对滞留连接请求的连接确认，不进行第三次握手，因此就不会再次打开连接</p>
+<h2 id="SYN-攻击"><a href="#SYN-攻击" class="headerlink" title="SYN 攻击"></a>SYN 攻击</h2><p>Server 发送 SYN-ACK 之后，收到 Client 的 ACK 之前的 TCP 连接称为半连接。SYN 攻击就是 Client 在短时间内伪造大量不存在的 IP 地址，并向 Server 不断地发送 SYN 包，Server 回复确认包，并等待 Client 的确认，由于源地址是不存在的，因此，Server 需要不断重发直至超时，这些伪造的 SYN 包将产时间占用未连接队列，导致正常的 SYN 请求因为队列满而被丢弃，从而引起网络堵塞甚至系统瘫痪</p>
+<h2 id="半连接队列和全连接队列"><a href="#半连接队列和全连接队列" class="headerlink" title="半连接队列和全连接队列"></a>半连接队列和全连接队列</h2><p>在 TCP 三次握手的时候，Linux 内核会维护两个队列，分别是：半连接队列，也称 SYN 队列；全连接队列，也称 accepet 队列</p>
+<p>服务端收到客户端发起的 SYN 请求后，内核会把该连接存储到半连接队列，并向客户端响应 SYN+ACK，接着客户端会返回 ACK，服务端收到第三次握手的 ACK 后，内核会把连接从半连接队列移除，然后创建新的完全的连接，并将其添加到 accept 队列，等待进程调用 accept 函数时把连接取出来</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/04.png" class="">
+
+<p>不管是半连接队列还是全连接队列，都有最大长度限制，超过限制时，内核会直接丢弃，或返回 RST 包</p>
+<p>当服务端并发处理大量请求时，如果 TCP 全连接队列过小，就容易溢出；Linux 溢出的默认操作时丢弃连接，也可以选择向客户端发送 RST 复位报文，告诉客户端连接已经建立失败</p>
+<h2 id="TCP-四次挥手"><a href="#TCP-四次挥手" class="headerlink" title="TCP 四次挥手"></a>TCP 四次挥手</h2><p>断开一个 TCP 连接时，需要客户端和服务端总共发送 4 个包以确认连接的断开，在 socket 编程中，这一过程由客户端或服务端任一方执行 close 来触发，由于 TCP 连接时全双工的，因此，每个方向都必须要单独进行关闭；发送一个 FIN 来终止这一方向的连接，收到一个 FIN 只是意味着这一方向上没有数据流动了，即不会再收到数据了，但是在这个 TCP 连接上仍然能够发送数据，直到这一方向也发送了 FIN</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/05.png" class="">
+
+<ul>
+<li><p>客户端进程发出连接释放报文，并且停止发送数据，客户端进入 FIN - WAIT - 1 状态</p>
+</li>
+<li><p>服务器收到连接释放报文，发出确认报文，ACK &#x3D; 1，ack &#x3D; u + 1，并且带上自己的序列号 seq &#x3D; v，服务端就进入了 CLOSE-WAIT 状态，此时处于半关闭状态，即客户端已经没有数据要发送了，但是服务器若发送数据，客户端依然要接受客户端收到服务器的确认请求后，客户端就进入 FIN-WAIT-2 状态，等待服务器发送连接释放报文</p>
+</li>
+<li><p>服务器将最后的数据发送完毕后，就向客户端发送连接释放报文，FIN &#x3D; 1，ack &#x3D; u + 1，服务器就进入了 LAST-ACK （最后确认）状态，等待客户端的确认</p>
+</li>
+<li><p>客户端收到服务器的连接释放报文后，必须发出确认，ACK &#x3D; 1，ack &#x3D; w + 1，seq &#x3D; u + 1，客户端就进入了 TIME-WAIT 状态，此时TCP连接还没有释放，必须经过 2 ∗ MSL （最长报文段寿命）的时间后，才进入 CLOSED 状态，服务器只要收到了客户端发出的确认，立即进入 CLOSED 状态</p>
+</li>
+</ul>
+<h2 id="客户端最后需要等待-2-MSL-的时间"><a href="#客户端最后需要等待-2-MSL-的时间" class="headerlink" title="客户端最后需要等待 2 * MSL 的时间"></a>客户端最后需要等待 2 * MSL 的时间</h2><ul>
+<li><p>保证客户端发送的最后一个 ACK 报文能够到达服务器，因为这个 ACK 报文可能丢失，站在服务器的角度看来，我已经发送了 FIN + ACK 报文请求断开了，客户端还没有给我回应，应该是我发送的请求断开报文它没有收到，于是服务器又会重新发送一次，而客户端就能在这个 2 MSL 时间段内收到这个重传的报文，接着给出回应报文，并且会重启 2 MSL 计时器</p>
+</li>
+<li><p>客户端发送完最后一个确认报文后，在这个 2 * MSL 时间中，可以使本连接持续的时间内所产生的所有报文段都从网络中消失，这样新的连接中不会出现旧连接的请求报文</p>
+</li>
+</ul>
+<h2 id="为什么四次挥手"><a href="#为什么四次挥手" class="headerlink" title="为什么四次挥手"></a>为什么四次挥手</h2><p>建立连接的时候， 服务器在 LISTEN 状态下，收到建立连接请求的 SYN 报文后，把 ACK 和 SYN 放在一个报文里发送给客户端，而关闭连接时服务器收到对方的 FIN 报文时，仅仅表示对方不再发送数据了但是还能接收数据，而自己也未必全部数据都发送给对方了，所以己方可以立即关闭，也可以发送一些数据给对方后，再发送 FIN 报文给对方来表示同意现在关闭连接，因此，己方 ACK 和 FIN 一般都会分开发送，从而导致多了一次</p>
+<h2 id="建立连接后客户端突发故障"><a href="#建立连接后客户端突发故障" class="headerlink" title="建立连接后客户端突发故障"></a>建立连接后客户端突发故障</h2><p>TCP 的连接实际上是一种纯软件层面的概念，在物理层面并没有连接这种概念。在长时间无数据交互的时间段内，交互双方都有可能出现掉电、死机、异常重启等各种意外，当这些意外发生之后，这些 TCP 连接并未来得及正常释放。在软件层面上，连接的另一方并不知道对端的情况，它会一直维护这个连接，长时间的积累会导致非常多的半打开连接，造成端系统资源的消耗和浪费 </p>
+<h2 id="KEEP-ALIVE"><a href="#KEEP-ALIVE" class="headerlink" title="KEEP-ALIVE"></a>KEEP-ALIVE</h2><p>TCP 有一个保持活跃的机制叫做 Keep-Alive</p>
+<p>定义一个时间段，在这个时间段内，如果没有任何连接相关的活动，TCP 保活机制会开始作用，每隔一个时间间隔，发送一个探测报文，该探测报文包含的数据非常少，如果连续几个探测报文都没有得到响应，则认为当前的 TCP 连接已经死亡，系统内核将错误信息通知给上层应用程序</p>
+<p>在 Linux 系统中，保活时间、保活时间间隔和保活探测次数分别对应 sysctl 变量 net.ipv4.tcp_keepalive_time、net.ipv4.tcp_keepalive_intvl、 net.ipv4.tcp_keepalve_probes，默认设置是 7200 秒、75 秒和 9 次探测</p>
+<p>如果开启了 TCP 保活:</p>
+<ul>
+<li><p>对端程序是正常工作的，当 TCP 保活的探测报文发送给对端, 对端会正常响应，这样 TCP 保活时间会被重置，等待下一个 TCP 保活时间的到来</p>
+</li>
+<li><p>对端程序崩溃并重启，当 TCP 保活的探测报文发送给对端后，对端是可以响应的，但由于没有该连接的有效信息，会产生一个 RST 报文，这样很快就会发现 TCP 连接已经被重置</p>
+</li>
+<li><p>对端程序崩溃，或对端由于其他原因导致报文不可达，当 TCP 保活的探测报文发送给对端后，石沉大海，没有响应，连续几次，达到保活探测次数后，TCP 会报告该 TCP 连接已经死亡</p>
+</li>
+</ul>
+<p>TCP 保活机制默认是关闭的，因为早期的网络带宽非常有限，如果提供一个频率很高的保活机制，对有限的带宽是一个比较严重的浪费</p>
+<p>可以通过在应用程序中模拟 TCP Keep-Alive 机制，来完成在应用层的连接探活</p>
+<h2 id="滑动窗口"><a href="#滑动窗口" class="headerlink" title="滑动窗口"></a>滑动窗口</h2><p>窗口是缓存的一部分，用来暂时存放字节流。发送方和接收方各有一个窗口，接收方通过 TCP 报文段中的窗口字段告诉发送方自己的窗口大小，发送方根据这个值和其它信息设置自己的窗口大小</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/06.png" class="">
+
+<p>发送窗口内的字节都允许被发送，接收窗口内的字节都允许被接收。如果发送窗口左部的字节已经发送并且收到了确认，那么就将发送窗口向右滑动一定距离，直到左部第一个字节不是已发送并且已确认的状态；接收窗口的滑动类似，接收窗口左部字节已经发送确认并交付主机，就向右滑动接收窗口</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/07.png" class="">
+
+<p>接收窗口只会对窗口内最后一个按序到达的字节进行确认，例如接收窗口已经收到的字节为 {31, 34, 35}，其中 {31} 按序到达，而 {34, 35} 就不是，因此只对字节 31 进行确认。发送方得到一个字节的确认之后，就知道这个字节之前的所有字节都已经被接收</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/08.png" class="">
+
+<h2 id="流量控制"><a href="#流量控制" class="headerlink" title="流量控制"></a>流量控制</h2><p>流量控制是为了控制发送方发送速率，保证接收方来得及接收</p>
+<p>接收方发送的确认报文中的窗口字段可以用来控制发送方窗口大小，从而影响发送方的发送速率。将窗口字段设置为 0，则发送方不能发送数据</p>
+<h2 id="阻塞控制"><a href="#阻塞控制" class="headerlink" title="阻塞控制"></a>阻塞控制</h2><p>如果网络出现拥塞，分组将会丢失，此时发送方会继续重传，从而导致网络拥塞程度更高。因此当出现拥塞时，应当控制发送方的速率</p>
+<p>阻塞窗口用来控制多条连接公平使用的有限带宽</p>
+<p>TCP 主要通过四个算法来进行拥塞控制：慢开始、拥塞避免、快重传、快恢复</p>
+<p>发送方维护一个叫做拥塞窗口 cwnd 的状态变量，拥塞窗口只是一个状态变量，实际决定发送方能发送多少数据的是发送方窗口</p>
+<p>慢开始：发送的最初执行慢开始，令 cwnd &#x3D; 1，发送方只能发送 1 个报文段；当收到确认后，将 cwnd 加倍，因此之后发送方能够发送的报文段数量为：2、4、8 …</p>
+<p>拥塞避免：cwnd 加倍递增，增长速度非常快，从而使得发送方发送的速度增长速度过快，网络拥塞的可能性也就更高。设置一个慢开始门限 ssthresh，当 cwnd &gt;&#x3D; ssthresh 时，进入拥塞避免，每个轮次只将 cwnd 加 1，如果出现了超时，则令 ssthresh &#x3D; cwnd &#x2F; 2，然后重新执行慢开始</p>
+<p>快重传：要求接收方在收到一个失序的报文段后就立即发出重复确认，发送方只要一连收到三个重复确认就应当立即重传对方尚未收到的报文段，而不必继续等待设置的重传计时器时间到期</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/09.png" class="">
+
+<p>快恢复：快重传因为丢失个别报文段，而不是网络拥塞，因此执行快恢复，令 ssthresh &#x3D; cwnd &#x2F; 2 ，cwnd &#x3D; ssthresh，直接进入拥塞避免</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-tcp/10.png" class="">
+
+<p>慢开始 cwnd 设定为 1，而快恢复 cwnd 设定为 ssthresh</p>
+<h2 id="TCP-重传机制"><a href="#TCP-重传机制" class="headerlink" title="TCP 重传机制"></a>TCP 重传机制</h2><h3 id="超时重传"><a href="#超时重传" class="headerlink" title="超时重传"></a>超时重传</h3><p>在发送数据时，设定一个定时器，当超过指定的时间后，没有收到对方的 ACK 确认应答报文，就会重发该数据，也就是我们常说的超时重传</p>
+<p>解决：数据包丢失、确认应答丢失</p>
+<p>超时时间需要根据网络延迟进行动态调整，延迟越大，超时时间越长</p>
+<p>RTT（Round Trip Time）：往返时延，也就是数据包从发出去到收到对应 ACK 的时间。RTT 是针对连接的，每一个连接都有各自独立的 RTT</p>
+<p>RTO（Retransmission Time Out）：重传超时时间</p>
+<p>RTO 根据网络中的 RTT 来自适应调整，往往大于两倍的 RTT</p>
+<p>超时往往意味着拥塞，一旦发生这种情况，TCP 不仅会重传对应数据段，还会降低当前的数据发送速率，因为 TCP 会认为当前网络发生了拥塞</p>
+<h3 id="快速重传"><a href="#快速重传" class="headerlink" title="快速重传"></a>快速重传</h3><p>不以时间为驱动，而是以数据驱动重传，当收到三个相同的 ACK 报文时，会在定时器过期之前，重传丢失的报文段</p>
+<p>解决：丢失连续数据的中间部分</p>
+<p>问题：重传时是重传之前的一个还是重传全部，但根据不同实现，两种情况都可能发生</p>
+<h3 id="SACK"><a href="#SACK" class="headerlink" title="SACK"></a>SACK</h3><p>只重传丢失的数据</p>
+<h3 id="D-SACK"><a href="#D-SACK" class="headerlink" title="D-SACK"></a>D-SACK</h3><p>使用了 SACK 来告诉发送方有哪些数据被重复接收了</p>
+<h2 id="TCP-粘包和拆包"><a href="#TCP-粘包和拆包" class="headerlink" title="TCP 粘包和拆包"></a>TCP 粘包和拆包</h2><p>UDP 是基于报文发送的，UDP 并不对数据进行拆分合并，且 UDP 首部有指示 UDP 报文长度，所以没有粘包的问题</p>
+<p>TCP 是基于字节流的，虽然应用层和传输层之间的数据交互是大小不等的数据块，但是 TCP 并没有把这些数据块区分边界，仅仅是一连串没有结构的字节流，且 TCP 首部并没有指示数据长度，所以 TCP 有粘包问题</p>
+<p>当 client 向 server 连续发送两个数据：server 可能会分开收到两个数据；也有可能只收到一个包含两个数据的数据包，server 不知道这两个数据包的界限，即粘包现象；server 收到两个数据，但这两个数据要么不完整要么多出一部分，即发生了粘包和拆包</p>
+<h3 id="为什么会粘包"><a href="#为什么会粘包" class="headerlink" title="为什么会粘包"></a>为什么会粘包</h3><ul>
+<li><p>要发送的数据小于 TCP 发送缓冲区的大小，TCP 将多次写入缓冲区的数据一次发送出去，将会发生粘包</p>
+</li>
+<li><p>接收数据端的应用层没有及时读取接收缓冲区中的数据，将发生粘包</p>
+</li>
+</ul>
+<h3 id="为什么会拆包"><a href="#为什么会拆包" class="headerlink" title="为什么会拆包"></a>为什么会拆包</h3><ul>
+<li><p>要发送的数据大于 TCP 发送缓冲区剩余空间大小，将会发生拆包</p>
+</li>
+<li><p>待发送数据大于最大报文长度，TCP 在传输前将进行拆包</p>
+</li>
+</ul>
+<h3 id="粘包、拆包解决方案"><a href="#粘包、拆包解决方案" class="headerlink" title="粘包、拆包解决方案"></a>粘包、拆包解决方案</h3><p>由于 TCP 本身是面向字节流的，无法理解上层的业务数据，所以在底层是无法保证数据包不被拆分和重组的，这个问题只能通过上层的应用协议栈设计来解决</p>
+<ul>
+<li><p>消息定长：发送端将每个数据包封装为固定长度，这样接收端每次接收缓冲区中读取固定长度的数据就自然而然的把每个数据包拆分开来</p>
+</li>
+<li><p>设置消息边界：服务端从网络流中按消息边界分离出消息内容</p>
+</li>
+<li><p>将消息分为消息头和消息体：消息头中包含表示消息总长度的字段</p>
+</li>
+</ul>
+<h2 id="socket-的-accept-与三次握手"><a href="#socket-的-accept-与三次握手" class="headerlink" title="socket 的 accept 与三次握手"></a>socket 的 accept 与三次握手</h2><ul>
+<li><p>客户端的协议栈向服务器端发送了 SYN 包，并告诉服务器端当前发送序列号 client_isn，客户端进入 SYNC_SENT 状态</p>
+</li>
+<li><p>服务器端的协议栈收到这个包之后，和客户端进行 ACK 应答，应答的值为 client_isn+1，表示对 SYN 包 client_isn 的确认，同时服务器也发送一个 SYN 包，告诉客户端当前我的发送序列号为 server_isn，服务器端进入 SYNC_RCVD 状态</p>
+</li>
+<li><p>客户端协议栈收到 ACK 之后，使得应用程序从 connect 调用返回，表示客户端到服务器端的单向连接建立成功，客户端的状态为 ESTABLISHED，同时客户端协议栈也会对服务器端的 SYN 包进行应答，应答数据为 server_isn+1</p>
+</li>
+<li><p>应答包到达服务器端后，服务器端协议栈使得 accept 阻塞调用返回，这个时候服务器端到客户端的单向连接也建立成功，服务器端也进入 ESTABLISHED 状态</p>
+</li>
+</ul>
+<p>客户端 connect 成功返回是在第二次握手，服务端 accept 成功返回是在三次握手成功之后</p>
+<h2 id="TCP-保证可靠性"><a href="#TCP-保证可靠性" class="headerlink" title="TCP 保证可靠性"></a>TCP 保证可靠性</h2><p>TCP 发送的报文是交给 IP 层的，但 IP 层只能提供最大努力服务，所以 TCP 下面的网络层并不可靠，所以 TCP 需要采用适当措施保证传输可靠</p>
+<p>TCP 主要提供了检验和、序列号&#x2F;确认应答、超时重传、最大消息长度、滑动窗口控制等方法实现了可靠性传输</p>
+<ul>
+<li><p>校验和：接收端通过对 TCP 首部、TCP 伪首部和 TCP 数据进行校验计算，可以检测出来数据是否有差错和异常，假如有差错就会直接丢弃 TCP 段</p>
+</li>
+<li><p>序列号&#x2F;确认应答：发送端发送信息给接收端，接收端会回应一个应答包；只要发送端有一个包传输，但没有收到应答包都会重发数据，这样保证了数据完整性</p>
+</li>
+<li><p>超时重传：发送出去的数据包到接收到确认包之间的时间，如果超过了这个时间会被认为是丢包了，需要重传</p>
+</li>
+<li><p>最大消息长度：在建立 TCP 连接的时候，双方约定一个最大的长度（MSS）作为发送的单位，重传的时候也是以这个单位来进行重传</p>
+</li>
+<li><p>滑动窗口：发送方可连续发送多个分组，不必每发完一个包就停下来等待确认，提高信道利用率，通过滑动窗口机制，接收方对按序到达的最后一个包进行确认，表示最后一个包以前的都是正确收到</p>
+</li>
+<li><p>拥塞控制</p>
+</li>
+</ul>
+<h2 id="Nagle-算法"><a href="#Nagle-算法" class="headerlink" title="Nagle 算法"></a>Nagle 算法</h2><p>本质是限制大批量的小数据包同时发送，为此，它提出在任何一个时刻，未被确认的小数据包不能超过一个</p>
+<p>这里的小数据包，指的是长度小于最大报文段长度 MSS 的 TCP 分组</p>
+<p>发送端就可以把接下来连续的几个小数据包存储起来，等待接收到前一个小数据包的 ACK 分组之后，再将数据一次性发送出去</p>
+<p>仅在下列任意一种条件下才能发送数据：</p>
+<ul>
+<li><p>已发送的数据都已经收到确认应答</p>
+</li>
+<li><p>可以发送最大段长度的数据时</p>
+</li>
+</ul>
+<h2 id="延迟确认应答"><a href="#延迟确认应答" class="headerlink" title="延迟确认应答"></a>延迟确认应答</h2><p>接收方收到数据之后可以并不立即返回确认应答，而是延迟一段时间的机制</p>
+<ul>
+<li><p>在没有收到 2 * 最大段长度的数据为止不做确认应答</p>
+</li>
+<li><p>其他情况下，最大延迟 0.5 秒发送确认应答</p>
+</li>
+<li><p>TCP 文件传输中，大多数是每两个数据段返回一次确认应答</p>
+</li>
+</ul>
+<p>Nagle 算法和延时确认组合在一起，增大了处理时延</p>
+<h2 id="最大报文长度-MSS"><a href="#最大报文长度-MSS" class="headerlink" title="最大报文长度 MSS"></a>最大报文长度 MSS</h2><p>MSS 与接收窗口无关；选择较小 MSS 则对网络利用率较低，选择较大 MSS，则可能在 IP 层分解成多个数据报，这样不仅需要在接收端装配报文，而且如果出错还会重传使得增大开销；因此，只要在 IP 层不分片的情况下尽可能大</p>
+<p>TCP 在三次握手建立连接过程中，会在 SYN 报文中使用 MSS（Maximum Segment Size）选项功能，协商交互双方能够接收的最大段长 MSS 值，交互双方会以双方通告的 MSS 值中取最小值作为发送报文的最大段长</p>
+<p>MSS &#x3D; MTU - 20 字节 TCP 报头 - 20 字节 IP 报头，那么在以太网环境下 MSS 值一般就是 1500 - 20 - 20 &#x3D; 1460 字节</p>
+<p>通过在 TCP 连接之初，协商 MSS 值巧妙的解决了避免端系统分片的问题，但是在复杂的实际网络环境下，影响到 IP 报文分片的并不仅仅是发送方和接收方，还有路由器、防火墙等中间系统</p>
+<h2 id="初始-SYN-号是随机值"><a href="#初始-SYN-号是随机值" class="headerlink" title="初始 SYN 号是随机值"></a>初始 SYN 号是随机值</h2><p>源 IP 可以伪造，所以序列号要随机，使得伪造的随机值不在合法范围内，而被接收方丢弃，增加安全性</p>
+<h2 id="系统中过多-TIME-WAIT-状态连接"><a href="#系统中过多-TIME-WAIT-状态连接" class="headerlink" title="系统中过多 TIME_WAIT 状态连接"></a>系统中过多 TIME_WAIT 状态连接</h2><p>高并发可以让服务器在短时间范围内同时占用大量端口，短连接处理完业务，在关闭连接之后，这个业务用过的端口会停留在 TIME_WAIT 状态几分钟，而这几分钟，其他请求来临的时候是无法占用此端口的</p>
+<p>解决方案：</p>
+<ul>
+<li><p>使用长连接，如果是 http，可以使用 keepalive</p>
+</li>
+<li><p>修改内核参数，提高 TIME_WAIT 连接状态的上限</p>
+</li>
+<li><p>启动快速回收机制，但 NAT 网络下可能会出现问题</p>
+</li>
+<li><p>开启重用机制，允许将 TIME-WAIT socket 重新用于新的 TCP 连接</p>
+</li>
+<li><p>由客户端来发起关闭连接请求</p>
+</li>
+</ul>
+<p>现代 Linux 系统针对连接复用进行了一些优化：</p>
+<ul>
+<li><p>新连接 SYN 告知的初始序列号，一定比 TIME_WAIT 老连接的末序列号大，这样通过序列号就可以区别出新老连接</p>
+</li>
+<li><p>新连接的时间戳比老连接的时间戳大，这样通过时间戳也可以区别出新老连接</p>
+</li>
+</ul>
+<h2 id="TIME-WAIT-相关参数"><a href="#TIME-WAIT-相关参数" class="headerlink" title="TIME_WAIT 相关参数"></a>TIME_WAIT 相关参数</h2><ul>
+<li><p><code>tcp_tw_reuse</code> 的内核配置选项：主要用在连接的发起方，TIME_WAIT 状态的连接创建时间超过 1 秒后，新的连接才可以被复用；<code>tcp_tw_reuse</code> 是为了缩短 time_wait 的时间，避免出现大量的 time_wait 链接而占用系统资源，解决的是 <code>accept</code> 后的问题</p>
+</li>
+<li><p><code>SO_REUSEADDR</code> 是用户态的选项，<code>SO_REUSEADDR</code> 选项用来告诉操作系统内核，如果端口已被占用，但是 TCP 连接状态位于 TIME_WAIT ，可以重用端口，这里一般都是连接的服务方；<code>SO_REUSEADDR</code> 是为了解决 time_wait 状态带来的端口占用问题，以及支持同一个 port 对应多个 ip，解决的是 <code>bind</code> 时的问题</p>
+</li>
+</ul>
+<h2 id="TCP-传输速率"><a href="#TCP-传输速率" class="headerlink" title="TCP 传输速率"></a>TCP 传输速率</h2><p>传输速度和接收方的接受窗口 RWND 以及发送方的拥塞窗口 CWND 有关，传输速率取 RWND 和 CWND 中小的那一个</p>
+<p>RWND 通过滑动窗口机制来控制接收窗口，表示着自己此刻还能接收多少字节的报文</p>
+<p>CWND 由拥塞控制算法控制</p>
+<h2 id="FIN-包"><a href="#FIN-包" class="headerlink" title="FIN 包"></a>FIN 包</h2><p>TCP 协议栈为 FIN 包插入一个文件结束符 EOF 到接收缓冲区中，应用程序可以通过 <code>read</code> 调用来感知这个 FIN 包</p>
+<p>EOF 会被放在已排队等候的其他已接收的数据之后，这就意味着接收端应用程序需要处理这种异常情况，因为 EOF 表示在该连接上再无额外数据到达</p>
+<h2 id="惊群效应"><a href="#惊群效应" class="headerlink" title="惊群效应"></a>惊群效应</h2><p>惊群效应就是多进程（多线程）在同时阻塞等待同一个事件的时候（休眠状态），如果等待的这个事件发生，那么就会唤醒等待的所有进程（或者线程），但是最终却只可能有一个进程（线程）获得这个时间的控制权，对该事件进行处理，而其他进程（线程）获取控制权失败，只能重新进入休眠状态，这种现象和性能浪费就叫做惊群</p>
+<h3 id="消耗"><a href="#消耗" class="headerlink" title="消耗"></a>消耗</h3><ul>
+<li><p>系统对用户进程&#x2F;线程频繁地做无效的调度，上下文切换系统性能大打折扣</p>
+</li>
+<li><p>为了确保只有一个线程得到资源，用户必须对资源操作进行加锁保护，进一步加大了系统开销</p>
+</li>
+</ul>
+<h3 id="accept-惊群"><a href="#accept-惊群" class="headerlink" title="accept 惊群"></a>accept 惊群</h3><p>主进程创建了 <code>socket()</code>、<code>bind()</code>、<code>listen()</code> 之后，<code>fork()</code> 出来多个进程，每个子进程都开始循环处理 <code>accept()</code> 这个 listen_fd</p>
+<p>linux 内核通过睡眠队列来组织所有等待某个事件的 task，而 wakeup 机制则可以异步唤醒整个睡眠队列上的 task，wakeup 逻辑在唤醒睡眠队列时，会遍历该队列链表上的每一个节点，调用每一个节点的 <code>callback</code>，从而唤醒睡眠队列上的每个 task</p>
+<p>每个进程都阻塞在 <code>accept()</code> 上，当一个新的连接到来时候，所有阻塞在 <code>accept</code> 上的的进程都会被唤醒，但是其中只有一个进程会接受成功，其余皆失败，重新休眠</p>
+<p>现在的内核解决了 accept 惊群，通过添加了一个 <code>WQ_FLAG_EXCLUSIVE</code> 标记告诉内核进行排他性的唤醒，即唤醒一个进程后即退出唤醒的过程</p>
+<p>当多个进程&#x2F;线程都阻塞在对同一个 socket 的接受调用上时，当有一个新的连接到来，内核只会唤醒一个进程，其他进程保持休眠，压根就不会被唤醒</p>
+<h3 id="epoll-惊群"><a href="#epoll-惊群" class="headerlink" title="epoll 惊群"></a>epoll 惊群</h3><p>主进程创建 <code>socket()</code>、<code>bind</code>、<code>listen()</code> 后，将该 socket 加入到 <code>epoll()</code> 中，然后 <code>fork()</code> 出多个子进程，每个进程共享一颗红黑树，都阻塞在 <code>epoll_wait()</code> 上</p>
+<p>当 <code>accept</code> 事件进来时可以选择一个进程来 <code>accept</code>，这时任何一个进程都可以，但后续的读写事件也应该由该进程来处理，但当读写事件进来时 epoll 并不知道该由哪个进程来处理，可能会错误通知另一个进程来处理</p>
+<p>一般在每个进程（线程）里面会再次创建一个 epoll 事件循环机制，每个进程的读写事件只注册在自己进程的 epoll 中</p>
+<h3 id="NGINX-解决方案"><a href="#NGINX-解决方案" class="headerlink" title="NGINX 解决方案"></a>NGINX 解决方案</h3><p>在用户空间进程间锁实现的原理：弄一个让所有进程共享的东西，比如 mmap 的内存，比如文件，然后通过这个东西来控制进程的互斥</p>
+<p>每个进程在监听 FD 事件之前，先要通过 ngx_trylock_accept_mutex 去获取一个全局的锁。如果拿锁成功，那么则开始通过 ngx_process_events 尝试去处理事件。如果拿锁失败，则放弃本次操作。所以从某种意义上来讲，对于某一个 FD，Nginx 同时只有一个 Worker 来处理 FD 上的事件，从而避免惊群</p>
+<h2 id="TCP-故障排查"><a href="#TCP-故障排查" class="headerlink" title="TCP 故障排查"></a>TCP 故障排查</h2><p>通过 TCP 各个状态，可以排除和定位网络或系统故障</p>
+<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><ul>
+<li><p><code>netstat -nat</code>：查看 TCP 各个状态的数量</p>
+</li>
+<li><p><code>lsof -i: port</code>：检测到打开套接字的状况</p>
+</li>
+<li><p><code>tcpdump -iany tcp port 9090</code>：对 tcp 端口为 9000 的进行抓包</p>
+</li>
+</ul>
+<h3 id="常见状态"><a href="#常见状态" class="headerlink" title="常见状态"></a>常见状态</h3><h4 id="LISTENING"><a href="#LISTENING" class="headerlink" title="LISTENING"></a>LISTENING</h4><p>当提供的服务没有被连接时就处于 LISTENING 状态</p>
+<h4 id="SYN-SENT"><a href="#SYN-SENT" class="headerlink" title="SYN_SENT"></a>SYN_SENT</h4><p>发送连接请求后等待匹配的连接请求，客户端 tcp 发送一个 SYN 以请求建立一个连接，之后状态置为 SYN_SENT</p>
+<p>连接成功了就变为 ESTABLISHED，正常情况下 SYN_SENT 状态非常短暂</p>
+<p>如果发现有很多 SYN_SENT，一般是网络不好或服务器不存在</p>
+<h4 id="SYN-RECV"><a href="#SYN-RECV" class="headerlink" title="SYN_RECV"></a>SYN_RECV</h4><p>当服务器收到客户端发送的同步信号时，将标志位 ACK 和 SYN 置 1 发送给客户端，此时服务器端处于 SYN_RCVD 状态，如果连接成功了就变为 ESTABLISHED，正常情况下 SYN_RCVD 状态非常短暂</p>
+<p>如果发现有很多 SYN_RECV，可能出现 SYN 攻击，服务器端一般会重试（再次发送 SYN + ACK 给客户端）并等待一段时间后丢弃这个未完成的连接</p>
+<h4 id="CLOSE-WAIT"><a href="#CLOSE-WAIT" class="headerlink" title="CLOSE_WAIT"></a>CLOSE_WAIT</h4><p>客户端断开的时候发送了 FIN 包，则服务端将会处于 CLOSE_WAIT 状态</p>
+<p>客户端断开的时候未发送 FIN 包，则服务端处还是显示 ESTABLISHED 状态</p>
+<h2 id="数据切分与重组"><a href="#数据切分与重组" class="headerlink" title="数据切分与重组"></a>数据切分与重组</h2><p>数据链路层的数据为数据帧，网络层的数据为数据片，传输层的数据为数据段</p>
+<p>传输分段的原因是 MSS，网络层分片的原因是 MTU，由于一直有 MSS&lt;&#x3D;MTU，所有分段后的每一段 TCP 报文段再加上 IP 首部后的长度不可能超过 MTU，因此也就不需要在网络层进行 IP 分片了</p>
+<h3 id="MTU"><a href="#MTU" class="headerlink" title="MTU"></a>MTU</h3><p>MTU 是数据链路层对数据帧的一个限制，以太网是 1500 字节</p>
+<p>一个 IP 数据报在网络中传输，如果它的长度大于 MTU 值就要进行分片传输，使得每片数据报的长度小于 MTU</p>
+<p>分片传输的 IP 数据报不一定按序到达，但 IP 首部中的信息能让这些数据报片按序组装</p>
+<h3 id="MSS"><a href="#MSS" class="headerlink" title="MSS"></a>MSS</h3><p>MSS 的值一般为 MTU 值减去两个首部大小（网络层首部和传输层首部），以太网是 1460 字节</p>
+<h2 id="IP-层分片"><a href="#IP-层分片" class="headerlink" title="IP 层分片"></a>IP 层分片</h2><p>IP 报文的大小超过最大传输单位 MTU 时就会产生 IP 分片情况</p>
+<p>使用 UDP 很容易导致 IP 分片，TCP 因为有 MSS 所以很难发送一个需要进行分片的报文</p>
+<p>分片和重新组装的过程对传输层是透明的，分片之后的数据报根据需要也可以再次进行分片，由目的端的 IP 层来完成组装</p>
+<p>在传输过程中，如果某一段链路 MTU 小于包长，若在 IP 头设置了 Dont Fragment 则会丢弃这个包并通过 ICMP 告知源主机因为不能分片丢弃了信息，不设置则会在该路由继续分片传输</p>
+<h2 id="MSL"><a href="#MSL" class="headerlink" title="MSL"></a>MSL</h2><p>MSL 是任何 IP 数据报能够在因特网中存活的最长时间</p>
+<p>每个数据报里都包含有一个被称为 TTL（time to live）的 8 位字段，它的最大值为 255</p>
+<p>这个生存时间由源主机设置初始值，它表示的是一个 IP 数据报可以经过的最大跳跃数，每经过一个路由器，就相当于经过了一跳，它的值就减 1，当此值减为 0 时，则所在的路由器会将其丢弃，同时发送 ICMP 报文通知源主机</p>
+
       
     </div>
 
@@ -244,7 +514,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-ss/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-route/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -262,7 +532,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-ss/" class="post-title-link" itemprop="url">ss</a>
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-route/" class="post-title-link" itemprop="url">路由协议</a>
         </h2>
 
         <div class="post-meta-container">
@@ -273,14 +543,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-25 21:19:24" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:24+08:00">2023-04-25</time>
+      <time title="创建时间：2023-04-26 19:42:58" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:58+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -288,7 +558,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
         </span>
     </span>
 
@@ -302,8 +572,15 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p><code>ss</code> 命令用来替代 <code>netstat</code> 的</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">-a 显示服务器上所有的 sockets 连接，直接列出所有网络连接</span><br><span class="line">-l 显示正在监听的网络端口</span><br><span class="line">-n 显示数字IP和端口，不通过域名服务器</span><br><span class="line">-p 显示使用 socket 的对应的程序</span><br><span class="line">-t 只显示 TCP sockets</span><br><span class="line">-u 只显 示UDP sockets</span><br><span class="line">-4 -6 只显示 v4 或 v6 版本的 sockets</span><br><span class="line">-s 查看当前服务器的网络连接统计，打印出统计信息。</span><br><span class="line">-0 显示 PACKET sockets</span><br><span class="line">-w 只显示 RAW sockets</span><br><span class="line">-x 只显示 UNIX 域 sockets</span><br><span class="line">-r 尝试进行域名解析，地址/端口</span><br></pre></td></tr></table></figure>
+          <p>首先通过 IP 协议来判断两台主机是否在同一个子网中，如果在同一个子网，就通过 ARP 协议查询对应的 MAC 地址，然后以广播的形式向该子网内的主机发送数据包；如果不在同一个子网，以太网会将该数据包转发给本子网的网关进行路由</p>
+<p>网关是互联网上子网与子网之间的桥梁，所以网关会进行多次转发，最终将该数据包转发到目标IP所在的子网中，然后再通过 ARP 获取目标机 MAC，最终也是通过广播形式将数据包发送给接收方</p>
+<p>完成这个路由协议的物理设备就是路由器，路由器会根据信道情况，选择并设定路由，以最佳路径来转发数据包</p>
+<h2 id="路由表"><a href="#路由表" class="headerlink" title="路由表"></a>路由表</h2><p>路由器工作在网络层</p>
+<p>IP 地址是逻辑地址，在不同的地理位置加入互联网就会根据 DHCP 动态分配到完全不同的 IP 地址，但由于属于网络层，相对较高的抽象层次设计的初衷就是为了简化通信，方便使用，尤其对于用户进程而言</p>
+<p>MAC 地址是物理地址，工作在数据链路层，任何时候任何条件都不会改变，虽说使用起来不太方便，且描述的是较低层的数据链路通信细节，但在任何时候都可用于数据通信寻址</p>
+<p>路由器负责不同网段之间的通信，每个与路由器端口相连的网络被称为一个子网或网段，也就是一个广播域</p>
+<p>在路由器中有路由表，通过在网络节点上运行路由协议，记录并更新去往不同网段的路径信息</p>
+
       
     </div>
 
@@ -329,7 +606,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-split/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -347,7 +624,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-split/" class="post-title-link" itemprop="url">split</a>
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/" class="post-title-link" itemprop="url">icmp</a>
         </h2>
 
         <div class="post-meta-container">
@@ -358,14 +635,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-25 21:19:19" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:19+08:00">2023-04-25</time>
+      <time title="创建时间：2023-04-26 19:42:49" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:49+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -373,7 +650,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
         </span>
     </span>
 
@@ -387,8 +664,30 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>分割文件</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">split [-a suffix_length] [-b byte_count[k|m]] [-l line_count] [-d] [file [name]]</span><br><span class="line"></span><br><span class="line">line_count: 指定每多少行切成一个小文件</span><br><span class="line">byte_count: 指定每多少字节切成一个小文件，单位 M 和 kb</span><br><span class="line">-d: 使用数字作为后缀</span><br><span class="line">-a: 指定后缀长度</span><br></pre></td></tr></table></figure>
+          <p>ping 是基于 ICMP(Internet Control Message Protocol，互联网控制报文协议) 协议工作的</p>
+<h2 id="ICMP"><a href="#ICMP" class="headerlink" title="ICMP"></a>ICMP</h2><p>网络包在复杂的网络传输环境里，常常会遇到各种问题，传出消息，报告遇到了什么问题，这样才可以调整传输策略，以此来控制整个局面</p>
+<p>ICMP 主要的功能包括：确认 IP 包是否成功送达目标地址、报告发送过程中 IP 包被废弃的原因和改善网络设置等</p>
+<p>在 IP 通信中如果某个 IP 包因为某种原因未能达到目标地址，那么这个具体的原因将由 ICMP 负责通知</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/01.png" class="">
+
+<p>ICMP 报文是封装在 IP 包里面，它工作在网络层，是 IP 协议的助手</p>
+<h2 id="PING-过程"><a href="#PING-过程" class="headerlink" title="PING 过程"></a>PING 过程</h2><ul>
+<li><p>主机 A ping 主机 B，A 会先构建一个 ICMP 数据包</p>
+</li>
+<li><p>ICMP 协议将这个数据包连同主机 B 地址一起交给 IP 层，IP 层将以该地址作为目的地址，本机 IP 地址作为源地址，构建一个 IP 数据包</p>
+</li>
+<li><p>加入 MAC 头；如果在本地 ARP 映射表中查找出目标 IP 地址所对应的 MAC 地址，则可以直接使用；如果没有，则需要发送 ARP 协议查询 MAC 地址，获得 MAC 地址后，由数据链路层构建一个数据帧，目的地址是 IP 层传过来的 MAC 地址，源地址则是本机的 MAC 地址</p>
+</li>
+<li><p>主机 B 收到这个数据帧后，先检查它的目的 MAC 地址，并和本机的 MAC 地址对比，如符合，则接收，否则就丢弃</p>
+</li>
+<li><p>将 IP 数据包从帧中提取出来，交给本机的 IP 层；IP 层检查后，将有用的信息提取后交给 ICMP 协议</p>
+</li>
+<li><p>主机 B 会构建一个 ICMP 回送响应消息数据包，然后再发送出去给主机 A</p>
+</li>
+<li><p>在规定的时候间内，源主机如果没有接到 ICMP 的应答包，则说明目标主机不可达；如果接收到了 ICMP 回送响应消息，则说明目标主机可达</p>
+</li>
+</ul>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/02.png" class="">
       
     </div>
 
@@ -414,7 +713,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-sed/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-nat/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -432,7 +731,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-sed/" class="post-title-link" itemprop="url">sed</a>
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-nat/" class="post-title-link" itemprop="url">nat</a>
         </h2>
 
         <div class="post-meta-container">
@@ -443,14 +742,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-25 21:19:13" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:13+08:00">2023-04-25</time>
+      <time title="创建时间：2023-04-26 19:42:44" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:44+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -458,7 +757,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
         </span>
     </span>
 
@@ -472,22 +771,205 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p><code>sed</code> 的工作流程：</p>
+          <p>NAT(Network Address Translation)，网络地址转换，允许一个整体机构以一个公用 IP 地址出现在 Internet 上，它是一种把内部私有网络地址（IP 地址）翻译成合法网络 IP 地址的技术</p>
+<p>NAT 在一定程度上，能够有效的解决公网地址不足的问题</p>
+<p>NAT 有三种类型：</p>
+<ul>
+<li><p>静态 NAT：一个公网 IP 对应一个私有 IP，是一对一的转换，没有进行端口的转换</p>
+</li>
+<li><p>动态 NAT：在路由器上配置一个外网 IP 地址池，当内部有计算机需要和外部通信时，就从地址池里动态的取出一个外网 IP，并将他们的对应关系绑定到 NAT 表中，通信结束后，这个外网 IP 才被释放，可供其他内部 IP 地址转换使用</p>
+</li>
+<li><p>网络地址端口转换：不但要转换 IP 地址，还要进行传输层的端口转换，把内部地址映射到外部网络的一个 IP 地址的不同端口</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-mail/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-mail/" class="post-title-link" itemprop="url">mail</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 19:42:37" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:37+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <ul>
+<li>SMTP 只能发送 ASCII 码，而互联网邮件扩充 MIME 可以发送二进制文件。MIME 并没有改动或者取代 SMTP，而是增加邮件主体的结构，定义了非 ASCII 码的编码规则</li>
+</ul>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-mail/01.png" class="">
+
+<ul>
+<li><p>POP3 只要用户从服务器上读取了邮件，就把该邮件删除</p>
+</li>
+<li><p>IMAP 中客户端和服务器上的邮件保持同步，如果不手动删除邮件，那么服务器上的邮件也不会被删除</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-mac/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-mac/" class="post-title-link" itemprop="url">mac</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 19:42:29" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:29+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>交换机工作在链路层</p>
+<p>交换机根据 MAC 表转发数据帧，它会维护一张记录着局域网主机 MAC 地址与交换机端口对应的表，然后根据这张表将数据帧传输到指定的主机上</p>
 <ol>
-<li><p>读取输入流的一行到模式空间，输入流可以是标准输入也可以是文件</p>
+<li><p>交换机在接收到数据帧以后，首先会将数据帧中的源 MAC 地址和对应的到达端口记录到 MAC 表中</p>
 </li>
-<li><p>通过行号计数器记录当前行号</p>
-</li>
-<li><p>对模式空间中的内容进行匹配和处理</p>
-</li>
-<li><p>自动输出模式空间内容</p>
-</li>
-<li><p>清空模式空间内容</p>
-</li>
-<li><p>读取输入流的下一行到模式空间</p>
+<li><p>交换机检查自己的 MAC 表是否有数据帧中目的 MAC 地址的匹配条目，如果有则根据 MAC 表中记录的对应端口将数据帧单播出去，否则将该数据帧从非达到端口的其它全部端口广播出去</p>
 </li>
 </ol>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line">sed [option]... [-e <span class="string">&#x27;&lt;script&gt;&#x27;</span>]... [-f <span class="string">&#x27;&lt;script 文件&gt;&#x27;</span>] [文本文件]</span><br><span class="line"><span class="comment"># 选项</span></span><br><span class="line"><span class="comment"># -i[&#x27;suffix&#x27;] sed 通过创建一个临时文件并将输出写入到临时文件然后重命名为源文件来实现的对源文件的覆盖的，指定 suffix 后会将源文件备份</span></span><br><span class="line"><span class="comment"># -n 关闭默认输出，即不在屏幕上自动打印</span></span><br><span class="line"><span class="comment"># -r 使用扩展正则</span></span><br><span class="line"><span class="comment"># -e 指定脚本，可指定多个脚本</span></span><br><span class="line"><span class="comment"># -f 指定脚本文件</span></span><br><span class="line"></span><br><span class="line">sed <span class="string">&#x27;[address]op[/pattern][/replacement][/flags]&#x27;</span> fileName</span><br><span class="line"></span><br><span class="line"><span class="comment"># address</span></span><br><span class="line"><span class="comment"># 不给地址时表示对全文进行处理</span></span><br><span class="line"><span class="comment"># n 在第 n 行执行脚本，$ 表示最后一行</span></span><br><span class="line"><span class="comment"># n,m 在 n~m 行执行脚本</span></span><br><span class="line"><span class="comment"># n,+m 在 n~n+m 行执行脚本</span></span><br><span class="line"><span class="comment"># n~m 取行号满足 n+(x*m) 的行</span></span><br><span class="line"><span class="comment"># /RE/ 匹配正则 /RE/ 的行</span></span><br><span class="line"><span class="comment"># n,/RE/  n~匹配 /RE/ 的行执行脚本</span></span><br><span class="line"><span class="comment"># /RE/,m  匹配 /RE/ 的行~m 执行脚本</span></span><br><span class="line"><span class="comment"># /RE1/,/RE2/  匹配 /RE1/ 的行 ~ 匹配 /RE2/ 执行脚本</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># op</span></span><br><span class="line"><span class="comment"># p：打印行</span></span><br><span class="line"><span class="comment"># d：行删除</span></span><br><span class="line"><span class="comment"># a：在当前行下面追加新的行，使用 \n 追加多行</span></span><br><span class="line"><span class="comment"># i：在当前行上面插入新的行</span></span><br><span class="line"><span class="comment"># c：行替换</span></span><br><span class="line"><span class="comment"># s：正则字符替换，对应 flags 有 g 全部替换，p 输出替换后的内容，i 不区分大小写</span></span><br><span class="line"><span class="comment"># w：把行写入文件</span></span><br><span class="line"><span class="comment"># q：退出</span></span><br><span class="line"><span class="comment"># =: 输出行号</span></span><br><span class="line"><span class="comment"># y: 字符替换</span></span><br><span class="line"><span class="comment"># n: 读取下一行</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># flags</span></span><br><span class="line"><span class="comment"># g：行内全面替换</span></span><br><span class="line"><span class="comment"># num：只替换行内第 num 个匹配项</span></span><br><span class="line"><span class="comment"># numg：从第 num 处匹配全部</span></span><br><span class="line"><span class="comment"># \1：子串匹配标记</span></span><br><span class="line"><span class="comment"># &amp;：已匹配字符串标记</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 字符替换脚本</span></span><br><span class="line">sed <span class="string">&#x27;s/test/trial/2&#x27;</span> data4.txt</span><br><span class="line">sed <span class="string">&#x27;s/test/trial/w test.txt&#x27;</span> data5.txt</span><br><span class="line">sed <span class="string">&#x27;s/\/bin\/bash/\/bin\/csh/&#x27;</span> /etc/passwd</span><br><span class="line"></span><br><span class="line"><span class="comment"># 替换行脚本</span></span><br><span class="line">sed <span class="string">&#x27;[address]c\用于替换的新文本&#x27;</span> fileName</span><br><span class="line">sed <span class="string">&#x27;3c\This is a changed line of text.&#x27;</span> data6.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除脚本</span></span><br><span class="line">sed <span class="string">&#x27;[address]d&#x27;</span> fileName</span><br><span class="line"><span class="comment"># 删除文本中的特定行</span></span><br><span class="line">sed <span class="string">&#x27;3d&#x27;</span> data6.txt</span><br><span class="line">sed <span class="string">&#x27;2,3d&#x27;</span> data6.txt</span><br><span class="line"><span class="comment"># 删除某个区间内的行</span></span><br><span class="line"><span class="comment"># 第一个模式会打开行删除功能，第二个模式会关闭行删除功能</span></span><br><span class="line">sed <span class="string">&#x27;/1/,/3/d&#x27;</span> data6.txt</span><br><span class="line">sed <span class="string">&#x27;3,$d&#x27;</span> data6.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># 插入脚本</span></span><br><span class="line">sed <span class="string">&#x27;[address]a（或 i）\新文本内容&#x27;</span> fileName</span><br><span class="line">sed <span class="string">&#x27;3a\This is an appended line.&#x27;</span> data6.txt</span><br><span class="line"><span class="comment"># 将一个多行数据添加到数据流中，只需对要插入或附加的文本中的每一行末尾（除最后一行）添加反斜线即可</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 转换脚本</span></span><br><span class="line">sed <span class="string">&#x27;[address]y/inchars/outchars/&#x27;</span> fileName</span><br><span class="line"><span class="comment"># 对 inchars 和 outchars 值进行一对一的映射</span></span><br><span class="line"><span class="comment"># inchars 中的第一个字符会被转换为 outchars 中的第一个字符</span></span><br><span class="line"><span class="comment"># 第二个字符会被转换成 outchars 中的第二个字符...</span></span><br><span class="line"><span class="comment"># 转换命令是一个全局命令</span></span><br><span class="line">sed <span class="string">&#x27;y/123/789/&#x27;</span> data8.txt</span><br></pre></td></tr></table></figure>
+<p>交换机具有动态自学习源 MAC 地址与物理端口映射的功能，并且交换机的一个端口可以对应多个 MAC 地址，但是一个 MAC 地址只能对应一个端口</p>
 
       
     </div>
@@ -514,7 +996,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-scp/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-ip/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -532,7 +1014,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-scp/" class="post-title-link" itemprop="url">scp</a>
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-ip/" class="post-title-link" itemprop="url">ip</a>
         </h2>
 
         <div class="post-meta-container">
@@ -543,14 +1025,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-25 21:19:07" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:07+08:00">2023-04-25</time>
+      <time title="创建时间：2023-04-26 19:42:22" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:22+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -558,7 +1040,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
         </span>
     </span>
 
@@ -572,8 +1054,45 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>用于跨设备间复制文件和目录</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">scp [-BCpqrv] [-c cipher] [-F ssh_config] [-i identity_file] [-l <span class="built_in">limit</span>] [-P port] [-S program] </span><br><span class="line">      [[user@]host1:]src_file1 [...] [[user@]host2:]dst_file2</span><br><span class="line"></span><br><span class="line">-B  使用批处理模式</span><br><span class="line">-C  允许压缩</span><br><span class="line">-p 保留原文件的修改时间，访问时间和访问权限</span><br><span class="line">-q  不显示传输进度条</span><br><span class="line">-r  递归复制整个目录</span><br><span class="line">-v 详细方式显示输出</span><br><span class="line">-c 将数据传输进行加密</span><br><span class="line">-F 指定一个替代的 ssh 配置文件</span><br><span class="line">-i 从指定文件中读取传输时使用的密钥文件</span><br><span class="line">-l 限定用户所能使用的带宽，以 Kbit/s 为单位。</span><br><span class="line">-P 指定数据传输用到的端口号</span><br><span class="line">-S 指定加密传输时所使用的程序</span><br></pre></td></tr></table></figure>
+          <p>MAC 地址只与厂商有关，与所处的网络无关，所以无法通过 MAC 地址来判断两台主机是否属于同一个子网，因此网络层引入了 IP 协议，制定了一套新地址，使得我们能够区分两台主机是否同属一个网络</p>
+<p>IP地址目前有 IPv4 和 IPv6</p>
+<p>IPv4 是一个 32 位的地址，并且将这个 32 位的地址分为两部分，前面部分代表网络地址，后面部分表示该主机在局域网中的地址</p>
+<h2 id="IPv4-分类"><a href="#IPv4-分类" class="headerlink" title="IPv4 分类"></a>IPv4 分类</h2><img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-ip/01.png" class="">
+
+<p>A、B 和 C 类用于单播通信中设备 IP 地址分配，D 类属于组播地址，用于组播通信；E 类是保留地址</p>
+<p>A 类地址第 1 字节为网络地址，其它 3 个字节为主机地址，第 1 个字节的第一位固定为 0，而 0 和 127 的 A 类网络不可用的，所以网络号范围：1.0.0.0—126.0.0.0，子网掩码固定为 255.0.0.0</p>
+<p>B 类地址第 1 字节和第 2 字节为网络地址，其它 2 个字节为主机地址，第 1 个字节的前两位固定为 10，网络号范围：128.0.0.0—191.255.0.0，子网掩码为固定的255.255.0.0</p>
+<p>C 类地址第 1 字节、第 2 字节和第 3 个字节为网络地址，第 4 个字节为主机地址，第1个字节的前三位固定为110，地址网络号范围：192.0.0.0—223.255.255.0，子网掩码为固定的 255.255.255.0</p>
+<p>D 类地址不分网络地址和主机地址，第 1 个字节的前四位固定为 1110，地址范围：240.0.0.0—255.255.255.254</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-ip/02.png" class="">
+
+<h3 id="特殊-IP"><a href="#特殊-IP" class="headerlink" title="特殊 IP"></a>特殊 IP</h3><ul>
+<li><p>IP 地址中全为 0 表示本网络，为保留地址</p>
+</li>
+<li><p>网络号为 127（0111 1111）为本地软件回环测试地址，回环地址的 IP 数据报不会出现在网络中</p>
+</li>
+<li><p>128.0.0.0 不可指派</p>
+</li>
+<li><p>192.0.0.0 不可指派</p>
+</li>
+<li><p>主机号全为 0 指定本主机所连接的网络</p>
+</li>
+<li><p>主机号全为 1 指定本主机所连接的网络里的所有主机，用于广播</p>
+</li>
+</ul>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-ip/03.png" class="">
+
+<h3 id="子网划分"><a href="#子网划分" class="headerlink" title="子网划分"></a>子网划分</h3><p>子网划分实际上是将主机地址分为两个部分：子网网络地址和子网主机地址</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-ip/04.png" class="">
+
+<h3 id="子网掩码"><a href="#子网掩码" class="headerlink" title="子网掩码"></a>子网掩码</h3><p>从 IP 数据报无法看出主机所连接的网络是否进行了子网划分</p>
+<p>如果两个 IP 地址在同一个子网内，则网络地址和子网网络地址一定相同</p>
+<p>IP 协议引入了子网掩码，IP 地址和子网掩码通过按位与运算后就可以得到网络地址和子网地址</p>
+<h3 id="无分类编址"><a href="#无分类编址" class="headerlink" title="无分类编址"></a>无分类编址</h3><p>32 比特的 IP 地址被划分为两部分，前面是网络号，后面是主机号，表示形式 a.b.c.d&#x2F;x，其中 &#x2F;x 表示前 x 位属于网络号， x 的范围是 0 ~ 32</p>
+<p>无分类编址不使用子网，斜线后面数据就是地址掩码中 1 的个数</p>
+<h3 id="IP-包"><a href="#IP-包" class="headerlink" title="IP 包"></a>IP 包</h3><img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-ip/05.png" class="">
+
+<p>IP 数据包由首部和数据两部分组成，首部长度为 20 个字节，主要包含了目标 IP 地址和源 IP 地址，目标 IP 地址是网关路由的线索和依据；数据部分的最大长度为 65515 字节，理论上一个 IP 数据包的总长度可以达到 65535 个字节，而以太网数据包的最大长度是 1500 个字符，如果超过这个大小，就需要对 IP 数据包进行分割，分成多帧发送</p>
 
       
     </div>
@@ -600,7 +1119,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-ps/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -618,7 +1137,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-ps/" class="post-title-link" itemprop="url">ps</a>
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/" class="post-title-link" itemprop="url">http</a>
         </h2>
 
         <div class="post-meta-container">
@@ -629,14 +1148,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-25 21:19:01" itemprop="dateCreated datePublished" datetime="2023-04-25T21:19:01+08:00">2023-04-25</time>
+      <time title="创建时间：2023-04-26 19:42:12" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:12+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -644,7 +1163,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
         </span>
     </span>
 
@@ -658,8 +1177,392 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>收集运行在系统上的某个特定时间点的进程信息</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ps [-AaCcEefhjlMmrSTvwXx] [-O fmt | -o fmt] [-G gid[,gid...]]</span><br><span class="line">   [-g grp[,grp...]] [-u uid[,uid...]] [-p pid[,pid...]] [-t tty[,tty...]]</span><br><span class="line">   [-U user[,user...]]</span><br><span class="line"></span><br><span class="line">-e 显示所有运行在系统上的进程</span><br><span class="line">-f 扩展输出</span><br></pre></td></tr></table></figure>
+          <h2 id="URI"><a href="#URI" class="headerlink" title="URI"></a>URI</h2><p>URI (Unifrom Resource Identifier) 统一资源标识符，包含 URL (Uniform Resource Locator) 统一资源定位符和 URN (Uniform Resource Name) 统一资源名称</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/01.png" class="">
+
+<h2 id="URL-构成"><a href="#URL-构成" class="headerlink" title="URL 构成"></a>URL 构成</h2><img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/02.png" class="">
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">http://www.aspxfans.com:8080/news/index.asp?boardID=5&amp;ID=24618&amp;page=1#name</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">该 URL 的域名部分为 www.aspxfans.com</span></span><br><span class="line"><span class="comment">一个 URL 中，也可以使用 IP 地址作为域名使用</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">跟在域名后面的是端口，域名和端口之间使用 : 作为分隔符</span></span><br><span class="line"><span class="comment">端口不是一个 URL 必须的部分，如果省略端口部分，将采用默认端口</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">从域名后的 / 开始到 ? 为止，为路径，如果没有 ? 则是到 #，如果没有 # 则是到文件末</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="请求和响应报文"><a href="#请求和响应报文" class="headerlink" title="请求和响应报文"></a>请求和响应报文</h2><h3 id="请求报文"><a href="#请求报文" class="headerlink" title="请求报文"></a>请求报文</h3><p>请求报文主要由四大部分组成：请求行、请求头、空行、请求数据</p>
+<p>请求头与请求数据间的空行，用来区分请求头和请求数据</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/03.png" class="">
+
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/04.png" class="">
+
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/05.png" class="">
+
+<h3 id="响应报文"><a href="#响应报文" class="headerlink" title="响应报文"></a>响应报文</h3><p>响应报文主要由四个部分组成：状态行、消息报头、空行和响应正文</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/06.png" class="">
+
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/07.png" class="">
+
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/08.png" class="">
+
+<h3 id="常见字段"><a href="#常见字段" class="headerlink" title="常见字段"></a>常见字段</h3><ul>
+<li><p>Host：指定服务器的域名</p>
+</li>
+<li><p>Content-Length：本次请求体长度</p>
+</li>
+<li><p>Connection：客户端要求服务器使用 TCP 持久连接，以便其他请求复用；HTTP&#x2F;1.1 默认持久连接</p>
+</li>
+<li><p>Content-Type：服务器告诉客户端本次数据格式</p>
+</li>
+<li><p>Accept：客户端声明能接受的数据格式</p>
+</li>
+<li><p>Content-Encoding：数据的压缩方法</p>
+</li>
+<li><p>Accept-Encoding：客户端能接受的压缩方法</p>
+</li>
+</ul>
+<h2 id="HTTP-请求响应过程及特征"><a href="#HTTP-请求响应过程及特征" class="headerlink" title="HTTP 请求响应过程及特征"></a>HTTP 请求响应过程及特征</h2><h3 id="过程"><a href="#过程" class="headerlink" title="过程"></a>过程</h3><p>输入网址并点击回车时，浏览器内部会进行如下操作</p>
+<ol>
+<li><p>输入 url，浏览器先解析 url 地址是否合法，同时获取 url 中的域名和文件名，根据这些信息生成 HTTP 请求消息</p>
+</li>
+<li><p>游览器检查是否有缓存（游览器缓存-系统缓存-路由器缓存），如果有直接显示</p>
+</li>
+<li><p>在发送 http 请求前，需要域名解析（DNS 解析），解析获取对应过的 ip 地址</p>
+</li>
+<li><p>浏览器向服务器发起 TCP 连接请求</p>
+</li>
+<li><p>连接成功后，浏览器发送 HTTP 请求</p>
+</li>
+<li><p>服务器收到处理的请求，先发送应答给浏览器</p>
+</li>
+<li><p>游览器收到 HTTP 响应</p>
+</li>
+<li><p>游览器解析响应，如果响应可以缓存，则存入缓存</p>
+</li>
+<li><p>浏览器解析 HTML 代码，并请求 HTML 代码中的资源</p>
+</li>
+<li><p>浏览器接受完响应报文后，TCP 连接会关闭</p>
+</li>
+<li><p>浏览器渲完成后呈现给用户</p>
+</li>
+</ol>
+<h3 id="特征"><a href="#特征" class="headerlink" title="特征"></a>特征</h3><ul>
+<li><p>客户（浏览器）-服务器模式</p>
+</li>
+<li><p>客户向服务器请求服务时，只需传送请求方法和路径</p>
+</li>
+<li><p>HTTP 允许传输任意类型的数据对象，正在传输的类型由 Content-Type 加以标记</p>
+</li>
+<li><p>无连接，限制每次连接只处理一个请求</p>
+</li>
+<li><p>无状态，对于事务处理没有记忆能</p>
+</li>
+</ul>
+<h2 id="HTTP-方法"><a href="#HTTP-方法" class="headerlink" title="HTTP 方法"></a>HTTP 方法</h2><p>客户端发送的请求报文第一行为请求行，包含了方法字段</p>
+<ul>
+<li><p>Get: 请求指定的页面信息，并返回实体主题</p>
+</li>
+<li><p>Head: 获取报文首部，但是不返回报文实体主体部分，主要用于确认 URL 的有效性以及资源更新的日期时间等</p>
+</li>
+<li><p>Post: 向指定资源提交数据进行处理请求，数据包含在请求体中；POST 主要用来传输数据，可能会导致新的资源建立或已有资源的修改；GET 主要用来获取资源</p>
+</li>
+<li><p>Put: 上传文件，从客户端向服务器传送的数据取代指定的文档的内容</p>
+</li>
+<li><p>Patch: 对资源进行部分修改，Put 也可以用于修改资源，但是只能完全替代原始资源，Patch 允许部分修改</p>
+</li>
+<li><p>Delete: 删除文件，不带验证机制</p>
+</li>
+<li><p>Options: 查询 URL 能够支持的方法</p>
+</li>
+<li><p>Connect：HTTP&#x2F;1.1 协议中预留给能够将连接改为管道方式的代理服务器</p>
+</li>
+<li><p>Trace</p>
+</li>
+</ul>
+<h2 id="Get-和-Post-区别"><a href="#Get-和-Post-区别" class="headerlink" title="Get 和 Post 区别"></a>Get 和 Post 区别</h2><p>Get 用于获取资源，Post 用于传输实体主主体</p>
+<p>Get 和 Post 的请求都能使用额外的参数，但是 Get 的参数是以查询字符串出现在 URL 中，而 Post 的参数存储在实体主体中；不能因为 Post 参数存储在实体主体中就认为它的安全性更高，因为照样可以通过一些抓包工具（Fiddler）查看</p>
+<p>因为 URL 只支持 ASCII 码，因此 Get 的参数中如果存在中文等字符就需要先进行编码，Post 参数支持标准字符集</p>
+<p>安全的 HTTP 方法不会改变服务器状态，也就是说它只是可读的；Get 方法是安全的，而 Post 却不是，因为 Post 的目的是传送实体主体内容，这个内容可能是用户上传的表单数据，上传成功之后，服务器可能把这个数据存储到数据库中，因此状态也就发生了改变；安全的方法除了 Get 之外还有：Head、Options，不安全的方法除了 Post 之外还有 Put、Delete</p>
+<p>同样的请求被执行一次与连续执行多次的效果是一样的，服务器的状态也是一样的，幂等方法不应该具有副作用；所有的安全方法也都是幂等的；在正确实现的条件下，Get，Head，Put 和 Delete 等方法都是幂等的，而 Post 方法不是</p>
+<h2 id="状态码"><a href="#状态码" class="headerlink" title="状态码"></a>状态码</h2><p>服务器返回的响应报文中第一行为状态行，包含了状态码以及原因短语，用来告知客户端请求的结果</p>
+<table>
+<thead>
+<tr>
+<th>状态码</th>
+<th>类别</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1XX</td>
+<td>Informational（信息性状态码）</td>
+<td>接收的请求正在处理</td>
+</tr>
+<tr>
+<td>2XX</td>
+<td>Success（成功状态码）</td>
+<td>请求正常处理完毕</td>
+</tr>
+<tr>
+<td>3XX</td>
+<td>Redirection（重定向状态码）</td>
+<td>请求的资源发生了变动，需要用新的 URL 重新发送请求</td>
+</tr>
+<tr>
+<td>4XX</td>
+<td>Client Error（客户端错误状态码）</td>
+<td>客户端发送的报文有误，服务器无法处理</td>
+</tr>
+<tr>
+<td>5XX</td>
+<td>Server Error（服务器错误状态码）</td>
+<td>服务器处理请求出错</td>
+</tr>
+</tbody></table>
+<h3 id="1XX"><a href="#1XX" class="headerlink" title="1XX"></a>1XX</h3><ul>
+<li>100 Continue：表明到目前为止都很正常，客户端可以继续发送请求或者忽略这个响应</li>
+</ul>
+<h3 id="2XX"><a href="#2XX" class="headerlink" title="2XX"></a>2XX</h3><ul>
+<li><p>200 OK</p>
+</li>
+<li><p>204 No Content：请求已经成功处理，但是返回的响应报文不包含实体的主体部分。一般在只需要从客户端往服务器发送信息，而不需要返回数据时使用</p>
+</li>
+<li><p>206 Partial Content：响应返回的 body 数据并不是资源的全部，而是其中的一部分，也是服务器处理成功的状态</p>
+</li>
+</ul>
+<h3 id="3XX"><a href="#3XX" class="headerlink" title="3XX"></a>3XX</h3><ul>
+<li><p>301 Moved Permanently：永久性重定向，请求的资源已经不存在了，需改用新的 URL 再次访问</p>
+</li>
+<li><p>302 Found：临时性重定向，请求的资源还在，但暂时需要用另一个 URL 来访问</p>
+</li>
+<li><p>303 See Other：和 302 有着相同的功能，但是 303 明确要求客户端应该采用 GET 方法获取资源</p>
+</li>
+<li><p>304 Not Modified：请求报文首部包含一些条件，不满足条件，则服务器会返回 304 </p>
+</li>
+<li><p>307 Temporary Redirect：临时重定向，与 302 的含义类似，但是 307 要求浏览器不会把重定向请求的 POST 方法改成 GET 方法</p>
+</li>
+</ul>
+<h3 id="4XX"><a href="#4XX" class="headerlink" title="4XX"></a>4XX</h3><ul>
+<li><p>400 Bad Request：请求报文错误</p>
+</li>
+<li><p>401 Unauthorized：该状态码表示发送的请求需要有认证信息</p>
+</li>
+<li><p>403 Forbidden：服务器禁止访问资源</p>
+</li>
+<li><p>404 Not Found：请求的资源在服务器上不存在或未找到</p>
+</li>
+</ul>
+<h3 id="5XX"><a href="#5XX" class="headerlink" title="5XX"></a>5XX</h3><ul>
+<li><p>500 Internal Server Error：服务器正在执行请求时发生错误</p>
+</li>
+<li><p>501 Not Implemented：请求的功能还不支持</p>
+</li>
+<li><p>503 Service Unavailable：服务器暂时处于超负载或正在进行停机维护，现在无法处理请求</p>
+</li>
+</ul>
+<h2 id="连接管理"><a href="#连接管理" class="headerlink" title="连接管理"></a>连接管理</h2><img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/09.png" class="">
+
+<h3 id="短连接和长连接"><a href="#短连接和长连接" class="headerlink" title="短连接和长连接"></a>短连接和长连接</h3><p>当浏览器访问一个包含多张图片的 HTML 页面时，除了请求访问的 HTML 页面资源，还会请求图片资源。如果每进行一次 HTTP 通信就要新建一个 TCP 连接，那么开销会很大</p>
+<p>长连接只需要建立一次 TCP 连接就能进行多次 HTTP 通信</p>
+<ul>
+<li><p>从 HTTP&#x2F;1.1 开始默认是长连接的，如果要断开连接，需要由客户端或者服务器端提出断开</p>
+</li>
+<li><p>在 HTTP&#x2F;1.1 之前默认是短连接，需要一个 keep-alive 参数告诉服务器建立一个长连接</p>
+</li>
+</ul>
+<h3 id="流水线"><a href="#流水线" class="headerlink" title="流水线"></a>流水线</h3><p>默认情况下，HTTP 请求是按顺序发出的，下一个请求只有在当前请求收到响应之后才会被发出</p>
+<p>由于受到网络延迟和带宽的限制，在下一个请求被发送到服务器之前，可能需要等待很长时间</p>
+<p>流水线是在同一条长连接上连续发出请求，而不用等待响应返回，这样可以减少延迟；服务器还是按顺序响应请求，不存在并行响应</p>
+<h2 id="HTTP-包体长度"><a href="#HTTP-包体长度" class="headerlink" title="HTTP 包体长度"></a>HTTP 包体长度</h2><p>HTTP 基于 TCP 协议，包头部分可以通过 <code>\r\n\r\n</code> 分界，但获取包体通常有两种方法：</p>
+<ol>
+<li><p>包头中设置 <code>Content-Length</code> 字段，标识包体长度</p>
+</li>
+<li><p>使用 HTTP Chunk：将整个 HTTP 包体分为多个块，每个块都有自己的字段来说明自身的长度；对端收到块后去掉说明部分，并将多个块合并在一起；传输方在包头中设置 <code>Transfer-Encoding:chunked</code> 替代 <code>Content-Length</code>；块格式 <code>[chunkSize][\r\n][data]...[0][\r\n][\r][\n]</code>，最后一个块长度为 0；<code>chunkSize</code> 以十六进制的 ASCII 码表示，如 <code>chunkSize = 86</code>，先将 86 转成十六进制 56，再将字符 5 和 6 转成 ASCII 码，因此 <code>chunkSize=0x350x36</code></p>
+</li>
+</ol>
+<h2 id="Cookie"><a href="#Cookie" class="headerlink" title="Cookie"></a>Cookie</h2><p>HTTP 协议是无状态的，主要是为了让 HTTP 协议尽可能简单，使得它能够处理大量事务</p>
+<p>HTTP&#x2F;1.1 引入 Cookie 来保存状态信息，Cookie 是服务器发送到用户浏览器并保存在本地的一小块数据，它会在浏览器之后向同一服务器再次发起请求时被携带上，用于告知服务端两个请求是否来自同一浏览器</p>
+<p>由于之后每次请求都会需要携带 Cookie 数据，因此会带来额外的性能开销（尤其是在移动环境下）</p>
+<p>随着现代浏览器开始支持各种各样的存储方式，Cookie 渐渐被淘汰。新的浏览器 API 已经允许开发者直接将数据存储到本地，如使用 Web storage API（本地存储和会话存储）或 IndexedDB</p>
+<h3 id="用途"><a href="#用途" class="headerlink" title="用途"></a>用途</h3><ul>
+<li><p>会话状态管理（如用户登录状态、购物车、游戏分数或其它需要记录的信息）</p>
+</li>
+<li><p>个性化设置（如用户自定义设置、主题等）</p>
+</li>
+<li><p>浏览器行为跟踪（如跟踪分析用户行为等）</p>
+</li>
+</ul>
+<h3 id="组成"><a href="#组成" class="headerlink" title="组成"></a>组成</h3><p>Cookie实际上是一小段的文本信息（key-value格式）</p>
+<ul>
+<li><p>Name：一个唯一确定的 Cookie 名称</p>
+</li>
+<li><p>Expires：过期时间</p>
+</li>
+<li><p>Domain：生成该 Cookie 的域名</p>
+</li>
+<li><p>Path：该 Cookie 是在当前的哪个路径下生成的</p>
+</li>
+</ul>
+<h3 id="创建过程"><a href="#创建过程" class="headerlink" title="创建过程"></a>创建过程</h3><p>服务器发送的响应报文包含 Set-Cookie 首部字段，客户端得到响应报文后把 Cookie 内容保存到浏览器中</p>
+<p>客户端之后对同一个服务器发送请求时，会从浏览器中取出 Cookie 信息并通过 Cookie 请求首部字段发送给服务器</p>
+<h3 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h3><ul>
+<li><p>会话期 Cookie：浏览器关闭之后它会被自动删除，也就是说它仅在会话期内有效</p>
+</li>
+<li><p>持久性 Cookie：指定过期时间（Expires）或有效期（max-age）之后就成为了持久性的 Cookie</p>
+</li>
+</ul>
+<h2 id="Session"><a href="#Session" class="headerlink" title="Session"></a>Session</h2><p>除了可以将用户信息通过 Cookie 存储在用户浏览器中，也可以利用 Session 存储在服务器端，存储在服务器端的信息更加安全</p>
+<p>Session 可以存储在服务器上的文件、数据库或者内存中。也可以将 Session 存储在 Redis 这种内存型数据库中，效率会更高</p>
+<h3 id="创建过程-1"><a href="#创建过程-1" class="headerlink" title="创建过程"></a>创建过程</h3><ol>
+<li><p>用户进行登录时，用户提交包含用户名和密码的表单，放入 HTTP 请求报文中</p>
+</li>
+<li><p>服务器验证该用户名和密码，如果正确则把用户信息存储到 Redis 中，它在 Redis 中的 Key 称为 Session ID</p>
+</li>
+<li><p>服务器返回的响应报文的 Set-Cookie 首部字段包含了这个 Session ID，客户端收到响应报文之后将该 Cookie 值存入浏览器中</p>
+</li>
+<li><p>客户端之后对同一个服务器进行请求时会包含该 Cookie 值，服务器收到之后提取出 Session ID，从 Redis 中取出用户信息，继续之前的业务操作</p>
+</li>
+</ol>
+<h3 id="安全问题"><a href="#安全问题" class="headerlink" title="安全问题"></a>安全问题</h3><p>Session ID 不能让它被恶意攻击者轻易获取，那么就不能产生一个容易被猜到的 Session ID 值，同时需要经常重新生成 Session ID</p>
+<h3 id="Cookie-和-Session-选择"><a href="#Cookie-和-Session-选择" class="headerlink" title="Cookie 和 Session 选择"></a>Cookie 和 Session 选择</h3><ul>
+<li><p>Cookie 只能存储 ASCII 码字符串，而 Session 则可以存储任何类型的数据，因此在考虑数据复杂性时首选 Session</p>
+</li>
+<li><p>Cookie 存储在浏览器中，容易被恶意查看。如果非要将一些隐私数据存在 Cookie 中，可以将 Cookie 值进行加密，然后在服务器进行解密</p>
+</li>
+<li><p>对于大型网站，如果用户所有的信息都存储在 Session 中，那么开销是非常大的，因此不建议将所有的用户信息都存储到 Session 中</p>
+</li>
+</ul>
+<h2 id="HTTPS"><a href="#HTTPS" class="headerlink" title="HTTPS"></a>HTTPS</h2><p>HTTP 有以下安全性问题：</p>
+<ul>
+<li><p>使用明文进行通信，内容可能会被窃听</p>
+</li>
+<li><p>不验证通信方的身份，通信方的身份有可能遭遇伪装</p>
+</li>
+<li><p>无法证明报文的完整性，报文有可能遭篡改</p>
+</li>
+</ul>
+<p>让 HTTP 先和 SSL（Secure Sockets Layer）通信，再由 SSL 和 TCP 通信，也就是说 HTTPS 使用了隧道进行通信</p>
+<p>通过使用 SSL，HTTPS 具有了混合加密（防窃听）、认证（防伪装）和摘要算法（防篡改）</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/10.png" class="">
+
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/11.png" class="">
+
+<h3 id="HTTPS-加密方式"><a href="#HTTPS-加密方式" class="headerlink" title="HTTPS 加密方式"></a>HTTPS 加密方式</h3><h4 id="对称秘钥加密"><a href="#对称秘钥加密" class="headerlink" title="对称秘钥加密"></a>对称秘钥加密</h4><p>加密和解密使用同一密钥</p>
+<ul>
+<li><p>优点：运算速度快</p>
+</li>
+<li><p>缺点：无法安全地将密钥传输给通信方</p>
+</li>
+</ul>
+<h4 id="非对称秘钥加密"><a href="#非对称秘钥加密" class="headerlink" title="非对称秘钥加密"></a>非对称秘钥加密</h4><p>加密和解密使用不同的密钥，公开密钥所有人都可以获得</p>
+<p>公钥和私钥中的任一个均可用作加密，此时另一个则用作解密</p>
+<ul>
+<li><p>优点：可以更安全地将公开密钥传输给通信发送方</p>
+</li>
+<li><p>缺点：运算速度慢</p>
+</li>
+</ul>
+<h4 id="数字证书认证"><a href="#数字证书认证" class="headerlink" title="数字证书认证"></a>数字证书认证</h4><p>数字证书认证用来证明公开密钥是货真价实的公开密钥，可以使用由数字证书认证机构（CA，Certificate Authority）或其他相关机关颁发的公开密钥证书</p>
+<ol>
+<li><p>服务器把自己的公钥登录至数字证书认证机构，数字证书认证机构用自己的私有密钥向服务器的公钥颁发公钥证书</p>
+</li>
+<li><p>浏览器内置一个受信任的 CA 机构列表；服务器会提供经 CA 机构认证颁发的服务器证书，如果认证该服务器证书的 CA 机构存在于浏览器的受信任 CA 机构列表中，并且服务器证书中的信息与当前正在访问的网站（域名等）一致，那么浏览器就认为服务端是可信的，并从服务器证书中取得服务器公钥</p>
+</li>
+</ol>
+<h4 id="HTTPS-加密方式-1"><a href="#HTTPS-加密方式-1" class="headerlink" title="HTTPS 加密方式"></a>HTTPS 加密方式</h4><p>HTTPS 采用混合的加密机制</p>
+<p>对称加密算法加密数据 + 非对称加密算法交换密钥 + 数字证书验证身份</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/12.png" class="">
+
+<ol>
+<li><p>TCP 三次握手后开始 SSL 通信，双方互相明文交换 SSL 信息</p>
+</li>
+<li><p>服务器发送认证报文，包括公钥证书</p>
+</li>
+<li><p>客户端验证证书的合法性，包括可信性，是否吊销，过期时间和域名</p>
+</li>
+<li><p>如果证书没有问题，那么就生成一个随机值，然后用证书（也就是公钥）对这个随机值进行加密</p>
+</li>
+<li><p>将加密的随机值发送给服务端，以后客户端和服务端的通信就可以通过这个随机值来进行加密解密</p>
+</li>
+<li><p>服务器用私钥解密，拿到对称加密的密匙</p>
+</li>
+</ol>
+<p>缺点</p>
+<ul>
+<li><p>因为需要进行加密解密等过程，因此速度会更慢</p>
+</li>
+<li><p>需要支付证书授权的高额费用</p>
+</li>
+</ul>
+<h2 id="SSL-连接"><a href="#SSL-连接" class="headerlink" title="SSL 连接"></a>SSL 连接</h2><ol>
+<li><p>ClientHello：由客户端向服务器发起加密通信请求，主要向服务器发送信息包括：客户端支持的 SSL&#x2F;TLS 协议版本；客户端生产的随机数（Client Random），后面用于生产对称加密的密钥；客户端支持的密码套件列表，如 RSA 加密算法</p>
+</li>
+<li><p>ServerHello：服务器收到客户端请求后，向客户端发出响应，回应的内容包括：确认 SSL&#x2F; TLS 协议版本，如果浏览器不支持，则关闭加密通信；服务器生产的随机数（Server Random），后面用于生产对称加密的密钥；确认的密码套件列表，如 RSA 加密算法；服务器的数字证书</p>
+</li>
+<li><p>客户端回应：客户端收到服务器的回应之后，首先通过浏览器或者操作系统中的 CA 公钥，确认服务器的数字证书的真实性；如果证书没有问题，客户端会从数字证书中取出服务器的公钥，然后使用它加密报文，向服务器发送如下信息：一个随机数（pre-master key），并使用公钥进行非对称加密；加密通信算法改变通知，表示之后的信息都将用对称加密的密钥加密通信；客户端握手结束通知，表示客户端的握手阶段已经结束</p>
+</li>
+<li><p>服务器收到客户端的第三个随机数（pre-master key）之后，通过协商的加密算法，计算出本次通信的对称加密秘钥，向客户端发生最后的信息：加密通信算法改变通知，表示随后的信息都将用对称加密秘钥加密通信；服务器握手结束通知，表示服务器的握手阶段已经结束</p>
+</li>
+</ol>
+<p>客户端和服务器端都拥有三个随机数，双方使用事先商定的加密方法，各自生成本次会话所用的同一把对称会话密钥</p>
+<p>握手阶段全部结束后，客户端与服务器进入加密通信，就完全是使用普通的 HTTP 协议，只不过用会话密钥加密内容</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/13.png" class="">
+
+<p>由于 SSL 协议中证书是静态的，因此有必要引入一种随机因素来保证协商出来的会话密钥的随机性</p>
+<p>因为 SSL&#x2F;TLS 握手过程的数据都是明文传输的，并且多个随机数种子来生成秘钥不容易被暴力破解出来</p>
+<h2 id="HTTP-与-HTTPS-区别"><a href="#HTTP-与-HTTPS-区别" class="headerlink" title="HTTP 与 HTTPS 区别"></a>HTTP 与 HTTPS 区别</h2><ul>
+<li><p>HTTP 的 URL 以 http:&#x2F;&#x2F; 开头，而 HTTPS 的 URL 以 https:&#x2F;&#x2F; 开头</p>
+</li>
+<li><p>HTTP 是不安全的，而 HTTPS 是安全的</p>
+</li>
+<li><p>HTTP 标准端口是 80 ，而 HTTPS 的标准端口是 443</p>
+</li>
+<li><p>在 OSI 网络模型中，HTTP 工作于应用层，而 HTTPS 的安全传输机制工作在会话层</p>
+</li>
+<li><p>HTTP 无法加密，而 HTTPS 对传输的数据进行加密</p>
+</li>
+<li><p>HTTP 无需证书，而 HTTPS 需要 CA 机构颁发的 SSL 证书</p>
+</li>
+</ul>
+<h2 id="HTTP-x2F-2-0"><a href="#HTTP-x2F-2-0" class="headerlink" title="HTTP&#x2F;2.0"></a>HTTP&#x2F;2.0</h2><h3 id="HTTP-x2F-1-1-优点"><a href="#HTTP-x2F-1-1-优点" class="headerlink" title="HTTP&#x2F;1.1 优点"></a>HTTP&#x2F;1.1 优点</h3><ul>
+<li><p>默认使用长连接</p>
+</li>
+<li><p>支持流水线</p>
+</li>
+<li><p>缓存、断点传输、Host 字段</p>
+</li>
+</ul>
+<h3 id="HTTP-x2F-1-x-缺陷"><a href="#HTTP-x2F-1-x-缺陷" class="headerlink" title="HTTP&#x2F;1.x 缺陷"></a>HTTP&#x2F;1.x 缺陷</h3><p>HTTP&#x2F;1.x 实现简单是以牺牲性能为代价的</p>
+<ul>
+<li><p>不会压缩请求和响应首部，从而导致不必要的网络流量</p>
+</li>
+<li><p>每次互相发送相同的首部造成的浪费较多</p>
+</li>
+<li><p>服务器是按请求的顺序响应的，如果服务器响应慢，会招致客户端一直请求不到数据，也就是队头阻塞</p>
+</li>
+<li><p>没有请求优先级控制</p>
+</li>
+<li><p>请求只能从客户端开始，服务器只能被动响应</p>
+</li>
+</ul>
+<h3 id="HTTP-x2F-2-优化"><a href="#HTTP-x2F-2-优化" class="headerlink" title="HTTP&#x2F;2 优化"></a>HTTP&#x2F;2 优化</h3><p>HTTP&#x2F;2 协议是基于 HTTPS 的，所以 HTTP&#x2F;2 的安全性也是有保障的</p>
+<ul>
+<li><p>压缩首部，如果同时发出多个请求，请求的首部是一样的或是相似的，协议会消除重复部分</p>
+</li>
+<li><p>HTTP&#x2F;2 不再采用 HTTP&#x2F;1.1 里的纯文本形式的报文，而是全面采用了二进制格式，HTTP&#x2F;2 是二进制协议</p>
+</li>
+</ul>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/14.png" class="">
+
+<ul>
+<li><p>将传输的信息分割为更小的消息和帧，每个二进制帧会标识该帧属于哪个流，流就是由多个帧组成的数据流，因此浏览器收到数据后可以按照流来对数据进行合并而不会出现合并后数据错乱的问题，因此服务器可以并行的传输数据</p>
+</li>
+<li><p>对同一域名下所有请求都是基于流，只有一个 TCP 连接</p>
+</li>
+<li><p>客户端可以指定数据流的优先级</p>
+</li>
+<li><p>移除串行请求，解决队头阻塞</p>
+</li>
+<li><p>服务器推送</p>
+</li>
+</ul>
+<h3 id="HTTP-x2F-2-缺陷"><a href="#HTTP-x2F-2-缺陷" class="headerlink" title="HTTP&#x2F;2 缺陷"></a>HTTP&#x2F;2 缺陷</h3><p>多个 HTTP 请求在复用一个 TCP 连接，下层的 TCP 协议是不知道有多少个 HTTP 请求的；一旦发生了丢包现象，就会触发 TCP 的重传机制，这样在一个 TCP 连接中的所有的 HTTP 请求都必须等待这个丢了的包被重传回来</p>
+<p>HTTP&#x2F;3 把 HTTP 下层的 TCP 协议改成了 UDP</p>
+
       
     </div>
 
@@ -685,7 +1588,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-pidstat/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-ftp/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -703,7 +1606,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-pidstat/" class="post-title-link" itemprop="url">pidstat</a>
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-ftp/" class="post-title-link" itemprop="url">ftp</a>
         </h2>
 
         <div class="post-meta-container">
@@ -714,14 +1617,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-25 21:18:55" itemprop="dateCreated datePublished" datetime="2023-04-25T21:18:55+08:00">2023-04-25</time>
+      <time title="创建时间：2023-04-26 19:42:06" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:06+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -729,7 +1632,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
         </span>
     </span>
 
@@ -743,180 +1646,13 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pidstat [options] [interval] [<span class="built_in">times</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># -u 默认参数，显示各个进程的 CPU 统计信息</span></span><br><span class="line"><span class="comment"># -r 显示各个进程的内存使用情况</span></span><br><span class="line"><span class="comment"># -d 显示各个进程的 IO 使用</span></span><br><span class="line"><span class="comment"># -w 显示各个进程的上下文切换</span></span><br><span class="line"><span class="comment"># -p PID 指定 PID</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># cswch 每秒自愿上下文切换次数 （进程无法获取所需资源导致的上下文切换）</span></span><br><span class="line"><span class="comment"># 每秒非自愿上下文切换次数 （时间片轮流等系统强制调度）</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-netstat/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-netstat/" class="post-title-link" itemprop="url">netstat</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-25 21:18:45" itemprop="dateCreated datePublished" datetime="2023-04-25T21:18:45+08:00">2023-04-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>查看网络连接状态</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">netstat [-acCeFghilMnNoprstuvVwx][-A&lt;网络类型&gt;][--ip]</span><br><span class="line"></span><br><span class="line">-a 列出所有端口使用情况，netstat 默认不显示 LISTEN 相关选项</span><br><span class="line">-t (tcp) 仅显示tcp相关选项</span><br><span class="line">-u (udp)仅显示udp相关选项</span><br><span class="line">-n 不显示别名，能显示数字的全部转化为数字</span><br><span class="line">-l 仅列出在 Listen 的服务状态</span><br><span class="line">-p 显示建立相关链接的程序名</span><br><span class="line">-e 显示扩展信息</span><br><span class="line">-c 每隔一个固定时间执行命令</span><br><span class="line">-s 显示网络统计信息</span><br><span class="line"></span><br><span class="line"><span class="comment"># 列出所有信息</span></span><br><span class="line">netstat -a</span><br><span class="line"><span class="comment"># 不是使用域名</span></span><br><span class="line">netstat -an</span><br><span class="line"><span class="comment"># 只显示监听端口</span></span><br><span class="line">netstat -l</span><br><span class="line"><span class="comment"># 显示PID和进程名称</span></span><br><span class="line">netstat -anp</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-nc/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-nc/" class="post-title-link" itemprop="url">nc</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-25 21:18:37" itemprop="dateCreated datePublished" datetime="2023-04-25T21:18:37+08:00">2023-04-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>用于模拟一个服务器程序被其他客户端接入，或者模拟一个客户端连接其他服务器，连接之后可以发送数据</p>
-<p><code>nc</code> 默认使用 TCP，<code>-u</code> 使用 UDP</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 显示详细信息</span></span><br><span class="line">nc -v</span><br><span class="line"></span><br><span class="line"><span class="comment"># 开启一个监听服务，方便客户端连接</span></span><br><span class="line">nc -v -l 127.0.0.1 6000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 模拟客户端</span></span><br><span class="line"><span class="comment"># -p 指定客户端的端口</span></span><br><span class="line">nc -v 0.0.0.0 6000</span><br><span class="line">nc -v -p 5555 0.0.0.0 6000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 发送文件</span></span><br><span class="line">nc 0.0.0.0 6000 &lt; file</span><br><span class="line"></span><br><span class="line"><span class="comment"># 接收文件</span></span><br><span class="line">nc -l 0.0.0.0 6000 &gt; file</span><br></pre></td></tr></table></figure>
-
-<p><code>nc</code> 默认使用 <code>\n</code> 作为消息的结束标志，<code>-C</code> 则使用 <code>\r\n</code> 作为消息结束标志</p>
+          <p>FTP 使用 TCP 进行连接，它需要两个连接来传送一个文件</p>
+<ul>
+<li><p>控制连接：服务器打开端口号 21 等待客户端的连接，客户端主动建立连接后，使用这个连接将客户端的命令传送给服务器，并传回服务器的应答</p>
+</li>
+<li><p>数据连接：用来传送一个文件数据</p>
+</li>
+</ul>
 
       
     </div>
@@ -943,7 +1679,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-lsof/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-dns/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -961,7 +1697,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-lsof/" class="post-title-link" itemprop="url">lsof</a>
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-dns/" class="post-title-link" itemprop="url">dns</a>
         </h2>
 
         <div class="post-meta-container">
@@ -972,14 +1708,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-25 21:18:31" itemprop="dateCreated datePublished" datetime="2023-04-25T21:18:31+08:00">2023-04-25</time>
+      <time title="创建时间：2023-04-26 19:41:59" itemprop="dateCreated datePublished" datetime="2023-04-26T19:41:59+08:00">2023-04-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-05-31 11:24:06" itemprop="dateModified" datetime="2023-05-31T11:24:06+08:00">2023-05-31</time>
+      <time title="修改时间：2023-06-01 16:13:25" itemprop="dateModified" datetime="2023-06-01T16:13:25+08:00">2023-06-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -987,7 +1723,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
         </span>
     </span>
 
@@ -1001,8 +1737,26 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>列出当前系统打开的文件描述符</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"># 显示当前系统打开的文件</span><br><span class="line">lsof </span><br><span class="line"></span><br><span class="line"># 仅查看某个用户打开的文件信息</span><br><span class="line">lsof -u username</span><br><span class="line"></span><br><span class="line"># 仅列出所有 tcp 网络连接</span><br><span class="line">lsof -i tcp</span><br><span class="line"></span><br><span class="line"># 仅列出所有 udp 网络连接</span><br><span class="line">lsof -i udp</span><br><span class="line"></span><br><span class="line"># 列出端口号</span><br><span class="line">lsof -i:port</span><br><span class="line"></span><br><span class="line"># 显示 abc 进程现在打开的文件</span><br><span class="line">lsof -c abc</span><br><span class="line"></span><br><span class="line"># 通过某个进程号显示该进行打开的文件</span><br><span class="line">lsof -p pid</span><br><span class="line"></span><br><span class="line"># 设置显示进程名字符数</span><br><span class="line">lsof +c 15 # 设置进程名最多显示 15 个字符</span><br><span class="line"></span><br><span class="line"># 强制显示 IP 地址而不是别名</span><br><span class="line">lsof -n</span><br><span class="line"></span><br><span class="line"># 强制显示端口号而不是别名</span><br><span class="line">lsof -P</span><br></pre></td></tr></table></figure>
+          <p>DNS 是一个分布式数据库，提供了主机名和 IP 地址之间相互转换的服务</p>
+<p>在域名系统中，用句点分割，越靠右层级越高</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">www.server.com</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">根域是在最顶层，它的下一层就是 com 顶级域名，server 是二级域名，www 为三级域名</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">域名的层级关系类似一个树状结构：</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">- 根 DNS 服务器</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">- 定义域 DNS 服务器</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">- 权威 DNS 服务器</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-dns/01.png" class="">
+
+<ol>
+<li><p>客户端向本地域名服务器发出解析域名的请求</p>
+</li>
+<li><p>本地域名服务器查看本地缓存，是否有缓存过域名 IP，如果有直接返回给客户端，如果没有执行下一步</p>
+</li>
+<li><p>本地域名服务器先向一个根域名服务器查询，根域名服务器告诉本地域名服务器应该向哪个顶级域名进行查询</p>
+</li>
+<li><p>顶级域名再告诉本地域名服务器向哪个二级域名服务器进行查询，依次类推直到找到域名 IP</p>
+</li>
+<li><p>本地域名服务器将得到的 IP 告诉客户端</p>
+</li>
+</ol>
+<p>域名服务器大量使用缓存存放最近查询过的域名以及从何处获得域名映射信息的记录，如直接存有网站映射的 IP 或顶级域名服务器地址，从而不需要向根域名查询，而是直接对顶级域名查询</p>
+<p>DNS 可以使用 UDP 或者 TCP 进行传输</p>
 
       
     </div>
@@ -1022,7 +1776,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/10/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><span class="space">&hellip;</span><a class="page-number" href="/page/34/">34</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/12/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/10/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><span class="space">&hellip;</span><a class="page-number" href="/page/35/">35</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/12/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
