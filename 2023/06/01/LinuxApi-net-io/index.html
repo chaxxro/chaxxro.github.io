@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="TCP 常用接口recvmsg()、sendmsg() 函数是最通用的 I&#x2F;O 函数 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808">
+<meta property="og:type" content="article">
+<meta property="og:title" content="net_io">
+<meta property="og:url" content="https://chaxxro.github.io/2023/06/01/LinuxApi-net-io/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="TCP 常用接口recvmsg()、sendmsg() 函数是最通用的 I&#x2F;O 函数 12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576777879808">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-06-01T08:22:11.000Z">
+<meta property="article:modified_time" content="2023-06-01T08:23:27.882Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="LinuxApi">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/06/01/LinuxApi-net-io/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/06/01/LinuxApi-net-io/","path":"2023/06/01/LinuxApi-net-io/","title":"net_io"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>net_io | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#TCP-%E5%B8%B8%E7%94%A8%E6%8E%A5%E5%8F%A3"><span class="nav-text">TCP 常用接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UDP-%E5%B8%B8%E7%94%A8%E6%8E%A5%E5%8F%A3"><span class="nav-text">UDP 常用接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#socket-%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="nav-text">socket 缓冲区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%91%E9%80%81%E6%96%B9%E4%B8%80%E7%9B%B4-send%EF%BC%8C%E6%8E%A5%E6%94%B6%E6%96%B9%E4%B8%8D-recv"><span class="nav-text">发送方一直 send，接收方不 recv</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%91%E9%80%81%E6%96%B9%E4%B8%8D-send%EF%BC%8C%E6%8E%A5%E6%94%B6%E6%96%B9-recv"><span class="nav-text">发送方不 send，接收方 recv</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%9E%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E4%B8%8B-send-%E5%92%8C-recv-%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="nav-text">非阻塞模式下 send 和 recv 返回值</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">352</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/01/LinuxApi-net-io/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="net_io | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          net_io
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-06-01 16:22:11 / 修改时间：16:23:27" itemprop="dateCreated datePublished" datetime="2023-06-01T16:22:11+08:00">2023-06-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="TCP-常用接口"><a href="#TCP-常用接口" class="headerlink" title="TCP 常用接口"></a>TCP 常用接口</h2><p><code>recvmsg()</code>、<code>sendmsg()</code> 函数是最通用的 I&#x2F;O 函数</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Linux 中最基本的读写函数，可以用于各种数据的读写</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">read</span><span class="params">(<span class="type">int</span> fd, <span class="type">void</span> *buf, <span class="type">size_t</span> count)</span></span>;</span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">write</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="type">void</span> *buf, <span class="type">size_t</span> count)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">read() 函数是负责从 fd 中读取内容.当读成功时，read 返回实际所读的字节数，如果返回的值是 0 表示已经读到文件的结束了，小于 0 表示出现了错误</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">write() 函数将 buf 中的 n 字节内容写入文件描述符 fd，成功时返回写的字节数，失败时返回 -1</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">一般来说对于常规文件的读写不会阻塞，函数一定会在有限的时间内返回，但对于网络读取就不一定了，如果网络通信消息一直没有到达则函数剧一直阻塞等待</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">发送数据的长度超过 socket 缓冲区长度，则返回错误 SOCKET_ERROR</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 只用于 socket 的数据处理</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">send</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">const</span> <span class="type">void</span> *buf, <span class="type">size_t</span> len, <span class="type">int</span> flags)</span></span>;</span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">recv</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">void</span> *buf, <span class="type">size_t</span> len, <span class="type">int</span> flags)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">flags 可以指定发送带外数据，即紧急数据</span></span><br><span class="line"><span class="comment">MSG_OOB(0x01)：不接受外带数据，某些协议将加速数据放置在普通数据队列的开头，因此该标志不能用于此类协议</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">MSG_PEEK(0x02)：从接收数据的开头返回数据，且不删除数据，因此，后续的调用将返回相同的数据</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">MSG_TRUNC(0x20)：返回数据包或数据报的实际长度，即使比传递的缓冲区长</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">MSG_DONTWAIT(0x40)：启用非阻塞操作</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">MSG_WAITALL(0x100)：请求块操作，未读取请求数目字节之前不返回</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">send() 原理：</span></span><br><span class="line"><span class="comment">1. send() 只负责将数据提交给协议层</span></span><br><span class="line"><span class="comment">2. send() 先比较待发送数据的长度 count 和套接字 fd 的发送缓存的长度</span></span><br><span class="line"><span class="comment">3. 如果 count 大于 fd 的发送缓存的长度，该函数返回 SOCKET_ERROR</span></span><br><span class="line"><span class="comment">4. 如果 count 小于或者等于 fd 的发送缓存的长度，那么 send() 先检查协议是否正在发送发送缓存中的数据</span></span><br><span class="line"><span class="comment">5. 如果正在发送数据，则等待数据发送完</span></span><br><span class="line"><span class="comment">6. 如果协议没有在发送 fd 发送缓冲中的数据或者 fd 的发送缓冲中没有数据，那么 send() 就比较 fd 的发送缓冲区的剩余空间和 count</span></span><br><span class="line"><span class="comment">7. 如果 count 大于剩余空间大小，send() 就一直等待协议把 fd 的发送缓冲中的数据发送完，如果 count 小于剩余空间大小，send() 就仅仅把 buf 中的数据 copy 到剩余空间里</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">recv() 原理：</span></span><br><span class="line"><span class="comment">1. recv() 仅仅是 copy 数据，真正的接收数据是协议来完成的</span></span><br><span class="line"><span class="comment">1. recv() 先检查套接字 fd 的接收缓冲区，如果 fd 接收缓冲区中没有数据或者协议正在接收数据，那么 recv() 就一直等待，直到协议把数据接收完毕</span></span><br><span class="line"><span class="comment">2. 当协议把数据接收完毕，recv() 就把 fd 的接收缓冲中的数据 copy 到 buf 中</span></span><br><span class="line"><span class="comment">3. 协议接收到的数据可能大于 buf 的长度，所以在这种情况下要调用几次 recv() 才能把 fd 的接收缓冲中的数据 copy 完</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">recv() 返回值</span></span><br><span class="line"><span class="comment">-1：发送时报错</span></span><br><span class="line"><span class="comment">0：对端关闭连接</span></span><br><span class="line"><span class="comment">&gt;0：接受数据长度</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">sendmsg</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">const</span> <span class="keyword">struct</span> msghdr *msg, <span class="type">int</span> flags)</span></span>;</span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">recvmsg</span><span class="params">(<span class="type">int</span> sockfd, <span class="keyword">struct</span> msghdr *msg, <span class="type">int</span> flags)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">同时将缓冲区的数据读到多个缓冲区中和同时将多个缓冲区数据写入内核缓冲区</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">readv</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="keyword">struct</span> iovec* iov, <span class="type">int</span> iovcnt)</span></span>;</span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">writev</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="keyword">struct</span> iovec* iov, <span class="type">int</span> iovcnt)</span></span>;</span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">preadv</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="keyword">struct</span> iovec* iov, <span class="type">int</span> iovcnt, <span class="type">off_t</span> offset)</span></span>;</span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">pwritev</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="keyword">struct</span> iovec* iov, <span class="type">int</span> iovcnt, <span class="type">off_t</span> offset)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">iovec</span> &#123;</span><br><span class="line">    <span class="type">void</span>    *iov_base;      <span class="comment">/* starting address of buffer */</span></span><br><span class="line">    <span class="type">size_t</span>  iov_len;        <span class="comment">/* size of buffer */</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">msghdr</span> &#123;</span><br><span class="line">    <span class="type">void</span> * msg_name;  <span class="comment">/* protocol address */</span></span><br><span class="line">    <span class="type">socklen_t</span> msg_namelen;   <span class="comment">/* sieze of protocol address */</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">iovec</span> * msg_iov;  <span class="comment">/* scatter/gather array */</span></span><br><span class="line">    <span class="type">int</span> msg_iovlen;  <span class="comment">/* # elements in msg_iov */</span></span><br><span class="line">    <span class="type">void</span> * msg_control;  <span class="comment">/* ancillary data ( cmsghdr struct) */</span></span><br><span class="line">    <span class="type">socklen_t</span> msg_controllen;  <span class="comment">/* length of ancillary data */</span></span><br><span class="line">    <span class="type">int</span> msg_flags;  <span class="comment">/* flags returned by recvmsg() */</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">msg_name, msg_namelen 用于未连接的套接字（主要是UDP），用来指定接受来源或发送目的地址，对于已连接的套接字课直接设置为 NULL 和 0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">msg_iov, msg_iovlen 用于指定数据缓冲区数组，即 iovec 结构数组，缓冲区是个二维数组，每一维长度不是固定的，需要提前设置好这两项并且分配好内存</span></span><br><span class="line"><span class="comment">如果只是当存传送一个字符串，那只需要将 msg_iovlen 设置成1，然后将数据赋给 iov[0].iov_base 就行了</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">msg_control, msg_controllen 是用来设置辅助数据的位置和大小，可以用来返回关于数据报文的其他指定信息，不过需要通过 setsockopt 函数指定要返回的辅助信息</span></span><br><span class="line"><span class="comment">对于 sendmsg，这两项需要都设置成 0，否则会导致发送数据失败</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p><code>send</code> 在本质上并不是向网络发送数据，而是将应用层发送缓冲区的数据拷贝至内核缓冲区，至于数据什么时候从网卡缓冲区中发送到网络中，则是根据 TCP&#x2F;IP 协议决定的</p>
+<p>如果 socket 设置了 <code>TCP_NODELAY</code>，存放到内核缓冲区的数据就会被立即发送出去</p>
+<p><code>recv</code> 在本质上不是从网络上收取数据，而是将内核缓冲区中的数据拷贝至应用层缓冲区，在拷贝完成后会将内核缓冲区的该部分数据移除</p>
+<h2 id="UDP-常用接口"><a href="#UDP-常用接口" class="headerlink" title="UDP 常用接口"></a>UDP 常用接口</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">sendto</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">const</span> <span class="type">void</span> *buf, <span class="type">size_t</span> len, <span class="type">int</span> flags,</span></span></span><br><span class="line"><span class="params"><span class="function">                <span class="type">const</span> <span class="keyword">struct</span> sockaddr *dest_addr, <span class="type">socklen_t</span> addrlen)</span></span>;</span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">recvfrom</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">void</span> *buf, <span class="type">size_t</span> len, <span class="type">int</span> flags,</span></span></span><br><span class="line"><span class="params"><span class="function">                <span class="keyword">struct</span> sockaddr *src_addr, <span class="type">socklen_t</span> *addrlen)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">recvfrom 两个参数 from 和 addrlen，实际上是返回对端发送方的地址和端口等信息</span></span><br><span class="line"><span class="comment">sednto 两个参数 to 和 addrlen，表示发送的对端地址和端口等信息</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>udp 客户端调用 <code>connect()</code> 函数：udp 客户端建立了 socket 后可以直接调用 <code>sendto()</code> 函数向服务器发送数据，但是需要在 <code>sendto()</code> 函数的参数中指定目的地址&#x2F;端口，但是可以调用 <code>connect()</code> 函数先指明目的地址&#x2F;端口，然后就可以使用 <code>send()</code> 函数向目的地址发送数据了，因为此时套接字已经包含目的地址&#x2F;端口，也就是 <code>send()</code> 函数已经知道包含目的地址&#x2F;端口</p>
+</li>
+<li><p>udp 客户端程序使用 <code>bind()</code> 函数：udp 服务器调用了 <code>bind()</code> 函数为服务器套接字绑定本地地址&#x2F;端口，这样使得客户端的能知道它发数据的目的地址&#x2F;端口，服务器如果单单接收客户端的数据，或者先接收客户端的数据(此时通过 <code>recvfrom()</code> 函数获取到了客户端的地址信息&#x2F;端口)再发送数据，客户端的套接字可以不绑定自身的地址&#x2F;端口，因为 udp 在创建套接字后直接使用 <code>sendto()</code>，隐含操作是，在发送数据之前操作系统会为该套接字随机分配一个合适的 udp 端口，将该套接字和本地地址信息绑定。但是，如果服务器程序就绪后一上来就要发送数据给客户端，那么服务器就需要知道客户端的地址信息和端口，那么就不能让客户端的地址信息和端口号由客户端所在操作系统分配，而是要在客户端程序指定了</p>
+</li>
+<li><p>不存在 UDP 发送缓冲区，因为发往 UDP 发送缓冲区的包只要超过一定阈值（值很小）就可以发往对端，所以一般认为 UDP 是没有发送缓冲区的</p>
+</li>
+</ul>
+<h2 id="socket-缓冲区"><a href="#socket-缓冲区" class="headerlink" title="socket 缓冲区"></a>socket 缓冲区</h2><p>每个 socket 被创建后，都会分配两个缓冲区，输入缓冲区和输出缓冲区</p>
+<p><code>write()/send()</code> 并不立即向网络中传输数据，而是先将数据写入输出缓冲区中，再由 TCP 协议将数据从缓冲区发送到目标机器。一旦将数据写入到缓冲区，函数就可以成功返回，不管它们有没有到达目标机器，也不管它们何时被发送到网络，这些都是 TCP 协议负责的事情</p>
+<p>TCP 协议独立于 <code>write()/send()</code> 函数，数据有可能刚被写入缓冲区就发送到网络，也可能在缓冲区中不断积压，多次写入的数据被一次性发送到网络，这取决于当时的网络情况、当前线程是否空闲等诸多因素，不由程序员控制</p>
+<p><code>read()/recv()</code> 也类似，从输入缓冲区读取数据，而不是直接从网络中读取</p>
+<ul>
+<li><p>使用 <code>write()/send()</code> 时：首先会检查缓冲区，如果缓冲区的可用空间长度小于要发送的数据，那么 <code>write()/send()</code> 会被阻塞，直到缓冲区中的数据被发送到目标机器，腾出足够的空间，才唤醒 <code>write()/send()</code> 函数继续写入数据；如果 TCP 协议正在向网络发送数据，那么输出缓冲区会被锁定，不允许写入，<code>write()/send()</code> 也会被阻塞，直到数据发送完毕缓冲区解锁，<code>write()/send()</code> 才会被唤醒；如果要写入的数据大于缓冲区的最大长度，那么将分批写入；直到所有数据被写入缓冲区 <code>write()/send()</code> 才能返回</p>
+</li>
+<li><p>使用 <code>read()/recv()</code> 读取数据时：首先会检查缓冲区，如果缓冲区中有数据，那么就读取，否则函数会被阻塞，直到网络上有数据到来；如果要读取的数据长度小于缓冲区中的数据长度，那么就不能一次性将缓冲区中的所有数据读出，剩余数据将不断积压，直到有 <code>read()/recv()</code> 函数再次读取；直到读取到数据后 <code>read()/recv()</code> 函数才会返回，否则就一直被阻塞</p>
+</li>
+</ul>
+<h2 id="发送方一直-send，接收方不-recv"><a href="#发送方一直-send，接收方不-recv" class="headerlink" title="发送方一直 send，接收方不 recv"></a>发送方一直 <code>send</code>，接收方不 <code>recv</code></h2><ul>
+<li><p>阻塞模式下，继续调用 <code>send</code>，程序会阻塞</p>
+</li>
+<li><p>非阻塞模式下，继续调用 <code>send</code> 会立即返回错误 <code>EAGIN</code> 或 <code>EWOULDBLOCK</code></p>
+</li>
+</ul>
+<h2 id="发送方不-send，接收方-recv"><a href="#发送方不-send，接收方-recv" class="headerlink" title="发送方不 send，接收方 recv"></a>发送方不 <code>send</code>，接收方 <code>recv</code></h2><ul>
+<li><p>阻塞模式下，接收方阻塞在 <code>recv</code></p>
+</li>
+<li><p>非阻塞模式下，当前无数据可读，<code>recv</code> 返回错误码 <code>EWOULDBLOCK</code></p>
+</li>
+</ul>
+<h2 id="非阻塞模式下-send-和-recv-返回值"><a href="#非阻塞模式下-send-和-recv-返回值" class="headerlink" title="非阻塞模式下 send 和 recv 返回值"></a>非阻塞模式下 <code>send</code> 和 <code>recv</code> 返回值</h2><table>
+<thead>
+<tr>
+<th>返回值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>大于 0</td>
+<td>成功发送、接收 n 字节</td>
+</tr>
+<tr>
+<td>0</td>
+<td>对端关闭连接，或主动发送 0 字节也会返回 0</td>
+</tr>
+<tr>
+<td>小于 0</td>
+<td>出错、信号中断、对端 TCP 窗口太小导致数据发送或接收失败</td>
+</tr>
+</tbody></table>
+<ul>
+<li><p>返回值大于 0，表示发送或接收多少字节，需要注意的是，在这种情形下，一定要判断下 <code>send</code> 函数的返回值是不是我们期望发送的缓冲区长度，而不是简单判断其返回值大于 0</p>
+</li>
+<li><p><code>send</code> 函数发送 0 字节数据，协议栈并不会把这些数据发出去</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>错误码</th>
+<th>send</th>
+<th>recv</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>EWOULDBLOCK</code> 或 <code>EAGAIN</code></td>
+<td>TCP 窗口太小，数据发送不出去</td>
+<td>内核缓冲区无数据可读</td>
+</tr>
+<tr>
+<td><code>EINTR</code></td>
+<td>被信号中断，需要重试</td>
+<td>被信号中断，需要重试</td>
+</tr>
+<tr>
+<td>其他错误码</td>
+<td>出错</td>
+<td>出错</td>
+</tr>
+</tbody></table>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/LinuxApi/" rel="tag"># LinuxApi</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/06/01/LinuxApi-malloc/" rel="prev" title="malloc">
+                  <i class="fa fa-chevron-left"></i> malloc
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
