@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="遇到 volatile 修饰的变量，编译器对访问该变量的代码就不进行优化，从而可以提供对特殊地址的稳定访问 当要求使用 volatile 声明的变量的值的时候，系统总是重新从它所在的内存读取数据，即使它前面的指令刚刚从该处读取过数据，并且读取的数据立刻被保存 12345678910111213141516&#x2F;*p 就只是一个指向 int 类型的指针a &#x3D; *p 和 b &#x3D; *p 两句就只需要从内存中">
+<meta property="og:type" content="article">
+<meta property="og:title" content="volatile 细节">
+<meta property="og:url" content="https://chaxxro.github.io/2023/06/02/cpp-volatile%E7%BB%86%E8%8A%82/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="遇到 volatile 修饰的变量，编译器对访问该变量的代码就不进行优化，从而可以提供对特殊地址的稳定访问 当要求使用 volatile 声明的变量的值的时候，系统总是重新从它所在的内存读取数据，即使它前面的指令刚刚从该处读取过数据，并且读取的数据立刻被保存 12345678910111213141516&#x2F;*p 就只是一个指向 int 类型的指针a &#x3D; *p 和 b &#x3D; *p 两句就只需要从内存中">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-06-02T13:05:30.000Z">
+<meta property="article:modified_time" content="2023-06-02T13:10:06.727Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="cpp">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/06/02/cpp-volatile%E7%BB%86%E8%8A%82/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/06/02/cpp-volatile%E7%BB%86%E8%8A%82/","path":"2023/06/02/cpp-volatile细节/","title":"volatile 细节"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>volatile 细节 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#volatile-%E7%B1%BB"><span class="nav-text">volatile 类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#volatile-%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0"><span class="nav-text">volatile 成员函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E4%B8%8B%E7%9A%84-volatile"><span class="nav-text">多线程下的 volatile</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">366</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp-volatile%E7%BB%86%E8%8A%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="volatile 细节 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          volatile 细节
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-06-02 21:05:30 / 修改时间：21:10:06" itemprop="dateCreated datePublished" datetime="2023-06-02T21:05:30+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>遇到 <code>volatile</code> 修饰的变量，编译器对访问该变量的代码就不进行优化，从而可以提供对特殊地址的稳定访问</p>
+<p>当要求使用 <code>volatile</code> 声明的变量的值的时候，系统总是重新从它所在的内存读取数据，即使它前面的指令刚刚从该处读取过数据，并且读取的数据立刻被保存</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">p 就只是一个指向 int 类型的指针</span></span><br><span class="line"><span class="comment">a = *p 和 b = *p 两句就只需要从内存中读取一次就够了，因为从内存中读取一次之后，CPU 的寄存器中就已经有了这个值，把这个值直接复用就可以了</span></span><br><span class="line"><span class="comment">因此编译器就会做优化，把两次访存的操作优化成一次</span></span><br><span class="line"><span class="comment">但这样的前提是代码里没有改变 p 指向内存地址的值，这个值没有发生改变</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">int</span> *p = <span class="comment">/* ... */</span>;</span><br><span class="line"><span class="type">int</span> a, b;</span><br><span class="line">a = *p;</span><br><span class="line">b = *p;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 每次都从地址取值，保证 a、b 数据的正确性</span></span><br><span class="line"><span class="keyword">volatile</span> <span class="type">int</span> *p = <span class="comment">/* ... */</span>;</span><br><span class="line"><span class="type">int</span> a, b;</span><br><span class="line">a = *p;</span><br><span class="line">b = *p;</span><br></pre></td></tr></table></figure>
+
+<p>一个参数既可以既是 <code>const</code> 同时是 <code>volatile</code></p>
+<p>指针也可以被 <code>volatile</code> 修饰，与 <code>const</code> 相同</p>
+<p>可以把一个非 <code>volatile int</code> 赋给 <code>volatile int</code>，但是不能把非 <code>volatile</code> 对象赋给一个 <code>volatile</code> 对象</p>
+<p>数据只在内存中读写，直接操作它既不能保证操作是 atomic 的，也不能保证 Memory Order</p>
+<h2 id="volatile-类"><a href="#volatile-类" class="headerlink" title="volatile 类"></a>volatile 类</h2><p>类是 <code>volatile</code> 则里面的成员都是 <code>volatile</code> 的</p>
+<h2 id="volatile-成员函数"><a href="#volatile-成员函数" class="headerlink" title="volatile 成员函数"></a>volatile 成员函数</h2><p>成员函数声明为 <code>volatile</code> 则同 <code>const</code> 一样在函数最后声明即可，表示这个函数里访问的变量可能由于其他原因发生改变</p>
+<h2 id="多线程下的-volatile"><a href="#多线程下的-volatile" class="headerlink" title="多线程下的 volatile"></a>多线程下的 volatile</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SharedDataStructure</span> gSharedStructure; </span><br><span class="line"><span class="type">int</span> gFlag;</span><br><span class="line"></span><br><span class="line"><span class="comment">//线程 A </span></span><br><span class="line">gSharedStructure.foo = ...; </span><br><span class="line">gSharedStructure.bar = ...; </span><br><span class="line">gSharedStructure.baz = ...; </span><br><span class="line">gFlag = <span class="number">1</span>; </span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">//线程 B</span></span><br><span class="line"> <span class="keyword">if</span>(gFlag) </span><br><span class="line">        <span class="built_in">UseSharedStructure</span>(&amp;gSharedStructure;); </span><br><span class="line">...</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">结构体和 flag 之间因为不存在依赖关系，执行的顺序可能会被编译器修改(compiler reorder，指令重排)，线程 A 的代码可能是 flag 先被置为 1，然后处理结构体，这样线程 B 的 if 语句内就是不安全的</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">可以将 gFlag 和 gSharedStructure 都加上 volatile 关键字，保证编译器按照代码顺序产生机器码</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>加了 <code>volatile</code> 关键字之后，上述代码在实际执行时仍不能保证安全，因为 CPU 会激进的 reorder 以加快执行速度， 因此内部执行机器码的顺序仍然是未知的，只保证最终结束时的结果与原顺序一致（as-if）</p>
+<p>在这种情况下，如果线程 A 和 B 被分配到两个 CPU 执行，B 的 CPU 实际并不知道 A 的 CPU 执行情况，因此仍然存在 gFlag 被先修改而 gSharedStructure 未处理的问题</p>
+<p>即使已经熟知 <code>volatile</code> 种种特性，实际仍不推荐使用，因为各种编译器的优化器也可能存在 bug</p>
+<p>不要预期在多线程中使用 <code>volatile</code> 来解决数据的同步问题，该加锁时就加锁</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cpp/" rel="tag"># cpp</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/06/02/cpp-virtual%E7%BB%86%E8%8A%82/" rel="prev" title="virtual 细节">
+                  <i class="fa fa-chevron-left"></i> virtual 细节
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

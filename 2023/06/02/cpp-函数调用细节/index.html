@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="栈帧栈帧专门用于保存函数调用过程中的各种信息，如参数、返回地址本地变量等 栈顶的地址最低，栈底的地址最高，栈指针 esp 指向栈顶的，基址指针 ebp 指向栈底，ebp 在调用过程中不变 程序执行时，esp 减小将分配空间，esp 增大将释放空间   寄存器esp 存放于堆栈指针寄存器中，ebp 存放于基址指针寄存器 指令寄存器 eip 存放下一条执行指令的所在地址 eax 用于存放函数返回值 p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="函数调用细节">
+<meta property="og:url" content="https://chaxxro.github.io/2023/06/02/cpp-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="栈帧栈帧专门用于保存函数调用过程中的各种信息，如参数、返回地址本地变量等 栈顶的地址最低，栈底的地址最高，栈指针 esp 指向栈顶的，基址指针 ebp 指向栈底，ebp 在调用过程中不变 程序执行时，esp 减小将分配空间，esp 增大将释放空间   寄存器esp 存放于堆栈指针寄存器中，ebp 存放于基址指针寄存器 指令寄存器 eip 存放下一条执行指令的所在地址 eax 用于存放函数返回值 p">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/06/02/cpp-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/06/02/cpp-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/02.png">
+<meta property="article:published_time" content="2023-06-02T12:32:44.000Z">
+<meta property="article:modified_time" content="2023-06-02T13:10:06.731Z">
+<meta property="article:author" content="chaxxro">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/06/02/cpp-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/06/02/cpp-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/06/02/cpp-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/","path":"2023/06/02/cpp-函数调用细节/","title":"函数调用细节"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>函数调用细节 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88%E5%B8%A7"><span class="nav-text">栈帧</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-text">寄存器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#push%E3%80%81pop%E3%80%81call"><span class="nav-text">push、pop、call</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E5%9F%BA%E6%9C%AC%E8%BF%87%E7%A8%8B"><span class="nav-text">函数调用基本过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E8%80%85%E6%A0%88%E5%B8%A7%E6%93%8D%E4%BD%9C"><span class="nav-text">函数调用者栈帧操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A2%AB%E8%B0%83%E7%94%A8%E8%80%85%E6%A0%88%E5%B8%A7%E6%93%8D%E4%BD%9C"><span class="nav-text">被调用者栈帧操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E7%BA%A6%E5%AE%9A%E8%B0%83%E7%94%A8"><span class="nav-text">函数约定调用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#stdcall"><span class="nav-text">stdcall</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cdecl"><span class="nav-text">cdecl</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fastcall"><span class="nav-text">fastcall</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#thiscall"><span class="nav-text">thiscall</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">366</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="函数调用细节 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          函数调用细节
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-06-02 20:32:44 / 修改时间：21:10:06" itemprop="dateCreated datePublished" datetime="2023-06-02T20:32:44+08:00">2023-06-02</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="栈帧"><a href="#栈帧" class="headerlink" title="栈帧"></a>栈帧</h2><p>栈帧专门用于保存函数调用过程中的各种信息，如参数、返回地址本地变量等</p>
+<p>栈顶的地址最低，栈底的地址最高，栈指针 esp 指向栈顶的，基址指针 ebp 指向栈底，ebp 在调用过程中不变</p>
+<p>程序执行时，esp 减小将分配空间，esp 增大将释放空间</p>
+<img src="/2023/06/02/cpp-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/01.png" class="">
+
+<h2 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h2><p>esp 存放于堆栈指针寄存器中，ebp 存放于基址指针寄存器</p>
+<p>指令寄存器 eip 存放下一条执行指令的所在地址</p>
+<p>eax 用于存放函数返回值</p>
+<h2 id="push、pop、call"><a href="#push、pop、call" class="headerlink" title="push、pop、call"></a>push、pop、call</h2><p><code>push</code>、<code>pop</code> 和 <code>call</code> 都属于汇编指令</p>
+<p>入栈操作分为两步：</p>
+<ol>
+<li><p>栈顶指针自减以扩大栈帧空间</p>
+</li>
+<li><p>将某个寄存器的值保存新开辟的位置上</p>
+</li>
+</ol>
+<p>出栈操作只有一步：</p>
+<ol>
+<li>栈顶指针自增以缩小栈帧空间，将原先最靠近栈顶的值赋予某个寄存器</li>
+</ol>
+<img src="/2023/06/02/cpp-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/02.png" class="">
+
+<p>调用分为两步：</p>
+<ol>
+<li><p>让当前指令寄存器 eip 的值入栈，作为返回地址</p>
+</li>
+<li><p>将指令寄存器 eip 的值修改为接下来即将调用的函数第一条机器指令的所在地址，从而实现跳转</p>
+</li>
+</ol>
+<h2 id="函数调用基本过程"><a href="#函数调用基本过程" class="headerlink" title="函数调用基本过程"></a>函数调用基本过程</h2><p>在函数调用过程中，调用者需要知道在哪里获取被调用者返回的值，被调用者需要知道传入的参数在哪里以及返回的地址在哪里，同时还需要保证在被调用者返回后，ebp、esp 等寄存器的值应该和调用前一致</p>
+<h3 id="函数调用者栈帧操作"><a href="#函数调用者栈帧操作" class="headerlink" title="函数调用者栈帧操作"></a>函数调用者栈帧操作</h3><ol>
+<li><p>将被调用函数的参数按照从右到左的顺序压入栈中</p>
+</li>
+<li><p>将返回地址 eip 压入栈中</p>
+</li>
+</ol>
+<p>这两步操作都是调用者负责的，因此压入的栈属于调用者的栈帧</p>
+<h3 id="被调用者栈帧操作"><a href="#被调用者栈帧操作" class="headerlink" title="被调用者栈帧操作"></a>被调用者栈帧操作</h3><p>每个函数的机器指令段的开头：</p>
+<ol>
+<li><p>在栈帧中保存上一栈帧的栈底地址，汇编指令为 <code>push ebp</code></p>
+</li>
+<li><p>将上一栈帧的栈顶地址作为当前函数栈帧的栈底地址，汇编指令为 <code>mov ebp, esp</code>，此时保存了调用者函数的 ebp，并且建立了一个新的栈帧</p>
+</li>
+<li><p>为当前函数的局部变量开辟足够的空间，汇编指令为 <code>sub esp, M</code>，M 为局部变量占用栈帧空间的字节数</p>
+</li>
+</ol>
+<p>每个函数的机器指令段的末尾：</p>
+<ol>
+<li><p>将 esp 恢复为为局部变量开辟空间之前的值，汇编指令为 <code>mov esp, ebp</code>，恢复后 esp 的值恰好是上一栈帧栈底地址的地址</p>
+</li>
+<li><p>将 ebp 恢复为上一栈帧的栈底地址，汇编指令为 <code>mov ebp, [esp]</code></p>
+</li>
+<li><p>执行汇编指令 <code>pop esp</code>，恢复后 esp 的值恰好是存放返回地址的地址</p>
+</li>
+<li><p>将 eip 恢复为 <code>call</code> 指令之前的待执行的命令，汇编指令为 <code>mov eip, [esp]</code></p>
+</li>
+<li><p>执行 <code>pop esp</code>， 恢复后 esp 的值恰好为刚执行完的函数的第一个形参的入栈地址</p>
+</li>
+<li><p>弹出调用函数的所有实参，汇编指令为 <code>pop ...</code>，恢复后 esp 的值</p>
+</li>
+</ol>
+<h2 id="函数约定调用"><a href="#函数约定调用" class="headerlink" title="函数约定调用"></a>函数约定调用</h2><p>在函数调用过程中，有两个很重要的问题必须得到明确说明</p>
+<ul>
+<li><p>当参数个数多于一个时，按照什么顺序把参数压入堆栈</p>
+</li>
+<li><p>函数调用后，由谁来把堆栈恢复原装</p>
+</li>
+</ul>
+<p>函数约定调用是函数调用者和被调用的函数体之间关于参数传递、返回值传递、堆栈清除、寄存器使用的一种约定</p>
+<p>常见的调用约定有：<code>stdcall</code>、<code>cdecl</code>、<code>fastcall</code>、<code>thiscall</code></p>
+<h3 id="stdcall"><a href="#stdcall" class="headerlink" title="stdcall"></a>stdcall</h3><p>Standard Call 的缩写，C++ 的标准调用方式</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 声明语法</span></span><br><span class="line"><span class="function"><span class="type">int</span> __stdcall <span class="title">function</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span></span></span><br></pre></td></tr></table></figure>
+
+<p><code>stdcall</code> 的调用约定意味着：</p>
+<ul>
+<li><p>参数从右向左压入堆栈</p>
+</li>
+<li><p>函数自身清理堆栈</p>
+</li>
+<li><p>函数名自动加前导的下划线，后面紧跟一个 <code>@</code> 符号，其后紧跟着参数的尺寸</p>
+</li>
+</ul>
+<h3 id="cdecl"><a href="#cdecl" class="headerlink" title="cdecl"></a>cdecl</h3><p>C Declaration 的缩写，C 语言缺省的调用约定</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 声明语法</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">function</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>          <span class="comment">// 不加修饰就是 C 调用约定 </span></span></span><br><span class="line"><span class="function"><span class="type">int</span> __cdecl <span class="title">function</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>  <span class="comment">// 明确指出 C 调用约定</span></span></span><br></pre></td></tr></table></figure>
+
+<p><code>cdecl</code> 调用约定意味着：</p>
+<ul>
+<li><p>参数从右向左压入堆栈</p>
+</li>
+<li><p>调用者负责清理堆栈</p>
+</li>
+<li><p>C 调用约定允许函数的参数的个数是不固定的</p>
+</li>
+<li><p>仅在函数名前加上一个下划线前缀</p>
+</li>
+</ul>
+<h3 id="fastcall"><a href="#fastcall" class="headerlink" title="fastcall"></a>fastcall</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 声明语法</span></span><br><span class="line"><span class="function"><span class="type">int</span> fastcall <span class="title">function</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>  </span></span><br></pre></td></tr></table></figure>
+
+<p><code>fastcall</code> 调用约定意味着：</p>
+<ul>
+<li><p>函数的第一个和第二个 <code>DWORD</code> 参数（或者尺寸更小的）通过 ecx 和 edx 传递，其他参数通过从右向左的顺序压栈</p>
+</li>
+<li><p>函数自身清理堆栈</p>
+</li>
+<li><p>函数名修改规则同 <code>stdcall</code></p>
+</li>
+</ul>
+<h3 id="thiscall"><a href="#thiscall" class="headerlink" title="thiscall"></a>thiscall</h3><p>C++ 类成员函数缺省的调用约定</p>
+<p><code>thiscall</code> 是唯一一个不能明确指明的函数修饰，因为 <code>thiscall</code> 不是关键字</p>
+<p>对于参数个数固定情况下，类似于 <code>stdcall</code>，不定时则类似 <code>cdecl</code></p>
+<p><code>thiscall</code> 意味着：</p>
+<ul>
+<li><p>参数从右向左入栈</p>
+</li>
+<li><p>如果参数个数不确定，<code>this</code> 指针在所有参数压栈后被压入堆栈，如果参数个数确定，<code>this</code> 指针通过 ecx 传递给被调用者</p>
+</li>
+<li><p>如果参数个数不确定，调用者清理堆栈，否则函数自己清理堆栈</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/06/02/cpp-%E6%9F%94%E6%80%A7%E6%95%B0%E7%BB%84/" rel="prev" title="柔性数组">
+                  <i class="fa fa-chevron-left"></i> 柔性数组
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/06/02/cpp-new%E7%9A%84%E5%90%84%E7%A7%8D%E5%A7%BF%E5%8A%BF/" rel="next" title="new 的各种姿势">
+                  new 的各种姿势 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

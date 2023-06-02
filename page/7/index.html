@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">353</span>
+          <span class="site-state-item-count">366</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -159,7 +159,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-listpack/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/15/cpp-%E9%A2%84%E5%A4%84%E7%90%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -177,7 +177,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/Redis-listpack/" class="post-title-link" itemprop="url">listpack</a>
+          <a href="/2023/05/15/cpp-%E9%A2%84%E5%A4%84%E7%90%86/" class="post-title-link" itemprop="url">预处理</a>
         </h2>
 
         <div class="post-meta-container">
@@ -188,14 +188,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-28 21:26:25" itemprop="dateCreated datePublished" datetime="2023-04-28T21:26:25+08:00">2023-04-28</time>
+      <time title="创建时间：2023-05-15 21:25:29" itemprop="dateCreated datePublished" datetime="2023-05-15T21:25:29+08:00">2023-05-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-02 12:10:24" itemprop="dateModified" datetime="2023-06-02T12:10:24+08:00">2023-06-02</time>
+      <time title="修改时间：2023-06-02 21:10:06" itemprop="dateModified" datetime="2023-06-02T21:10:06+08:00">2023-06-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -203,7 +203,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
         </span>
     </span>
 
@@ -217,674 +217,998 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p>quicklist 虽然通过控制 quicklistNode 结构里的压缩列表的大小或者元素个数，来减少连锁更新带来的性能影响，但是并没有完全解决连锁更新的问题</p>
-<p>listpack 用来替代压缩列表，它最大特点是 listpack 中每个节点不再包含前一个节点的长度</p>
-<p>listpack 用一块连续的内存空间来紧凑地保存数据，并且为了节省内存的开销，listpack 节点会采用不同的编码方式保存不同大小的数据</p>
-<img src="/2023/04/28/Redis-listpack/01.png" class="">
-
-<ul>
-<li><p>encoding：定义该元素的编码类型，会对不同长度的整数和字符串进行编码</p>
+          <p>预处理是在编译器进行编译之前进行的操作</p>
+<p>预处理指令以符号 <code>#</code> 开头，且必须是该行除了任何空白字符外的第一个字符</p>
+<p>预处理过程扫描源代码，对其进行初步的转换，产生新的源代码提供给编译器</p>
+<h2 id="常用预处理"><a href="#常用预处理" class="headerlink" title="常用预处理"></a>常用预处理</h2><ul>
+<li><p><code>#include</code> 将包含的文件复制到当前位置，可以 <code>#include</code> 任何文件</p>
 </li>
-<li><p>data：实际存放的数据</p>
+<li><p><code>#if/elif/endif</code> 条件判断</p>
 </li>
-<li><p>len：encoding+data的总长度</p>
+<li><p><code>#error</code> 停止编译并显示错误信息</p>
 </li>
-</ul>
-<p>listpack 没有压缩列表中记录前一个节点长度的字段了，listpack 只记录当前节点的长度，当向 listpack 加入一个新元素的时候，不会影响其他节点的长度字段的变化，从而避免了压缩列表的连锁更新问题</p>
-<h2 id="一般结构"><a href="#一般结构" class="headerlink" title="一般结构"></a>一般结构</h2><p>listpack 拥有一个固定的 6 字节头部信息，相比 ziplist 的 10 字节的头部信息，listpack 少了指向最后一个 element 的指针</p>
-<p>在 listpack 尾部有一个 255 的终止符</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;tot-bytes&gt; &lt;num-elements&gt; &lt;element-1&gt; ... &lt;element-N&gt; &lt;listpack-end-byte&gt;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>tot-bytes：类型 <code>uint32_t</code>，采用小端存储，表示 listpack 全部字节</p>
-</li>
-<li><p>num-elements：类型 <code>uint16_t</code>，采用小端存储，表示 listpack 包含 element 数量，当 num-elements 被设置为 65535 时表示 element 数量不可知，此时获取 element 数量需要通过扫描整个 listpack</p>
+<li><p><code>#pragma pack(n)</code> 对齐的时候就会把元素的大小和 n 进行比较，取较小的那个来对齐，合法 n 的数值分别为 1、2、4、8、16</p>
 </li>
 </ul>
-<h2 id="element-结构"><a href="#element-结构" class="headerlink" title="element 结构"></a>element 结构</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;encoding-type&gt;&lt;element-data&gt;&lt;element-tot-len&gt;</span><br><span class="line">|                                            |</span><br><span class="line">+--------------------------------------------+</span><br><span class="line">            (This is an element)</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">test1</span> &#123;</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">    <span class="type">char</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">    <span class="type">char</span> d;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">sizeof</span>(test1) == <span class="number">12</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(2)</span></span><br><span class="line"><span class="keyword">struct</span> test2 &#123;</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">    <span class="type">char</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">    <span class="type">char</span> d;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack() <span class="comment">// 取消对齐</span></span></span><br><span class="line"><span class="built_in">sizeof</span>(test2) == <span class="number">10</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> test2 &#123;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">    <span class="type">int</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">sizeof</span>(test2) == <span class="number">12</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(2)</span></span><br><span class="line"><span class="keyword">struct</span> test3 &#123;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">    <span class="type">int</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack() <span class="comment">// 取消对齐</span></span></span><br><span class="line"><span class="built_in">sizeof</span>(test3) == <span class="number">8</span></span><br></pre></td></tr></table></figure>
 
-<p>encoding-type 和 element-tot-len 总是存在的，但 data 部分可能会放在 encoding-type 里</p>
-<p>element-tot-len 只能在反向遍历时使用，因为在正向遍历时不需要该字段就能知道数据大小</p>
-<p>encoding-type 第一个字节的前两位表示编码方式，这里有三种编码方式</p>
+<ul>
+<li><p><code>#pragma pack(show)</code> 显示当前内存对齐的字节数</p>
+</li>
+<li><p><code>#pragma pack(push)</code> 将当前的对齐字节数压入栈顶，并设置这个值为新的对齐字节数</p>
+</li>
+<li><p><code>#pragma pack(push, n)</code> 将当前的对齐字节数压入栈顶，并设置 n 为新的对齐字节数</p>
+</li>
+<li><p><code>#pragma pack(pop)</code> 弹出栈顶对齐字节数，并设置其为新的内存对齐字节数</p>
+</li>
+<li><p><code>#pragma pack(pop, n)</code> 弹出栈顶并直接丢弃，设置 n 为其新的内存对齐字节数</p>
+</li>
+<li><p><code>#pragma GCC diagnostic [error|warning|ignored] &quot;message&quot;</code> 将诊断信息视为错误、告警或忽略，可以用于屏蔽局部代码的警告</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 搭配 push pop 来记录状态，用于还原</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic push</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic [<span class="keyword">error</span>|<span class="keyword">warning</span>|ignored] <span class="string">&quot;-W&lt;警告选项&gt;&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic pop</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/15/cpp-%E5%AE%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/15/cpp-%E5%AE%8F/" class="post-title-link" itemprop="url">宏</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-15 21:19:41" itemprop="dateCreated datePublished" datetime="2023-05-15T21:19:41+08:00">2023-05-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-02 21:10:06" itemprop="dateModified" datetime="2023-06-02T21:10:06+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>在编译预处理时，对程序中所有出现的宏名，都用宏定义中的字符串去代换</p>
+<p>预处理程序对它不作任何检查，如果宏中有错误，则只会在编译源程序时发现</p>
+<h2 id="宏操作"><a href="#宏操作" class="headerlink" title="宏操作"></a>宏操作</h2><p><code>#define</code> 定义一个宏</p>
+<p><code>#undef</code> 取消一个宏</p>
+<p><code>#ifdef</code> 如果宏已经定义</p>
+<p><code>#ifndef</code> 如果宏没有定义</p>
+<h2 id="无参宏"><a href="#无参宏" class="headerlink" title="无参宏"></a>无参宏</h2><p>简单的文本替换</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> INT1 int *</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">int</span> * INT2;</span><br><span class="line"></span><br><span class="line">INT1 a1, b1;</span><br><span class="line">INT2 a2, b2;</span><br><span class="line"><span class="comment">// INT1 a1, b1 被替换为 int *a1, b1</span></span><br><span class="line"><span class="comment">// 即一个指向int类型的指针一个int类型的变量</span></span><br><span class="line"><span class="comment">// INT2 a2,b2 则是两个指向 int 类型的指针</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="多语句宏"><a href="#多语句宏" class="headerlink" title="多语句宏"></a>多语句宏</h2><p>如果宏里有多过一个语句，就需要用 <code>do &#123; /*...*/ &#125; while(0)</code> 包裹成单个语句</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> M() a(); b()</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (cond)</span><br><span class="line">    <span class="built_in">M</span>();</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">c</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 预处理后 */</span></span><br><span class="line"><span class="keyword">if</span> (cond)</span><br><span class="line">    <span class="built_in">a</span>(); <span class="built_in">b</span>(); <span class="comment">/* b(); 在 if 之外     */</span></span><br><span class="line"><span class="keyword">else</span>          <span class="comment">/* &lt;- else 缺乏对应 if */</span></span><br><span class="line">    <span class="built_in">c</span>();</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> M() do &#123; a(); b(); &#125; while(0)</span></span><br><span class="line"><span class="comment">/* 预处理后 */</span></span><br><span class="line"><span class="keyword">if</span> (cond)</span><br><span class="line">    <span class="keyword">do</span> &#123; <span class="built_in">a</span>(); <span class="built_in">b</span>(); &#125; <span class="keyword">while</span>(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">c</span>();</span><br></pre></td></tr></table></figure>
+
+<h2 id="有参宏"><a href="#有参宏" class="headerlink" title="有参宏"></a>有参宏</h2><p>宏名中不能有空格，宏名与形参表之间也不能有空格，而形参表中形参之间可以有空格</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> COUNT(M) M*M</span></span><br><span class="line"><span class="type">int</span> x=<span class="number">6</span>;</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">COUNT</span>(x+<span class="number">1</span>));  <span class="comment">// 13</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">COUNT</span>(++X));  <span class="comment">// 56</span></span><br></pre></td></tr></table></figure>
+
+<p>宏定义也可以定义表达式或多个语句</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> AB(a,b) a=i+5;b=j+3;   宏定义多个语句</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="参数字符串化"><a href="#参数字符串化" class="headerlink" title="参数字符串化"></a>参数字符串化</h2><p><code>#</code> 的作用就是将 <code>#</code> 后边的宏参数进行字符串的操作，也就是将 <code>#</code> 后边的参数两边加上一对双引号使其成为字符串</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> TEST(param) #param</span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *pStr=<span class="built_in">TEST</span>(<span class="number">123</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;pSrt=%s\n&quot;</span>,pStr);  <span class="comment">// 123</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="参数字符拼接"><a href="#参数字符拼接" class="headerlink" title="参数字符拼接"></a>参数字符拼接</h2><p><code>##</code> 运算符可以起到粘合的作用，即将两个宏参数连接为一个数</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> TEST(param1,param2) (param1##param2)</span></span><br><span class="line"><span class="type">int</span> num =<span class="built_in">TEST</span>(<span class="number">12</span>, <span class="number">34</span>);  <span class="comment">// 1234</span></span><br><span class="line"><span class="type">char</span>* str = <span class="built_in">Conn</span>(<span class="string">&quot;asdf&quot;</span>, <span class="string">&quot;adf&quot;</span>); <span class="comment">// asdfadf</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="换行"><a href="#换行" class="headerlink" title="换行"></a>换行</h2><p><code>\</code> 行继续操作，表示下一行继续此宏的定义，最后一行不要加续行符</p>
+<h2 id="可变参数宏"><a href="#可变参数宏" class="headerlink" title="可变参数宏"></a>可变参数宏</h2><p>宏可以接受可变数目的参数，就像可变参数函数一样</p>
+<p><code>__VA_ARGS__</code> 宏用来表示可变参数的内容，简单来说就是将左边宏中 <code>…</code> 的内容原样抄写在右边 <code>__VA_ARGS__</code> 所在的位置</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> debug(format, ...) printf(format, __VA_ARGS__)</span></span><br></pre></td></tr></table></figure>
+
+<p>可以给可变参数起一个名字，而非直接使用 <code>__VA_ARGS__</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> debug(format, args...) printf(format, args);</span></span><br></pre></td></tr></table></figure>
+
+<p>可变参数宏中的可变参数必须至少有一个参数传入，不然会报错</p>
+<p>可以使用 <code>##</code> 操作来避免可变参数为空的情况，如果可变参数被忽略或为空，<code>##</code> 操作将在预处理阶段去除掉多余的逗号</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> debug(format, args...) printf(format, ##args);</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">debug</span>(<span class="string">&quot;123&quot;</span>)</span><br><span class="line"><span class="comment">// print(&quot;123&quot;);</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/15/cpp-%E5%80%BC%E7%B1%BB%E5%88%AB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/15/cpp-%E5%80%BC%E7%B1%BB%E5%88%AB/" class="post-title-link" itemprop="url">值类别</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-15 21:18:13" itemprop="dateCreated datePublished" datetime="2023-05-15T21:18:13+08:00">2023-05-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-02 21:10:06" itemprop="dateModified" datetime="2023-06-02T21:10:06+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>表达式的两个特征：</p>
+<ul>
+<li><p>具名：具有一个可标识的名字</p>
+</li>
+<li><p>可被移动：移动构造函数、移动赋值运算符或实现了移动语义的其他函数重载能够绑定于这个表达式</p>
+</li>
+</ul>
+<p>自 C++11 开始，表达式的值类别根据表达式的两个特征分为五种，分别是左值 lvalue、将亡值 xvalue、纯右值 prvalue 以及两种混合类别泛左值 glvalue 和右值 rvalue 五种</p>
+<img src="/2023/05/15/cpp-%E5%80%BC%E7%B1%BB%E5%88%AB/01.png" class="">
+
+<ul>
+<li><p>lvalue 具名且不可被移动</p>
+</li>
+<li><p>xvaue 具名且可被移动</p>
+</li>
+<li><p>prvalue 不具名且可被移动</p>
+</li>
+<li><p>glvalue 具名，lvalue 和 xvalue 都属于 glvalue</p>
+</li>
+<li><p>rvalue 可被移动的表达式，prvalue 和 xvalue 都属于 rvalue</p>
+</li>
+</ul>
+<p>只要具名就是泛左值，根据是否可移动分为左值和将亡值</p>
+<p>只要可移动就是右值，根据是否具名分为纯右值和将亡值</p>
+<h2 id="左值-lvalue"><a href="#左值-lvalue" class="headerlink" title="左值 lvalue"></a>左值 lvalue</h2><p>左值就是赋值符号左边的值，是表达式结束（不一定是赋值表达式）后依然存在的对象</p>
+<p>可以将左值看作是一个关联了名称的内存位置，允许程序的其他部分来访问它</p>
+<p>左值具有以下特征：</p>
+<ul>
+<li><p>可通过取地址运算符获取其地址</p>
+</li>
+<li><p>可修改的左值可用作内建赋值和内建符合赋值运算符的左操作数</p>
+</li>
+<li><p>可以用来初始化左值引用</p>
+</li>
+</ul>
+<p>左值类型：</p>
+<ul>
+<li><p>变量名、函数名以及数据成员名</p>
+</li>
+<li><p>返回左值引用的函数调用</p>
+</li>
+<li><p>由赋值运算符或复合赋值运算符连接的表达式</p>
+</li>
+<li><p>解引用表达式</p>
+</li>
+<li><p>前置自增和自减表达式</p>
+</li>
+<li><p>成员访问运算符的结果</p>
+</li>
+<li><p>由指针访问成员运算符的结果</p>
+</li>
+<li><p>下标运算符的结果</p>
+</li>
+<li><p>字符串字面值</p>
+</li>
+</ul>
+<h2 id="纯右值-prvalue"><a href="#纯右值-prvalue" class="headerlink" title="纯右值 prvalue"></a>纯右值 prvalue</h2><p>字面值或者函数返回的非引用都是纯右值</p>
+<ul>
+<li><p>字面值，字符串字面值除外</p>
+</li>
+<li><p>返回值为非引用的函数调用或操作符重载</p>
+</li>
+<li><p>后置自增和自减表达式</p>
+</li>
+<li><p>算术表达式</p>
+</li>
+<li><p>逻辑表达式</p>
+</li>
+<li><p>比较表达式</p>
+</li>
+<li><p>取地址表达式</p>
+</li>
+<li><p>lambda 表达式</p>
+</li>
+</ul>
+<h2 id="将亡值-xvalue"><a href="#将亡值-xvalue" class="headerlink" title="将亡值 xvalue"></a>将亡值 xvalue</h2><p>将亡值即将消亡的值，是 C++11 新增的跟右值引用相关的表达式，通常是将要被移动的对象，比如返回右值引用 <code>T&amp;&amp;</code> 的函数返回值、<code>std::move</code> 的返回值，或者转换为 <code>T&amp;&amp;</code> 的类型转换函数的返回值</p>
+<p>将亡值可以理解为通过盗取其他变量内存空间的方式获取到的值，在确保其他变量不再被使用、或即将被销毁时，通过盗取的方式可以避免内存空间的释放和分配，能够延长变量值的生命期</p>
+<p>xvalue 只能通过两种方式来获得，这两种方式都涉及到将一个左值转化为一个右值引用：</p>
+<ul>
+<li><p>返回右值引用的函数的调用表达式，如 <code>static_cast&lt;T&amp;&amp;&gt;(t)</code></p>
+</li>
+<li><p>转换为右值引用的转换函数的调用表达式，如 <code>std::move(t)</code></p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/15/cpp-%E4%B8%8D%E6%8E%A8%E8%8D%90%E4%BD%BF%E7%94%A8%E6%A8%A1%E6%9D%BF%E5%8F%82%E6%95%B0%E6%98%AFbool%E7%9A%84std-vector/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/15/cpp-%E4%B8%8D%E6%8E%A8%E8%8D%90%E4%BD%BF%E7%94%A8%E6%A8%A1%E6%9D%BF%E5%8F%82%E6%95%B0%E6%98%AFbool%E7%9A%84std-vector/" class="post-title-link" itemprop="url">不推荐使用模板参数是 bool 的 std::vector</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-15 19:24:18" itemprop="dateCreated datePublished" datetime="2023-05-15T19:24:18+08:00">2023-05-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-02 21:10:06" itemprop="dateModified" datetime="2023-06-02T21:10:06+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>为了优化空间利用，c++98 显示地定义了 <code>std::vector&lt;bool&gt;</code>，其中每个 <code>bool</code> 只占用 1 bit 的空间而不是 1 byte</p>
+<p>由于空间优化，<code>std::vector&lt;bool&gt;</code> 并不具备普通标准容器的所有能力和接口</p>
+<h2 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// stl_bvector.h</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">long</span> _Bit_type;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">_Bit_reference</span> &#123;</span><br><span class="line">  _Bit_type* _M_p;</span><br><span class="line">  _Bit_type  _M_mask;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">operator</span> <span class="title">bool</span><span class="params">()</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> !!(*_M_p &amp; _M_mask);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">templace&lt;<span class="keyword">typename</span> _Alloc&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">vector</span>&lt;<span class="type">bool</span>, _Alloc&gt; : <span class="keyword">protected</span> _Bvector_base&lt;_Alloc&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="keyword">typedef</span> <span class="type">bool</span>              value_type;</span><br><span class="line">  <span class="keyword">typedef</span> _Bit_reference    reference;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="type">bool</span>              const_reference;</span><br><span class="line">  <span class="keyword">typedef</span> _Bit_reference*   pointer;</span><br><span class="line">  <span class="keyword">typedef</span> <span class="type">const</span> <span class="type">bool</span>*       const_pointer;</span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function">reference <span class="title">at</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line">  <span class="function">const_reference <span class="title">at</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function">reference <span class="title">front</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line">  <span class="function">const_reference <span class="title">front</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function">reference <span class="title">back</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line">  <span class="function">const_reference <span class="title">back</span><span class="params">(<span class="type">size_t</span> __n)</span></span>;</span><br><span class="line"></span><br><span class="line">  reference <span class="keyword">operator</span>[](<span class="type">size_t</span> __n);</span><br><span class="line">  const_reference <span class="keyword">operator</span>[](<span class="type">size_t</span> __n);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>std::vector&lt;bool&gt;</code> 的 <code>at</code>、<code>front()</code>、<code>back()</code> 和 <code>[]</code> 并不像普通的 <code>std::vector&lt;T&gt;</code> 一样返回 <code>T&amp;</code>，而是返回一个代理对象来表示 <code>bool</code></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/11/cpp-pimpl/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/11/cpp-pimpl/" class="post-title-link" itemprop="url">pimpl</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-11 21:05:04" itemprop="dateCreated datePublished" datetime="2023-05-11T21:05:04+08:00">2023-05-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-02 21:10:06" itemprop="dateModified" datetime="2023-06-02T21:10:06+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>对于 cpp 而言，提供库给第三方使用时，都需要提供 .h 等头文件，但头文件中可能会暴露大量成员变量和私有函数</p>
+<p>因此，可以使用 pimpl(Pointer to Implementation) 方法，将内部变量和私有函数隐藏，仅保留对外接口</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 前置声明</span></span><br><span class="line"><span class="comment">// 将所有属于 CSocketClient 的成员变量和私有方法转移到 Impl 中</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Impl</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CScoketClient</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    Impl* m_pImpl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    .</span><br><span class="line">    .</span><br><span class="line">    .</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 由于 Impl 类是辅助类，没必要单独存在</span></span><br><span class="line"><span class="comment">// 所以一般将其定义为内部类，然后在 .cpp 文件中定义 Impl</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CSocketClient</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Impl</span>;</span><br><span class="line">    Impl* m_pImpl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    .</span><br><span class="line">    .</span><br><span class="line">    .</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>pimpl 方法优点：</p>
+<ul>
+<li><p>核心数据被隐藏，提高安全性</p>
+</li>
+<li><p>降低了编译依赖，提高编译速度</p>
+</li>
+<li><p>接口与实现分离</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/10/cpp-%E7%B1%BB%E5%9E%8B%E8%87%AA%E5%8A%A8%E6%8E%A8%E5%AF%BC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/10/cpp-%E7%B1%BB%E5%9E%8B%E8%87%AA%E5%8A%A8%E6%8E%A8%E5%AF%BC/" class="post-title-link" itemprop="url">类型自动推导</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-10 21:32:07" itemprop="dateCreated datePublished" datetime="2023-05-10T21:32:07+08:00">2023-05-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-02 21:10:06" itemprop="dateModified" datetime="2023-06-02T21:10:06+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="auto"><a href="#auto" class="headerlink" title="auto"></a>auto</h2><p>类型是一个编译期概念，运行时全变成了机器指令，所以类型推导是在编译期进行的</p>
+<p><code>auto</code> 只是一个占位符，用来充当变量类型，它根据出现的位置本着最简单的原则进行类型推导</p>
+<ul>
+<li>如果初始化表达式是引用，则去除引用语义</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> a = <span class="number">10</span>;</span><br><span class="line"><span class="type">int</span> &amp;b = a;</span><br><span class="line"></span><br><span class="line"><span class="keyword">auto</span> c = b;<span class="comment">// c 的类型为 int 而非 int&amp;（去除引用）</span></span><br><span class="line"><span class="keyword">auto</span> &amp;d = b;  <span class="comment">// 此时 c 的类型才为 int&amp;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如果初始化表达式为 <code>const</code> 或 <code>volatile</code>，则除去 <code>const</code> 或 <code>volatile</code> 语义</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> a1 = <span class="number">10</span>;</span><br><span class="line"><span class="keyword">auto</span>  b1= a1;  <span class="comment">// b1 的类型为 int 而非 const int（去除 const）</span></span><br><span class="line"><span class="type">const</span> <span class="keyword">auto</span> c1 = a1;  <span class="comment">// 此时 c1 的类型为 const int</span></span><br><span class="line">b1 = <span class="number">100</span>;<span class="comment">//合法</span></span><br><span class="line">c1 = <span class="number">100</span>;<span class="comment">//非法</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>如果 <code>auto</code> 关键字带上 <code>&amp;</code> 或 <code>*</code> 时，则不去除 <code>const</code> 或 <code>volatile</code> 语意</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> a2 = <span class="number">10</span>;</span><br><span class="line"><span class="keyword">auto</span> &amp;b2 = a2;  <span class="comment">//因为 auto 带上 &amp;，故不去除 const，b2 类型为 const int &amp;</span></span><br><span class="line">b2 = <span class="number">10</span>; <span class="comment">//非法</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">void</span> (Test::*<span class="type">const</span> pmf)(<span class="type">const</span> <span class="type">int</span>) <span class="type">const</span>;</span><br><span class="line"><span class="keyword">auto</span> e = pmf; <span class="comment">// void (Test::*)(const int) const</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>初始化表达式为数组时，<code>auto</code> 关键字推导类型为指针；若表达式为数组且 <code>auto</code> 带上 <code>&amp;</code>，则推导类型为数组类型</p>
+</li>
+<li><p>函数或者模板参数不能被声明为 <code>auto</code></p>
+</li>
+</ul>
+<h2 id="万能引用-auto-amp-amp"><a href="#万能引用-auto-amp-amp" class="headerlink" title="万能引用 auto&amp;&amp;"></a>万能引用 auto&amp;&amp;</h2><p><code>const auto&amp;&amp;</code> 也是遵循 <code>auto</code> 最简单原则进行类型推导，而 <code>auto&amp;&amp;</code> 是一个特殊情况</p>
+<p><code>auto&amp;&amp;</code> 的特殊性在于它既可以推导左值引用，也可以推导右值引用，这都取决于表达式是左值还是右值</p>
+<p><code>auto&amp;&amp;</code> 接收函数返回的右值引用仍然是右值引用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">f1</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> &amp;<span class="title">f2</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> &amp;&amp;<span class="title">f3</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Demo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e1 = a; <span class="comment">// a 是左值，所以推导 e1 是 int &amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e2 = <span class="number">5</span>; <span class="comment">// 5 是右值，所以推导 e2 是 int &amp;&amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e3 = e2; <span class="comment">// e2 是 int &amp;&amp; 类型，但右值引用本身是左值，所以推导 e3 是 int &amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;ef1 = <span class="built_in">f1</span>(); <span class="comment">// 返回值是右值，所以推导 ef1 是 int &amp;&amp;，</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;ef2 = <span class="built_in">f2</span>(); <span class="comment">// 返回左值引用，所以推导 ef2 是 int &amp;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;ef3 = <span class="built_in">f3</span>(); <span class="comment">// 返回值是右值，所以推导 ef3 是 int &amp;&amp;</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;&amp;e4 = std::<span class="built_in">move</span>(a); <span class="comment">// 返回值是右值，所以推导 e4 是 int &amp;&amp;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="decltype"><a href="#decltype" class="headerlink" title="decltype"></a>decltype</h2><p><code>decltype</code> 跟 <code>auto</code> 一样有类型推导的作用，但 <code>decltype</code> 是一个编译期的运算符，用于求表达式的类型，它并没有过多的复杂规则，就是简单地返回这个表达式的类型</p>
+<ul>
+<li><p>表达式是标识符、类访问表达式，<code>decltype</code> 和表达式类型一致</p>
+</li>
+<li><p>表达式是函数调用， <code>decltype</code> 和返回值的类型一致；若函数返回的是纯右值，只有类类型可以携带 <code>const/volatile</code>，此外都忽略掉</p>
+</li>
+<li><p>若表达式是一个左值，则 <code>decltype</code> 是左值引用</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;type_traits&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CHECKTYPE(val, type)                           \</span></span><br><span class="line"><span class="meta">do &#123;                                                   \</span></span><br><span class="line"><span class="meta">  using tt = decltype(val);                            \</span></span><br><span class="line"><span class="meta">  std::cout <span class="string">&lt;&lt; #val &lt;&lt; &quot; == &quot; &lt;&lt; #type &lt;&lt; &quot;: &quot; &lt;&lt; std::is_same_v&lt;tt, type&gt;</span> &lt;&lt; std::endl;  \</span></span><br><span class="line"><span class="meta">&#125; while(0)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Widget</span> &#123;</span><br><span class="line">    <span class="type">int</span> x;</span><br><span class="line">    <span class="type">float</span> y;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">f</span><span class="params">(<span class="type">const</span> Widget&amp; w)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">CHECKTYPE</span>(w, <span class="type">const</span> Widget&amp;);</span><br><span class="line">  <span class="built_in">CHECKTYPE</span>(Widget::x, <span class="type">int</span>);</span><br><span class="line">  <span class="built_in">CHECKTYPE</span>(Widget::y, <span class="type">float</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">const</span> <span class="type">int</span> <span class="title">g</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> a;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">const</span> Widget <span class="title">h</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Widget a;</span><br><span class="line">    <span class="keyword">return</span> a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">vector</span> &#123; </span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">T&amp; <span class="keyword">operator</span>[](std::<span class="type">size_t</span> index);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; std::boolalpha;</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> i = <span class="number">0</span>;  </span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(i, <span class="type">const</span> <span class="type">int</span>);</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> arr[<span class="number">5</span>];</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(arr, <span class="type">int</span>[<span class="number">5</span>]);</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span>* ptr;</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(ptr, <span class="type">int</span>*);</span><br><span class="line"></span><br><span class="line">    Widget w;</span><br><span class="line">    <span class="built_in">f</span>(w);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">f</span>(w), <span class="type">bool</span>);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(f, <span class="built_in">bool</span>(<span class="type">const</span> Widget&amp;));</span><br><span class="line"></span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">g</span>(), <span class="type">int</span>);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">h</span>(), Widget);  <span class="comment">// false</span></span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(<span class="built_in">h</span>(), <span class="type">const</span> Widget);</span><br><span class="line"></span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; v;</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(v, vector&lt;<span class="type">int</span>&gt;);</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(v[<span class="number">0</span>], <span class="type">int</span>&amp;);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> a =<span class="number">0</span>;</span><br><span class="line">    <span class="built_in">CHECKTYPE</span>(std::<span class="built_in">move</span>(a), <span class="type">int</span>&amp;&amp;);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在泛型编程中，<code>auto</code> 和 <code>decltype</code> 结合使用达到返回类型后置</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt; <span class="keyword">typename</span> T, <span class="keyword">typename</span> U&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">add</span><span class="params">(T t, U u)</span> -&gt; <span class="title">decltype</span><span class="params">(t+u)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> t + u;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, _TCHAR* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="type">int</span> a = <span class="number">1</span>; <span class="type">float</span> b = <span class="number">2.0</span>;</span><br><span class="line">	<span class="keyword">auto</span> c = <span class="built_in">add</span>(a, b);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/10/cpp-%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/10/cpp-%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/" class="post-title-link" itemprop="url">引用</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-10 20:54:59" itemprop="dateCreated datePublished" datetime="2023-05-10T20:54:59+08:00">2023-05-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-02 21:10:06" itemprop="dateModified" datetime="2023-06-02T21:10:06+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>指针只是引用的一种实现方式，这本身跟引用语义无关</p>
+<h2 id="const-与引用"><a href="#const-与引用" class="headerlink" title="const 与引用"></a>const 与引用</h2><p>指针本身可以是 <code>const</code>，解类型也可以是 <code>const</code>，但引用本身是没有 <code>const</code> 的</p>
+<h2 id="快照"><a href="#快照" class="headerlink" title="快照"></a>快照</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 本机序是小端的情况</span></span><br><span class="line"><span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> &amp;r = a;</span><br><span class="line">a = <span class="number">8</span>;</span><br><span class="line">std::cout &lt;&lt; r &lt;&lt; std::endl; <span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="type">uint32_t</span> b = <span class="number">0</span>;</span><br><span class="line"><span class="type">uint16_t</span> &amp;r2 = <span class="built_in">reinterpret_cast</span>&lt;<span class="type">uint16_t</span> &amp;r&gt;(b);</span><br><span class="line">b = <span class="number">0xabcd1234</span>;</span><br><span class="line">std::cout &lt;&lt; std::hex &lt;&lt; r2 &lt;&lt; std::endl; <span class="comment">// 1234</span></span><br><span class="line"></span><br><span class="line"><span class="type">uint32_t</span> c = <span class="number">10</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">uint16_t</span> &amp;r1 = c;</span><br><span class="line">c = <span class="number">8</span>;</span><br><span class="line">std::cout &lt;&lt; std::dec &lt;&lt; r1 &lt;&lt; std::endl; <span class="comment">// 10</span></span><br></pre></td></tr></table></figure>
+
+<p><code>const</code> 引用的快照只在两种场景触发</p>
 <ol>
-<li>当数据是字符串，且可以被表示小数字（0-127）时，encoding 第一位为 0，后七位表示数据</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0|xxxxxxx</span><br><span class="line"></span><br><span class="line">&quot;\x03&quot; -- 0000 0011 --The string &quot;3&quot;</span><br><span class="line">&quot;\x12&quot; -- 0001 0010 --The string &quot;18&quot;</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>当数据是小字符串，字符串长度可以用后六位表示（0-63）</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">10|xxxxxx &lt;string-data&gt;</span><br><span class="line"></span><br><span class="line">&quot;\x80&quot; -- 1000 0000 --The empty string</span><br><span class="line">&quot;\x85hello&quot; -- 1000 0101 -- The string &quot;hello&quot;</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
-<li>高两位都被设置为 1，且紧随的后两位不是 11</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">110|xxxxx yyyyyyyy -- 后面 13 位直接编码有符号整数</span><br><span class="line">1110|xxxx yyyyyyyy -- 编码长度不大于 4095 的字符串</span><br></pre></td></tr></table></figure>
-
-<ol start="4">
-<li>高四位都被设置为 1</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1111|0000 &lt;4 字节字符串长度&gt; &lt;大字符串&gt;</span><br><span class="line">1111|0001 -- 编码 int16_t</span><br><span class="line">1111|0010 -- 编码 int24_t</span><br><span class="line">1111|0011 -- 编码 int32_t</span><br><span class="line">1111|0100 -- 编码 int64_t</span><br><span class="line">1111|0101 ~ 1111|1110 未使用</span><br><span class="line">1111|1111 -- 终止符</span><br></pre></td></tr></table></figure>
-
-<p>element-tot-len 使用变长字段存储，并且从右往左存储，每个字节的最高有效位用于指示是否有更多字节，这意味着在每个字节中只使用 7 位</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&quot;\x20&quot; -- 0010 0000 --32 bytes entry length</span><br><span class="line"></span><br><span class="line">500 二进制 1111 0100</span><br><span class="line">&quot;\xf4\x03&quot; -- 0000 0011 1111 0100 -- 500 bytes entry length</span><br><span class="line">[0]000 0011          [1]111 0100</span><br><span class="line"> |                   |</span><br><span class="line"> `- no more bytes    `- more bytes to the left!</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-list/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/Redis-list/" class="post-title-link" itemprop="url">链表</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:25:45" itemprop="dateCreated datePublished" datetime="2023-04-28T21:25:45+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-02 12:10:24" itemprop="dateModified" datetime="2023-06-02T12:10:24+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">// 双向链表</span><br><span class="line">typedef struct listNode &#123;</span><br><span class="line">    struct listNode *prev;</span><br><span class="line">    struct listNode *next;</span><br><span class="line">    void *value;</span><br><span class="line">&#125; listNode;</span><br><span class="line"></span><br><span class="line">// 迭代器指向下一个节点</span><br><span class="line">typedef struct listIter &#123;</span><br><span class="line">    listNode *next;</span><br><span class="line">    int direction;</span><br><span class="line">&#125; listIter;</span><br><span class="line"></span><br><span class="line">// 双向无环</span><br><span class="line">typedef struct list &#123;</span><br><span class="line">    listNode *head;</span><br><span class="line">    listNode *tail;</span><br><span class="line">    void *(*dup)(void *ptr);</span><br><span class="line">    void (*free)(void *ptr);</span><br><span class="line">    int (*match)(void *ptr, void *key);</span><br><span class="line">    unsigned long len;</span><br><span class="line">&#125; list;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-dict/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/Redis-dict/" class="post-title-link" itemprop="url">哈希表</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:24:30" itemprop="dateCreated datePublished" datetime="2023-04-28T21:24:30+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-02 12:10:24" itemprop="dateModified" datetime="2023-06-02T12:10:24+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">dictEntry</span> &#123;</span><br><span class="line">    <span class="type">void</span> *key;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        <span class="type">void</span> *val;</span><br><span class="line">        <span class="type">uint64_t</span> u64;</span><br><span class="line">        <span class="type">int64_t</span> s64;</span><br><span class="line">        <span class="type">double</span> d;</span><br><span class="line">    &#125; v;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">dictEntry</span> *next;  <span class="comment">// 多个哈希值相同的 key 组成链表</span></span><br><span class="line">&#125; dictEntry;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 一些哈希表要用到的函数</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">dictType</span> &#123;</span><br><span class="line">    <span class="comment">// 哈希函数</span></span><br><span class="line">    <span class="built_in">uint64_t</span> (*hashFunction)(<span class="type">const</span> <span class="type">void</span> *key);</span><br><span class="line">    <span class="comment">// 复制键函数</span></span><br><span class="line">    <span class="type">void</span> *(*keyDup)(<span class="type">void</span> *privdata, <span class="type">const</span> <span class="type">void</span> *key);</span><br><span class="line">    <span class="comment">// 复制值函数</span></span><br><span class="line">    <span class="type">void</span> *(*valDup)(<span class="type">void</span> *privdata, <span class="type">const</span> <span class="type">void</span> *obj);</span><br><span class="line">    <span class="comment">// 对比键函数</span></span><br><span class="line">    <span class="built_in">int</span> (*keyCompare)(<span class="type">void</span> *privdata, <span class="type">const</span> <span class="type">void</span> *key1, <span class="type">const</span> <span class="type">void</span> *key2);</span><br><span class="line">    <span class="comment">// 销毁键函数</span></span><br><span class="line">    <span class="built_in">void</span> (*keyDestructor)(<span class="type">void</span> *privdata, <span class="type">void</span> *key);</span><br><span class="line">    <span class="comment">// 销毁值函数</span></span><br><span class="line">    <span class="built_in">void</span> (*valDestructor)(<span class="type">void</span> *privdata, <span class="type">void</span> *obj);</span><br><span class="line">    <span class="comment">// 判断是否需要 rehash</span></span><br><span class="line">    <span class="built_in">int</span> (*expandAllowed)(<span class="type">size_t</span> moreMem, <span class="type">double</span> usedRatio);</span><br><span class="line">&#125; dictType;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 实际的哈希表</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">dictht</span> &#123;</span><br><span class="line">    dictEntry **table;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> size;  <span class="comment">// 默认值 0</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> sizemask;  <span class="comment">// 哈希表大小掩码，用于计算索引，默认值 0</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> used;  <span class="comment">// 已有节点数，包括 bucket 中的节点，默认值 0</span></span><br><span class="line">&#125; dictht;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 暴露的结构</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">dict</span> &#123;</span><br><span class="line">    dictType *type;</span><br><span class="line">    <span class="type">void</span> *privdata;  <span class="comment">// 私有数据</span></span><br><span class="line">    dictht ht[<span class="number">2</span>];  <span class="comment">// 两个哈希表用于渐进 rehash</span></span><br><span class="line">    <span class="type">long</span> rehashidx; <span class="comment">// -1 表示没有在进行 rehash，默认值 -1</span></span><br><span class="line">                    <span class="comment">// &gt;= 0 时表示 dictht.table 中的下标</span></span><br><span class="line">    <span class="type">int16_t</span> pauserehash; <span class="comment">// &gt;0 表示 rehash 暂停中，&lt;0 表示错误，默认值 0</span></span><br><span class="line">&#125; dict;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Add"><a href="#Add" class="headerlink" title="Add"></a>Add</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">dictAdd</span><span class="params">(dict *d, <span class="type">void</span> *key, <span class="type">void</span> *val)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    dictEntry *entry = <span class="built_in">dictAddRaw</span>(d,key,<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!entry) <span class="keyword">return</span> DICT_ERR;</span><br><span class="line">    <span class="built_in">dictSetVal</span>(d, entry, val);</span><br><span class="line">    <span class="keyword">return</span> DICT_OK;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * dictAddRaw 插入 entry 但并不设置值，而是将 dictEntry 返回给调用方由调用方设置值</span></span><br><span class="line"><span class="comment"> * 返回 dictEntry 而不设置值，主要是因为不想在存储 value 的指针</span></span><br><span class="line"><span class="comment"> * 返回值：</span></span><br><span class="line"><span class="comment"> * 当 key 已存在时，返回 null，并且如果 *existing 非空的话则用 *existing 覆盖</span></span><br><span class="line"><span class="comment"> * 当 key 不存在时，返回插入的 entry</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">dictEntry *<span class="title">dictAddRaw</span><span class="params">(dict *d, <span class="type">void</span> *key, dictEntry **existing)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">long</span> index;</span><br><span class="line">    dictEntry *entry;</span><br><span class="line">    dictht *ht;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 顺带 rehash 一个 bucket</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">dictIsRehashing</span>(d)) _dictRehashStep(d);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get the index of the new element, or -1 if</span></span><br><span class="line"><span class="comment">     * the element already exists. */</span></span><br><span class="line">    <span class="keyword">if</span> ((index = _dictKeyIndex(d, key, <span class="built_in">dictHashKey</span>(d,key), existing)) == <span class="number">-1</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Allocate the memory and store the new entry.</span></span><br><span class="line"><span class="comment">     * Insert the element in top, with the assumption that in a database</span></span><br><span class="line"><span class="comment">     * system it is more likely that recently added entries are accessed</span></span><br><span class="line"><span class="comment">     * more frequently. */</span></span><br><span class="line">    ht = <span class="built_in">dictIsRehashing</span>(d) ? &amp;d-&gt;ht[<span class="number">1</span>] : &amp;d-&gt;ht[<span class="number">0</span>];</span><br><span class="line">    entry = <span class="built_in">zmalloc</span>(<span class="built_in">sizeof</span>(*entry));</span><br><span class="line">    entry-&gt;next = ht-&gt;table[index];</span><br><span class="line">    ht-&gt;table[index] = entry;</span><br><span class="line">    ht-&gt;used++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Set the hash entry fields. */</span></span><br><span class="line">    <span class="built_in">dictSetKey</span>(d, entry, key);</span><br><span class="line">    <span class="keyword">return</span> entry;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 返回 key 对应的 dict.dictht.dictEntry 下标</span></span><br><span class="line"><span class="comment"> * 如果 key 对应下标已存在，即哈希冲突，返回 -1</span></span><br><span class="line"><span class="comment"> * and the optional output parameter may be filled.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 如果正在进行 rehash，则计算 key 在新 dictht 中的下标</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="type">long</span> _dictKeyIndex(dict *d, <span class="type">const</span> <span class="type">void</span> *key, <span class="type">uint64_t</span> hash, dictEntry **existing)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> idx, table;</span><br><span class="line">    dictEntry *he;</span><br><span class="line">    <span class="keyword">if</span> (existing) *existing = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Expand the hash table if needed */</span></span><br><span class="line">    <span class="keyword">if</span> (_dictExpandIfNeeded(d) == DICT_ERR)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">for</span> (table = <span class="number">0</span>; table &lt;= <span class="number">1</span>; table++) &#123;</span><br><span class="line">        idx = hash &amp; d-&gt;ht[table].sizemask;</span><br><span class="line">        <span class="comment">/* Search if this slot does not already contain the given key */</span></span><br><span class="line">        he = d-&gt;ht[table].table[idx];</span><br><span class="line">        <span class="keyword">while</span>(he) &#123;</span><br><span class="line">            <span class="keyword">if</span> (key==he-&gt;key || <span class="built_in">dictCompareKeys</span>(d, key, he-&gt;key)) &#123;</span><br><span class="line">                <span class="keyword">if</span> (existing) *existing = he;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            he = he-&gt;next;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">dictIsRehashing</span>(d)) <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> idx;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="rehash"><a href="#rehash" class="headerlink" title="rehash"></a>rehash</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 通过 dict.rehashidx 判断是否在 rehash</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> dictIsRehashing(d) ((d)-&gt;rehashidx != -1)</span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> _dictRehashStep(dict* d) &#123;</span><br><span class="line">    <span class="keyword">if</span> (d-&gt;pauserehash == <span class="number">0</span>) <span class="built_in">dictRehash</span>(d, <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 执行渐进式 rehash 迁移 n 个元素</span></span><br><span class="line"><span class="comment"> * 当仍有 key 需要迁移时返回 1，否则返回 0</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 考虑到不要阻塞太长时间，所以该步骤只会最多访问 N*10 个空 bucket</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">dictRehash</span><span class="params">(dict *d, <span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> empty_visits = n*<span class="number">10</span>;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">dictIsRehashing</span>(d)) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(n-- &amp;&amp; d-&gt;ht[<span class="number">0</span>].used != <span class="number">0</span>) &#123;</span><br><span class="line">        dictEntry *de, *nextde;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">assert</span>(d-&gt;ht[<span class="number">0</span>].size &gt; (<span class="type">unsigned</span> <span class="type">long</span>)d-&gt;rehashidx);</span><br><span class="line">        <span class="keyword">while</span>(d-&gt;ht[<span class="number">0</span>].table[d-&gt;rehashidx] == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            d-&gt;rehashidx++;</span><br><span class="line">            <span class="comment">// 最多访问 10*n 个空 bucket</span></span><br><span class="line">            <span class="keyword">if</span> (--empty_visits == <span class="number">0</span>) <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        de = d-&gt;ht[<span class="number">0</span>].table[d-&gt;rehashidx];</span><br><span class="line">        <span class="keyword">while</span>(de) &#123;</span><br><span class="line">            <span class="type">uint64_t</span> h;</span><br><span class="line"></span><br><span class="line">            nextde = de-&gt;next;</span><br><span class="line">            <span class="comment">// 计算 rehash 后的 key</span></span><br><span class="line">            h = <span class="built_in">dictHashKey</span>(d, de-&gt;key) &amp; d-&gt;ht[<span class="number">1</span>].sizemask;</span><br><span class="line">            <span class="comment">// 将 ht[0] 的数据放入 ht[1] 中</span></span><br><span class="line">            de-&gt;next = d-&gt;ht[<span class="number">1</span>].table[h];</span><br><span class="line">            d-&gt;ht[<span class="number">1</span>].table[h] = de;</span><br><span class="line">            d-&gt;ht[<span class="number">0</span>].used--;</span><br><span class="line">            d-&gt;ht[<span class="number">1</span>].used++;</span><br><span class="line">            de = nextde;</span><br><span class="line">        &#125;</span><br><span class="line">        d-&gt;ht[<span class="number">0</span>].table[d-&gt;rehashidx] = <span class="literal">NULL</span>;</span><br><span class="line">        d-&gt;rehashidx++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 当 ht[0] 全部迁移完成，交换 ht[0] 和 ht[1]</span></span><br><span class="line">    <span class="keyword">if</span> (d-&gt;ht[<span class="number">0</span>].used == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">zfree</span>(d-&gt;ht[<span class="number">0</span>].table);</span><br><span class="line">        d-&gt;ht[<span class="number">0</span>] = d-&gt;ht[<span class="number">1</span>];</span><br><span class="line">        _dictReset(&amp;d-&gt;ht[<span class="number">1</span>]);</span><br><span class="line">        d-&gt;rehashidx = <span class="number">-1</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* More to rehash... */</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-%E5%AD%97%E8%8A%82%E5%BA%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/Redis-%E5%AD%97%E8%8A%82%E5%BA%8F/" class="post-title-link" itemprop="url">字节序</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:22:49" itemprop="dateCreated datePublished" datetime="2023-04-28T21:22:49+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-02 12:10:24" itemprop="dateModified" datetime="2023-06-02T12:10:24+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>redis 试图用小端存储所有内容，但由于需要向后兼容，因此仍有一部分使用的大端序</p>
-<p>ziplist、intset 和 zipmap 中有许多转换操作，因为它们需要被序列化后通过 RDB 写入文件</p>
-<ul>
-<li><p>本机序调用函数，将本机序转成小端</p>
+<li><p>绑定纯右值</p>
 </li>
-<li><p>小端调用函数，将小端转成本机序</p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 只有本机是大端时才执行实际的转换</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (BYTE_ORDER == LITTLE_ENDIAN)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev16ifbe(p) ((void)(0))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev32ifbe(p) ((void)(0))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev64ifbe(p) ((void)(0))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev16ifbe(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev32ifbe(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev64ifbe(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev16ifbe(p) memrev16(p)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev32ifbe(p) memrev32(p)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev64ifbe(p) memrev64(p)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev16ifbe(v) intrev16(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev32ifbe(v) intrev32(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev64ifbe(v) intrev64(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* The functions htonu64() and ntohu64() convert the specified value to</span></span><br><span class="line"><span class="comment"> * network byte ordering and back. In big endian systems they are no-ops. */</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (BYTE_ORDER == BIG_ENDIAN)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> htonu64(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ntohu64(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> htonu64(v) intrev64(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ntohu64(v) intrev64(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
-
-<h2 id="memrev16"><a href="#memrev16" class="headerlink" title="memrev16"></a>memrev16</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">memrev16</span><span class="params">(<span class="type">void</span> *p)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *x = p, t;</span><br><span class="line"></span><br><span class="line">    t = x[<span class="number">0</span>];</span><br><span class="line">    x[<span class="number">0</span>] = x[<span class="number">1</span>];</span><br><span class="line">    x[<span class="number">1</span>] = t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="memrev32"><a href="#memrev32" class="headerlink" title="memrev32"></a>memrev32</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">memrev32</span><span class="params">(<span class="type">void</span> *p)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *x = p, t;</span><br><span class="line"></span><br><span class="line">    t = x[<span class="number">0</span>];</span><br><span class="line">    x[<span class="number">0</span>] = x[<span class="number">3</span>];</span><br><span class="line">    x[<span class="number">3</span>] = t;</span><br><span class="line">    t = x[<span class="number">1</span>];</span><br><span class="line">    x[<span class="number">1</span>] = x[<span class="number">2</span>];</span><br><span class="line">    x[<span class="number">2</span>] = t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="memrev64"><a href="#memrev64" class="headerlink" title="memrev64"></a>memrev64</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">memrev64</span><span class="params">(<span class="type">void</span> *p)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *x = p, t;</span><br><span class="line"></span><br><span class="line">    t = x[<span class="number">0</span>];</span><br><span class="line">    x[<span class="number">0</span>] = x[<span class="number">7</span>];</span><br><span class="line">    x[<span class="number">7</span>] = t;</span><br><span class="line">    t = x[<span class="number">1</span>];</span><br><span class="line">    x[<span class="number">1</span>] = x[<span class="number">6</span>];</span><br><span class="line">    x[<span class="number">6</span>] = t;</span><br><span class="line">    t = x[<span class="number">2</span>];</span><br><span class="line">    x[<span class="number">2</span>] = x[<span class="number">5</span>];</span><br><span class="line">    x[<span class="number">5</span>] = t;</span><br><span class="line">    t = x[<span class="number">3</span>];</span><br><span class="line">    x[<span class="number">3</span>] = x[<span class="number">4</span>];</span><br><span class="line">    x[<span class="number">4</span>] = t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="intrev16"><a href="#intrev16" class="headerlink" title="intrev16"></a>intrev16</h2><p>直接调用 <code>memrev16</code></p>
-<h2 id="intrev32"><a href="#intrev32" class="headerlink" title="intrev32"></a>intrev32</h2><p>直接调用 <code>memrev32</code></p>
-<h2 id="intrev64"><a href="#intrev64" class="headerlink" title="intrev64"></a>intrev64</h2><p>直接调用 <code>memrev64</code></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6/" class="post-title-link" itemprop="url">文件描述符</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:07:09" itemprop="dateCreated datePublished" datetime="2023-04-28T21:07:09+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-02 12:10:24" itemprop="dateModified" datetime="2023-06-02T12:10:24+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">文件系统</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Linux 系统中把一切都看做是文件。当进程打开现有文件或创建新文件时，内核向进程返回一个文件描述符，文件描述符就是内核为了高效管理已被打开的文件所创建的索引，用来指向被打开的文件，所有执行 I&#x2F;O 操作的系统调用都会通过文件描述符</p>
-<p>每个文件描述符会与一个打开的文件相对应，不同的文件描述符也可能指向同一个文件，相同的文件可以被不同的进程打开，也可以在同一个进程被多次打开</p>
-<p>常见的文件描述符是 0、1、2，分别表示标准输入、标准输出和错误输出。一个进程创建时，这个三个文件就也被它打开了</p>
-<p>系统为维护文件描述符，建立了三个表：进程级的文件描述符表、系统级的文件描述符表和文件系统的 inode 表</p>
-<p>操作系统为每个进程维护了一个文件描述符表，该表的值都从 0 开始的，所以在不同的进程中会有相同的文件描述符</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6/01.png" class="">
-
-<p>fd 相同，不意味着打开的文件相同，因为每个进程都有自己的表，隔离而独立</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" class="post-title-link" itemprop="url">文件系统</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:05:09" itemprop="dateCreated datePublished" datetime="2023-04-28T21:05:09+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-02 12:10:24" itemprop="dateModified" datetime="2023-06-02T12:10:24+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">文件系统</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/01.png" class="">
-
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/02.png" class="">
-
-<h2 id="文件系统"><a href="#文件系统" class="headerlink" title="文件系统"></a>文件系统</h2><p>Linux 文件系统会为每个文件分配两个数据结构：索引节点（index node）和目录项（directory entry），它们主要用来记录文件的元信息和目录层次结构</p>
-<ul>
-<li><p>索引节点 inode，用来记录文件的元信息，比如 inode 编号、文件大小、访问权限、创建时间、<br>修改时间、数据在磁盘的位置等等。索引节点是文件的唯一标识，它们之间一一对应，也同样都会被存储在硬盘中，所以索引节点同样占用磁盘空间</p>
-</li>
-<li><p>目录项 dentry，用来记录文件的名字、索引节点指针以及与其他目录项的层级关联关系；多个目录项关联起来，就会形成目录结构，但它与索引节点不同的是，目录项是由内核维护的一个数据结构，<br>不存放于磁盘，而是缓存在内存</p>
-</li>
-</ul>
-<p>由于索引节点唯一标识一个文件，而目录项记录着文件的名，所以目录项和索引节点的关系是多对一，也就是说，一个文件可以有多个别名</p>
-<p>目录也是文件，也是用索引节点唯一标识，和普通文件不同的是，普通文件在磁盘里面保存的是文件数据，而目录文件在磁盘里面保存子目录或文件</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/03.png" class="">
-
-<h2 id="硬链接和软连接"><a href="#硬链接和软连接" class="headerlink" title="硬链接和软连接"></a>硬链接和软连接</h2><p>硬链接是多个目录项中的索引节点指向一个文件，也就是指向同一个 inode，但是 inode 是不可能跨越文件系统的，每个文件系统都有各自的 inode 数据结构和列表，所以硬链接是不可用于跨文件系统的。由于多个目录项都是指向一个 inode，那么只有删除文件的所有硬链接以及源文件时，系统才会彻底删除该文件</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/04.png" class="">
-
-<p>软链接相当于重新创建一个文件，这个文件有独立的 inode，但是这个文件的内容是另外一个文件的路径，所以访问软链接的时候，实际上相当于访问到了另外一个文件，所以软链接是可以跨文件系统的，甚至目标文件被删除了，链接文件还是在的，只不过指向的文件找不到了而已</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/05.png" class="">
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/" class="post-title-link" itemprop="url">文件 IO</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:03:44" itemprop="dateCreated datePublished" datetime="2023-04-28T21:03:44+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-02 12:10:24" itemprop="dateModified" datetime="2023-06-02T12:10:24+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">文件系统</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>IO 结构模型分为 Direct IO、mmap 和 Buffer IO</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/01.png" class="">
-
-<h2 id="缓存-IO"><a href="#缓存-IO" class="headerlink" title="缓存 IO"></a>缓存 IO</h2><p>缓存 IO 又被称作标准 IO，大多数文件系统的默认 IO 操作都是缓存 IO</p>
-<p>在 Linux 的缓存 IO 机制中，数据先从磁盘复制到内核空间的缓冲区，然后从内核空间缓冲区复制到应用程序的地址空间</p>
-<ul>
-<li><p>读操作：操作系统检查内核的缓冲区有没有需要的数据，如果已经缓存了就直接从缓存中返回，否则从磁盘中读取然后缓存在操作系统的缓存中</p>
-</li>
-<li><p>写操作：应用程序将数据从用户空间复制到内核空间的 page cache 中，数据什么时候写到磁盘由应用程序采用的写操作机制决定，默认是采用延迟写机制，应用程序不需要等待数据全部被写入磁盘，系统会负责定期将页缓存数据写入磁盘</p>
-</li>
-</ul>
-<p>优点：</p>
-<ul>
-<li><p>在一定程度上分离了内核空间和用户空间，保护系统本身的运行安全</p>
-</li>
-<li><p>可以减少读盘的次数，从而提高性能</p>
-</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li><p>读操作中，可以将数据直接从磁盘读到 page cache 中，或者将数据从 page cache 直接写回到磁盘上，而不能直接在应用程序地址空间和磁盘之间进行数据传输，数据在传输过程中需要在应用程序地址空间（用户空间）和缓存（内核空间）之间进行多次数据拷贝操作，这些数据拷贝操作所带来的 CPU 以及内存开销是非常大的</p>
-</li>
-<li><p>写操作中，延迟写机制可能会导致数据丢失，page cache 中被修改的内存称为脏页，内核通过 flush 线程定期将数据写入磁盘；在实际应用中，如果某些数据非常重要，是完全不允许有丢失风险的，这时应该采用同步写机制，在应用程序中使用 sync、fsync、msync 等系统调用时，内核都会立刻将相应的数据写回到磁盘</p>
-</li>
-</ul>
-<h2 id="直接-IO"><a href="#直接-IO" class="headerlink" title="直接 IO"></a>直接 IO</h2><p>直接 IO 就是应用程序直接访问磁盘数据，而不经过内核缓冲区，这样做的目的是减少一次从内核缓冲区到用户程序缓存的数据复制</p>
-<p>优点：</p>
-<ul>
-<li>应用程序自己选择缓存机制，提高数据的存取效率</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li>如果访问的数据不在应用程序缓存中，那么每次数据都会直接从磁盘加载，这种直接加载会非常慢</li>
-</ul>
-<h2 id="内存映射"><a href="#内存映射" class="headerlink" title="内存映射"></a>内存映射</h2><p>内存映射，简而言之就是将内核空间的一段内存区域映射到用户空间。映射成功后，用户对这段内存区域的修改可以直接反映到内核空间，相反，内核空间对这段区域的修改也直接反映用户空间。那么对于内核空间与用户空间两者之间需要大量数据传输等操作的话效率是非常高的。当然，也可以将内核空间的一段内存区域同时映射到多个进程，这样还可以实现进程间的共享内存通信</p>
-<h2 id="mmap"><a href="#mmap" class="headerlink" title="mmap"></a>mmap</h2><p>使用 mmap 时，磁盘数据也是先读到 page cache 中，然后会将 mmap 返回的虚拟地址最终对应的页项表内容设定为和前面的 page chache 相同的物理页， 这样一来就免去了第二次的数据拷贝</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/02.png" class="">
-
-<p>内存映射服务的地址空间处在堆栈之间的空余部分</p>
-<h3 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h3><ol>
-<li><p>调用 <code>open()</code> 打开一个本地文件，获得文件 fd</p>
-</li>
-<li><p>进程在用户空间调用库函数 <code>void* mmap(void *start, size_t length, int prot, int flags, int fd, off_t offset)</code>，在当前进程的虚拟地址空间中，寻找一段空闲的满足要求的连续的虚拟地址</p>
+<li><p>绑定不同类型，并且允许发生隐式构造时</p>
 </li>
 </ol>
-<h3 id="mmap-与常规文件操作区别"><a href="#mmap-与常规文件操作区别" class="headerlink" title="mmap 与常规文件操作区别"></a>mmap 与常规文件操作区别</h3><p>常规文件操作为了提高读写效率和保护磁盘，使用了页缓存机制，造成读文件时需要先将文件页从磁盘拷贝到页缓存中，由于页缓存处在内核空间，不能被用户进程直接寻址，所以还需要将页缓存中数据页再次拷贝到内存对应的用户空间中。通过了两次数据拷贝过程，才能完成进程对文件内容的获取任务。写操作也是一样，待写入的 buffer 在内核空间不能直接访问，必须要先拷贝至内核空间对应的主存，再写回磁盘中（延迟写回），也是需要两次数据拷贝</p>
-<p>使用 mmap 操作文件中，创建新的虚拟内存区域和建立文件磁盘地址和虚拟内存区域映射这两步，没有任何文件拷贝操作。而之后访问数据时发现内存中并无数据而发起的缺页异常过程，可以通过已经建立好的映射关系，只使用一次数据拷贝，就从磁盘中将数据传入内存的用户空间中，供进程使用</p>
-<h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
-<li><p>实现了用户空间和内核空间的高效交互方式，两空间的各自修改操作可以直接反映在映射的区域内，从而被对方空间及时捕捉</p>
+<p>触发快照时，编译器会构造一个临时匿名变量，并用快照的值来初始化引用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> cs[] = <span class="string">&quot;Hello!&quot;</span>;</span><br><span class="line"><span class="type">const</span> std::string &amp;str = cs; <span class="comment">// 隐式构造</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/09/cpp-%E6%8C%87%E9%92%88%E5%92%8C%E6%95%B0%E7%BB%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/09/cpp-%E6%8C%87%E9%92%88%E5%92%8C%E6%95%B0%E7%BB%84/" class="post-title-link" itemprop="url">指针和数组</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-09 20:39:33" itemprop="dateCreated datePublished" datetime="2023-05-09T20:39:33+08:00">2023-05-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-02 21:10:06" itemprop="dateModified" datetime="2023-06-02T21:10:06+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="指针"><a href="#指针" class="headerlink" title="指针"></a>指针</h2><ul>
+<li><p>指针变量存储的是内存地址，它的值仅仅表示地址</p>
 </li>
-<li><p>提供进程间共享内存及相互通信的方式，不管是父子进程还是无亲缘关系的进程，都可以将自身用户空间映射到同一个文件或匿名映射到同一片区域，从而通过各自对映射区域的改动，达到进程间通信和进程间共享的目的</p>
+<li><p>指针的解类型是指用什么方式来解释内存地址的数据</p>
 </li>
-<li><p>实现高效的大规模数据传输，通过 mmap 映射解决内存不足，但使用硬盘 IO 效率较低，并且无法增加文件长度，因为创建映射的时候需要指定长度</p>
+<li><p>多级指针本质是解类型是指针类型的指针类型</p>
+</li>
+<li><p>指针类型转换的本质是解类型的转换</p>
+</li>
+<li><p>将含有解类型的指针转换为不含解类型的指针 <code>void*</code> 是安全的静态转换，可以使用 <code>static_cast</code> 替换 C 风格的转换，支持隐式转换</p>
+</li>
+<li><p>将不含解类型的指针转换为一个含有解类型指针也是安全的静态转换，可以使用 <code>static_cast</code>，但不支持隐式转换</p>
+</li>
+<li><p>将解类型 A 的指针转换为解类型 B 的指针是不安全的转换，需要使用 <code>reinterpret_cast</code></p>
+</li>
+<li><p>主要区分 <code>const</code> 修饰的是指针类型还是解类型</p>
 </li>
 </ul>
-<h3 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h3><ul>
-<li>mmap 映射区域大小必须是物理页大小（page_size）的整倍数（32 位系统中通常是 4kb）</li>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span>* p;           <span class="comment">// p 可变，解类型 const int</span></span><br><span class="line"><span class="type">int</span>* <span class="type">const</span> p;           <span class="comment">// p 不可变，解类型 int</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span>* <span class="type">const</span> p;     <span class="comment">// p 不可变，解类型 const int</span></span><br><span class="line"><span class="type">int</span> * <span class="type">const</span> * p;        <span class="comment">// p 可变，解类型 int * const</span></span><br><span class="line"><span class="type">int</span> ** <span class="type">const</span> * p;       <span class="comment">// p 可变，解类型 int ** const</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span>** p;          <span class="comment">// p 可变，解类型 const int*</span></span><br><span class="line"><span class="type">int</span> * <span class="type">const</span> * <span class="type">const</span> p;  <span class="comment">// p 不可变，解类型 int * const</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><code>arr</code> 的类型是 <code>int[3]</code>，它是一个数组类型，不是指针类型</p>
+<p>数组类型本身含有元素类型信息和元素个数信息，它是独立存在的一种类型，而不是指针的语法糖</p>
+<p>数据是数组，指针是指针，只是数组类型可以隐式转换为首元素的指针类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">std::shared_ptr&lt;<span class="type">int</span>*&gt; p = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">5</span>];</span><br><span class="line"><span class="comment">// p 是 int* 类型的智能指针，那么在析构时只会调用 delete 而不是 delete[]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确写法</span></span><br><span class="line">std::shared_ptr&lt;<span class="type">int</span>[]&gt; p = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<p>对于模板的自动类型推导，传入数组时也会被识别为数组类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Test</span> &#123;</span><br><span class="line">  <span class="built_in">Test</span>(<span class="type">const</span> T&amp;) = <span class="keyword">default</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">auto</span> p = arr;</span><br><span class="line"></span><br><span class="line">Test t1&#123;arr&#125;; <span class="comment">// T 为 int[3]</span></span><br><span class="line">Test t2&#123;p&#125;;   <span class="comment">// T 为 int*</span></span><br></pre></td></tr></table></figure>
+
+<p><code>sizeof</code> 能够识别数据类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">auto</span> p = arr</span><br><span class="line"></span><br><span class="line"><span class="built_in">sizeof</span>(arr);  <span class="comment">// 12</span></span><br><span class="line"><span class="built_in">sizeof</span>(p);    <span class="comment">// 8</span></span><br></pre></td></tr></table></figure>
+
+<p><code>const int [10]</code> 和 <code>int const [10]</code> 是等价的，<code>const</code> 都是修饰 <code>int</code></p>
+<h2 id="数组指针"><a href="#数组指针" class="headerlink" title="数组指针"></a>数组指针</h2><p>数组指针是指解类型是数组类型的指针，数组类型不能转换成数组指针，需要通过取地址操作获得数组指针</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">auto</span> p = &amp;arr;  <span class="comment">// p 的类型是 int (*)[3]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="指针数组"><a href="#指针数组" class="headerlink" title="指针数组"></a>指针数组</h2><p>数组元素是指针类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> *q[<span class="number">3</span>];</span><br></pre></td></tr></table></figure>
+
+<h2 id="更复杂的情况"><a href="#更复杂的情况" class="headerlink" title="更复杂的情况"></a>更复杂的情况</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// p0 是一个数组，其元素类型是指针，指向一个 int[3]</span></span><br><span class="line"><span class="built_in">int</span> (*p0[<span class="number">4</span>])[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// p1 是一个指针，其解类型是另一个解类型是 int[3] 的指针</span></span><br><span class="line"><span class="built_in">int</span> (**p1)[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// p2 是一个指针，其解类型是 int* [3]</span></span><br><span class="line"><span class="type">int</span> *(*p2)[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// p3 是一个数组，元素类型是 int**</span></span><br><span class="line"><span class="type">int</span> **p3[<span class="number">3</span>];</span><br></pre></td></tr></table></figure>
+
+<h2 id="typedef-和-using"><a href="#typedef-和-using" class="headerlink" title="typedef 和 using"></a>typedef 和 using</h2><p>当类型复杂时推荐使用 <code>typedef</code> 和 <code>using</code> 进行类型重命名</p>
+<p><code>typedef</code> 的新类型名处于变量名位置</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// type1 是 int[3]</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">int</span> type1[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// type2 是 int (*)[2];</span></span><br><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">int</span> <span class="params">(*type2)</span>[2]</span>;</span><br><span class="line"><span class="comment">// type3 是 int *(*[4])[5]</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">int</span> *(*type3[<span class="number">4</span>])[<span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<p><code>using</code> 更直观一点</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> type1 = <span class="type">int</span>[<span class="number">3</span>];</span><br><span class="line"><span class="keyword">using</span> type2 = <span class="built_in">int</span> (*)[<span class="number">2</span>];</span><br><span class="line"><span class="keyword">using</span> type3 = <span class="type">int</span> *(*[<span class="number">4</span>])[<span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<h2 id="函数指针"><a href="#函数指针" class="headerlink" title="函数指针"></a>函数指针</h2><p>在冯诺依曼体系中，存储上不区分数据和指令，函数在编译后会成为一段指令同样被加载到内存中，因此函数也有地址</p>
+<p>函数拥有内存地址，因此就会有函数指针</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// p 是一个指针，解类型是 void (int)</span></span><br><span class="line"><span class="built_in">void</span> (*p)(<span class="type">int</span>);</span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line"><span class="keyword">using</span> <span class="type">fnc_t</span> = <span class="built_in">void</span> (<span class="type">int</span>);</span><br><span class="line"><span class="type">fuc_t</span>* p;</span><br><span class="line"></span><br><span class="line"><span class="built_in">int</span> (*<span class="built_in">f</span>())[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// f 是一个函数，没有形参，返回一个指针，解类型是 int[3]</span></span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line"><span class="keyword">using</span> <span class="type">ret_t</span> = <span class="built_in">int</span> (*)[<span class="number">3</span>];</span><br><span class="line"><span class="function"><span class="type">ret_t</span> <span class="title">f</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>函数可以隐式转换为函数指针，取地址也能得到函数指针</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">f</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// p1 p2 p3 p4 都是 void (*)()</span></span><br><span class="line"><span class="keyword">auto</span> p1 = f;</span><br><span class="line"><span class="keyword">auto</span> p2 = &amp;f;</span><br><span class="line"><span class="keyword">auto</span> p3 = *f;</span><br><span class="line"><span class="keyword">auto</span> p4 = *******f;</span><br><span class="line"></span><br><span class="line"><span class="comment">// p5 是 void (**)() 类型</span></span><br><span class="line"><span class="keyword">auto</span> p5 = &amp;p2;</span><br></pre></td></tr></table></figure>
+
+<p>对于非静态成员函数，需要指明函数所属的类</p>
+<p>对于静态函数，需要指明函数所属的类</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Test</span> &#123;</span><br><span class="line">  <span class="keyword">using</span> type1 = <span class="built_in">int</span> (*)[<span class="number">3</span>];</span><br><span class="line">  <span class="keyword">using</span> type2 = <span class="built_in">void</span> (*)(<span class="type">int</span>);</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f1</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f2</span><span class="params">(<span class="type">const</span> <span class="type">int</span> *)</span> &amp;&amp;</span>;</span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">f3</span><span class="params">()</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f4</span><span class="params">(<span class="type">int</span>)</span> &amp; <span class="keyword">noexcept</span></span>;</span><br><span class="line">  <span class="function">type1 <span class="title">f5</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">  <span class="function">type2 <span class="title">f6</span><span class="params">(<span class="type">double</span>)</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">void</span> (Test::)() <span class="type">const</span>;                  <span class="comment">// f1 类型</span></span><br><span class="line"><span class="built_in">void</span> (Test::)(<span class="type">const</span> <span class="type">int</span> *) &amp;&amp;;          <span class="comment">// f2 类型</span></span><br><span class="line"><span class="built_in">int</span> (Test::)() <span class="keyword">noexcept</span>;                <span class="comment">// f3 类型</span></span><br><span class="line"><span class="built_in">void</span> (Test::)(<span class="type">int</span>) &amp;<span class="keyword">noexcept</span>;           <span class="comment">// f4 类型</span></span><br><span class="line"><span class="built_in">int</span> (*(Test::)() <span class="type">const</span>)[<span class="number">3</span>];             <span class="comment">// f5 类型</span></span><br><span class="line"><span class="built_in">void</span>(*(Test::)(<span class="type">double</span>) <span class="keyword">noexcept</span>)(<span class="type">int</span>);  <span class="comment">// f6 类型</span></span><br></pre></td></tr></table></figure>
+
+<p>非静态成员函数的函数指针占 2 个指针大小，这是因为虚函数表的组织方式是基址加偏移</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/06/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-GNUInstallDirs/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/06/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-GNUInstallDirs/" class="post-title-link" itemprop="url">GNUInstallDirs</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-06 19:51:17" itemprop="dateCreated datePublished" datetime="2023-05-06T19:51:17+08:00">2023-05-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-02 21:10:06" itemprop="dateModified" datetime="2023-06-02T21:10:06+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 引入模块</span><br><span class="line">include(GNUInstallDirs)</span><br></pre></td></tr></table></figure>
+
+<p>定义了一些 GNU 标准安装目录</p>
+<ul>
+<li><p><code>CMAKE_INSTALL_&lt;dir&gt;</code> 相对地址</p>
+</li>
+<li><p><code>CMAKE_INSTALL_FULL_&lt;dir&gt;</code> 绝对地址，如果还是相对地址则是相对于 <code>CMAKE_INSTALL_PREFIX</code></p>
+</li>
 </ul>
-<h3 id="与共享内存的区别"><a href="#与共享内存的区别" class="headerlink" title="与共享内存的区别"></a>与共享内存的区别</h3><ul>
-<li><p>shm 的内存共享，效率比 mmap 效率要高，但 mmap 操作更简单，存储量也更大</p>
+<p><code>dir</code> 包括</p>
+<ul>
+<li><p><code>BINDIR</code> – bin</p>
 </li>
-<li><p>mmap 使用普通文件提供的内存映射，适用于任何进程之间；使用特殊文件提供匿名内存映射，适用于具有亲缘关系的进程之间</p>
+<li><p><code>SBINDIR</code> – sbin</p>
 </li>
-<li><p>机器重启后，mmap 因为是映射磁盘文件所以数据不会丢失，而 shm 会丢失数据</p>
+<li><p><code>LIBEXEDIR</code> – libexec</p>
+</li>
+<li><p><code>SYSCONFDIR</code> – etc</p>
+</li>
+<li><p><code>SHAREDSTATEDIR</code> – com</p>
+</li>
+<li><p><code>LOCALSTATDIR</code> – var</p>
+</li>
+<li><p><code>RUNSTATEDIR</code> – LOCALSTATEDIR&#x2F;run</p>
+</li>
+<li><p><code>LIBDIR</code> – lib&#x2F;lib64</p>
+</li>
+<li><p><code>INCLUDEDIR</code> – include</p>
+</li>
+<li><p><code>OLDINCLUDEDIR</code> – &#x2F;usr&#x2F;include</p>
+</li>
+<li><p><code>DATAROOTDIR</code> – share</p>
+</li>
+<li><p><code>DATADIR</code> – DATAROOTDIR</p>
+</li>
+<li><p><code>INFODIR</code> – DATAROOTDIR&#x2F;info</p>
+</li>
+<li><p><code>LOCALDIR</code> – datarootdir&#x2F;local</p>
+</li>
+<li><p><code>MANDIR</code> – datarootdir&#x2F;man</p>
+</li>
+<li><p><code>DOCDIR</code> – datarootdir&#x2F;doc&#x2F;PROJECT_NAME</p>
 </li>
 </ul>
 
@@ -913,7 +1237,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E9%94%81/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-sds/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -931,7 +1255,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E9%94%81/" class="post-title-link" itemprop="url">锁</a>
+          <a href="/2023/04/28/Redis-sds/" class="post-title-link" itemprop="url">sds</a>
         </h2>
 
         <div class="post-meta-container">
@@ -942,23 +1266,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2023-04-28 21:01:22" itemprop="dateCreated datePublished" datetime="2023-04-28T21:01:22+08:00">2023-04-28</time>
+      <time title="创建时间：2023-04-28 21:30:54" itemprop="dateCreated datePublished" datetime="2023-04-28T21:30:54+08:00">2023-04-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-02 12:10:24" itemprop="dateModified" datetime="2023-06-02T12:10:24+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E9%94%81/" itemprop="url" rel="index"><span itemprop="name">锁</span></a>
-        </span>
+      <time title="修改时间：2023-06-02 21:10:06" itemprop="dateModified" datetime="2023-06-02T21:10:06+08:00">2023-06-02</time>
     </span>
 
   
@@ -971,259 +1286,50 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <ul>
-<li><p>互斥锁 mutex：用于保证在任何时刻，都只能有一个线程访问该对象。当获取锁操作失败时，线程会释放 CPU；等到锁被释放后，内核会在合适的时机唤醒线程，当这个线程成功获取到锁后，于是就可以继续执行；存在两次线程上下文切换开销</p>
-</li>
-<li><p>读写锁 rwlock：分为读锁和写锁；处于读操作时，可以允许多个线程同时获得读操作；同一时刻只能有一个线程可以获得写锁，其它获取写锁失败的线程都会进入睡眠状态，直到写锁释放时被唤醒；写锁会阻塞其它读写锁，当有一个线程获得写锁在写时，读锁也不能被其它线程获取，写锁优先于读锁（一旦有写锁，则后续读者必须等待，唤醒时优先考虑写锁）；适用于读取数据的频率远远大于写数据的频率的场合</p>
-</li>
-<li><p>自旋锁 spinlock：在任何时刻同样只能有一个线程访问对象，但是当获取锁操作失败时，不会释放 CPU，而是会在原地自旋，直到锁被释放；保护的临界区必须小，且操作过程必须短；节省了线程从睡眠状态到被唤醒期间的消耗，在加锁时间短暂的环境下会极大的提高效率；加锁时间过长，则会非常浪费 CPU 资源；自旋锁在用户态完成加锁和解锁，不会主动产生线程上下文切换；被广泛应用于内核</p>
-</li>
-<li><p>RCU(read-copy-update)：在修改数据时首先需要读取数据，然后生成一个副本，对副本进行修改，修改完成后再将老数据 update 成新的数据；读锁几乎不需要同步开销，既不需要获得锁，也不使用原子指令，不会导致锁竞争；对于写锁的同步开销较大，它需要复制被修改的数据，还必须使用锁机制同步并行其它写锁的修改操作；在有大量读操作，少量写操作的情况下效率非常高</p>
-</li>
-</ul>
-<h2 id="测试和置位指令实现锁"><a href="#测试和置位指令实现锁" class="headerlink" title="测试和置位指令实现锁"></a>测试和置位指令实现锁</h2><p>特殊原子操作指令 —— 测试和置位（Test-and-Set）指令</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 形式如下</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">TestAndSet</span><span class="params">(<span class="type">int</span> * old_ptr, <span class="type">int</span> <span class="keyword">new</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> old = *old_ptr;</span><br><span class="line">    *old_ptr = <span class="keyword">new</span>;</span><br><span class="line">    <span class="keyword">return</span> old;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <p>Redis 构建了一种简单动态字符串的抽象类型，作为 Redis 默认字符串的底层结构</p>
+<h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_5     0   <span class="comment">// 000</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_8     1   <span class="comment">// 001</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_16    2   <span class="comment">// 010</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_32    3   <span class="comment">// 011</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_64    4   <span class="comment">// 100</span></span></span><br><span class="line"><span class="comment">// 所有 sds 类型的 flags 低三位表示类型</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr5 &#123;</span><br><span class="line">    <span class="comment">// 高五位表示长度，长度最大 31</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr8 &#123;</span><br><span class="line">    <span class="comment">// 长度范围 32 ～ 255</span></span><br><span class="line">    <span class="type">uint8_t</span> len;</span><br><span class="line">    <span class="type">uint8_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr16 &#123;</span><br><span class="line">    <span class="comment">// 长度范围 256 ～ 65535</span></span><br><span class="line">    <span class="type">uint16_t</span> len;</span><br><span class="line">    <span class="type">uint16_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr32 &#123;</span><br><span class="line">    <span class="type">uint32_t</span> len;</span><br><span class="line">    <span class="type">uint32_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr64 &#123;</span><br><span class="line">    <span class="type">uint32_t</span> len;</span><br><span class="line">    <span class="type">uint32_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// __attribute__ 设置属性</span></span><br><span class="line"><span class="comment">// __packed__ 取消内存对齐</span></span><br></pre></td></tr></table></figure>
 
-<p>这些代码是原子执行，既可以测试旧值，又可以设置新值</p>
-<h3 id="忙等待"><a href="#忙等待" class="headerlink" title="忙等待"></a>忙等待</h3><p>用 Test-and-Set 指令来实现忙等待锁</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">stuct <span class="type">lock_t</span> &#123;</span><br><span class="line">    <span class="comment">// flag == 0 时锁未被持有</span></span><br><span class="line">    <span class="comment">// flag == 1 时锁被持有</span></span><br><span class="line">    <span class="type">int</span> flag;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="built_in">TestAndSet</span>(lock, <span class="number">1</span>) == <span class="number">1</span>) ;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>当获取不到锁时，线程就会一直 while 循环，不做任何事情，所以就被称为忙等待锁，也被称为自旋锁</p>
-<p>自旋锁利用 CPU 周期，一直自旋直到锁可用；在单处理器上，需要抢占式的调度器，因为一个自旋的线程永远不会放弃 CPU</p>
-<h3 id="无忙等待"><a href="#无忙等待" class="headerlink" title="无忙等待"></a>无忙等待</h3><p>当没获取到锁的时候，就把当前线程放入到锁的等待队列，然后执行调度程序，把 CPU 让给其他线程执行</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">stuct <span class="type">lock_t</span> &#123;</span><br><span class="line">    <span class="type">int</span> flag;</span><br><span class="line">    <span class="type">queue_t</span> * q;  <span class="comment">// 等待队列</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">queue_init</span>(lock-&gt;q);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="built_in">TestAndSet</span>(lock, <span class="number">1</span>) == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="comment">// 保存现在运行线程 TCB，并插入等待队列</span></span><br><span class="line">        <span class="comment">// 设置该线程为等待状态</span></span><br><span class="line">        <span class="comment">// 调度</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(lock-&gt;q != <span class="literal">nullptr</span>) &#123;</span><br><span class="line">        <span class="comment">// 移除等待队列的队头元素</span></span><br><span class="line">        <span class="comment">// 将该线程的 TCB 插入到就绪队列</span></span><br><span class="line">        <span class="comment">// 设置线程为就绪状态</span></span><br><span class="line">    &#125;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="信号量实现"><a href="#信号量实现" class="headerlink" title="信号量实现"></a>信号量实现</h2><p>为每类共享资源设置一个信号量 s，其初值为 1，表示该临界资源未被占用</p>
-<p>只要把进入临界区的操作置于 P(s) 和 V(s) 之间，即可实现进程&#x2F;线程互斥</p>
-<p>任何想进入临界区的线程，必先在互斥信号量上执行 P 操作，在完成对临界资源的访问后再执行 V 操作</p>
-<p>由于互斥信号量的初始值为 1，故在第一个线程执行 P 操作后 s 值变为 0，表示临界资源为空闲，</p>
-<p>可分配给该线程，使之进入临界区；第二个线程想进入临界区，也应先执行 P 操作，结果使 s 变为</p>
-<p>负值，这就意味着临界资源已被占用，第二个线程被阻塞；第一个线程执行 V 操作，释放临界资源</p>
-<p>而恢复 s 值为 0 后，才唤醒第二个线程，使之进入临界区，待它完成临界资源的访问后，<br>又执行 V 操作，使 s 恢复到初始值 1</p>
-<p>通过 V 操作的加 1 唤醒一个线程使得达到线程同步效果</p>
-<h2 id="读写锁实现"><a href="#读写锁实现" class="headerlink" title="读写锁实现"></a>读写锁实现</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RWLock</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">RWLock</span>() : <span class="built_in">m_readCount</span>(<span class="number">0</span>), <span class="built_in">m_writeCount</span>(<span class="number">0</span>), <span class="built_in">m_isWriting</span>(<span class="literal">false</span>) &#123;&#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">RWLock</span>() = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lockWrite</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        ++m_writeCount;</span><br><span class="line">        m_writeCond.<span class="built_in">wait</span>(ul, [=]()&#123;<span class="keyword">return</span> !m_isWriting &amp;&amp; m_readCount == <span class="number">0</span>&#125;);</span><br><span class="line">        m_isWriting = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlockWrite</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        m_isWriting = <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">if</span>(<span class="number">0</span> == (--m_writeCount)) &#123;</span><br><span class="line">            m_readCond.<span class="built_in">notify_all</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            m_writeCond.<span class="built_in">notify_one</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lockRead</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        m_readCond.<span class="built_in">wait</span>(ul, [=]()&#123;<span class="keyword">return</span> <span class="number">0</span> == m_writeCount;&#125;);</span><br><span class="line">        ++m_readCount;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlockRead</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        <span class="keyword">if</span>(<span class="number">0</span> == (--m_readCount) &amp;&amp; m_writeCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            m_writeCond.<span class="built_in">notify_one</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">int</span> m_readCount;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">int</span> m_writeCount;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">bool</span> m_isWriting;</span><br><span class="line">    std::mutex m_lock;</span><br><span class="line">    std::condition_variable m_readCond;</span><br><span class="line">    std::condition_variable m_writeCond;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ReadGuard</span> &#123;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">ReadGuard</span><span class="params">(RWLock&amp; lock)</span> : m_lock(lock) &#123;</span></span><br><span class="line">        m_lock.<span class="built_in">lockRead</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">ReadGuard</span>() &#123;</span><br><span class="line">        m_lock.<span class="built_in">unlockRead</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">ReadGuard</span>(<span class="type">const</span> ReadGuard&amp;);</span><br><span class="line">    ReadGuard&amp; <span class="keyword">operator</span>=(<span class="type">const</span> ReadGuard&amp;);</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    RWLock &amp;m_lock;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">WriteGuard</span> &#123;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">WriteGuard</span><span class="params">(RWLock&amp; lock)</span> : m_lock(lock) &#123;</span></span><br><span class="line">        m_lock.<span class="built_in">lockWrite</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">WriteGuard</span>() &#123;</span><br><span class="line">        m_lock.<span class="built_in">unlockWrite</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">WriteGuard</span>(<span class="type">const</span> WriteGuard&amp;);</span><br><span class="line">    WriteGuard&amp; <span class="keyword">operator</span>=(<span class="type">const</span> WriteGuard&amp;);</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">  RWLock&amp; m_lock;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<h2 id="自旋锁"><a href="#自旋锁" class="headerlink" title="自旋锁"></a>自旋锁</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">spin_lock</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    atomic_flag flag;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">spin_lock</span>() = <span class="keyword">default</span>;</span><br><span class="line">    ~<span class="built_in">spin_lock</span>() = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span>(flag.<span class="built_in">test_and_set</span>());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        flag.<span class="built_in">clear</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E6%AD%BB%E9%94%81/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E6%AD%BB%E9%94%81/" class="post-title-link" itemprop="url">死锁</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:00:40" itemprop="dateCreated datePublished" datetime="2023-04-28T21:00:40+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-02 12:10:24" itemprop="dateModified" datetime="2023-06-02T12:10:24+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E9%94%81/" itemprop="url" rel="index"><span itemprop="name">锁</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>死锁是指两个或两个以上进程在执行过程中，因争夺资源而造成的下相互等待的现象</p>
-<p>死锁发生的四个必要条件：</p>
 <ul>
-<li><p>互斥条件：进程对所分配到的资源不允许其他进程访问，若其他进程访问该资源，只能等待，直至占有该资源的进程使用完成后释放该资源</p>
+<li><p><code>len</code> 当前已使用的字节数，不包括 <code>\0</code></p>
 </li>
-<li><p>请求和保持条件：进程获得一定的资源后，又对其他资源发出请求，但是该资源可能被其他进程占有，此时请求阻塞，但该进程不会释放自己已经占有的资源</p>
+<li><p><code>alloc</code> 总共分配的字节数量，不包括 <code>\0</code></p>
 </li>
-<li><p>不可剥夺条件：进程已获得的资源，在未完成使用之前，不可被剥夺，只能在使用后自己释放</p>
+<li><p><code>flags</code> 低三位表示当前字节数组的属性，是 <code>SDS_TYPE_5</code> 还是 <code>SDS_TYPE_8</code> 等</p>
 </li>
-<li><p>环路等待条件：进程发生死锁后，必然存在一个进程-资源之间的环形链</p>
-</li>
-</ul>
-<p>解决方法：</p>
-<ul>
-<li><p>资源一次性分配，从而剥夺请求和保持条件</p>
-</li>
-<li><p>可剥夺资源：即当进程新的资源未得到满足时，释放已占有的资源，从而破坏不可剥夺的条件</p>
-</li>
-<li><p>资源有序分配法：系统给每类资源赋予一个序号，每个进程按编号递增的请求资源，释放则相反</p>
+<li><p><code>buf</code> 数组，用于保存字符串，包括结尾空白符 <code>\0</code></p>
 </li>
 </ul>
-<h2 id="银行家算法"><a href="#银行家算法" class="headerlink" title="银行家算法"></a>银行家算法</h2><p>操作系统按照银行家制定的规则为进程分配资源：</p>
-<ul>
-<li><p>当进程首次申请资源时，要测试该线程对资源的最大需求量，如果系统现存的资源可以满足它的最大需求量则按当前的申请量分配资源，否则就推迟分配</p>
+<h2 id="选择依据"><a href="#选择依据" class="headerlink" title="选择依据"></a>选择依据</h2><p>根据所需长度返回 <code>sds::flags</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">char</span> <span class="title">sdsReqType</span><span class="params">(<span class="type">size_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">5</span>) . <span class="comment">// 32</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_5;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">8</span>)   <span class="comment">// 258</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_8;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">16</span>)  <span class="comment">// 65536</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_16;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (LONG_MAX == LLONG_MAX)</span></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1ll</span> &lt;&lt; <span class="number">32</span>)</span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_32;</span><br><span class="line">    <span class="keyword">return</span> SDS_TYPE_64;</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    <span class="keyword">return</span> SDS_TYPE_5;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="获取-sds-长度"><a href="#获取-sds-长度" class="headerlink" title="获取 sds 长度"></a>获取 sds 长度</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">char</span>* sds;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_BITS 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_MASK  7   <span class="comment">// 111</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_5_LEN(f) ((f)&gt;&gt;SDS_TYPE_BITS)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 因为 buf 是柔性数组，所以可以这么根据 buf 获取首地址</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_HDR_VAR(T, s) \</span></span><br><span class="line"><span class="meta">    struct sdshdr##T* sh = (void*)((s) - (sizeof(struct sdshdr##T)));</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_HDR(T, s) \</span></span><br><span class="line"><span class="meta">        ((struct sdshdr##T*)((s)- (sizeof(struct sdshdr##T))))</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">size_t</span> <span class="title">sdslen</span><span class="params">(cosnt sds s)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// sdshdr* 取消了内存对齐，因此这里可以直接取到 flags</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags = s[<span class="number">-1</span>];</span><br><span class="line">    <span class="keyword">switch</span> (flags &amp; SDS_TYPE_MASK) &#123;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_5:</span><br><span class="line">            <span class="comment">// 高五位表示长度</span></span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_TYPE_5_LEN</span>(flags);</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_8:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">8</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_16:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">16</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_32:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">32</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_64:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">64</span>, s)-&gt;len;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="扩容机制"><a href="#扩容机制" class="headerlink" title="扩容机制"></a>扩容机制</h2><ol>
+<li><p>判断预留空间是否满足要求，若满足要求则不扩容</p>
 </li>
-<li><p>当线程在执行中继续申请资源时，先测试该线程已占用的资源数与本次申请的资源数之和是否超过了该线程对资源的最大需求量，若超过则拒绝分配资源，若没有超过则再测试系统现存的资源能否满足该进程尚需的最大资源量，若能满足则按当前的申请量分配资源，否则也要推迟分配</p>
+<li><p>计算新 sds 占用空间大小，若小于 1M 则进行所需大小 2 倍的扩容</p>
 </li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E5%86%85%E5%AD%98%E6%9B%BF%E6%8D%A2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E5%86%85%E5%AD%98%E6%9B%BF%E6%8D%A2/" class="post-title-link" itemprop="url">内存替换算法</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 20:55:27" itemprop="dateCreated datePublished" datetime="2023-04-28T20:55:27+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-02 12:10:24" itemprop="dateModified" datetime="2023-06-02T12:10:24+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">内存管理</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>常见的内存替换算法有：FIFO，LRU，LFU，LRU-K，2Q</p>
-<ul>
-<li><p>FIFO：最近刚访问的，将来访问的可能性比较大；使用一个队列，新加入的页面放入队尾，每次淘汰队首的页面，即最先进入的数据，最先被淘汰；无法体现页面冷热信息</p>
+<li><p>若新空间不小于 1M 时每次扩容 1M</p>
 </li>
-<li><p>LFU：如果数据过去被访问多次，那么将来被访问的频率也更高；每个数据块一个引用计数，所有数据块按照引用计数排序，具有相同引用计数的数据块则按照时间排序，每次淘汰队尾数据块；产生排序开销；缓存颠簸</p>
+<li><p>根据新长度重新计算 sds 类型，若新类型与就类型一致则进行 <code>s_realloc</code> 动态扩容，若不一致则重新申请空构造新对象，并释放久对象</p>
 </li>
-<li><p>LRU：如果数据最近被访问过，那么将来被访问的几率也更高，淘汰最长时间没有被访问的数据；使用一个栈，新使用过的数据放动到栈顶，每次替换栈顶的缓存数据</p>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_MAX_PREALLOC (1024 * 1024)</span></span><br><span class="line"><span class="function">sds <span class="title">sdsMakeRoomFor</span><span class="params">(sds s, <span class="type">size_t</span> addlen)</span> </span>&#123;</span><br><span class="line">    <span class="type">void</span> *sh, *newsh;</span><br><span class="line">    <span class="type">size_t</span> avail = <span class="built_in">sdsavail</span>(s);  <span class="comment">// 当前可用空间</span></span><br><span class="line">    <span class="type">size_t</span> len, newlen, reqlen;</span><br><span class="line">    <span class="type">char</span> type, oldtype = s[<span class="number">-1</span>] &amp; SDS_TYPE_MASK;</span><br><span class="line">    <span class="type">int</span> hdrlen;</span><br><span class="line">    <span class="type">size_t</span> usable;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (avail &gt;= addlen) <span class="keyword">return</span> s;</span><br><span class="line">    len = <span class="built_in">sdslen</span>(s);  <span class="comment">// 当前长度</span></span><br><span class="line">    sh = (<span class="type">char</span>*)s - <span class="built_in">sdsHdrSize</span>(oldtype);  <span class="comment">// 旧对象指针</span></span><br><span class="line">    reqlen = newlen = len + addlen;  <span class="comment">// 期望长度</span></span><br><span class="line">    <span class="built_in">assert</span>(newlen &gt; len);  <span class="comment">// catch size_t overflow</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (newlen &lt; SDS_MAX_PREALLOC)</span><br><span class="line">        newlen *= <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        newlen += SDS_MAX_PREALLOC;</span><br><span class="line"></span><br><span class="line">    type = <span class="built_in">sdsReqType</span>(newlen);  <span class="comment">// 期望对象类型</span></span><br><span class="line">    <span class="keyword">if</span> (type == SDS_TYPE_5) type = SDS_TYPE_8;</span><br><span class="line"></span><br><span class="line">    hdrlen = <span class="built_in">sdsHdrSize</span>(type);  <span class="comment">// 期望对象所占内存大小</span></span><br><span class="line">    <span class="built_in">assert</span>(hdrlen + newlen + <span class="number">1</span> &gt; reqlen);  <span class="comment">// catch size_t overflow</span></span><br><span class="line">    <span class="keyword">if</span> (oldtype == type) &#123;</span><br><span class="line">        newsh = <span class="built_in">s_realloc_usable</span>(sh, hdrlen + newlen + <span class="number">1</span>, &amp;usable);</span><br><span class="line">        <span class="keyword">if</span> (newsh == <span class="literal">nullptr</span>) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">        s = (<span class="type">char</span>*)newsh + hdrlen;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        newsh = <span class="built_in">s_malloc_usable</span>(hdrlen + newlen + <span class="number">1</span>, &amp;usable);</span><br><span class="line">        <span class="keyword">if</span> (newsh == <span class="literal">nullptr</span>) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">        <span class="built_in">memcpy</span>((<span class="type">char</span>*)newsh + hdrlen, s, len + <span class="number">1</span>);</span><br><span class="line">        <span class="built_in">s_free</span>(sh);</span><br><span class="line">        s = (<span class="type">char</span>*)newsh + hdflen;</span><br><span class="line">        s[<span class="number">-1</span>] = type;</span><br><span class="line">        <span class="built_in">sdssetlen</span>(s, len);</span><br><span class="line">    &#125;</span><br><span class="line">    usable = usable - hdrlen - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (usable &gt; <span class="built_in">sdsTypeMaxSize</span>(type))</span><br><span class="line">        usable = <span class="built_in">sdsTypeMaxSize</span>(type);</span><br><span class="line">    <span class="built_in">sdssetalloc</span>(s, usable);</span><br><span class="line">    <span class="keyword">return</span> s;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每次新开空间都会额外多加 1 字节，是为了保证最后可以写入一个 <code>\0</code></p>
+<h2 id="与-C-字符串区别"><a href="#与-C-字符串区别" class="headerlink" title="与 C 字符串区别"></a>与 C 字符串区别</h2><ul>
+<li><p>获取字符串长度时间复杂度 O(1)</p>
 </li>
-<li><p>LRU-K：最久未使用 K 次淘汰算法，K 代表最近使用的次数，因此 LRU 可以认为是 LRU-1</p>
+<li><p>杜绝缓冲区溢出，C 字符串每次增长都需要重新分配新的内存，每次缩短如果不重新分配内存会导致内存浪费</p>
+</li>
+<li><p>惰性空间释放</p>
+</li>
+<li><p>二进制安全，C 字符串必须符合某种编码，并且除字符串末尾外不能包涵空白字符，否者空白字符会被当作字符结尾，导致只能保存文本数据，不能保存图片视频等二进制数据，SDS 是通过 <code>len</code> 字段判断字符串结束</p>
+</li>
+<li><p>兼容性，SDS 的 API 都是二进制安全的，但也遵循 C 字符串以空白结尾的惯例</p>
 </li>
 </ul>
-<h2 id="LRU-实现"><a href="#LRU-实现" class="headerlink" title="LRU 实现"></a>LRU 实现</h2><ul>
-<li><p>新数据直接插入到列表头部</p>
-</li>
-<li><p>缓存数据被命中，将数据移动到列表头部</p>
-</li>
-<li><p>缓存已满的时候，移除列表尾部数据</p>
-</li>
-</ul>
-<p>LRU 算法需要添加头节点，删除尾结点</p>
-<p>链表添加节点&#x2F;删除节点时间复杂度 O(1)，非常适合当做存储缓存数据容器，但链表有几个缺点：每次获取任意节点数据，都需要从头结点遍历下去，这就导致获取节点复杂度为 O(N)；移动中间节点到头结点，我们需要知道中间节点前一个节点的信息，单向链表就不得不再次遍历获取信息</p>
-<p>使用散列表存储节点，获取节点的复杂度将会降低为 O(1)，节点移动问题可以在节点中再增加前驱指针，记录上一个节点信息，这样链表就从单向链表变成了双向链表</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E5%86%85%E5%AD%98%E6%9B%BF%E6%8D%A2/01.png" class="">
 
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LRUCache</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    unordered_map&lt;<span class="type">int</span>, list&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt;::iterator&gt; lru;</span><br><span class="line">    list&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt; his;</span><br><span class="line">    <span class="type">int</span> cap;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">LRUCache</span>(<span class="type">int</span> capacity) &#123;</span><br><span class="line">        cap = capacity;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">get</span><span class="params">(<span class="type">int</span> key)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(lru.<span class="built_in">count</span>(key) != <span class="number">0</span>) &#123;</span><br><span class="line">            his.<span class="built_in">splice</span>(his.<span class="built_in">begin</span>(), his, lru[key]);</span><br><span class="line">            <span class="keyword">return</span> lru[key]-&gt;second;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">put</span><span class="params">(<span class="type">int</span> key, <span class="type">int</span> value)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(lru.<span class="built_in">count</span>(key)) his.<span class="built_in">erase</span>(lru[key]);</span><br><span class="line">        his.<span class="built_in">push_front</span>(<span class="built_in">make_pair</span>(key, value));</span><br><span class="line">        lru[key] = his.<span class="built_in">begin</span>();</span><br><span class="line">        <span class="keyword">if</span>(lru.<span class="built_in">size</span>() &gt; cap) &#123;</span><br><span class="line">            lru.<span class="built_in">erase</span>(his.<span class="built_in">rbegin</span>()-&gt;first);</span><br><span class="line">            his.<span class="built_in">pop_back</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
       
     </div>
 
@@ -1242,7 +1348,7 @@
 
 
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/6/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/36/">36</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/8/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/6/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/37/">37</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/8/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
