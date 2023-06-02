@@ -43,7 +43,7 @@ namespace Test {
   void testCase() {
     std::shared_ptr<Object> sObj = std::make_shared<RealObject>("shared_ptr");
     std::unique_ptr<Object> uObj = std::make_unique<RealObject>("unique_ptr");
-    Object* rObj = new RealObject("raw_ptr")
+    Object* rObj = new RealObject("raw_ptr");
     delete rObj;
   }
 };
@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
 非虚基类析构函数
 construct shared_ptr
 construct unique_ptr
+construct raw_ptr
 destruct Object
 destruct Object
 destruct shared_ptr
@@ -67,6 +68,7 @@ destruct Object
 虚析构函数
 construct shared_ptr
 construct unique_ptr
+construct raw_ptr
 destruct raw_ptr
 destruct Object
 destruct unique_ptr
@@ -94,7 +96,7 @@ destruct Object
 
 {% asset_img 1.jpeg %}
 
-从图中可以看到 `std::shared_ptr` 的构造函数是模板模板，因此内部可以保存原始指针类型
+从图中可以看到 `std::shared_ptr` 的构造函数是模板函数，因此内部保存了传入的原始指针类型
 
 再来看 `std::unique_ptr` 的构造函数
 
