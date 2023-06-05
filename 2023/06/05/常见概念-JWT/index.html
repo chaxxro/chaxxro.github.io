@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="JWT 即 Json Web Token，是一种跨域认证解决方案 跨域认证用户认证一般流程  用户向服务器发送用户名和密码  服务器验证通过后，在当前 session 里面保存相关数据，比如用户角色、登录时间等等  服务器向用户返回一个 session_id，写入用户的 Cookie  用户随后的每一次请求，都会通过 Cookie 将 session_id 传回服务器  服务器收到 session">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JWT">
+<meta property="og:url" content="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="JWT 即 Json Web Token，是一种跨域认证解决方案 跨域认证用户认证一般流程  用户向服务器发送用户名和密码  服务器验证通过后，在当前 session 里面保存相关数据，比如用户角色、登录时间等等  服务器向用户返回一个 session_id，写入用户的 Cookie  用户随后的每一次请求，都会通过 Cookie 将 session_id 传回服务器  服务器收到 session">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-06-05T06:53:21.000Z">
+<meta property="article:modified_time" content="2023-06-05T09:48:30.898Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="常见概念">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/","path":"2023/06/05/常见概念-JWT/","title":"JWT"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>JWT | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B7%A8%E5%9F%9F%E8%AE%A4%E8%AF%81"><span class="nav-text">跨域认证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JWT-%E5%8E%9F%E7%90%86"><span class="nav-text">JWT 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Header"><span class="nav-text">Header</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Payload"><span class="nav-text">Payload</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Signature"><span class="nav-text">Signature</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"><span class="nav-text">使用方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%B9%E7%82%B9"><span class="nav-text">特点</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">368</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="JWT | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JWT
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-06-05 14:53:21 / 修改时间：17:48:30" itemprop="dateCreated datePublished" datetime="2023-06-05T14:53:21+08:00">2023-06-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5/" itemprop="url" rel="index"><span itemprop="name">常见概念</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>JWT 即 Json Web Token，是一种跨域认证解决方案</p>
+<h2 id="跨域认证"><a href="#跨域认证" class="headerlink" title="跨域认证"></a>跨域认证</h2><p>用户认证一般流程</p>
+<ol>
+<li><p>用户向服务器发送用户名和密码</p>
+</li>
+<li><p>服务器验证通过后，在当前 session 里面保存相关数据，比如用户角色、登录时间等等</p>
+</li>
+<li><p>服务器向用户返回一个 session_id，写入用户的 Cookie</p>
+</li>
+<li><p>用户随后的每一次请求，都会通过 Cookie 将 session_id 传回服务器</p>
+</li>
+<li><p>服务器收到 session_id，找到前期保存的数据，由此得知用户的身份</p>
+</li>
+</ol>
+<p>该方案存在扩展性不好的问题，当遇到服务器集群或者是跨域的服务架构，就需要做到 session 数据共享才能使每台服务器都能读到 session</p>
+<p>为了解决 session 共享问题，有两种方案</p>
+<ol>
+<li><p>将 session 持久化，这样服务收到请求向持久层请求数据</p>
+</li>
+<li><p>服务端不保存 session，将 session 保存在客户端，这样客户端每次请求到将 session 发回服务端</p>
+</li>
+</ol>
+<p>JWT 就是改良方案二的一个代表</p>
+<h2 id="JWT-原理"><a href="#JWT-原理" class="headerlink" title="JWT 原理"></a>JWT 原理</h2><p>JWT 是一个很长的字符串，由 Header 头部、Payload 负载和 Signature 签名组成，中间用点 . 分隔成三个部分</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Header.Payload.Signature</span><br></pre></td></tr></table></figure>
+
+<h3 id="Header"><a href="#Header" class="headerlink" title="Header"></a>Header</h3><p>Header 是一个 JSON 对象，描述 JWT 的元数据，包括以下字段</p>
+<ul>
+<li><p>alg：签名算法，默认 HS256</p>
+</li>
+<li><p>typ：token 类型，JWT 统一为 JWT</p>
+</li>
+</ul>
+<p>最后需要将 Header 的 JSON 对象使用 Base64URL 算法转成字符串</p>
+<h3 id="Payload"><a href="#Payload" class="headerlink" title="Payload"></a>Payload</h3><p>Payload 是一个 JSON 对象，描述需要传递的信息，包括以下字段</p>
+<ul>
+<li><p>iss：issuer 签发人</p>
+</li>
+<li><p>exp：expiration time 过期时间</p>
+</li>
+<li><p>sub：subject 主题</p>
+</li>
+<li><p>aud：audience 受众</p>
+</li>
+<li><p>nbf：not before 生效时间</p>
+</li>
+<li><p>iat：issued at 签发时间</p>
+</li>
+<li><p>jti：JWT id 编号</p>
+</li>
+</ul>
+<p>除了官方字段，还可以在这个部分定义私有字段</p>
+<p>最后需要将 Payload 的 JSON 对象使用 Base64URL 算法转成字符串</p>
+<h3 id="Signature"><a href="#Signature" class="headerlink" title="Signature"></a>Signature</h3><p>Signature 是对前两部分利用私钥的签名，防止数据篡改</p>
+<p>服务端根据 Header 中的算法，利用私钥、 Header 和 Payload 计算签名，再使用 Base64URL 转成字符串</p>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><ul>
+<li><p>客户端每次与服务器通信都要带上这个 JWT，可以把它放在 Cookie 里面自动发送，但是这样不能跨域</p>
+</li>
+<li><p>将 JWT 放在 HTTP 请求的头信息 Authorization 字段里面，这样就解决了跨域的问题</p>
+</li>
+<li><p>JWT 放在 POST 请求的数据体里面，这样也能解决了跨域的问题</p>
+</li>
+</ul>
+<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
+<li><p>JWT 默认是不加密，但也可以生成原始 Token 以后用密钥再加密一次</p>
+</li>
+<li><p>JWT 不加密的情况下，不能将秘密数据写入 JWT</p>
+</li>
+<li><p>JWT 不仅可以用于认证，也可以用于交换信息</p>
+</li>
+<li><p>由于服务器不保存 session 状态，因此无法在使用过程中废止某个 token，或者更改 token 的权限，除非服务器部署额外的逻辑</p>
+</li>
+<li><p>JWT 本身包含了认证信息，一旦泄露任何人都可以获得该令牌的所有权限，所以 JWT 的有效期应该设置得比较短</p>
+</li>
+<li><p>为了减少盗用，JWT 不应该使用 HTTP 协议明码传输，要使用 HTTPS 协议传输</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5/" rel="tag"># 常见概念</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-Base64/" rel="prev" title="Base64">
+                  <i class="fa fa-chevron-left"></i> Base64
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
