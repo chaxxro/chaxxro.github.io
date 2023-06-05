@@ -247,6 +247,8 @@ void f()
 // 在将对象传入线程的时候，调用std::ref，将 node 的引用传入线程，而不是一个拷贝 thread t(func,std::ref(node))
 ```
 
+当需要执行的函数形参是左值引用时，必须使用 `std::ref` 构建一个 `std::reference_wrapper` 进行参数传递，因为 `std::reference_wrapper<T>` 有对 `T&` 的隐式转换
+
 ## 线程暂停
 
 `std::thread` 没有直接提供暂停函数从外部让线程暂停，但可以使用 `std::this_thread::sleep_for` 和 `std::this_thread::sleep_until` 在线程内部停顿一会
