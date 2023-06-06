@@ -53,3 +53,97 @@ struct add_rvalue_reference;
 template< class T >
 struct add_lavalue_reference;
 ```
+
+## 类型转换
+
+- `std::decay` 将右值转换成左值，数组转换成指针，函数转换成指针
+
+```cpp
+template< class T >
+struct decay;
+
+template <typename T, typename U>
+struct decay_equiv : 
+    std::is_same<typename std::decay<T>::type, U>::type 
+{};
+ 
+int main()
+{
+    std::cout << std::boolalpha
+              << decay_equiv<int, int>::value << '\n'
+              << decay_equiv<int&, int>::value << '\n'
+              << decay_equiv<int&&, int>::value << '\n'
+              << decay_equiv<const int&, int>::value << '\n'
+              << decay_equiv<int[2], int*>::value << '\n'
+              << decay_equiv<int(int), int(*)(int)>::value << '\n';
+```
+
+- `std::enable_if`
+
+```cpp
+template< bool B, class T = void >
+struct enable_if;
+```
+
+- `std::invoke_result` 和 `std::result_of` 获取可调用对象的返回值类型
+
+```cpp
+template< class F, class... ArgTypes >
+class result_of<F(ArgTypes...)>;
+
+template< class F, class... ArgTypes>
+class invoke_result;
+
+struct S {
+    double operator()(char, int&);
+    float operator()(int) { return 1.0;}
+};
+ 
+template<class T>
+typename std::result_of<T(int)>::type f(T& t)
+{
+    std::cout << "overload of f for callable T\n";
+    return t(0);
+}
+ 
+template<class T, class U>
+int f(U u)
+{
+    std::cout << "overload of f for non-callable T\n";
+    return u;
+}
+ 
+int main()
+{
+    std::result_of<S(char, int&)>::type d = 3.14; // d has type double
+    static_assert(std::is_same<decltype(d), double>::value, "");
+ 
+    std::invoke_result<S,char,int&>::type b = 3.14;
+    static_assert(std::is_same<decltype(b), double>::value, "");
+ 
+    std::result_of<S(int)>::type x = 3.14; // x has type float
+    static_assert(std::is_same<decltype(x), float>::value, "");
+ 
+    struct C { double Func(char, int&); };
+    std::result_of<decltype(&C::Func)(C, char, int&)>::type g = 3.14;
+    static_assert(std::is_same<decltype(g), double>::value, "");
+}
+```
+
+- `std::conditional` 编译时进行类型选择
+
+```cpp
+template< bool B, class T, class F >
+struct conditional;
+
+int main() 
+{
+    typedef std::conditional<true, int, double>::type Type1;
+    typedef std::conditional<false, int, double>::type Type2;
+    typedef std::conditional<sizeof(int) >= sizeof(double), int, double>::type Type3;
+ 
+    std::cout << typeid(Type1).name() << '\n';
+    std::cout << typeid(Type2).name() << '\n';
+    std::cout << typeid(Type3).name() << '\n';
+}
+```
