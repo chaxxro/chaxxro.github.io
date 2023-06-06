@@ -11,11 +11,7 @@ categories: Linux 命令行
 
 crontable 是 cron 的配置文件
 
-- var/spool/cron/ 目录下存放的是每个用户包括 root 的 crontab 任务，每个任务以创建者的名字命名
-- /etc/crontab 这个文件负责调度各种管理和维护任务。
-- /etc/cron.d/ 这个目录用来存放任何要执行的 crontab 文件或脚本。
-
-还可以把脚本放在 /etc/cron.hourly、/etc/cron.daily、/etc/cron.weekly、/etc/cron.monthly 目录中，让它每小时/天/星期/月执行一次
+/var/log/cron 是 cron 的日志文件
 
 ```sh
 crontab [-u user] file
@@ -79,3 +75,5 @@ crontab 的构成为时间+动作，其时间格式是：分 时 日 月 周
 #晚上 11 点到早上 7 点之间，每隔一小时
 0 23-7 * * * task
 ```
+
+定期待执行的脚本文件中不要使用相对地址，否者会导致脚本执行失败
