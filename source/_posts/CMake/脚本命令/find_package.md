@@ -9,6 +9,8 @@ tags: cmake
 categories: cmake
 ---
 
+`find_package` 主要用于寻找具有 CMake 配置文件的库
+
 `find_package` 有两种非常不一样的模式，分别是 Module mode 和 Config mode
 
 ## Module mode
@@ -16,6 +18,10 @@ categories: cmake
 为了方便在项目中引入外部依赖包，cmake 官方预定义了许多寻找依赖包的 Module，存储在 `CMAKE_MODULE_PATH` 中，默认地址是 `path_of_cmake/share/cmake-<version>/Modules` 目录下
 
 每个 Module 以 `Find<PackageName>.cmake` 命名，Cmake 加载 Module 后会自动查找包、检查版本和生成所需信息
+
+## Config mode
+
+CMake 去搜索 <lowercasePackageName>-config.cmake 或 <PackageName>Config.cmake
 
 ## 标准用法
 
