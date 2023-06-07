@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">369</span>
+          <span class="site-state-item-count">370</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,165 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">持久化机制</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-20 20:59:46" itemprop="dateCreated datePublished" datetime="2023-04-20T20:59:46+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-07 10:45:51" itemprop="dateModified" datetime="2023-06-07T10:45:51+08:00">2023-06-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Redis 的持久化主要有两大机制，即 AOF（Append Only File）日志和 RDB 快照</p>
+<h2 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h2><p>AOF 日志是写后日志，即 Redis 是先执行命令，把数据写入内存，然后才记录日志</p>
+<p>AOF 里记录的是 Redis 收到的每一条命令，这些命令是以文本形式保存的</p>
+<p>以 Redis 收到 set testkey testvalue 命令后记录的日志为例，看看 AOF 日志的内容。其中，*3 表示当前命令有三个部分，每部分都是由 $+数字 开头，后面紧跟着具体的命令、键或值。数字表示这部分中的命令、键或值一共有多少字节。例如，$3 set 表示这部分有 3 个字节，也就是 set 命令</p>
+<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/01.png" class="">
+
+<h3 id="写后日志原因"><a href="#写后日志原因" class="headerlink" title="写后日志原因"></a>写后日志原因</h3><ul>
+<li><p>为了避免额外的检查开销，Redis 在向 AOF 里面记录日志的时候，并不会先去对这些命令进行语法检查。所以如果先记日志再执行命令的话，日志中就有可能记录了错误的命令，Redis 在使用日志恢复数据时，就可能会出错</p>
+</li>
+<li><p>先让系统执行命令，只有命令能执行成功，才会被记录到日志中，可以避免出现记录错误命令的情况</p>
+</li>
+<li><p>在命令执行后才记录日志，不会阻塞当前的写操作</p>
+</li>
+</ul>
+<h3 id="潜在风险"><a href="#潜在风险" class="headerlink" title="潜在风险"></a>潜在风险</h3><ul>
+<li><p>刚执行完一个命令，还没有来得及记日志就宕机了，那么这个命令和相应的数据就有丢失的风险</p>
+</li>
+<li><p>AOF 虽然避免了对当前命令的阻塞，但可能会给下一个操作带来阻塞风险</p>
+</li>
+</ul>
+<h3 id="写回策略"><a href="#写回策略" class="headerlink" title="写回策略"></a>写回策略</h3><p>潜在风险都是和 AOF 写回磁盘的时机相关的，如果能够控制一个写命令执行完后 AOF 日志写回磁盘的时机，风险就解除了</p>
+<p>AOF 配置项 appendfsync 的三个可选值提供了三个选择</p>
+<ul>
+<li><p>Always，同步写回：每个写命令执行完，立马同步地将日志写回磁盘；可以做到基本不丢数据，但是它在每一个写命令后都有一个慢速的落盘操作，不可避免地会影响主线程性能</p>
+</li>
+<li><p>Everysec，每秒写回：每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，每隔一秒把缓冲区中的内容写入磁盘；如果发生宕机，上一秒内未落盘的命令操作仍然会丢失</p>
+</li>
+<li><p>No，操作系统控制的写回：每个写命令执行完，只是先把日志写到 AOF 文件的内存缓冲区，由操作系统决定何时将缓冲区内容写回磁盘；落盘的时机已经不在 Redis 手中了，只要 AOF 记录没有写回磁盘，一旦宕机对应的数据就丢失了</p>
+</li>
+</ul>
+<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/02.png" class="">
+
+<h3 id="重写机制"><a href="#重写机制" class="headerlink" title="重写机制"></a>重写机制</h3><p>AOF 是以文件的形式在记录接收到的所有写命令，随着接收的写命令越来越多，AOF 文件会越来越大</p>
+<p>AOF 文件过大带来的性能问题：</p>
+<ul>
+<li><p>文件系统本身对文件大小有限制，无法保存过大的文件</p>
+</li>
+<li><p>如果文件太大，之后再往里面追加命令记录的话，效率也会变低</p>
+</li>
+<li><p>如果发生宕机，AOF 中记录的命令要一个个被重新执行，用于故障恢复，如果日志文件太大，整个恢复过程就会非常缓慢</p>
+</li>
+</ul>
+<p>AOF 重写机制就是在重写时，Redis 根据数据库的现状创建一个新的 AOF 文件，也就是说，读取数据库中的所有键值对，然后对每一个键值对用一条命令记录它的写入</p>
+<p>重写机制具有多变一功能，旧日志文件中的多条命令，在重写后的新日志中变成了一条命令</p>
+<p>重写过程是由后台子进程 bgrewriteaof 来完成的，这也是为了避免阻塞主线程，导致数据库性能下降</p>
+<p>每次执行重写时，主线程 fork 出后台的 bgrewriteaof 子进程，fork 会把主线程的内存拷贝一份给 bgrewriteaof 子进程，这里面就包含了数据库的最新数据；然后 bgrewriteaof 子进程就可以在不影响主线程的情况下，逐一把拷贝的数据写成操作，记入重写日志</p>
+<p>因为主线程未阻塞，仍然可以处理新来的操作。此时如果有写操作，Redis 会把这个操作写到正在使用的 AOF 日志的缓冲区。这样一来，即使宕机了，这个 AOF 日志的操作仍然是齐全的，可以用于恢复</p>
+<p>新操作也会被写到重写日志的缓冲区，重写日志也不会丢失最新的操作。等到拷贝数据的所有操作记录重写完成后，重写日志记录的这些最新操作也会写入新的 AOF 文件，以保证数据库最新状态的记录。此时就可以用新的 AOF 文件替代旧文件了</p>
+<h3 id="潜在风险-1"><a href="#潜在风险-1" class="headerlink" title="潜在风险"></a>潜在风险</h3><p>fork 瞬间一定是会阻塞主线程，虽然 fork 采用 COW 机制，但 fork 子进程需要拷贝进程必要的数据结构，其中有一项就是拷贝内存页表（虚拟内存和物理内存的映射索引表），这个拷贝过程会消耗大量 CPU 资源，拷贝完成之前整个进程是会阻塞的，阻塞时间取决于整个实例的内存大小，实例越大，内存页表越大，fork 阻塞时间越久</p>
+<p>由于采用 COW 机制，所以在写发生时，才真正拷贝内存真正的数据，这个过程中，父进程也可能会产生阻塞的风险</p>
+<h2 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h2><p>内存快照，就是指内存中的数据在某一个时刻的状态记录</p>
+<p>RDB（Redis DataBase）把某一时刻的状态以文件的形式写到磁盘上，也就是快照；即使宕机，快照文件也不会丢失，数据的可靠性也就得到了保证</p>
+<p>RDB 记录的是某一时刻的数据，并不是操作，所以，在做数据恢复时，可以直接把 RDB 文件读入内存，很快地完成恢复</p>
+<h3 id="全量快照"><a href="#全量快照" class="headerlink" title="全量快照"></a>全量快照</h3><p>Redis 的数据都在内存中，为了提供所有数据的可靠性保证，它执行的是全量快照，也就是说，把内存中的所有数据都记录到磁盘中</p>
+<h3 id="生成快照"><a href="#生成快照" class="headerlink" title="生成快照"></a>生成快照</h3><p>Redis 提供了两个命令来生成 RDB 文件，分别是 save 和 bgsave</p>
+<ul>
+<li><p>save：在主线程中执行，会导致阻塞</p>
+</li>
+<li><p>bgsave：创建一个子进程，专门用于写入 RDB 文件，避免了主线程的阻塞，这也是 Redis RDB 文件生成的默认配置</p>
+</li>
+</ul>
+<p>bgsave 借助 COW，在执行快照的同时，正常处理写操作；bgsave 子进程是由主线程 fork 生成的，可以共享主线程的所有内存数据；bgsave 子进程运行后，开始读取主线程的内存数据，并把它们写入 RDB 文件；如果主线程要修改一块数据，这块数据就会被复制一份，生成该数据的副本；bgsave 子进程会把这个副本数据写入 RDB 文件，而在这个过程中，主线程仍然可以直接修改原来的数据</p>
+<h3 id="增量快照"><a href="#增量快照" class="headerlink" title="增量快照"></a>增量快照</h3><p>虽然 bgsave 执行时不阻塞主线程，但是如果频繁地执行全量快照，也会带来两方面的开销：</p>
+<ul>
+<li><p>频繁将全量数据写入磁盘，会给磁盘带来很大压力</p>
+</li>
+<li><p>虽然子进程在创建后不会再阻塞主线程，但是 fork 这个创建过程本身会阻塞主线程，而且主线程的内存越大，阻塞时间越长</p>
+</li>
+</ul>
+<p>增量快照，即做了一次全量快照后，后续的快照只对修改的数据进行快照记录，这样可以避免每次全量快照的开销</p>
+<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/03.png" class="">
+
+<p>记住哪些数据被修改了需要使用额外的元数据信息去记录哪些数据被修改了，这会带来额外的空间开销问题</p>
+<h2 id="AOF-和-RDB-混合方法"><a href="#AOF-和-RDB-混合方法" class="headerlink" title="AOF 和 RDB 混合方法"></a>AOF 和 RDB 混合方法</h2><p>内存快照以一定的频率执行，在两次 RDB 快照之间，使用 AOF 日志记录这期间的所有命令操作</p>
+<p>RDB 快照不用很频繁地执行，这就避免了频繁 fork 对主线程的影响。而且，AOF 日志也只用记录两次快照间的操作，不需要记录所有操作。因此，就不会出现文件过大的情况了，也可以避免重写开销</p>
+<img src="/2023/04/20/Redis-%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/04.png" class="">
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +354,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-06 20:40:30" itemprop="dateModified" datetime="2023-06-06T20:40:30+08:00">2023-06-06</time>
+      <time title="修改时间：2023-06-07 10:45:51" itemprop="dateModified" datetime="2023-06-07T10:45:51+08:00">2023-06-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -300,7 +459,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-06 20:40:30" itemprop="dateModified" datetime="2023-06-06T20:40:30+08:00">2023-06-06</time>
+      <time title="修改时间：2023-06-07 10:45:50" itemprop="dateModified" datetime="2023-06-07T10:45:50+08:00">2023-06-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -448,7 +607,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-06 20:40:30" itemprop="dateModified" datetime="2023-06-06T20:40:30+08:00">2023-06-06</time>
+      <time title="修改时间：2023-06-07 10:45:50" itemprop="dateModified" datetime="2023-06-07T10:45:50+08:00">2023-06-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -561,7 +720,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-06 20:40:30" itemprop="dateModified" datetime="2023-06-06T20:40:30+08:00">2023-06-06</time>
+      <time title="修改时间：2023-06-07 10:45:51" itemprop="dateModified" datetime="2023-06-07T10:45:51+08:00">2023-06-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -682,7 +841,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-06 20:40:30" itemprop="dateModified" datetime="2023-06-06T20:40:30+08:00">2023-06-06</time>
+      <time title="修改时间：2023-06-07 10:45:51" itemprop="dateModified" datetime="2023-06-07T10:45:51+08:00">2023-06-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -706,26 +865,36 @@
     <div class="post-body" itemprop="articleBody">
           <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/01.png" class="">
 
-<h2 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h2><p>大量的应用请求无法在 Redis 缓存中进行处理，紧接着，应用将大量请求发送到数据库层，导致数据库层的压力激增</p>
+<h2 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h2><p>大量的请求无法在 Redis 缓存中进行处理，从而应用将大量请求发送到数据库层，导致数据库层的压力激增</p>
 <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/02.png" class="">
 
-<h3 id="缓存中有大量数据同时过期"><a href="#缓存中有大量数据同时过期" class="headerlink" title="缓存中有大量数据同时过期"></a>缓存中有大量数据同时过期</h3><p>给数据的过期时间增加一个较小的随机数，不同数据的过期时间有所差别，但差别又不会太大，既避免了大量数据同时过期，同时也保证了这些数据基本在相近的时间失效，仍然能满足业务需求</p>
-<p>服务降级，发生缓存雪崩时，针对不同的数据采取不同的处理方式；访问非核心数据时，暂时停止从缓存中查询这些数据，而是直接返回预定义信息、空值或是错误信息；访问核心数据时，允许查询缓存，如果缓存缺失，也可以继续通过数据库读取</p>
+<h3 id="缓存中有大量数据同时过期"><a href="#缓存中有大量数据同时过期" class="headerlink" title="缓存中有大量数据同时过期"></a>缓存中有大量数据同时过期</h3><ul>
+<li><p>给数据的过期时间增加一个较小的随机数，不同数据的过期时间有所差别，但差别又不会太大，既避免了大量数据同时过期，同时也保证了这些数据基本在相近的时间失效，仍然能满足业务需求</p>
+</li>
+<li><p>服务降级，发生缓存雪崩时，针对不同的数据采取不同的处理方式；访问非核心数据时，暂时停止从缓存中查询这些数据，而是直接返回预定义信息、空值或是错误信息；访问核心数据时，允许查询缓存，如果缓存缺失，也可以继续通过数据库读取</p>
+</li>
+</ul>
 <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/03.png" class="">
 
-<h3 id="Redis-缓存实例发生故障宕机"><a href="#Redis-缓存实例发生故障宕机" class="headerlink" title="Redis 缓存实例发生故障宕机"></a>Redis 缓存实例发生故障宕机</h3><p>在业务系统中实现服务熔断或请求限流机制：在发生缓存雪崩时，为了防止引发连锁的数据库雪崩，甚至是整个系统的崩溃，我们暂停业务应用对缓存系统的接口访问</p>
+<h3 id="Redis-缓存实例发生故障宕机"><a href="#Redis-缓存实例发生故障宕机" class="headerlink" title="Redis 缓存实例发生故障宕机"></a>Redis 缓存实例发生故障宕机</h3><p>在业务系统中实现服务熔断或请求限流机制：在发生缓存雪崩时，为了防止引发连锁的数据库雪崩，甚至是整个系统的崩溃，这时可以暂停业务应用对缓存系统的接口访问</p>
 <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/04.png" class="">
 
-<p>服务熔断虽然可以保证数据库的正常运行，但是暂停了整个缓存系统的访问，对业务应用的影响范围大。为了尽可能减少这种影响，我们也可以进行请求限流；在业务系统的请求入口前端控制每秒进入系统的请求数，避免过多的请求被发送到数据库</p>
+<p>服务熔断虽然可以保证数据库的正常运行，但是暂停了整个缓存系统的访问，对业务应用的影响范围大</p>
+<p>为了尽可能减少这种影响，可以进行请求限流，在业务系统的请求入口前端控制每秒进入系统的请求数，避免过多的请求被发送到数据库</p>
 <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/05.png" class="">
 
 <p>通过主从节点的方式构建 Redis 缓存高可靠集群，主节点故障宕机，从节点还可以切换成为主节点，继续提供缓存服务，避免了由于缓存实例宕机而导致的缓存雪崩问题</p>
-<h2 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h2><p>缓存击穿是指，针对某个访问非常频繁的热点数据的请求，无法在缓存中进行处理，紧接着，访问该数据的大量请求，一下子都发送到了后端数据库，导致了数据库压力激增，会影响数据库处理其他请求</p>
-<p>缓存击穿的情况，经常发生在热点数据过期失效时</p>
+<h2 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h2><p>缓存击穿是指针对某个访问非常频繁的热点数据因为失效，无法在缓存中进行处理从而大量请求都发送到了后端数据库，导致影响数据库处理其他请求</p>
 <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/06.png" class="">
 
-<h3 id="热点数据不设置过期时间"><a href="#热点数据不设置过期时间" class="headerlink" title="热点数据不设置过期时间"></a>热点数据不设置过期时间</h3><p>对于访问特别频繁的热点数据，就不设置过期时间了</p>
-<h2 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h2><p>缓存穿透是指要访问的数据既不在 Redis 缓存中，也不在数据库中，导致请求在访问缓存时，发生缓存缺失，再去访问数据库时，发现数据库中也没有要访问的数据；应用无法从数据库中读取数据再写入缓存来服务后续请求，这样一来缓存也就成了摆设，如果应用持续有大量请求访问数据，就会同时给缓存和数据库带来巨大压力</p>
+<h3 id="合理设置热点数据过期时间"><a href="#合理设置热点数据过期时间" class="headerlink" title="合理设置热点数据过期时间"></a>合理设置热点数据过期时间</h3><ul>
+<li><p>热点数据不设置过期时间，由后台异步更新缓存</p>
+</li>
+<li><p>热点数据过期前提前通知后台线程更新过期时间</p>
+</li>
+</ul>
+<h2 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h2><p>缓存穿透是指要访问的数据不在 Redis 缓存中，然后访问数据库时发现数据库中也没有要访问的数据</p>
+<p>应用无法从数据库中读取数据写入缓存来服务后续请求，缓存失去了保护数据库的意义，还会同时给缓存和数据库带来巨大压力</p>
 <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/07.png" class="">
 
 <p>原因：</p>
@@ -735,23 +904,20 @@
 <li><p>恶意攻击：专门访问数据库中没有的数据</p>
 </li>
 </ul>
-<h3 id="缓存空值或缺省值"><a href="#缓存空值或缺省值" class="headerlink" title="缓存空值或缺省值"></a>缓存空值或缺省值</h3><p>一旦发生缓存穿透，可以针对查询的数据，在 Redis 中缓存一个空值或是和业务层协商确定的缺省值；应用发送的后续请求再进行查询时，就可以直接从 Redis 中读取空值或缺省值，返回给业务应用了，避免了把大量请求发送给数据库处理，保持了数据库的正常运行</p>
-<h3 id="布隆过滤器"><a href="#布隆过滤器" class="headerlink" title="布隆过滤器"></a>布隆过滤器</h3><p>使用布隆过滤器快速判断数据是否存在，避免从数据库中查询数据是否存在，减轻数据库压力</p>
-<p>工作原理：</p>
+<h3 id="缓存空值或缺省值"><a href="#缓存空值或缺省值" class="headerlink" title="缓存空值或缺省值"></a>缓存空值或缺省值</h3><p>一旦发生缓存穿透，可以针对查询的数据，在 Redis 中缓存一个缺省值</p>
+<p>应用发送的后续请求再进行查询时，就可以直接从 Redis 中读取空值或缺省值，返回给业务应用了，避免了把大量请求发送给数据库处理，保持了数据库的正常运行</p>
+<p>但采用默认值的方式也有其弊端：</p>
 <ul>
-<li><p>布隆过滤器由一个初值都为 0 的 bit 数组和 N 个哈希函数组成，可以用来快速判断某个数据是否存在</p>
+<li><p>缓存中存在很多数据库中没有的数据，导致存储空间增加，因此可以给这类数据设置一个过期时间</p>
 </li>
-<li><p>标记某个数据存在时，使用 N 个哈希函数，分别计算这个数据的哈希值，得到 N 个哈希值</p>
-</li>
-<li><p>把这 N 个哈希值对 bit 数组的长度取模，得到每个哈希值在数组中的对应位置</p>
-</li>
-<li><p>把对应位置的 bit 位设置为 1，这就完成了在布隆过滤器中标记数据的操作</p>
-</li>
-<li><p>如果数据不存在，也就没有用布隆过滤器标记过数据，那么，bit 数组对应 bit 位的值仍然为 0</p>
+<li><p>如果在默认值有效期间数据库写入了数据，会出现缓存与数据库数据不一致的情况，因此需要使用消息队列或其他异步的方式清理缓存</p>
 </li>
 </ul>
-<p>当需要查询某个数据时，就执行刚刚说的计算过程，先得到这个数据在 bit 数组中对应的 N 个位置；查看 bit 数组中这 N 个位置上的 bit 值；只要这 N 个 bit 值有一个不为 1，这就表明布隆过滤器没有对该数据做过标记，所以，查询的数据一定没有在数据库中保存</p>
-<p>基于布隆过滤器的快速检测特性，可以在把数据写入数据库时，使用布隆过滤器做个标记。当缓存缺失后，应用查询数据库时，可以通过查询布隆过滤器快速判断数据是否存在。如果不存在，就不用再去数据库中查询了。这样一来，即使发生缓存穿透了，大量请求只会查询 Redis 和布隆过滤器，而不会积压到数据库，也就不会影响数据库的正常运行。布隆过滤器可以使用 Redis 实现，本身就能承担较大的并发访问压力</p>
+<h3 id="业务逻辑前置判断"><a href="#业务逻辑前置判断" class="headerlink" title="业务逻辑前置判断"></a>业务逻辑前置判断</h3><p>针对业务逻辑特点，前置过滤判断，校验数据合法性</p>
+<h3 id="布隆过滤器"><a href="#布隆过滤器" class="headerlink" title="布隆过滤器"></a>布隆过滤器</h3><p>使用布隆过滤器快速判断数据是否存在，避免从数据库中查询数据是否存在，减轻数据库压力</p>
+<p>在把数据写入数据库时，使用布隆过滤器做个标记。当缓存缺失后需要查询数据库时，可以通过查询布隆过滤器快速判断数据是否存在</p>
+<p>这样即使发生缓存穿透了，大量请求只会查询 Redis 和布隆过滤器，而不会积压到数据库，也就不会影响数据库的正常运行</p>
+<p>布隆过滤器可以使用 Redis 实现，本身就能承担较大的并发访问压力</p>
 
       
     </div>
@@ -814,7 +980,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-06 20:40:30" itemprop="dateModified" datetime="2023-06-06T20:40:30+08:00">2023-06-06</time>
+      <time title="修改时间：2023-06-07 10:45:51" itemprop="dateModified" datetime="2023-06-07T10:45:51+08:00">2023-06-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -908,7 +1074,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-06 20:40:30" itemprop="dateModified" datetime="2023-06-06T20:40:30+08:00">2023-06-06</time>
+      <time title="修改时间：2023-06-07 10:45:51" itemprop="dateModified" datetime="2023-06-07T10:45:51+08:00">2023-06-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1036,7 +1202,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-06 20:40:30" itemprop="dateModified" datetime="2023-06-06T20:40:30+08:00">2023-06-06</time>
+      <time title="修改时间：2023-06-07 10:45:51" itemprop="dateModified" datetime="2023-06-07T10:45:51+08:00">2023-06-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1163,7 +1329,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-06 20:40:30" itemprop="dateModified" datetime="2023-06-06T20:40:30+08:00">2023-06-06</time>
+      <time title="修改时间：2023-06-07 10:45:51" itemprop="dateModified" datetime="2023-06-07T10:45:51+08:00">2023-06-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1218,136 +1384,6 @@
 <p>这个方案会在第一次删除缓存值后，延迟一段时间再次进行删除，所以我们也把它叫做延迟双删</p>
 <h3 id="先更新数据库值，再删除缓存值"><a href="#先更新数据库值，再删除缓存值" class="headerlink" title="先更新数据库值，再删除缓存值"></a>先更新数据库值，再删除缓存值</h3><p>线程 A 删除了数据库中的值，但还没来得及删除缓存值，线程 B 就开始读取数据；线程 B 查询缓存时，发现缓存命中，就会直接从缓存中读取旧值</p>
 <img src="/2023/04/19/Redis-%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/04.png" class="">
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/" class="post-title-link" itemprop="url">缓冲区</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 21:28:59" itemprop="dateCreated datePublished" datetime="2023-04-19T21:28:59+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-06 20:40:30" itemprop="dateModified" datetime="2023-06-06T20:40:30+08:00">2023-06-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>缓冲区就是用一块内存空间来暂时存放命令数据，以免出现因为数据和命令的处理速度慢于发送速度而导致的数据丢失和性能问题。但因为缓冲区的内存空间有限，如果往里面写入数据的速度持续地大于从里面读取数据的速度，就会导致缓冲区需要越来越多的内存来暂存数据。当缓冲区占用的内存超出了设定的上限阈值时，就会出现缓冲区溢出</p>
-<p>缓冲区不设上限，随着累积的数据越来越多，缓冲区占用内存空间越来越大，一旦耗尽了 Redis 实例所在机器的可用内存，就会导致 Redis 实例崩溃</p>
-<p>主要场景：</p>
-<ul>
-<li><p>在客户端和服务器端之间进行通信时，用来暂存客户端发送的命令数据，或者是服务器端返回给客户端的数据结果</p>
-</li>
-<li><p>主从节点间进行数据同步时，用来暂存主节点接收的写命令和数据</p>
-</li>
-</ul>
-<h2 id="客户端输入输出缓冲区"><a href="#客户端输入输出缓冲区" class="headerlink" title="客户端输入输出缓冲区"></a>客户端输入输出缓冲区</h2><p>为了避免客户端和服务器端的请求发送和处理速度不匹配，服务器端给每个连接的客户端都设置了一个输入缓冲区和输出缓冲区</p>
-<p>输入缓冲区会先把客户端发送过来的命令暂存起来，Redis 主线程再从输入缓冲区中读取命令，进行处理。当 Redis 主线程处理完数据后，会把结果写入到输出缓冲区，再通过输出缓冲区返回给客户端</p>
-<h3 id="输入缓冲区溢出"><a href="#输入缓冲区溢出" class="headerlink" title="输入缓冲区溢出"></a>输入缓冲区溢出</h3><p>输入缓冲区就是用来暂存客户端发送的请求命令的，所以可能导致溢出的情况主要是下面两种：</p>
-<ul>
-<li><p>写入了 bigkey，比如一下子写入了多个百万级别的集合类型数据</p>
-</li>
-<li><p>服务器端处理请求的速度过慢，导致客户端发送的请求在缓冲区越积越多</p>
-</li>
-</ul>
-<p>Redis 服务器端不止服务一个客户端，当多个客户端连接占用的内存总量，超过了 Redis 的 maxmemory 配置项时（例如 4GB），就会触发 Redis 进行数据淘汰。一旦数据被淘汰出 Redis，再要访问这部分数据，就需要去后端数据库读取，这就降低了业务应用的访问性能</p>
-<p>Redis 没有提供参数调节客户端输入缓冲区的大小，只能从数据命令的发送和处理速度入手，也就是前面提到的避免客户端写入 bigkey，以及避免 Redis 主线程阻塞</p>
-<h3 id="输出缓冲区溢出"><a href="#输出缓冲区溢出" class="headerlink" title="输出缓冲区溢出"></a>输出缓冲区溢出</h3><p>输出缓冲区暂存的是 Redis 主线程要返回给客户端的数据</p>
-<p>Redis 为每个客户端设置的输出缓冲区也包括两部分：一部分，是一个大小为 16KB 的固定缓冲空间，用来暂存 OK 响应和出错信息；另一部分，是一个可以动态增加的缓冲空间，用来暂存大小可变的响应结果</p>
-<p>输出去缓冲溢出主要情况：</p>
-<ul>
-<li><p>服务器端返回 bigkey 的大量结果</p>
-</li>
-<li><p>执行了 MONITOR 命令</p>
-</li>
-<li><p>缓冲区大小设置得不合理</p>
-</li>
-</ul>
-<p>可以通过 client-output-buffer-limit 配置项，来设置缓冲区的大小；主要包括设置缓冲区大小的上限阈值，设置输出缓冲区持续写入数据的数量上限阈值，和持续写入数据的时间的上限阈值</p>
-<h2 id="主从集群输入输出缓冲区"><a href="#主从集群输入输出缓冲区" class="headerlink" title="主从集群输入输出缓冲区"></a>主从集群输入输出缓冲区</h2><p>主从集群间的数据复制包括全量复制和增量复制两种。全量复制是同步所有数据，而增量复制只会把主从库网络断连期间主库收到的命令，同步给从库</p>
-<h3 id="复制缓冲区溢出"><a href="#复制缓冲区溢出" class="headerlink" title="复制缓冲区溢出"></a>复制缓冲区溢出</h3><p>在全量复制过程中，主节点在向从节点传输 RDB 文件的同时，会继续接收客户端发送的写命令请求。这些写命令就会先保存在复制缓冲区中，等 RDB 文件传输完成后，再发送给从节点去执行</p>
-<p>主节点上会为每个从节点都维护一个复制缓冲区，来保证主从节点间的数据同步</p>
-<img src="/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/01.png" class="">
-
-<p>如果在全量复制时，从节点接收和加载 RDB 较慢，同时主节点接收到了大量的写命令，写命令在复制缓冲区中就会越积越多，最终导致溢出</p>
-<p>主节点上的复制缓冲区，本质上也是一个用于和从节点连接的客户端使用的输出缓冲区，复制缓冲区一旦发生溢出，主节点也会直接关闭和从节点进行复制操作的连接，导致全量复制失败</p>
-<p>控制主节点保存的数据量大小，把主节点的数据量控制在 2~4GB，这样可以让全量同步执行得更快些，避免复制缓冲区累积过多命令</p>
-<p>使用 client-output-buffer-limit 配置项，来设置合理的复制缓冲区大小</p>
-<p>主节点上复制缓冲区的内存开销，会是每个从节点客户端输出缓冲区占用内存的总和，控制和主节点连接的从节点个数，不要使用大规模的主从集群</p>
-<h3 id="复制积压缓冲区溢出"><a href="#复制积压缓冲区溢出" class="headerlink" title="复制积压缓冲区溢出"></a>复制积压缓冲区溢出</h3><p>主节点在把接收到的写命令同步给从节点时，同时会把这些写命令写入复制积压缓冲区。一旦从节点发生网络闪断，再次和主节点恢复连接后，从节点就会从复制积压缓冲区中，读取断连期间主节点接收到的写命令，进而进行增量同步</p>
-<img src="/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/02.png" class="">
-
-<p>复制积压缓冲区 repl_backlog_buffer 是一个大小有限的环形缓冲区，当主节点把复制积压缓冲区写满后，会覆盖缓冲区中的旧命令数据。如果从节点还没有同步这些旧命令数据，就会造成主从节点间重新开始执行全量复制</p>
-
       
     </div>
 
