@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">372</span>
+          <span class="site-state-item-count">373</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,140 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-listpack/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/Redis-listpack/" class="post-title-link" itemprop="url">listpack</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 21:26:25" itemprop="dateCreated datePublished" datetime="2023-04-28T21:26:25+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>quicklist 虽然通过控制 quicklistNode 结构里的压缩列表的大小或者元素个数，来减少连锁更新带来的性能影响，但是并没有完全解决连锁更新的问题</p>
+<p>listpack 用来替代压缩列表，它最大特点是 listpack 中每个节点不再包含前一个节点的长度</p>
+<p>listpack 用一块连续的内存空间来紧凑地保存数据，并且为了节省内存的开销，listpack 节点会采用不同的编码方式保存不同大小的数据</p>
+<img src="/2023/04/28/Redis-listpack/01.png" class="">
+
+<ul>
+<li><p>encoding：定义该元素的编码类型，会对不同长度的整数和字符串进行编码</p>
+</li>
+<li><p>data：实际存放的数据</p>
+</li>
+<li><p>len：encoding+data的总长度</p>
+</li>
+</ul>
+<p>listpack 没有压缩列表中记录前一个节点长度的字段了，listpack 只记录当前节点的长度，当向 listpack 加入一个新元素的时候，不会影响其他节点的长度字段的变化，从而避免了压缩列表的连锁更新问题</p>
+<h2 id="一般结构"><a href="#一般结构" class="headerlink" title="一般结构"></a>一般结构</h2><p>listpack 拥有一个固定的 6 字节头部信息，相比 ziplist 的 10 字节的头部信息，listpack 少了指向最后一个 element 的指针</p>
+<p>在 listpack 尾部有一个 255 的终止符</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;tot-bytes&gt; &lt;num-elements&gt; &lt;element-1&gt; ... &lt;element-N&gt; &lt;listpack-end-byte&gt;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>tot-bytes：类型 <code>uint32_t</code>，采用小端存储，表示 listpack 全部字节</p>
+</li>
+<li><p>num-elements：类型 <code>uint16_t</code>，采用小端存储，表示 listpack 包含 element 数量，当 num-elements 被设置为 65535 时表示 element 数量不可知，此时获取 element 数量需要通过扫描整个 listpack</p>
+</li>
+</ul>
+<h2 id="element-结构"><a href="#element-结构" class="headerlink" title="element 结构"></a>element 结构</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;encoding-type&gt;&lt;element-data&gt;&lt;element-tot-len&gt;</span><br><span class="line">|                                            |</span><br><span class="line">+--------------------------------------------+</span><br><span class="line">            (This is an element)</span><br></pre></td></tr></table></figure>
+
+<p>encoding-type 和 element-tot-len 总是存在的，但 data 部分可能会放在 encoding-type 里</p>
+<p>element-tot-len 只能在反向遍历时使用，因为在正向遍历时不需要该字段就能知道数据大小</p>
+<p>encoding-type 第一个字节的前两位表示编码方式，这里有三种编码方式</p>
+<ol>
+<li>当数据是字符串，且可以被表示小数字（0-127）时，encoding 第一位为 0，后七位表示数据</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0|xxxxxxx</span><br><span class="line"></span><br><span class="line">&quot;\x03&quot; -- 0000 0011 --The string &quot;3&quot;</span><br><span class="line">&quot;\x12&quot; -- 0001 0010 --The string &quot;18&quot;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>当数据是小字符串，字符串长度可以用后六位表示（0-63）</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">10|xxxxxx &lt;string-data&gt;</span><br><span class="line"></span><br><span class="line">&quot;\x80&quot; -- 1000 0000 --The empty string</span><br><span class="line">&quot;\x85hello&quot; -- 1000 0101 -- The string &quot;hello&quot;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>高两位都被设置为 1，且紧随的后两位不是 11</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">110|xxxxx yyyyyyyy -- 后面 13 位直接编码有符号整数</span><br><span class="line">1110|xxxx yyyyyyyy -- 编码长度不大于 4095 的字符串</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>高四位都被设置为 1</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1111|0000 &lt;4 字节字符串长度&gt; &lt;大字符串&gt;</span><br><span class="line">1111|0001 -- 编码 int16_t</span><br><span class="line">1111|0010 -- 编码 int24_t</span><br><span class="line">1111|0011 -- 编码 int32_t</span><br><span class="line">1111|0100 -- 编码 int64_t</span><br><span class="line">1111|0101 ~ 1111|1110 未使用</span><br><span class="line">1111|1111 -- 终止符</span><br></pre></td></tr></table></figure>
+
+<p>element-tot-len 使用变长字段存储，并且从右往左存储，每个字节的最高有效位用于指示是否有更多字节，这意味着在每个字节中只使用 7 位</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&quot;\x20&quot; -- 0010 0000 --32 bytes entry length</span><br><span class="line"></span><br><span class="line">500 二进制 1111 0100</span><br><span class="line">&quot;\xf4\x03&quot; -- 0000 0011 1111 0100 -- 500 bytes entry length</span><br><span class="line">[0]000 0011          [1]111 0100</span><br><span class="line"> |                   |</span><br><span class="line"> `- no more bytes    `- more bytes to the left!</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +329,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-07 21:29:57" itemprop="dateModified" datetime="2023-06-07T21:29:57+08:00">2023-06-07</time>
+      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -279,7 +413,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-07 21:29:57" itemprop="dateModified" datetime="2023-06-07T21:29:57+08:00">2023-06-07</time>
+      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -367,7 +501,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-07 21:29:57" itemprop="dateModified" datetime="2023-06-07T21:29:57+08:00">2023-06-07</time>
+      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -470,7 +604,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-07 21:29:57" itemprop="dateModified" datetime="2023-06-07T21:29:57+08:00">2023-06-07</time>
+      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -562,7 +696,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-07 21:29:57" itemprop="dateModified" datetime="2023-06-07T21:29:57+08:00">2023-06-07</time>
+      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -665,7 +799,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-07 21:29:57" itemprop="dateModified" datetime="2023-06-07T21:29:57+08:00">2023-06-07</time>
+      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -815,7 +949,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-07 21:29:57" itemprop="dateModified" datetime="2023-06-07T21:29:57+08:00">2023-06-07</time>
+      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -931,7 +1065,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-07 21:29:57" itemprop="dateModified" datetime="2023-06-07T21:29:57+08:00">2023-06-07</time>
+      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1043,7 +1177,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-07 21:29:57" itemprop="dateModified" datetime="2023-06-07T21:29:57+08:00">2023-06-07</time>
+      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1090,161 +1224,6 @@
 <img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E5%86%85%E5%AD%98%E6%9B%BF%E6%8D%A2/01.png" class="">
 
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LRUCache</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    unordered_map&lt;<span class="type">int</span>, list&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt;::iterator&gt; lru;</span><br><span class="line">    list&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt; his;</span><br><span class="line">    <span class="type">int</span> cap;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">LRUCache</span>(<span class="type">int</span> capacity) &#123;</span><br><span class="line">        cap = capacity;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">get</span><span class="params">(<span class="type">int</span> key)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(lru.<span class="built_in">count</span>(key) != <span class="number">0</span>) &#123;</span><br><span class="line">            his.<span class="built_in">splice</span>(his.<span class="built_in">begin</span>(), his, lru[key]);</span><br><span class="line">            <span class="keyword">return</span> lru[key]-&gt;second;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">put</span><span class="params">(<span class="type">int</span> key, <span class="type">int</span> value)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(lru.<span class="built_in">count</span>(key)) his.<span class="built_in">erase</span>(lru[key]);</span><br><span class="line">        his.<span class="built_in">push_front</span>(<span class="built_in">make_pair</span>(key, value));</span><br><span class="line">        lru[key] = his.<span class="built_in">begin</span>();</span><br><span class="line">        <span class="keyword">if</span>(lru.<span class="built_in">size</span>() &gt; cap) &#123;</span><br><span class="line">            lru.<span class="built_in">erase</span>(his.<span class="built_in">rbegin</span>()-&gt;first);</span><br><span class="line">            his.<span class="built_in">pop_back</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/" class="post-title-link" itemprop="url">进程的内存结构</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 20:51:47" itemprop="dateCreated datePublished" datetime="2023-04-28T20:51:47+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-07 21:29:57" itemprop="dateModified" datetime="2023-06-07T21:29:57+08:00">2023-06-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>每个进程所分配的内存由很多部分组成，通常称之为段</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/01.png" class="">
-
-<h2 id="文本段-（text-段）"><a href="#文本段-（text-段）" class="headerlink" title="文本段 （text 段）"></a>文本段 （text 段）</h2><ul>
-<li><p>包含了进程运行的程序机器语言指令</p>
-</li>
-<li><p>文本段具有只读属性，以防止进程通过错误指针意外修改自身指令</p>
-</li>
-<li><p>因为多个进程可同时运行同一程序，所以又将文本段设为可共享，一份程序代码的拷贝可以映射到所有这些进程的虚拟地址空间中</p>
-</li>
-</ul>
-<h2 id="初始化的数据段（data-段）"><a href="#初始化的数据段（data-段）" class="headerlink" title="初始化的数据段（data 段）"></a>初始化的数据段（data 段）</h2><ul>
-<li><p>包含显式初始化的全局变量和静态变量</p>
-</li>
-<li><p>当程序加载到内存时，从可执行文件中读取这些变量的值</p>
-</li>
-</ul>
-<h2 id="未初始化数据段（BSS-段）"><a href="#未初始化数据段（BSS-段）" class="headerlink" title="未初始化数据段（BSS 段）"></a>未初始化数据段（BSS 段）</h2><ul>
-<li><p>包含了未进行显式初始化的全局变量和静态变量</p>
-</li>
-<li><p>程序启动之前，系统将本段内所有内存初始化为 0</p>
-</li>
-<li><p>程序结束后静态变量资源由系统自动释放</p>
-</li>
-<li><p>将经过初始化的全局变量和静态变量与未初始化的全局变量和静态变量分开存放，其主要原因在于程序在磁盘上存储时，没有必要为未经初始化的变量分配存储空间；可执行文件只需记录未初始化数据段的位置及所需大小，直到运行时再由程序加载器来分配空间</p>
-</li>
-</ul>
-<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><ul>
-<li><p>可在运行时为变量动态进行内存分配的一块区域</p>
-</li>
-<li><p>从低地址位向高地址位增长，采用链式存储结构</p>
-</li>
-</ul>
-<h2 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h2><ul>
-<li><p>一个动态增长和收缩的段，由栈帧组成</p>
-</li>
-<li><p>从高地址位向低地址位增长的，是一块连续的内存区域，最大容量是由系统预先定义好的，用户能从栈中获取的空间较小</p>
-</li>
-<li><p>系统会为每个当前调用的函数分配一个栈帧</p>
-</li>
-</ul>
-<h2 id="包含-static、virtual-的类内存分布"><a href="#包含-static、virtual-的类内存分布" class="headerlink" title="包含 static、virtual 的类内存分布"></a>包含 static、virtual 的类内存分布</h2><ul>
-<li><p><code>static</code> 修饰成员变量在全局数据区分配内存</p>
-</li>
-<li><p><code>static</code> 修饰的成员函数在代码区分配内存</p>
-</li>
-<li><p>虚指针和该类其他成员一起存储，指向只读数据段中的类虚函数表，虚函数表中存放着一个个函数指针，函数指针指向代码段中的具体函数，虚函数表存储在 data 段的只读数据段</p>
-</li>
-</ul>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/02.png" class="">
-
-<h2 id="堆内存分配"><a href="#堆内存分配" class="headerlink" title="堆内存分配"></a>堆内存分配</h2><p>C 标准函数库提供了许多函数来实现对堆上内存管理，其中包括：<code>malloc()</code>、<code>free()</code>、<code>calloc()</code> 和 <code>realloc()</code></p>
-<h3 id="malloc"><a href="#malloc" class="headerlink" title="malloc()"></a>malloc()</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> * <span class="title">malloc</span><span class="params">(<span class="type">size_t</span> n)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> * <span class="title">memset</span> <span class="params">(<span class="type">void</span> * p, <span class="type">int</span> c, <span class="type">size_t</span> n)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>如果函数执行成功，<code>malloc()</code> 返回获得内存空间的首地址；如果函数执行失败，那么返回值为 <code>NULL</code>。由于 <code>malloc()</code> 函数值的类型为 <code>void*</code>，因此可以将其值类型转换后赋给任意类型指针，这样就可以通过操作该类型指针来操作从堆上获得的内存空间</p>
-<p><code>malloc()</code> 分配得到的内存空间是未初始化的，一般在使用该内存空间时要调用另一个函数 <code>memset()</code> 来将其初始化为全 0</p>
-<h3 id="calloc"><a href="#calloc" class="headerlink" title="calloc()"></a>calloc()</h3><p><code>calloc()</code> 的功能与 <code>malloc()</code> 的功能相似，都是从堆分配内存</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> *<span class="title">calloc</span><span class="params">(<span class="type">size_t</span> n, <span class="type">size_t</span> size)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>函数返回值为 <code>void*</code>，如果执行成功函数从堆上获得 size * n 的字节空间，并返回该空间的首地址，如果执行失败，函数返回 <code>NULL</code>；<code>calloc()</code> 适合为数组申请空间，可以将 size 设置为数组元素的空间长度，将 n 设置为数组的容量</p>
-<p><code>calloc()</code> 得到的内存空间是经过初始化的，其内容全为 0</p>
-<h3 id="realloc"><a href="#realloc" class="headerlink" title="realloc()"></a>realloc()</h3><p><code>realloc()</code> 可以实现内存分配和内存释放的功能</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> * <span class="title">realloc</span><span class="params">(<span class="type">void</span> * p, <span class="type">size_t</span> n)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>指针 p 必须为指向堆内存空间的指针，即由 <code>malloc()</code>、<code>calloc()</code> 或 <code>realloc()</code> 分配空间的指针</p>
-<p><code>realloc()</code>将指针 p 指向的内存块的大小改变为 n 字节，如果 n 小于或等于 p 之前指向的空间大小，那么保持原有状态不变；如果 n 大于原来 p 之前指向的空间大小，那么系统将重新为 p 从堆上分配一块大小为 n 的内存空间，同时将原来指向空间的内容依次复制到新的内存空间上，p 之前指向的空间被释放</p>
-<p><code>realloc()</code>分配的空间也是未初始化的</p>
-<p><code>realloc()</code> 有可能操作失败，返回 <code>NULL</code>，所以不要把它的返回值直接赋值给原来的指针变量，以免原值丢失</p>
-<h3 id="free"><a href="#free" class="headerlink" title="free()"></a>free()</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">free</span><span class="params">(<span class="type">void</span> * p)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p><code>free()</code> 只是释放指针指向的内容，而该指针仍然指向原来指向的地方，此时指针为野指针</p>
-
       
     </div>
 
