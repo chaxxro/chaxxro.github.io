@@ -9,9 +9,9 @@ tags: LinuxApi
 categories: LinuxApi
 ---
 
-poll 的功能与 select 类似，也是等待一组描述符中的一个成为就绪状态
+`poll` 的功能与 `select` 类似，也是等待一组描述符中的一个成为就绪状态
 
-poll 中的描述符只有一个 pollfd 数组，数组中的每个元素都表示一个需要监听 IO 操作事件的文件描述符
+`poll` 中的描述符只有一个 `pollfd` 数组，数组中的每个元素都表示一个需要监听 IO 操作事件的文件描述符
 
 ```cpp
 #include <poll.h>
@@ -81,7 +81,7 @@ else
 
 - `select()` 会修改描述符，而 `poll()` 不会，`select()` 之前需要使用 `FD_ZERO()`、`FD_SET()`、`FD_CLR()`、`FD_ISSET()`）
 
-- `select()` 的描述符类型使用数组实现，FD_SETSIZE 大小默认为 1024，因此默认只能监听少于 1024 个描述符。如果要监听更多描述符的话，需要修改 FD_SETSIZE 之后重新编译；而 `poll()` 没有描述符数量的限制
+- `select()` 默认只能监听少于 1024 个描述符，如果要监听更多描述符的话，需要修改 `FD_SETSIZE` 之后重新编译，而 `poll()` 没有描述符数量的限制
 
 - `poll()` 提供了更多的事件类型，并且对描述符的重复利用上比 `select()` 高
 
@@ -90,3 +90,5 @@ else
 - `select()` 和 `poll()` 速度都比较慢，每次调用都需要将全部描述符从应用进程缓冲区复制到内核缓冲区，且都需要遍历 fd 来获取就绪的 socket
 
 - 几乎所有的系统都支持 `select()`，但是只有比较新的系统支持 `poll()`
+
+- `select` 的 `timeout` 参数精度为微秒，而 `poll` 和 `epoll` 为毫秒，因此 `select` 更加适用于实时性要求比较高的场景

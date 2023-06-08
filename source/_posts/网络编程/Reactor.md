@@ -3,21 +3,19 @@ toc:
   enable: true
   number: false
   max_depth: 3
-title: 网络模型
-date: 2023-04-13 11:02:36
-tags: 后端设计
-categories: 后端设计
+title: Reactor
+date: 2023-06-08 20:40:24
+tags: 网络编程
+categories: 网络编程
 ---
 
-Reactor 模式用于同步 IO，而 Proactor 运用于异步 IO 操作
+Reactor 模式用于同步 IO
 
 Reactor 实现相对简单，对于耗时短的处理场景处理高效，处理耗时长的操作会造成事件分发的阻塞，影响到后续事件的处理
 
-Proactor 性能更高，能够处理耗时长的并发场景，实现逻辑复杂，依赖操作系统对异步的支持
+Reactor 模式是事件驱动的，有一个或多个并发输入源，有一个 Service Handler，有多个 Request Handlers
 
-## Reactor
-
-Reactor 模式是事件驱动的，有一个或多个并发输入源，有一个 Service Handler，有多个 Request Handlers；Service Handler 会对输入的请求 Event 进行多路复用，并同步地将它们分发给相应的 Request Handler
+Service Handler 会对输入的请求 Event 进行多路复用，并同步地将它们分发给相应的 Request Handler
 
 ### 单 Reactor 单线程模型
 
@@ -76,13 +74,3 @@ mainReactor 负责监听 server socket，用来处理网络 IO 连接建立操�
 3. 将 SocketChannel 从主线程池的 Reactor 线程的多路复用器上摘除，重新注册到 Sub 线程池的线程上，并创建一个 Handler 用于处理各种连接事件
 
 4. 当有新的事件发生时，SubReactor 会调用连接对应的 Handler 进行响应
-
-## Proactor
-
-1. 应用程序初始化一个异步读取操作，然后注册相应的事件处理器，此时事件处理器不关注读取就绪事件，而是关注读取完成事件
-
-2. 事件分离器等待读取操作完成事件
-
-3. 在事件分离器等待读取操作完成的时候，操作系统调用内核线程完成读取操作，并将读取的内容放入用户传递过来的缓存区中
-
-4. 事件分离器捕获到读取完成事件后，激活应用程序注册的事件处理器，事件处理器直接从缓存区读取数据，而不需要进行实际的读取操作
