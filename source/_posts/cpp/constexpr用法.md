@@ -9,7 +9,7 @@ tags: cpp
 categories: cpp
 ---
 
-`constexpr`：可以用来修饰变量、函数、构造函数
+`constexpr` 可以用来修饰变量、函数、构造函数
 
 任何元素被 `constexpr` 修饰，那么编译器将之看成编译时就能得出常量值的表达式去优化
 
