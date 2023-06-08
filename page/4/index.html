@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">373</span>
+          <span class="site-state-item-count">376</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,481 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/31/LinuxApi-sem-xx/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/31/LinuxApi-sem-xx/" class="post-title-link" itemprop="url">sem_xx</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-31 21:22:30" itemprop="dateCreated datePublished" datetime="2023-05-31T21:22:30+08:00">2023-05-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-08 21:32:36" itemprop="dateModified" datetime="2023-06-08T21:32:36+08:00">2023-06-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>POSIX 信号量是一个 <code>sem_t</code> 类型的变量</p>
+<p>POSIX 有两种信号量的实现机制：无名信号量和命名信号量；无名信号量只可以在共享内存的情况下，比如实现进程中各个线程之间的互斥和同步；命名信号量通常用于不共享内存的情况下，比如进程间通信</p>
+<p>根据信号量取值的不同，POSIX信号量还可以分为：二值信号量和计数信号量；二进制信号量的值只有 0 和 1，和互斥量类似，若资源被锁住则信号量的值为 0，若资源可用则信号量的值为 1；计数信号量的值在 0 到一个大于 1 的限制值之间，该计数表示可用的资源的个数</p>
+<p>有名信号量和无名信号量的差异在于创建和销毁的形式上，其他工作方式一样</p>
+<h2 id="无名信号量操作"><a href="#无名信号量操作" class="headerlink" title="无名信号量操作"></a>无名信号量操作</h2><h3 id="init"><a href="#init" class="headerlink" title="init"></a>init</h3><p><code>sem_init()</code> 用于创建无名信号量</p>
+<p>该函数初始化由 sem 指向的信号对象，设置它的共享选项，并给它一个初始的整数值</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">sem_init</span><span class="params">(<span class="type">sem_t</span> *sem, <span class="type">int</span> pshared, <span class="type">unsigned</span> <span class="type">int</span> value)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">pshared 控制信号量的类型，如果其值为 0，就表示信号量是当前进程的局部信号量，否则信号量就可以在多个进程间共享</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">value 为 sem 的初始值</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">调用成功返回 0，失败返回 -1</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="destory"><a href="#destory" class="headerlink" title="destory"></a>destory</h3><p><code>sem_destory()</code> 用于对用完的信号量进行清理</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">sem_destroy</span><span class="params">(<span class="type">sem_t</span> *sem)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="getvalue"><a href="#getvalue" class="headerlink" title="getvalue"></a>getvalue</h3><p><code>sem_getvalue()</code> 返回当前信号量的值</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">sem_getvalue</span><span class="params">(<span class="type">sem_t</span> *restrict, <span class="type">int</span> *restrict)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">当前信号量的值通过 restrict 参数返回</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">如果当前信号量已经上锁，那么返回值为 0 或为负数，其绝对值就是等待该信号量解锁的线程数</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="命名信号量操作"><a href="#命名信号量操作" class="headerlink" title="命名信号量操作"></a>命名信号量操作</h2><h3 id="open"><a href="#open" class="headerlink" title="open"></a>open</h3><p><code>sem_open()</code> 用于创建或打开一个命名信号量</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">sem_t</span> *<span class="title">sem_open</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *name, <span class="type">int</span> oflag)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">sem_t</span> *<span class="title">sem_open</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *name, <span class="type">int</span> oflag,<span class="type">mode_t</span> mode, <span class="type">unsigned</span> <span class="type">int</span> value)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">name 是一个标识信号量的字符串</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">oflag 用来确定是创建信号量还是连接已有的信号量，可以为 0，O_CREAT 或 O_EXCL</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">0 表示打开一个已存在的信号量</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">O_CREAT 表示如果信号量不存在就创建一个信号量，如果存在则打开并返回，此时 mode 和 value 都需要指定</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">O_CREAT|O_EXCL 表示如果信号量存在则返回错误</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">mode 用于创建信号量时指定信号量的权限位</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">value 表示创建信号量时，信号量的初始值</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="close"><a href="#close" class="headerlink" title="close"></a>close</h3><p><code>sem_close()</code> 用于关闭命名信号量</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">sem_close</span><span class="params">(<span class="type">sem_t</span> *)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>单个程序可以用 <code>sem_close()</code> 函数关闭命名信号量，但是这样做并不能将信号量从系统中删除，因为命名信号量在单个程序执行之外是具有持久性的</p>
+<p>当进程调用 <code>_exit()</code>、<code>exit()</code>、<code>exec()</code>或从 <code>main()</code> 返回时，进程打开的命名信号量同样会被关闭</p>
+<h3 id="unlink"><a href="#unlink" class="headerlink" title="unlink"></a>unlink</h3><p><code>sem_unlink()</code> 用于在所有进程关闭了命名信号量之后，将信号量从系统中删除</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">sem_unlink</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *name)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="共同操作"><a href="#共同操作" class="headerlink" title="共同操作"></a>共同操作</h2><h3 id="wait"><a href="#wait" class="headerlink" title="wait"></a>wait</h3><p><code>sem_wait()</code> 为信号量值减一操作，总共有三个函数</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">sem_wait</span><span class="params">(<span class="type">sem_t</span> *sem)</span></span>;</span><br><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment">若 sem 小于 0 ，则线程阻塞于信号量 sem ，直到 sem 大于 0，否则信号量值减 1</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">sem_trywait</span><span class="params">(<span class="type">sem_t</span> *sem)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">不阻塞线程，如果 sem 小于 0，直接返回一个错误</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">sem_timedwait</span><span class="params">(<span class="type">sem_t</span> *sem, <span class="type">const</span> <span class="keyword">struct</span> timespec *abs_timeout)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">第二个参数表示阻塞时间</span></span><br><span class="line"><span class="comment">如果 sem 小于 0 ，则会阻塞，参数指定阻塞时间长度</span></span><br><span class="line"><span class="comment">如果指定的阻塞时间到了，但是 sem 仍然小于 0 ，则会返回一个错误 </span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 成功，返回 0 </span></span><br><span class="line"><span class="comment">// 出错，返回 -1</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="post"><a href="#post" class="headerlink" title="post"></a>post</h3><p><code>sem_post()</code> 为信号量值加一操作</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">sem_post</span><span class="params">(<span class="type">sem_t</span> *sem)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 成功，返回 0 </span></span><br><span class="line"><span class="comment">// 出错，返回 -1</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/31/LinuxApi-pthread-rwlock-xx/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/31/LinuxApi-pthread-rwlock-xx/" class="post-title-link" itemprop="url">pthread_rwlock_xx</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-31 21:22:17" itemprop="dateCreated datePublished" datetime="2023-05-31T21:22:17+08:00">2023-05-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-08 21:32:36" itemprop="dateModified" datetime="2023-06-08T21:32:36+08:00">2023-06-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方式一</span></span><br><span class="line"><span class="type">pthread_rwlock_t</span> rw = PTHREAD_RWLOCK_INITIALIZER;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式二</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_init</span><span class="params">(<span class="type">pthread_rwlock_t</span>* rw,</span></span></span><br><span class="line"><span class="params"><span class="function">                        <span class="type">const</span> <span class="type">pthread_rwlockattr_t</span>* attr)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 初始化</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlockattr_init</span><span class="params">(<span class="type">pthread_rwlockattr_t</span>* attr)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 销毁</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlockattr_destroy</span><span class="params">(<span class="type">pthread_rwlockattr_t</span>* attr)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 查询</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlockattr_getkind_np</span><span class="params">(<span class="type">const</span> <span class="type">pthread_rwlockattr_t</span>* attr,</span></span></span><br><span class="line"><span class="params"><span class="function">                                  <span class="type">int</span>* pref)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlockattr_setkind_np</span><span class="params">(<span class="type">const</span> <span class="type">pthread_rwlockattr_t</span>* attr,</span></span></span><br><span class="line"><span class="params"><span class="function">                                  <span class="type">int</span> pref)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">enum</span> &#123;</span><br><span class="line">    <span class="comment">// 读优先，即读写同时请求时，读获得锁</span></span><br><span class="line">    PTHREAD_RWLOCK_PREFER_READER_NP,</span><br><span class="line">    <span class="comment">// 还是读优先</span></span><br><span class="line">    PTHREAD_RWLOCK_PREFER_WRITER_NP,</span><br><span class="line">    <span class="comment">// 写优先，即读写同时请求时，写获得锁</span></span><br><span class="line">    PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP,</span><br><span class="line">    PTHREAD_RWLOCK_PREFER_DEFAULT_NP = PTHREAD_RWLOCK_PREFER_READER_NP</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="销毁"><a href="#销毁" class="headerlink" title="销毁"></a>销毁</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_destroy</span><span class="params">(<span class="type">pthread_rwlock_t</span>* rw)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="请求读锁"><a href="#请求读锁" class="headerlink" title="请求读锁"></a>请求读锁</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_rdlock</span><span class="params">(<span class="type">pthread_rwlock_t</span>* rw)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_tryrdlock</span><span class="params">(<span class="type">pthread_rwlock_t</span>* rw)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_timedrdlock</span><span class="params">(<span class="type">pthread_rwlock_t</span>* rw,</span></span></span><br><span class="line"><span class="params"><span class="function">                               <span class="type">const</span> <span class="keyword">struct</span> timespec* abstime)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>读锁用于共享模式</p>
+<p>如果当前锁被读模式占用，则其他线程请求读锁会立即获得锁，其他线程请求写锁会阻塞</p>
+<h2 id="请求写锁"><a href="#请求写锁" class="headerlink" title="请求写锁"></a>请求写锁</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_wrlock</span><span class="params">(<span class="type">pthread_rwlock_t</span>* rw)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_trywrlock</span><span class="params">(<span class="type">pthread_rwlock_t</span>* rw)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_timedwrlock</span><span class="params">(<span class="type">pthread_rwlock_t</span>* rw,</span></span></span><br><span class="line"><span class="params"><span class="function">                               <span class="type">const</span> <span class="keyword">struct</span> timespec* abstime)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>写锁用于独占模式</p>
+<p>如果当前锁被写模式占用，则其他线程无论请求读锁还是写锁都会阻塞</p>
+<h2 id="释放锁"><a href="#释放锁" class="headerlink" title="释放锁"></a>释放锁</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_rwlock_unlock</span><span class="params">(<span class="type">pthread_rwlock_t</span>* rw)</span></span>;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/31/LinuxApi-printf/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/31/LinuxApi-printf/" class="post-title-link" itemprop="url">printf</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-31 21:19:26" itemprop="dateCreated datePublished" datetime="2023-05-31T21:19:26+08:00">2023-05-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-08 21:32:36" itemprop="dateModified" datetime="2023-06-08T21:32:36+08:00">2023-06-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">printf</span> <span class="params">( <span class="type">const</span> <span class="type">char</span> * format, ... )</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>发送格式化输出到标准输出 <code>stdout</code></p>
+<p><code>format</code> 标签属性是 <code>%[flags][width][.precision][length]specifier</code></p>
+<table>
+<thead>
+<tr>
+<th>specifier</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>d</td>
+<td>以十进制形式输出带符号整数</td>
+</tr>
+<tr>
+<td>o</td>
+<td>以八进制形式输出无符号整数，</td>
+</tr>
+<tr>
+<td>x,X</td>
+<td>以十六进制形式输出无符号整数，不输出前缀 0</td>
+</tr>
+<tr>
+<td>u</td>
+<td>以十进制形式输出带符号整数，不输出前缀 <code>Ox</code></td>
+</tr>
+<tr>
+<td>f</td>
+<td>以小数形式输出单、双精度实数</td>
+</tr>
+<tr>
+<td>c</td>
+<td>输出单个字符</td>
+</tr>
+<tr>
+<td>s</td>
+<td>输出字符串</td>
+</tr>
+<tr>
+<td>p</td>
+<td>输出指针地址</td>
+</tr>
+<tr>
+<td>lu</td>
+<td>32 位无符号整数</td>
+</tr>
+<tr>
+<td>llu</td>
+<td>64 位无符号整数</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>flags</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-</td>
+<td>在给定的字段宽度内左对齐，默认是右对齐</td>
+</tr>
+<tr>
+<td>+</td>
+<td>强制在结果之前显示加号或减号</td>
+</tr>
+<tr>
+<td>#</td>
+<td>与 <code>o</code>、<code>x</code> 或 <code>X</code> 一起使用时，非零值前面会分别显示 <code>0</code>、<code>0x</code> 或 <code>0X</code></td>
+</tr>
+<tr>
+<td>0</td>
+<td>在指定填充 padding 的数字左边放置零 <code>0</code>，而不是空格</td>
+</tr>
+<tr>
+<td>空格</td>
+<td>如果没有写入任何符号，则在该值前面插入一个空格</td>
+</tr>
+</tbody></table>
+<h2 id="fprintf"><a href="#fprintf" class="headerlink" title="fprintf"></a>fprintf</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">fprintf</span><span class="params">(FILE *stream, <span class="type">const</span> <span class="type">char</span> *format, ...)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>发送格式化输出到流 <code>stream</code> 中</p>
+<h2 id="sprintf"><a href="#sprintf" class="headerlink" title="sprintf"></a>sprintf</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">sprintf</span> <span class="params">( <span class="type">char</span> * str, <span class="type">const</span> <span class="type">char</span> * format, ... )</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>发送格式化输出到 <code>str</code> 所指向的字符串</p>
+<h2 id="snprintf"><a href="#snprintf" class="headerlink" title="snprintf"></a>snprintf</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">snprintf</span> <span class="params">(<span class="type">char</span> * s, <span class="type">size_t</span> n, <span class="type">const</span> <span class="type">char</span> * format, ... )</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="vprintf"><a href="#vprintf" class="headerlink" title="vprintf"></a>vprintf</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">vprintf</span> <span class="params">( <span class="type">const</span> <span class="type">char</span> * format, va_list arg )</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="vfprintf"><a href="#vfprintf" class="headerlink" title="vfprintf"></a>vfprintf</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">vfprintf</span><span class="params">(FILE *stream, <span class="type">const</span> <span class="type">char</span> *format, va_list arg)</span></span></span><br></pre></td></tr></table></figure>
+
+<h2 id="vsprintf"><a href="#vsprintf" class="headerlink" title="vsprintf"></a>vsprintf</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">vsprintf</span><span class="params">( <span class="type">char</span> *buffer, <span class="type">const</span> <span class="type">char</span> *format, va_list vlist )</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="vsnprintf"><a href="#vsnprintf" class="headerlink" title="vsnprintf"></a>vsnprintf</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">vsnprintf</span> <span class="params">(<span class="type">char</span> * s, <span class="type">size_t</span> n, <span class="type">const</span> <span class="type">char</span> * format, va_list arg )</span></span>;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/31/LinuxApi-pipe/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/31/LinuxApi-pipe/" class="post-title-link" itemprop="url">pipe</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-31 21:19:13" itemprop="dateCreated datePublished" datetime="2023-05-31T21:19:13+08:00">2023-05-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-08 21:32:36" itemprop="dateModified" datetime="2023-06-08T21:32:36+08:00">2023-06-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pipe</span><span class="params">(<span class="type">int</span> fd[<span class="number">2</span>])</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pipe2</span><span class="params">(<span class="type">int</span> fd[<span class="number">2</span>], <span class="type">int</span> flags)</span></span>;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +670,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
+      <time title="修改时间：2023-06-08 21:32:36" itemprop="dateModified" datetime="2023-06-08T21:32:36+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -280,7 +755,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
+      <time title="修改时间：2023-06-08 21:32:36" itemprop="dateModified" datetime="2023-06-08T21:32:36+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -405,7 +880,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
+      <time title="修改时间：2023-06-08 21:32:36" itemprop="dateModified" datetime="2023-06-08T21:32:36+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -490,7 +965,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
+      <time title="修改时间：2023-06-08 21:32:36" itemprop="dateModified" datetime="2023-06-08T21:32:36+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -600,7 +1075,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
+      <time title="修改时间：2023-06-08 21:32:36" itemprop="dateModified" datetime="2023-06-08T21:32:36+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -736,7 +1211,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
+      <time title="修改时间：2023-06-08 21:32:36" itemprop="dateModified" datetime="2023-06-08T21:32:36+08:00">2023-06-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -760,370 +1235,6 @@
     <div class="post-body" itemprop="articleBody">
           <p>立即终止调用进程，任何属于该进程的打开的文件描述符都会被关闭，该进程的子进程由进程 1 继承</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">exit</span><span class="params">(<span class="type">int</span> status)</span></span></span><br><span class="line"><span class="function"><span class="comment">// status -- 返回给父进程的状态值</span></span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/31/LinuxApi-eventfd/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/31/LinuxApi-eventfd/" class="post-title-link" itemprop="url">eventfd</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-31 21:16:22" itemprop="dateCreated datePublished" datetime="2023-05-31T21:16:22+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">eventfd</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> init, <span class="type">int</span> flags)</span></span>;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/31/LinuxApi-strerror/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/31/LinuxApi-strerror/" class="post-title-link" itemprop="url">strerror</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-31 21:16:09" itemprop="dateCreated datePublished" datetime="2023-05-31T21:16:09+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>变量 <code>errno</code> 存放一个正整数来表明上一个系统调用的错误值，仅当系统调用发生错误时才设置它</p>
-<p>对于线程而言，每个线程都有专用的 <code>errno</code> 变量，它不是一个共享的变量，因此不必考虑多线程同步问题</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;errno.h&gt;</span></span></span><br><span class="line"><span class="comment">// errno 记录系统的最后一次错误代码，是个 int 型</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">char</span> *<span class="title">strerror</span><span class="params">(<span class="type">int</span> errnum)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>当错误码是 <code>EINTR</code> 时，表明被信号中断，需要再次调用函数进行重试</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/31/LinuxApi-dirent/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/31/LinuxApi-dirent/" class="post-title-link" itemprop="url">dirent</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-31 21:15:53" itemprop="dateCreated datePublished" datetime="2023-05-31T21:15:53+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;dirent.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">dirent</span> &#123;</span><br><span class="line">    <span class="type">ino_t</span>          d_ino;       <span class="comment">/* 索引节点号*/</span></span><br><span class="line">    <span class="type">off_t</span>          d_off;       <span class="comment">/* 在目录文件中的偏移*/</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> d_reclen;    <span class="comment">/* 文件名长*/</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span>  d_type;      <span class="comment">/* 文件类型*/</span>              </span><br><span class="line">    <span class="type">char</span>           d_name[<span class="number">256</span>]; <span class="comment">/* 文件名，最长 255 字符*/</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<h2 id="opendir"><a href="#opendir" class="headerlink" title="opendir"></a>opendir</h2><p>打开文件夹，获取指针</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">DIR *<span class="title">opendir</span><span class="params">( <span class="type">const</span> <span class="type">char</span> *name)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function">DIR *<span class="title">fdopendir</span><span class="params">( <span class="type">int</span> fd)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<h2 id="readdir"><a href="#readdir" class="headerlink" title="readdir"></a>readdir</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">dirent</span> *<span class="built_in">readdir</span>(DIR *dirp);</span><br><span class="line"><span class="comment">// 使用 readdir 后，readdir 会读到下一个文件</span></span><br><span class="line"><span class="comment">// readdir 是依次读出目录中的所有文件，每次只能读一个</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">readdir_r</span><span class="params">(DIR *dirp, <span class="keyword">struct</span> dirent *entry, <span class="keyword">struct</span> dirent **result)</span></span>;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/31/LinuxApi-pthread-cond-xx/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/31/LinuxApi-pthread-cond-xx/" class="post-title-link" itemprop="url">pthread_cond_xx</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-31 21:15:17" itemprop="dateCreated datePublished" datetime="2023-05-31T21:15:17+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-08 16:40:42" itemprop="dateModified" datetime="2023-06-08T16:40:42+08:00">2023-06-08</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方式一</span></span><br><span class="line"><span class="type">pthread_cond_t</span> cond = PTHREAD_COND_INITIALIZER;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式二</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_init</span><span class="params">(<span class="type">pthread_cond_t</span>* cond, </span></span></span><br><span class="line"><span class="params"><span class="function">                      <span class="type">const</span> <span class="type">pthread_condattr_t</span>* attr)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<h2 id="销毁"><a href="#销毁" class="headerlink" title="销毁"></a>销毁</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_destroy</span><span class="params">(<span class="type">pthread_cond_t</span>* cond)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<h2 id="等待"><a href="#等待" class="headerlink" title="等待"></a>等待</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_wait</span><span class="params">(<span class="type">pthread_cond_t</span>* cond,</span></span></span><br><span class="line"><span class="params"><span class="function">                      <span class="type">pthread_mutex_t</span> mutex)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_timewait</span><span class="params">(<span class="type">pthread_cond_t</span>* cond,</span></span></span><br><span class="line"><span class="params"><span class="function">                          <span class="type">pthread_mutex_t</span>* mutex,</span></span></span><br><span class="line"><span class="params"><span class="function">                          <span class="type">const</span> <span class="keyword">struct</span> timespec* abs_time)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p><code>pthread_cond_wait</code> 阻塞时，会释放绑定的互斥体并阻塞线程</p>
-<p><code>pthread_cond_wait</code> 返回时会对绑定的互斥体加锁</p>
-<h2 id="唤醒"><a href="#唤醒" class="headerlink" title="唤醒"></a>唤醒</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_signal</span><span class="params">(<span class="type">pthread_cond_t</span>* cond)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_broadcast</span><span class="params">(<span class="type">pthread_cond_t</span>* cond)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p><code>pthread_cond_signal</code> 唤醒一个线程，但具体哪个线程不确定</p>
-<p><code>pthread_cond_broadcast</code> 唤醒所有线程</p>
-<h2 id="虚假唤醒"><a href="#虚假唤醒" class="headerlink" title="虚假唤醒"></a>虚假唤醒</h2><p>操作系统可能在某些情况下唤醒条件变量，即存在没有其他线程向条件变量发送信号，但等待的线程被唤醒的情况，因此需要在被唤醒后再次检测条件</p>
-<p>这是因为 <code>pthread_cond_wait</code> 是阻塞型系统调用，当被信号中断时会返回 -1，并把 <code>errno</code> 置为 <code>EINTR</code></p>
-<p>因此在被中断唤醒后到再次调用 <code>pthread_cond_wait</code> 前会丢失信号，则有可能无限等待</p>
-<p>解决方法：在条件变量唤醒后，使用 <code>while</code> 检查条件是否满</p>
-
       
     </div>
 
