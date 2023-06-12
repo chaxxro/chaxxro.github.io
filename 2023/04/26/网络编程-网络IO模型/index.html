@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="输入操作的两个阶段 等待数据从网络中到达  当所等待数据到达时，它被存放在内核中的某个缓冲区，所以还需把数据从内核缓冲区复制到应用进程的缓冲区   read、readv、recv、recvfrom、recvmsg 等作用于非阻塞 fd 时在第一阶段返回异常，第二阶段阻塞 accept 与输入操作类似 输出操作的两个阶段 将应用进程缓冲区中的数据拷贝至内核缓冲区  内核将内核缓冲区中的数据发送出去">
+<meta property="og:type" content="article">
+<meta property="og:title" content="网络 IO 模型">
+<meta property="og:url" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="输入操作的两个阶段 等待数据从网络中到达  当所等待数据到达时，它被存放在内核中的某个缓冲区，所以还需把数据从内核缓冲区复制到应用进程的缓冲区   read、readv、recv、recvfrom、recvmsg 等作用于非阻塞 fd 时在第一阶段返回异常，第二阶段阻塞 accept 与输入操作类似 输出操作的两个阶段 将应用进程缓冲区中的数据拷贝至内核缓冲区  内核将内核缓冲区中的数据发送出去">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/02.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/03.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/04.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/05.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/06.png">
+<meta property="article:published_time" content="2023-04-26T12:44:08.000Z">
+<meta property="article:modified_time" content="2023-06-12T11:54:52.640Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="网络编程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/","path":"2023/04/26/网络编程-网络IO模型/","title":"网络 IO 模型"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>网络 IO 模型 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BE%93%E5%85%A5%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%A4%E4%B8%AA%E9%98%B6%E6%AE%B5"><span class="nav-text">输入操作的两个阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E6%93%8D%E4%BD%9C%E7%9A%84%E4%B8%A4%E4%B8%AA%E9%98%B6%E6%AE%B5"><span class="nav-text">输出操作的两个阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%E9%98%BB%E5%A1%9E-IO"><span class="nav-text">同步阻塞 IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%E9%9D%9E%E9%98%BB%E5%A1%9E-IO"><span class="nav-text">同步非阻塞 IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IO-%E5%A4%8D%E7%94%A8"><span class="nav-text">IO 复用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%A1%E5%8F%B7%E9%A9%B1%E5%8A%A8-IO"><span class="nav-text">信号驱动 IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5-IO"><span class="nav-text">异步 IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IO-%E6%A8%A1%E5%9E%8B%E6%AF%94%E8%BE%83"><span class="nav-text">IO 模型比较</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">376</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="网络 IO 模型 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          网络 IO 模型
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 20:44:08" itemprop="dateCreated datePublished" datetime="2023-04-26T20:44:08+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-12 19:54:52" itemprop="dateModified" datetime="2023-06-12T19:54:52+08:00">2023-06-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">网络编程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="输入操作的两个阶段"><a href="#输入操作的两个阶段" class="headerlink" title="输入操作的两个阶段"></a>输入操作的两个阶段</h2><ol>
+<li><p>等待数据从网络中到达</p>
+</li>
+<li><p>当所等待数据到达时，它被存放在内核中的某个缓冲区，所以还需把数据从内核缓冲区复制到应用进程的缓冲区</p>
+</li>
+</ol>
+<p><code>read</code>、<code>readv</code>、<code>recv</code>、<code>recvfrom</code>、<code>recvmsg</code> 等作用于非阻塞 fd 时在第一阶段返回异常，第二阶段阻塞</p>
+<p><code>accept</code> 与输入操作类似</p>
+<h2 id="输出操作的两个阶段"><a href="#输出操作的两个阶段" class="headerlink" title="输出操作的两个阶段"></a>输出操作的两个阶段</h2><ol>
+<li><p>将应用进程缓冲区中的数据拷贝至内核缓冲区</p>
+</li>
+<li><p>内核将内核缓冲区中的数据发送出去</p>
+</li>
+</ol>
+<p><code>write</code>、<code>writev</code>、<code>send</code>、<code>sendto</code>、<code>sendmsg</code> 等作用于阻塞 fd 且当内核可用的发送缓冲区小于待发送数据时会阻塞</p>
+<p><code>write</code>、<code>writev</code>、<code>send</code>、<code>sendto</code>、<code>sendmsg</code> 等作用于非阻塞 fd 且当内核可用的发送缓冲区小于待发送数据时会返回异常</p>
+<p><code>connect</code> 与输出操作类似</p>
+<h2 id="同步阻塞-IO"><a href="#同步阻塞-IO" class="headerlink" title="同步阻塞 IO"></a>同步阻塞 IO</h2><p>应用进程被阻塞，直到数据从内核缓冲区复制到应用进程缓冲区中才返回</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/01.png" class="">
+
+<h2 id="同步非阻塞-IO"><a href="#同步非阻塞-IO" class="headerlink" title="同步非阻塞 IO"></a>同步非阻塞 IO</h2><p>应用进程执行系统调用之后，内核返回一个错误码后应用进程可以继续执行，但是需要以轮询的方式不断的执行系统调用来获知 IO 是否完成</p>
+<p>因为应用进程在数据没有到达之前会不停查询，使 CPU 要处理更多的系统调用</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/02.png" class="">
+
+<p>非阻塞 IO 不被推荐，虽然该方式能够在等待数据的时间里干其他活，但轮询将推高 CPU 占用，同时任务完成的响应延迟也将增大，降低整体数据吞吐量</p>
+<h2 id="IO-复用"><a href="#IO-复用" class="headerlink" title="IO 复用"></a>IO 复用</h2><p>在同步非阻塞 I&#x2F;O 中，<code>recv()</code> 更多的是起到检测的作用，而操作系统提供了更为高效的检测操作是否完成接口，同时接口可以一次检测多个连接是否可读、可写</p>
+<p>IO 复用让单个线程具有处理多个 IO 事件的能力</p>
+<p>如果一个 Web 服务器没有 IO 复用，那么每一个 Socket 连接都需要创建一个线程去处理。如果同时有几万个连接，那么就需要创建相同数量的线程。相比于多进程和多线程技术，IO 复用不需要进程线程创建和切换的开销，系统开销更小</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/03.png" class="">
+
+<p>IO 复用的优势在于能处理更多的连接，如果处理的连接数不是很高的话，使用 IO 复用不一定比使用多线程阻塞 IO 性能更好，可能延迟更高</p>
+<p>当用户调用 <code>select</code> 时整个线程会被阻塞；当 <code>select</code> 负责的 socket 数据准备好了 <code>select</code> 便会返回，整个过程和阻塞 IO 并没有太大的不同，甚至要更差一些，因为使用了两个系统调用</p>
+<h2 id="信号驱动-IO"><a href="#信号驱动-IO" class="headerlink" title="信号驱动 IO"></a>信号驱动 IO</h2><p>应用进程使用 <code>sigaction</code> 系统调用，内核立即返回，应用进程可以继续执行，也就是说等待数据阶段应用进程是非阻塞的</p>
+<p>内核在数据到达时向应用进程发送 SIGIO 信号，应用进程收到之后在信号处理程序中调用 <code>recvfrom</code> 将数据从内核复制到应用进程中</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/04.png" class="">
+
+<h2 id="异步-IO"><a href="#异步-IO" class="headerlink" title="异步 IO"></a>异步 IO</h2><p>进程执行 <code>aio_read</code> 系统调用会立即返回，进程可以继续执行不会被阻塞，内核会在所有操作完成之后向应用进程发送信号</p>
+<p>异步 IO 与信号驱动 IO 的区别在于，异步 IO 的信号是通知应用进程 IO 完成，而信号驱动 IO 的信号是通知应用进程可以开始 IO</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/05.png" class="">
+
+<h2 id="IO-模型比较"><a href="#IO-模型比较" class="headerlink" title="IO 模型比较"></a>IO 模型比较</h2><ul>
+<li><p>同步 IO：将数据从内核缓冲区复制到应用进程缓冲区的阶段（第二阶段），应用进程会阻塞</p>
+</li>
+<li><p>异步 IO：第二阶段应用进程不会阻塞</p>
+</li>
+</ul>
+<p>同步 IO 包括阻塞式 IO、非阻塞式 IO、IO 复用和信号驱动 IO ，它们的主要区别在第一个阶段</p>
+<p>非阻塞式 IO 、信号驱动 IO 和异步 IO 在第一阶段不会阻塞</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/06.png" class="">
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" rel="tag"># 网络编程</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-%E7%BD%91%E7%BB%9C%E5%88%86%E5%B1%82/" rel="prev" title="网络协议分层">
+                  <i class="fa fa-chevron-left"></i> 网络协议分层
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/04/26/LinuxApi-accept/" rel="next" title="accept">
+                  accept <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
