@@ -122,18 +122,18 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">376</span>
+          <span class="site-state-item-count">377</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">28</span>
+        <span class="site-state-item-count">29</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-count">27</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -150,6 +150,138 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/19/Redis-%E5%BC%82%E6%AD%A5%E6%9C%BA%E5%88%B6/" class="post-title-link" itemprop="url">异步机制</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-19 21:24:38" itemprop="dateCreated datePublished" datetime="2023-04-19T21:24:38+08:00">2023-04-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-14 11:52:24" itemprop="dateModified" datetime="2023-06-14T11:52:24+08:00">2023-06-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Redis 实例在运行时，要和许多对象进行交互，这些不同的交互就会涉及不同的操作</p>
+<ul>
+<li><p>客户端：网络 IO，键值对增删改查操作，数据库操作</p>
+</li>
+<li><p>磁盘：生成 RDB 快照，记录 AOF 日志，AOF 日志重写</p>
+</li>
+<li><p>主从节点：主库生成、传输 RDB 文件，从库接收 RDB 文件、清空数据库、加载 RDB 文件</p>
+</li>
+<li><p>切片集群实例：向其他实例传输哈希槽信息，数据迁移</p>
+</li>
+</ul>
+
+
+<h2 id="阻塞风险"><a href="#阻塞风险" class="headerlink" title="阻塞风险"></a>阻塞风险</h2><h3 id="客户端交互"><a href="#客户端交互" class="headerlink" title="客户端交互"></a>客户端交互</h3><h4 id="网络-IO"><a href="#网络-IO" class="headerlink" title="网络 IO"></a>网络 IO</h4><p>Redis 使用了 IO 多路复用机制，避免了主线程一直处在等待网络连接或请求到来的状态</p>
+<h4 id="键值对操作"><a href="#键值对操作" class="headerlink" title="键值对操作"></a>键值对操作</h4><p>键值对的增删改查操作是 Redis 和客户端交互的主要部分，也是 Redis 主线程执行的主要任务。所以，复杂度高的增删改查操作肯定会阻塞 Redis，复杂度标准为 O(N)</p>
+<p>Redis 中涉及集合的操作复杂度通常为 O(N)，所以集合全量查询和聚合操作在使用时需要重视</p>
+<p>集合自身的删除操作同样也有潜在的阻塞风险：删除操作的本质是要释放键值对占用的内存空间；为了更加高效地管理内存空间，在应用程序释放内存时，操作系统需要把释放掉的内存块插入一个空闲内存块的链表，以便后续进行管理和再分配，这个过程需要一定时间，而且会阻塞当前释放内存的应用程序</p>
+<p>在删除大量键值对数据的时候，最典型的就是删除包含了大量元素的集合，也称为 bigkey 删除</p>
+<p>清空数据库因为涉及到删除和释放所有的键值对，因此也会带来阻塞</p>
+<h3 id="磁盘交互"><a href="#磁盘交互" class="headerlink" title="磁盘交互"></a>磁盘交互</h3><p>磁盘 IO 一般都是比较费时费力的，Redis 因此采用子进程的方式生成 RDB 快照文件，以及执行 AOF 日志重写操作</p>
+<p>Redis 直接记录 AOF 日志时，会根据不同的写回策略对数据做落盘保存；如果有大量的写操作需要记录在 AOF 日志中，并同步写回的话，就会阻塞主线程了</p>
+<h3 id="主从节点交互"><a href="#主从节点交互" class="headerlink" title="主从节点交互"></a>主从节点交互</h3><p>在主从集群中，主库需要生成 RDB 文件，并传输给从库。主库在复制的过程中，创建和传输 RDB 文件都是由子进程来完成的，不会阻塞主线程</p>
+<p>对于从库来说，它在接收了 RDB 文件后，需要使用 FLUSHDB 命令清空当前数据库，因此会阻塞</p>
+<p>从库在清空当前数据库后，还需要把 RDB 文件加载到内存，这个过程的快慢和 RDB 文件的大小密切相关，RDB 文件越大，加载过程越慢，因此会带来阻塞</p>
+<h3 id="切片集群交互"><a href="#切片集群交互" class="headerlink" title="切片集群交互"></a>切片集群交互</h3><p>切片集群在迁移 bigkey 时，由于使用同步迁移，因此会带来阻塞</p>
+<h2 id="异步"><a href="#异步" class="headerlink" title="异步"></a>异步</h2><p>为了避免阻塞式操作，Redis 提供了异步线程机制</p>
+<p>Redis 会启动一些子线程，然后把一些任务交给这些子线程，让它们在后台完成，而不再由主线程来执行这些任务。使用异步线程机制执行操作，可以避免阻塞主线程</p>
+<h3 id="关键路径操作"><a href="#关键路径操作" class="headerlink" title="关键路径操作"></a>关键路径操作</h3><p>如果一个操作能被异步执行，则它不是 Redis 主线程的关键路径上的操作</p>
+<p>主线程接收到操作后不需要给客户端返回具体的数据则可以交给后台子线程，因此不是关键路径操作</p>
+<p>主线程接收到操作后需要给客户端返回具体数据则不能交给后台子线程，因此是关键路径操作</p>
+<ul>
+<li><p>读操作是典型的关键路径操作</p>
+</li>
+<li><p>删除操作不是关键路径操作</p>
+</li>
+<li><p>AOF 日志同步写需要保证操作记录落盘，可以让子线程同步写，不是关键路径操作</p>
+</li>
+<li><p>从库加载 RDB 文件是关键路径操作，因为加载完 RDB 文件才能提供服务</p>
+</li>
+</ul>
+<p>除了集合全量查询和聚合操作和从库加载 RDB 文件，其他三个阻塞点涉及的操作都不在关键路径上，所以可以使用 Redis 的异步子线程机制来实现 bigkey 删除，清空数据库，以及 AOF 日志同步写</p>
+<p>集合全量查询和聚合操作：可以使用 SCAN 命令，分批读取数据，再在客户端进行聚合计算</p>
+<p>从库加载 RDB 文件：把主库的数据量大小控制在 2~4GB 左右，以保证 RDB 文件能以较快的速度加载</p>
+<h3 id="异步机制"><a href="#异步机制" class="headerlink" title="异步机制"></a>异步机制</h3><p>Redis 主线程启动后，会使用操作系统提供的 pthread_create 函数创建 3 个子线程，分别由它们负责 AOF 日志写操作、键值对删除以及文件关闭的异步执行</p>
+<p>主线程通过一个链表形式的任务队列和子线程进行交互</p>
+<p>当收到键值对删除和清空数据库的操作时，主线程会把这个操作封装成一个任务，放入到任务队列中，然后给客户端返回一个完成信息，表明删除已经完成；异步删除也称为惰性删除（lazy free），删除或清空操作不会阻塞主线程，这就避免了对主线程的性能影响</p>
+<p>当 AOF 日志配置成 everysec 选项后，主线程会把 AOF 写日志操作封装成一个任务，也放到任务队列中。后台子线程读取任务后，开始自行写入 AOF 日志，这样主线程就不用一直等待 AOF 日志写完了</p>
+<p>当 AOF 日志配置成 always 时，Redis 需要确保每个操作记录日志都写回磁盘，如果用后台子线程异步完成，主线程就无法及时地知道每个操作是否已经完成了，所以 always 策略并不使用后台子线程来执行</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +327,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-12 20:03:19" itemprop="dateModified" datetime="2023-06-12T20:03:19+08:00">2023-06-12</time>
+      <time title="修改时间：2023-06-14 11:52:24" itemprop="dateModified" datetime="2023-06-14T11:52:24+08:00">2023-06-14</time>
     </span>
 
   
@@ -307,7 +439,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-12 20:03:19" itemprop="dateModified" datetime="2023-06-12T20:03:19+08:00">2023-06-12</time>
+      <time title="修改时间：2023-06-14 11:52:24" itemprop="dateModified" datetime="2023-06-14T11:52:24+08:00">2023-06-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -419,7 +551,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-12 20:03:19" itemprop="dateModified" datetime="2023-06-12T20:03:19+08:00">2023-06-12</time>
+      <time title="修改时间：2023-06-14 11:52:24" itemprop="dateModified" datetime="2023-06-14T11:52:24+08:00">2023-06-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -523,7 +655,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-12 20:03:19" itemprop="dateModified" datetime="2023-06-12T20:03:19+08:00">2023-06-12</time>
+      <time title="修改时间：2023-06-14 11:52:24" itemprop="dateModified" datetime="2023-06-14T11:52:24+08:00">2023-06-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -635,7 +767,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-12 20:03:19" itemprop="dateModified" datetime="2023-06-12T20:03:19+08:00">2023-06-12</time>
+      <time title="修改时间：2023-06-14 11:52:24" itemprop="dateModified" datetime="2023-06-14T11:52:24+08:00">2023-06-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -743,7 +875,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-12 20:03:19" itemprop="dateModified" datetime="2023-06-12T20:03:19+08:00">2023-06-12</time>
+      <time title="修改时间：2023-06-14 11:52:24" itemprop="dateModified" datetime="2023-06-14T11:52:24+08:00">2023-06-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -859,7 +991,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-12 20:03:19" itemprop="dateModified" datetime="2023-06-12T20:03:19+08:00">2023-06-12</time>
+      <time title="修改时间：2023-06-14 11:52:24" itemprop="dateModified" datetime="2023-06-14T11:52:24+08:00">2023-06-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1003,7 +1135,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-12 20:03:19" itemprop="dateModified" datetime="2023-06-12T20:03:19+08:00">2023-06-12</time>
+      <time title="修改时间：2023-06-14 11:52:24" itemprop="dateModified" datetime="2023-06-14T11:52:24+08:00">2023-06-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1100,7 +1232,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-12 20:03:19" itemprop="dateModified" datetime="2023-06-12T20:03:19+08:00">2023-06-12</time>
+      <time title="修改时间：2023-06-14 11:52:24" itemprop="dateModified" datetime="2023-06-14T11:52:24+08:00">2023-06-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1125,97 +1257,6 @@
           <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ExtractVersion.cmake</span></span><br><span class="line"><span class="keyword">function</span>(extract_version)</span><br><span class="line">    <span class="keyword">file</span>(READ <span class="string">&quot;version.h&quot;</span> file_contents)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">string</span>(REGEX MATCH <span class="string">&quot;VER_MAJOR ([0-9]+)&quot;</span> _ <span class="string">&quot;$&#123;file_contents&#125;&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_MATCH_COUNT <span class="keyword">EQUAL</span> <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">message</span>(FATAL_ERROR <span class="string">&quot;Could not extract major version number from version.h&quot;</span>)</span><br><span class="line">    <span class="keyword">endif</span>()</span><br><span class="line">    <span class="keyword">set</span>(ver_major <span class="variable">$&#123;CMAKE_MATCH_1&#125;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">string</span>(REGEX MATCH <span class="string">&quot;VER_MINOR ([0-9]+)&quot;</span> _ <span class="string">&quot;$&#123;file_contents&#125;&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_MATCH_COUNT <span class="keyword">EQUAL</span> <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">message</span>(FATAL_ERROR <span class="string">&quot;Could not extract minor version number from version.h&quot;</span>)</span><br><span class="line">    <span class="keyword">endif</span>()</span><br><span class="line">    <span class="keyword">set</span>(ver_minor <span class="variable">$&#123;CMAKE_MATCH_1&#125;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">string</span>(REGEX MATCH <span class="string">&quot;VER_PATCH ([0-9]+)&quot;</span> _ <span class="string">&quot;$&#123;file_contents&#125;&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_MATCH_COUNT <span class="keyword">EQUAL</span> <span class="number">1</span>)</span><br><span class="line">        <span class="keyword">message</span>(FATAL_ERROR <span class="string">&quot;Could not extract patch version number from version.h&quot;</span>)</span><br><span class="line">    <span class="keyword">endif</span>()</span><br><span class="line">    <span class="keyword">set</span>(ver_patch <span class="variable">$&#123;CMAKE_MATCH_1&#125;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">set</span>(VERSION_MAJOR <span class="variable">$&#123;ver_major&#125;</span> PARENT_SCOPE)</span><br><span class="line">    <span class="keyword">set</span>(VERSION_MINOR <span class="variable">$&#123;ver_minor&#125;</span> PARENT_SCOPE)</span><br><span class="line">    <span class="keyword">set</span>(VERSION_PATCH <span class="variable">$&#123;ver_patch&#125;</span> PARENT_SCOPE)</span><br><span class="line">    <span class="keyword">set</span>(VERSION <span class="string">&quot;$&#123;ver_major&#125;.$&#123;ver_minor&#125;.$&#123;ver_patch&#125;&quot;</span> PARENT_SCOPE)</span><br><span class="line"><span class="keyword">endfunction</span>()</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> VER_MAJOR 1</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> VER_MINOR 10</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> VER_PATCH 0</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-CheckIncludeFiles/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-CheckIncludeFiles/" class="post-title-link" itemprop="url">CheckIncludeFiles</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 19:38:38" itemprop="dateCreated datePublished" datetime="2023-04-19T19:38:38+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-12 20:03:19" itemprop="dateModified" datetime="2023-06-12T20:03:19+08:00">2023-06-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span>(CheckIncludeFiles)</span><br><span class="line">CHECK_INCLUDE_FILES(<span class="string">&quot;&lt;includes&gt;&quot;</span> &lt;variable&gt; [LANGUAGE &lt;language&gt;])</span><br><span class="line"><span class="comment"># LANGUAGE 支持 c 和 cxx</span></span><br></pre></td></tr></table></figure>
-
-<p>不同平台的差异通常使用一个头文件来进行处理，通常为 config.h，其他文件可以 <code>include</code> 该 config.h 来进行平台检查</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// config.h</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HAVE_MALLOC_H 1</span></span><br><span class="line"><span class="comment">/* #undef HAVE_SYS_MNTTAB_H 1 */</span></span><br><span class="line"><span class="comment">/* #undef HAVE_SYS_MNTENT_H 1 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> HAVE_SYS_MOUNT_H 1</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;config.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> HAVE_MALLOC_H</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;malloc.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">do_something</span><span class="params">()</span> </span>&#123;</span><br><span class="line"> <span class="type">void</span> *buf=<span class="built_in">malloc</span>(<span class="number">1024</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>一些使用自动工具的软件，在编译时需要在 <code>make</code> 前使用 <code>./configure</code> 来自动生成 config.h 文件</p>
-<p>CMake 在 &#x2F;usr&#x2F;local&#x2F;share&#x2F;CMake&#x2F;Modules 中提供了一些平台检查的 cmake 脚本，使用这些脚本时需要将脚本引入 CMakeLists.txt</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span>(CheckIncludeFiles)</span><br><span class="line">CHECK_INCLUDE_FILES(malloc.h HAVE_MALLOC_H)</span><br><span class="line">CHECK_INCLUDE_FILES(<span class="string">&quot;sys/param.h;sys/mount.h&quot;</span> HAVE_SYS_MOUNT_H)</span><br><span class="line"><span class="keyword">CONFIGURE_FILE</span>(<span class="variable">$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;</span>/config.h.in <span class="variable">$&#123;CMAKE_CURRENT_BINARY_DIR&#125;</span>/config.h)</span><br></pre></td></tr></table></figure>
       
     </div>
 
