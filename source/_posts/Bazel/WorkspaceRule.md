@@ -105,7 +105,7 @@ git_repository(name, branch, commit, init_submodules, patch_args, patch_cmds, pa
                tag, verbose)
 ```
 
-克隆一个外部仓库
+克隆一个外部 Bazel 仓库
 
 ## new_git_repository
 
@@ -118,7 +118,7 @@ new_git_repository(name, branch, build_file, build_file_content, commit, init_su
                    workspace_file, workspace_file_content)
 ```
 
-克隆一个外部仓库
+克隆一个外部非 Bazel 仓库
 
 ## http_archive
 
