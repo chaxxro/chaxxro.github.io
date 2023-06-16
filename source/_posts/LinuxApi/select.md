@@ -9,7 +9,7 @@ tags: LinuxApi
 categories: LinuxApi
 ---
 
-`select` 允许应用程序监视一组文件描述符，等待一个或者多个描述符成为就绪状态，从而完成 I/O 操作
+`select` 允许应用程序监视一组文件描述符，等待一个或者多个描述符成为就绪状态，从而完成 IO 操作
 
 `select()` 将监听的文件描述符分为三组，每一组监听不同的需要进行的 IO 操作，`readfds` 是需要进行读操作的文件描述符，`writefds` 是需要进行写操作的文件描述符，`exceptfds` 是需要进行异常事件处理的文件描述符
 
@@ -72,48 +72,41 @@ FD_ISSET：用于测试指定的文件描述符是否在该集合中
 fd_set fd_in, fd_out;
 struct timeval tv;
 
-// Reset the sets
 FD_ZERO(&fd_in);
 FD_ZERO(&fd_out);
 
-// Monitor sock1 for input events
 FD_SET(sock1, &fd_in);
-// Monitor sock2 for output events
 FD_SET(sock2, &fd_out);
-// Find out which socket has the largest numeric value as select requires it
 int largest_sock = sock1 > sock2 ? sock1 : sock2;
-// Wait up to 10 seconds
 tv.tv_sec = 10;
 tv.tv_usec = 0;
 
-// Call the select
 int ret = select(largest_sock + 1, &fd_in, &fd_out, NULL, &tv);
-// Check if select actually succeed
 if (ret == -1) {
-    // report error and abort
+    // 错误
 }
 else if (ret == 0) {
-    // timeout; no event detected
+    // 超时
 }
 else {
     if (FD_ISSET( sock1, &fd_in )) {
-        // input event on sock1
+        // 检查 sock1
     }
     if (FD_ISSET( sock2, &fd_out )) {
-        // output event on sock2
+        // 检查 sock2
     }
 }
 ```
 
-`select` 监控的 fd 有上限，取决于 `sizeof(fd_set)` 的大小
+`select` 底层使用数组保存 fd，所以监控的 fd 有上限，取决于 `sizeof(fd_set)` 的大小
 
-- 将 fd 加入 `select` 监控集的同时，还要再使用一个 array 保存放到 `select` 监控集中的 fd，一是用于当 `select` 返回后需要 array 作为源数据和 `fd_set` 进行 `FD_ISSET` 判断
+将 fd 加入 `select` 监控集的同时，还需要保存这些 fd
 
-- `select` 返回后会把以前加入的但并无事件发生的 fd 清空，则每次开始 `select` 前都要重新 `FD_ZERO`，然后从 array 取得 fd 重新逐一加入，扫描 array 的同时取得 fd 最大值 maxfd，用于 `select` 的第一个参数
+- `select` 返回后需要逐一和 `fd_set` 通过调用 `FD_ISSET` 判断是否有事件发生
 
-- `select` 底层使用 `poll`
+- `select` 返回后会把以前加入的但并无事件发生的 fd 清空，所以每次调用 `select` 前都要重新 `FD_ZERO`，然后将 fd 重新逐一加入
 
-当套接字比较多的时候，每次 `select()` 都要通过遍历 FD_SETSIZE 个 socket 来完成调度，不管哪个 socket 是活跃的，都遍历一遍
+`select` 底层使用 `poll`
 
 ```cpp
 // fd_set 是一个 long 数组

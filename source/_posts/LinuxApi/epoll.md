@@ -49,7 +49,7 @@ union epoll_data_t {
     __uint64_t u64;
 }
 /*
-epoll_event 被用于注册所感兴趣的事件和回传所发生待处理的事件，其中 epoll_data 联合体用来保存触发事件的某个文件描述符相关的数据
+epoll_event  被用于注册所感兴趣的事件和回传所发生待处理的事件，其中 epoll_data_t 联合体用来保存触发事件的某个文件描述符相关的数据
 
 events 字段是表示感兴趣的事件和被触发的事件可能的取值为：
 EPOLLIN ：表示对应的文件描述符可以读；
@@ -59,44 +59,29 @@ EPOLLERR：表示对应的文件描述符发生错误；
 EPOLLHUP：表示对应的文件描述符被挂断；
 EPOLLET：表示对应的文件描述符设定为edge模式；
 EPOLLONESHOT：最多触发其上注册的一个可读、可写、或者异常事件，且只触发一次，使一个 socket 连接任何时刻都只被一个线程所处理，注册了 EPOLLONESHOT 事件的 socket 一旦被某个线程处理完毕，该线程就应该立即重置这个 socket 上的 EPOLLONESHOT 事件，以确保这个 socket 下一次可读
-
 EPOLLET 通过与其他事件取或运算，使该事件成为边缘触发模式
 */
 
-// Create the epoll descriptor. Only one is needed per app, and is used to monitor all sockets.
-// The function argument is ignored (it was not before, but now it is), so put your favorite number here
 int pollingfd = epoll_create( 0xCAFE );
 
-if ( pollingfd < 0 )
-// report error
-
-// Initialize the epoll structure in case more members are added in future
 struct epoll_event ev = { 0 };
-
-// Associate the connection class instance with the event. You can associate anything
-// you want, epoll does not use this information. We store a connection class pointer, pConnection1
+// epoll_event.data 可挂接任何数据
 ev.data.ptr = pConnection1;
 
-// Monitor for input, and do not automatically rearm the descriptor after the event
 ev.events = EPOLLIN | EPOLLONESHOT;
-// Add the descriptor into the monitoring list. We can do it even if another thread is
-// waiting in epoll_wait - the descriptor will be properly added
-if ( epoll_ctl( epollfd, EPOLL_CTL_ADD, pConnection1->getSocket(), &ev ) != 0 )
-// report error
+if ( epoll_ctl( epollfd, EPOLL_CTL_ADD, pConnection1->getSocket(), &ev ) != 0 ) {
+    // 错误
+}
 
-// Wait for up to 20 events (assuming we have added maybe 200 sockets before that it may happen)
 struct epoll_event pevents[ 20 ];
-
-// Wait for 10 seconds, and retrieve less than 20 epoll_event and store them into epoll_event array
 int ret = epoll_wait( pollingfd, pevents, 20, 10000 );
-// Check if epoll actually succeed
-if ( ret == -1 )
-// report error and abort
-else if ( ret == 0 )
-// timeout; no event detected
-else
-{
-    // Check if any events detected
+if (ret == -1) {
+    // 错误
+}
+else if (ret == 0) {
+    // 超时
+}
+else {
     for ( int i = 0; i < ret; i++ )
     {
         if ( pevents[i].events & EPOLLIN )
@@ -111,15 +96,13 @@ else
 
 一般在 fd 数量比较多，但某段时间内就绪事件 fd 数量较少的情况下，`epoll_wait` 才会体现出它的优势，也就是说 socket 连接数量较大时而活跃连接较少时 epoll 模型更高效。
 
-`epoll_ctl()` 用于向内核注册新的描述符或者是改变某个文件描述符的状态。已注册的描述符在内核中会被维护在一棵红黑树上，通过回调函数内核会将 I/O 准备好的描述符加入到一个链表中管理，进程调用 `epoll_wait()` 便可以得到事件完成的描述符
+已注册的 fd 在内核中会被维护在一棵红黑树上，通过回调函数内核会将 IO 准备好的描述符加入到一个链表中管理，进程调用 `epoll_wait()` 便可以得到事件完成的描述符
 
-`epoll` 使用 `mmap` 减少复制开销，内核可以直接看到 `epoll` 监听的句柄，效率高
+`epoll` 将 fd 从进程缓冲区向内核缓冲区拷贝一次，并且进程不需要通过轮询来获得事件完成的描述符
 
-`epoll` 将用户关系的文件描述符的事件存放到内核的一个事件表中，因此只需要将描述符从进程缓冲区向内核缓冲区拷贝一次，并且进程不需要通过轮询来获得事件完成的描述符
+要在内核中长久的维护一个数据结构来存放文件描述符，并且时常会有插入、查找和删除的操作发生，会对内核产生不小的影响，因此需要一种插入、查找和删除效率都不错的数据结构来存放这些文件描述符，因此选择红黑树存储 fd
 
-要在内核中长久的维护一个数据结构来存放文件描述符，并且时常会有插入、查找和删除的操作发生，会对内核产生不小的影响，因此需要一种插入、查找和删除效率都不错的数据结构来存放这些文件描述符，因此选择红黑树存储文件描述符
-
-在红黑树中排序的根据是 epoll_filefd 的地址大小
+在红黑树中排序的根据是 `epoll_filefd` 的地址大小
 
 ## 工作模式
 

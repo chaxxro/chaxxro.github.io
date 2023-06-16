@@ -9,7 +9,7 @@ tags: LinuxApi
 categories: LinuxApi
 ---
 
-`poll` 的功能与 `select` 类似，也是等待一组描述符中的一个成为就绪状态
+`poll` 的功能与 `select` 类似，也是等待一组描述符中的一个成为就绪状态，但通过底层使用链表解决了 `select` 连接数限制的问题
 
 `poll` 中的描述符只有一个 `pollfd` 数组，数组中的每个元素都表示一个需要监听 IO 操作事件的文件描述符
 
@@ -44,27 +44,22 @@ POLLIN 等价于 POLLRDNORM |POLLRDBAND
 POLLOUT 则等价于 POLLWRNORM
 */
 
-// The structure for two events
 struct pollfd fds[2];
 
-// Monitor sock1 for input
 fds[0].fd = sock1;
 fds[0].events = POLLIN;
 
-// Monitor sock2 for output
 fds[1].fd = sock2;
 fds[1].events = POLLOUT;
 
-// Wait 10 seconds
 int ret = poll( &fds, 2, 10000 );
-// Check if poll actually succeed
-if ( ret == -1 )
-    // report error and abort
-else if ( ret == 0 )
-    // timeout; no event detected
-else
-{
-    // If we detect the event, zero it out so we can reuse the structure
+if (ret == -1) {
+    // 错误
+}
+else if (ret == 0) {
+    // 超时
+}
+else {
     if ( fds[0].revents & POLLIN )
         fds[0].revents = 0;
         // input event on sock1
@@ -74,8 +69,6 @@ else
         // output event on sock2
 }
 ```
-
-没有最大连接数的限制，原因是它是基于链表来存储的
 
 ## select 和 poll 比较
 
