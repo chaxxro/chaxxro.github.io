@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/05.png">
 <meta property="og:image" content="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/06.png">
 <meta property="article:published_time" content="2023-04-26T12:44:08.000Z">
-<meta property="article:modified_time" content="2023-06-16T12:41:50.126Z">
+<meta property="article:modified_time" content="2023-06-19T03:02:00.978Z">
 <meta property="article:author" content="chaxxro">
 <meta property="article:tag" content="网络编程">
 <meta name="twitter:card" content="summary">
@@ -207,7 +207,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-16 20:41:50" itemprop="dateModified" datetime="2023-06-16T20:41:50+08:00">2023-06-16</time>
+      <time title="修改时间：2023-06-19 11:02:00" itemprop="dateModified" datetime="2023-06-19T11:02:00+08:00">2023-06-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -250,11 +250,14 @@
 <h2 id="同步阻塞-IO"><a href="#同步阻塞-IO" class="headerlink" title="同步阻塞 IO"></a>同步阻塞 IO</h2><p>应用进程被阻塞，直到数据从内核缓冲区复制到应用进程缓冲区中才返回</p>
 <img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/01.png" class="">
 
+<p>进程在 <code>recv</code> 时大概率会阻塞，所以会发生一次进程切换；当数据到达网卡并复制到内核空间时，进程被唤醒从而发生第二次进程切换</p>
+<p>同步阻塞 IO 的一次数据到达会发生两次进程切换，一次数据读取会发生两处阻塞</p>
 <h2 id="同步非阻塞-IO"><a href="#同步非阻塞-IO" class="headerlink" title="同步非阻塞 IO"></a>同步非阻塞 IO</h2><p>应用进程执行系统调用之后，内核返回一个错误码后应用进程可以继续执行，但是需要以轮询的方式不断的执行系统调用来获知 IO 是否完成</p>
 <p>因为应用进程在数据没有到达之前会不停查询，使 CPU 要处理更多的系统调用</p>
 <img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/02.png" class="">
 
 <p>非阻塞 IO 不被推荐，虽然该方式能够在等待数据的时间里干其他活，但轮询将推高 CPU 占用，同时任务完成的响应延迟也将增大，降低整体数据吞吐量</p>
+<p>同步非阻塞 IO 仍会有两次进程切换，但只有一次阻塞</p>
 <h2 id="IO-复用"><a href="#IO-复用" class="headerlink" title="IO 复用"></a>IO 复用</h2><p>在同步非阻塞 IO 中，<code>recv()</code> 更多的是起到检测的作用，而操作系统提供了更为高效的检测操作是否完成接口，同时接口可以一次检测多个连接是否可读、可写</p>
 <p>IO 复用让单个线程具有处理多个 IO 事件的能力</p>
 <p>如果一个 Web 服务器没有 IO 复用，那么每一个 socket 连接都需要创建一个线程去处理。如果同时有几万个连接，那么就需要创建相同数量的线程。相比于多进程和多线程技术，IO 复用不需要进程线程创建和切换的开销，系统开销更小</p>
