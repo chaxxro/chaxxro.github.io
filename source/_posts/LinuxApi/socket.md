@@ -50,3 +50,7 @@ IPPROTO_TCP|TCP
 IPPROTO_UDP|UDP
 IPPROTO_SCTP|SCIP
 IPPROTO_TIPC|TIPC
+
+## 细节
+
+调用 `socket()` 系统调用时，内核会创建 socket 内核对象，主要是等待队列和接受队列
