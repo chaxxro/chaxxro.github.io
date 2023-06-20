@@ -35,6 +35,8 @@ perf 是 performance 的缩写，是一个事件驱动的可观测性工具
 
 - page-faults，缺页中断数
 
+- alignment-faults，对齐错误
+
 - context-switches，上下文切换数
 
 - cpu-migrations，任务在 cpu 间迁移数
