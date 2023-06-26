@@ -28,5 +28,4 @@ addrlen：对应的是地址的长度
 */
 ```
 
-![](../../Picture/Linux/api/bind/1.jpg)
 {% asset_img 01.jpg %}
