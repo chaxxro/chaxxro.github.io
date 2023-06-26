@@ -141,3 +141,47 @@ epoll 的描述符事件有两种触发模式：LT（level trigger）和 ET（ed
 当 `epoll` 实例监视的文件上有事件发生后，需要唤醒 `wq` 上的进程去继续执行用户态的业务逻辑
 
 当多个进程都在关注同一个 `epoll` 实例时，休眠的进程们通过这个等待队列就可以逐个被唤醒，从而引起惊群效应
+
+## epoll 底层中的 poll_wait 队列
+
+一个 `epoll` 类型的 fd 可以被其他 `epoll` 实例监视
+
+`epoll` 类型的 fd 只会有读就绪的事件，当 `epoll` 所监视的非 `epoll` 类型文件有读就绪事件时，当前 `epoll` 也会进入读就绪状态
+
+`poll_wait` 队列是用来处理 `epoll` 间嵌套监视的情况的，可读事件触发时需要从 `poll_wait` 队列中找到监听它的 `epoll` 实例
+
+## epoll 底层中的锁
+
+`epoll` 中有 3 把锁，分别是 `epmutex`、`mtx`、`lock`
+
+### epmutex
+
+`epmutex` 是一个全局互斥锁，`epoll` 中一共有 3 个地方用到这把锁
+
+- `ep_free()` 销毁一个 `epoll` 实例时
+
+- `eventpoll_release_file()` 清理从 `epoll` 中已经关闭的文件时
+
+- `epoll_ctl()` 时避免 `epoll` 间嵌套调用时形成死锁
+
+`epmutex` 的锁粒度最大，用来处理跨 `epoll` 实例级别的同步操作
+
+### mtx
+
+`mtx` 是一个 `epoll` 内部的互斥锁
+
+- `ep_scan_ready_list()` 扫描就绪列表
+
+- `eventpoll_release_file()` 中执行 `ep_remove()` 删除一个被监视文件
+
+- `ep_loop_check_proc()` 检查 `epoll` 是否有循环嵌套或过深嵌套
+
+- `epoll_ctl()` 操作被监视文件增删改等
+
+可以看出都是涉及对 `epoll` 实例中 `rdllist` 或红黑树的访问，因此 `mtx` 是一个 `epoll` 实例内的互斥锁，用来保护 `epoll` 实例内部的数据结构的线程安全
+
+### lock
+
+`lock` 是一个 `epoll` 实例内部的自旋锁，用来保护 `rdllist` 的线程安全
+
+自旋锁的特点是得不到锁时不会引起进程休眠，所以在 `ep_poll_callback` 中只能使用 `lock`，否则就会丢事件
