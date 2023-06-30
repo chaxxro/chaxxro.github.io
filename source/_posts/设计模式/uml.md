@@ -9,7 +9,6 @@ tags: 设计模式
 categories: 设计模式
 ---
 
-![](../Picture/DesignPattern/uml/01.jpeg)
 {% asset_img 01.jpeg %}
 
 - 车的类图结构为 abstract，表示车是一个抽象类
