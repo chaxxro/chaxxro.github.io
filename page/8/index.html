@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">383</span>
+          <span class="site-state-item-count">384</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,107 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp-%E6%A0%87%E5%87%86%E5%BA%93-condition-variable/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp-%E6%A0%87%E5%87%86%E5%BA%93-condition-variable/" class="post-title-link" itemprop="url">condition_variable</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:18:57" itemprop="dateCreated datePublished" datetime="2023-05-29T21:18:57+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-06-30 15:57:44" itemprop="dateModified" datetime="2023-06-30T15:57:44+08:00">2023-06-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>条件变量 <code>std::condition_variable</code> 提供了两类操作：<code>wait</code> 和 <code>notify</code></p>
+<ul>
+<li><code>wait</code> 是线程的等待动作，直到其它线程将其唤醒后，才会继续往下执行，只接受锁  <code>unique_lock&lt;mutex&gt;</code></li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// std::condition_variable 提供了两种 wait() 函数</span></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">wait</span> <span class="params">(unique_lock&lt;mutex&gt;&amp; lck)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 只有当 pred 条件为 false 时调用 wait() 才会阻塞当前线程</span></span><br><span class="line"><span class="comment">// 并且在收到其他线程的通知后只有当 pred 为 true 时才会被解除阻塞</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Predicate</span>&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">wait</span> <span class="params">(unique_lock&lt;mutex&gt;&amp; lck, Predicate pred)</span></span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">std::mutex mutex;</span><br><span class="line">std::condition_variable cv;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 条件变量与临界区有关，用来获取和释放一个锁，因此通常会和 mutex 联用</span></span><br><span class="line"><span class="function">std::unique_lock <span class="title">lock</span><span class="params">(mutex)</span></span>;  <span class="comment">// 获得锁</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 当前线程调用 wait() 后将被阻塞</span></span><br><span class="line">cv.<span class="built_in">wait</span>(lock);  <span class="comment">// 调用该函数前，当前线程应该已经对unique_lock&lt;mutex&gt; lck完成了加锁</span></span><br><span class="line"><span class="comment">// 线程阻塞时，会释放 lock，然后在 cv 上等待，直到其它线程通过 cv.notify_xxx来唤醒当前线程</span></span><br><span class="line"><span class="comment">// 释放锁后使得其他被阻塞在锁竞争上的线程得以继续执行</span></span><br><span class="line"><span class="comment">// cv 被唤醒后会再次对 lock 进行上锁，然后 wait 函数才会返回</span></span><br><span class="line"><span class="comment">// wait 返回后可以安全的使用 mutex 保护的临界区内的数据，此时 mutex 仍为上锁状态</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>notify</code> 唤醒 <code>wait</code> 在该条件变量上的线程，有 <code>notify_one</code> 唤醒一个等待的线程（多个线程阻塞时唤醒某个不确定的线程）和 <code>notify_all</code> 唤醒所有等待的线程</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">std::mutex mutex;</span><br><span class="line">std::condition_variable cv;</span><br><span class="line"></span><br><span class="line"><span class="function">std::unique_lock <span class="title">lock</span><span class="params">(mutex)</span></span>;</span><br><span class="line"><span class="comment">// 所有等待在cv变量上的线程都会被唤醒。但直到lock释放了mutex，被唤醒的线程才会从wait返回。</span></span><br><span class="line">cv.<span class="built_in">notify_all</span>(lock)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>std::condition_variable_any</code> 的 <code>wait()</code> 函数可以接受任务 lockable 参数</p>
+</li>
+<li><p><code>std::notify_all_at_thread_exit</code> 当调用该函数的线程退出时，所有在 cond 条件变量上等待的线程都会收到通知</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +296,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 11:51:11" itemprop="dateModified" datetime="2023-06-30T11:51:11+08:00">2023-06-30</time>
+      <time title="修改时间：2023-06-30 15:57:44" itemprop="dateModified" datetime="2023-06-30T15:57:44+08:00">2023-06-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -289,7 +390,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 11:51:11" itemprop="dateModified" datetime="2023-06-30T11:51:11+08:00">2023-06-30</time>
+      <time title="修改时间：2023-06-30 15:57:44" itemprop="dateModified" datetime="2023-06-30T15:57:44+08:00">2023-06-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -375,7 +476,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 11:51:11" itemprop="dateModified" datetime="2023-06-30T11:51:11+08:00">2023-06-30</time>
+      <time title="修改时间：2023-06-30 15:57:44" itemprop="dateModified" datetime="2023-06-30T15:57:44+08:00">2023-06-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -544,7 +645,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 11:51:11" itemprop="dateModified" datetime="2023-06-30T11:51:11+08:00">2023-06-30</time>
+      <time title="修改时间：2023-06-30 15:57:44" itemprop="dateModified" datetime="2023-06-30T15:57:44+08:00">2023-06-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -632,7 +733,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 11:51:11" itemprop="dateModified" datetime="2023-06-30T11:51:11+08:00">2023-06-30</time>
+      <time title="修改时间：2023-06-30 15:57:44" itemprop="dateModified" datetime="2023-06-30T15:57:44+08:00">2023-06-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -742,7 +843,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 11:51:11" itemprop="dateModified" datetime="2023-06-30T11:51:11+08:00">2023-06-30</time>
+      <time title="修改时间：2023-06-30 15:57:44" itemprop="dateModified" datetime="2023-06-30T15:57:44+08:00">2023-06-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -840,7 +941,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 11:51:11" itemprop="dateModified" datetime="2023-06-30T11:51:11+08:00">2023-06-30</time>
+      <time title="修改时间：2023-06-30 15:57:44" itemprop="dateModified" datetime="2023-06-30T15:57:44+08:00">2023-06-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -969,7 +1070,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 11:51:11" itemprop="dateModified" datetime="2023-06-30T11:51:11+08:00">2023-06-30</time>
+      <time title="修改时间：2023-06-30 15:57:44" itemprop="dateModified" datetime="2023-06-30T15:57:44+08:00">2023-06-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1115,7 +1216,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 11:51:11" itemprop="dateModified" datetime="2023-06-30T11:51:11+08:00">2023-06-30</time>
+      <time title="修改时间：2023-06-30 15:57:44" itemprop="dateModified" datetime="2023-06-30T15:57:44+08:00">2023-06-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1167,124 +1268,6 @@
 </li>
 </ul>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 搭配 push pop 来记录状态，用于还原</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic push</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic [<span class="keyword">error</span>|<span class="keyword">warning</span>|ignored] <span class="string">&quot;-W&lt;警告选项&gt;&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic pop</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/15/cpp-%E5%AE%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/15/cpp-%E5%AE%8F/" class="post-title-link" itemprop="url">宏</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-15 21:19:41" itemprop="dateCreated datePublished" datetime="2023-05-15T21:19:41+08:00">2023-05-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 11:51:11" itemprop="dateModified" datetime="2023-06-30T11:51:11+08:00">2023-06-30</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>在编译预处理时，对程序中所有出现的宏名，都用宏定义中的字符串去代换</p>
-<p>预处理程序对它不作任何检查，如果宏中有错误，则只会在编译源程序时发现</p>
-<h2 id="宏操作"><a href="#宏操作" class="headerlink" title="宏操作"></a>宏操作</h2><p><code>#define</code> 定义一个宏</p>
-<p><code>#undef</code> 取消一个宏</p>
-<p><code>#ifdef</code> 如果宏已经定义</p>
-<p><code>#ifndef</code> 如果宏没有定义</p>
-<h2 id="无参宏"><a href="#无参宏" class="headerlink" title="无参宏"></a>无参宏</h2><p>简单的文本替换</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> INT1 int *</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">int</span> * INT2;</span><br><span class="line"></span><br><span class="line">INT1 a1, b1;</span><br><span class="line">INT2 a2, b2;</span><br><span class="line"><span class="comment">// INT1 a1, b1 被替换为 int *a1, b1</span></span><br><span class="line"><span class="comment">// 即一个指向int类型的指针一个int类型的变量</span></span><br><span class="line"><span class="comment">// INT2 a2,b2 则是两个指向 int 类型的指针</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="多语句宏"><a href="#多语句宏" class="headerlink" title="多语句宏"></a>多语句宏</h2><p>如果宏里有多过一个语句，就需要用 <code>do &#123; /*...*/ &#125; while(0)</code> 包裹成单个语句</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> M() a(); b()</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (cond)</span><br><span class="line">    <span class="built_in">M</span>();</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">c</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 预处理后 */</span></span><br><span class="line"><span class="keyword">if</span> (cond)</span><br><span class="line">    <span class="built_in">a</span>(); <span class="built_in">b</span>(); <span class="comment">/* b(); 在 if 之外     */</span></span><br><span class="line"><span class="keyword">else</span>          <span class="comment">/* &lt;- else 缺乏对应 if */</span></span><br><span class="line">    <span class="built_in">c</span>();</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> M() do &#123; a(); b(); &#125; while(0)</span></span><br><span class="line"><span class="comment">/* 预处理后 */</span></span><br><span class="line"><span class="keyword">if</span> (cond)</span><br><span class="line">    <span class="keyword">do</span> &#123; <span class="built_in">a</span>(); <span class="built_in">b</span>(); &#125; <span class="keyword">while</span>(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">c</span>();</span><br></pre></td></tr></table></figure>
-
-<h2 id="有参宏"><a href="#有参宏" class="headerlink" title="有参宏"></a>有参宏</h2><p>宏名中不能有空格，宏名与形参表之间也不能有空格，而形参表中形参之间可以有空格</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> COUNT(M) M*M</span></span><br><span class="line"><span class="type">int</span> x=<span class="number">6</span>;</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">COUNT</span>(x+<span class="number">1</span>));  <span class="comment">// 13</span></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">COUNT</span>(++X));  <span class="comment">// 56</span></span><br></pre></td></tr></table></figure>
-
-<p>宏定义也可以定义表达式或多个语句</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> AB(a,b) a=i+5;b=j+3;   宏定义多个语句</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="参数字符串化"><a href="#参数字符串化" class="headerlink" title="参数字符串化"></a>参数字符串化</h2><p><code>#</code> 的作用就是将 <code>#</code> 后边的宏参数进行字符串的操作，也就是将 <code>#</code> 后边的参数两边加上一对双引号使其成为字符串</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> TEST(param) #param</span></span><br><span class="line"></span><br><span class="line"><span class="type">char</span> *pStr=<span class="built_in">TEST</span>(<span class="number">123</span>);</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;pSrt=%s\n&quot;</span>,pStr);  <span class="comment">// 123</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="参数字符拼接"><a href="#参数字符拼接" class="headerlink" title="参数字符拼接"></a>参数字符拼接</h2><p><code>##</code> 运算符可以起到粘合的作用，即将两个宏参数连接为一个数</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> TEST(param1,param2) (param1##param2)</span></span><br><span class="line"><span class="type">int</span> num =<span class="built_in">TEST</span>(<span class="number">12</span>, <span class="number">34</span>);  <span class="comment">// 1234</span></span><br><span class="line"><span class="type">char</span>* str = <span class="built_in">Conn</span>(<span class="string">&quot;asdf&quot;</span>, <span class="string">&quot;adf&quot;</span>); <span class="comment">// asdfadf</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="换行"><a href="#换行" class="headerlink" title="换行"></a>换行</h2><p><code>\</code> 行继续操作，表示下一行继续此宏的定义，最后一行不要加续行符</p>
-<h2 id="可变参数宏"><a href="#可变参数宏" class="headerlink" title="可变参数宏"></a>可变参数宏</h2><p>宏可以接受可变数目的参数，就像可变参数函数一样</p>
-<p><code>__VA_ARGS__</code> 宏用来表示可变参数的内容，简单来说就是将左边宏中 <code>…</code> 的内容原样抄写在右边 <code>__VA_ARGS__</code> 所在的位置</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> debug(format, ...) printf(format, __VA_ARGS__)</span></span><br></pre></td></tr></table></figure>
-
-<p>可以给可变参数起一个名字，而非直接使用 <code>__VA_ARGS__</code></p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> debug(format, args...) printf(format, args);</span></span><br></pre></td></tr></table></figure>
-
-<p>可变参数宏中的可变参数必须至少有一个参数传入，不然会报错</p>
-<p>可以使用 <code>##</code> 操作来避免可变参数为空的情况，如果可变参数被忽略或为空，<code>##</code> 操作将在预处理阶段去除掉多余的逗号</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> debug(format, args...) printf(format, ##args);</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">debug</span>(<span class="string">&quot;123&quot;</span>)</span><br><span class="line"><span class="comment">// print(&quot;123&quot;);</span></span><br></pre></td></tr></table></figure>
       
     </div>
 
