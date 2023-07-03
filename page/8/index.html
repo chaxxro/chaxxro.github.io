@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">384</span>
+          <span class="site-state-item-count">385</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,105 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp-std-enable-shared-from-this%E7%9A%84%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp-std-enable-shared-from-this%E7%9A%84%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82/" class="post-title-link" itemprop="url">std::enable_shared_from_this 的实现细节</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:19:14" itemprop="dateCreated datePublished" datetime="2023-05-29T21:19:14+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-03 11:14:17" itemprop="dateModified" datetime="2023-07-03T11:14:17+08:00">2023-07-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="将-this-指针暴露的隐患"><a href="#将-this-指针暴露的隐患" class="headerlink" title="将 this 指针暴露的隐患"></a>将 this 指针暴露的隐患</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SomeData</span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">SomeAPI</span><span class="params">(<span class="type">const</span> std::shared_ptr&lt;SomeData&gt;&amp; d)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">SomeData</span> &#123;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">NeedCallSomeAPI</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="built_in">SomeAPI</span>(std::<span class="built_in">shared_ptr</span>(<span class="keyword">this</span>));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>考虑这么个情况，直接使用 <code>this</code> 构建 <code>std::shared_ptr</code>，但函数调用结束后 <code>SomeAPI</code> 的入参会将 <code>this</code> 从而导致程序错误</p>
+<p>正确做法是使用 <code>std::enable_shared_from_this</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SomeData</span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">SomeAPI</span><span class="params">(<span class="type">const</span> std::shared_ptr&lt;SomeData&gt;&amp; d)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">SomeData</span> : <span class="keyword">public</span> std::enable_shared_from_this&lt;SomeData&gt; &#123;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">NeedCallSomeAPI</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="built_in">SomeAPI</span>(<span class="built_in">shared_from_this</span>());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="enable-shared-form-this-实现"><a href="#enable-shared-form-this-实现" class="headerlink" title="enable_shared_form_this 实现"></a>enable_shared_form_this 实现</h2><p><code>enable_shared_from_this</code> 是一个以其派生类为模板类型实参的基类模板，继承它后可调用 <code>shared_from_this</code> 获取 <code>this</code> 的 <code>std::shared_ptr</code></p>
+<p><code>std::enable_shared_from_this</code> 内部使用 <code>std::weak_ptr</code> 来帮助完成指针相关的控制数据同步，因为使用 <code>std::weak_ptr</code> 是为了防止资源永远不被释放从而必须内存泄漏</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> _Tp&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">enable_shared_from_this</span> &#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">  <span class="comment">// 子类必须使用 public 继承，不然不能调用父类构造函数</span></span><br><span class="line">  <span class="function"><span class="keyword">constexpr</span> <span class="title">enable_shared_from_this</span><span class="params">()</span> <span class="keyword">noexcept</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="comment">// 友元类，允许 __shared_ptr 能够修改 _M_weak_this</span></span><br><span class="line">  frind <span class="keyword">class</span> <span class="title class_">__shared_ptr</span>;</span><br><span class="line">  <span class="comment">// mutable 允许该变量能够被 const 函数修改</span></span><br><span class="line">  <span class="keyword">mutable</span> weak_ptr&lt;_Tp&gt; _M_weak_this;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出 <code>std::enable_shared_from_this</code> 的核心代码还是比较简单的，但真正复杂的在 <code>__shared_ptr</code> 的构造函数中</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> _Tp, __Lock_policy _Lp&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">__shared_ptr</span> : <span class="keyword">public</span> __shared_ptr_access&lt;_Tp, _Lp&gt; &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="keyword">friend</span> <span class="keyword">class</span> <span class="title class_">__weak_ptr</span>&lt;_Tp, _Lp&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 <code>std::shared_ptr</code> 进行初始化时，如果 <code>T</code> 是公有继承 <code>std::enable_shared_from_this&lt;T&gt;</code>，则才能在编译时使用 <code>std::enable_if</code> 和 <code>std::is_convertible</code> 来初始化 <code>_M_weak_this</code></p>
+<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><p>因为 <code>_M_weak_this</code> 的初始化依赖 <code>std::shared_ptr</code> 的初始化，因此不能对非 <code>std::shard_ptr</code> 的对象调用使用 <code>shared_from_this()</code> 的函数，所以 <code>shared_from_this()</code> 不能在构造函数中调用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	B b;</span><br><span class="line">	<span class="keyword">auto</span> sp = b.<span class="built_in">GetSelf</span>();  <span class="comment">// 奔溃</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +294,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 17:08:14" itemprop="dateModified" datetime="2023-06-30T17:08:14+08:00">2023-06-30</time>
+      <time title="修改时间：2023-07-03 11:14:17" itemprop="dateModified" datetime="2023-07-03T11:14:17+08:00">2023-07-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -296,7 +395,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 17:08:14" itemprop="dateModified" datetime="2023-06-30T17:08:14+08:00">2023-06-30</time>
+      <time title="修改时间：2023-07-03 11:14:17" itemprop="dateModified" datetime="2023-07-03T11:14:17+08:00">2023-07-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -390,7 +489,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 17:08:14" itemprop="dateModified" datetime="2023-06-30T17:08:14+08:00">2023-06-30</time>
+      <time title="修改时间：2023-07-03 11:14:17" itemprop="dateModified" datetime="2023-07-03T11:14:17+08:00">2023-07-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -476,7 +575,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 17:08:14" itemprop="dateModified" datetime="2023-06-30T17:08:14+08:00">2023-06-30</time>
+      <time title="修改时间：2023-07-03 11:14:17" itemprop="dateModified" datetime="2023-07-03T11:14:17+08:00">2023-07-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -645,7 +744,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 17:08:14" itemprop="dateModified" datetime="2023-06-30T17:08:14+08:00">2023-06-30</time>
+      <time title="修改时间：2023-07-03 11:14:17" itemprop="dateModified" datetime="2023-07-03T11:14:17+08:00">2023-07-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -733,7 +832,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 17:08:14" itemprop="dateModified" datetime="2023-06-30T17:08:14+08:00">2023-06-30</time>
+      <time title="修改时间：2023-07-03 11:14:17" itemprop="dateModified" datetime="2023-07-03T11:14:17+08:00">2023-07-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -843,7 +942,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 17:08:14" itemprop="dateModified" datetime="2023-06-30T17:08:14+08:00">2023-06-30</time>
+      <time title="修改时间：2023-07-03 11:14:17" itemprop="dateModified" datetime="2023-07-03T11:14:17+08:00">2023-07-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -941,7 +1040,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 17:08:14" itemprop="dateModified" datetime="2023-06-30T17:08:14+08:00">2023-06-30</time>
+      <time title="修改时间：2023-07-03 11:14:17" itemprop="dateModified" datetime="2023-07-03T11:14:17+08:00">2023-07-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1070,7 +1169,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 17:08:14" itemprop="dateModified" datetime="2023-06-30T17:08:14+08:00">2023-06-30</time>
+      <time title="修改时间：2023-07-03 11:14:17" itemprop="dateModified" datetime="2023-07-03T11:14:17+08:00">2023-07-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1155,119 +1254,6 @@
 </li>
 </ol>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/15/cpp-%E9%A2%84%E5%A4%84%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/15/cpp-%E9%A2%84%E5%A4%84%E7%90%86/" class="post-title-link" itemprop="url">预处理</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-15 21:25:29" itemprop="dateCreated datePublished" datetime="2023-05-15T21:25:29+08:00">2023-05-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-06-30 17:08:14" itemprop="dateModified" datetime="2023-06-30T17:08:14+08:00">2023-06-30</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>预处理是在编译器进行编译之前进行的操作</p>
-<p>预处理指令以符号 <code>#</code> 开头，且必须是该行除了任何空白字符外的第一个字符</p>
-<p>预处理过程扫描源代码，对其进行初步的转换，产生新的源代码提供给编译器</p>
-<h2 id="常用预处理"><a href="#常用预处理" class="headerlink" title="常用预处理"></a>常用预处理</h2><ul>
-<li><p><code>#include</code> 将包含的文件复制到当前位置，可以 <code>#include</code> 任何文件</p>
-</li>
-<li><p><code>#if/elif/endif</code> 条件判断</p>
-</li>
-<li><p><code>#error</code> 停止编译并显示错误信息</p>
-</li>
-<li><p><code>#pragma pack(n)</code> 对齐的时候就会把元素的大小和 n 进行比较，取较小的那个来对齐，合法 n 的数值分别为 1、2、4、8、16</p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">test1</span> &#123;</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">    <span class="type">char</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">    <span class="type">char</span> d;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">sizeof</span>(test1) == <span class="number">12</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(2)</span></span><br><span class="line"><span class="keyword">struct</span> test2 &#123;</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">    <span class="type">char</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">    <span class="type">char</span> d;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack() <span class="comment">// 取消对齐</span></span></span><br><span class="line"><span class="built_in">sizeof</span>(test2) == <span class="number">10</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> test2 &#123;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">    <span class="type">int</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">sizeof</span>(test2) == <span class="number">12</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(2)</span></span><br><span class="line"><span class="keyword">struct</span> test3 &#123;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">    <span class="type">int</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack() <span class="comment">// 取消对齐</span></span></span><br><span class="line"><span class="built_in">sizeof</span>(test3) == <span class="number">8</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>#pragma pack(show)</code> 显示当前内存对齐的字节数</p>
-</li>
-<li><p><code>#pragma pack(push)</code> 将当前的对齐字节数压入栈顶，并设置这个值为新的对齐字节数</p>
-</li>
-<li><p><code>#pragma pack(push, n)</code> 将当前的对齐字节数压入栈顶，并设置 n 为新的对齐字节数</p>
-</li>
-<li><p><code>#pragma pack(pop)</code> 弹出栈顶对齐字节数，并设置其为新的内存对齐字节数</p>
-</li>
-<li><p><code>#pragma pack(pop, n)</code> 弹出栈顶并直接丢弃，设置 n 为其新的内存对齐字节数</p>
-</li>
-<li><p><code>#pragma GCC diagnostic [error|warning|ignored] &quot;message&quot;</code> 将诊断信息视为错误、告警或忽略，可以用于屏蔽局部代码的警告</p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 搭配 push pop 来记录状态，用于还原</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic push</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic [<span class="keyword">error</span>|<span class="keyword">warning</span>|ignored] <span class="string">&quot;-W&lt;警告选项&gt;&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic pop</span></span><br></pre></td></tr></table></figure>
       
     </div>
 
