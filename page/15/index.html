@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">386</span>
+          <span class="site-state-item-count">387</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,113 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/" class="post-title-link" itemprop="url">icmp</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 19:42:49" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:49+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-04 10:53:39" itemprop="dateModified" datetime="2023-07-04T10:53:39+08:00">2023-07-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>ping 是基于 ICMP(Internet Control Message Protocol，互联网控制报文协议) 协议工作的</p>
+<h2 id="ICMP"><a href="#ICMP" class="headerlink" title="ICMP"></a>ICMP</h2><p>网络包在复杂的网络传输环境里，常常会遇到各种问题，传出消息，报告遇到了什么问题，这样才可以调整传输策略，以此来控制整个局面</p>
+<p>ICMP 主要的功能包括：确认 IP 包是否成功送达目标地址、报告发送过程中 IP 包被废弃的原因和改善网络设置等</p>
+<p>在 IP 通信中如果某个 IP 包因为某种原因未能达到目标地址，那么这个具体的原因将由 ICMP 负责通知</p>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/01.png" class="">
+
+<p>ICMP 报文是封装在 IP 包里面，它工作在网络层，是 IP 协议的助手</p>
+<h2 id="PING-过程"><a href="#PING-过程" class="headerlink" title="PING 过程"></a>PING 过程</h2><ul>
+<li><p>主机 A ping 主机 B，A 会先构建一个 ICMP 数据包</p>
+</li>
+<li><p>ICMP 协议将这个数据包连同主机 B 地址一起交给 IP 层，IP 层将以该地址作为目的地址，本机 IP 地址作为源地址，构建一个 IP 数据包</p>
+</li>
+<li><p>加入 MAC 头；如果在本地 ARP 映射表中查找出目标 IP 地址所对应的 MAC 地址，则可以直接使用；如果没有，则需要发送 ARP 协议查询 MAC 地址，获得 MAC 地址后，由数据链路层构建一个数据帧，目的地址是 IP 层传过来的 MAC 地址，源地址则是本机的 MAC 地址</p>
+</li>
+<li><p>主机 B 收到这个数据帧后，先检查它的目的 MAC 地址，并和本机的 MAC 地址对比，如符合，则接收，否则就丢弃</p>
+</li>
+<li><p>将 IP 数据包从帧中提取出来，交给本机的 IP 层；IP 层检查后，将有用的信息提取后交给 ICMP 协议</p>
+</li>
+<li><p>主机 B 会构建一个 ICMP 回送响应消息数据包，然后再发送出去给主机 A</p>
+</li>
+<li><p>在规定的时候间内，源主机如果没有接到 ICMP 的应答包，则说明目标主机不可达；如果接收到了 ICMP 回送响应消息，则说明目标主机可达</p>
+</li>
+</ul>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/02.png" class="">
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +302,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-03 21:07:53" itemprop="dateModified" datetime="2023-07-03T21:07:53+08:00">2023-07-03</time>
+      <time title="修改时间：2023-07-04 10:53:39" itemprop="dateModified" datetime="2023-07-04T10:53:39+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -290,7 +397,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-03 21:07:53" itemprop="dateModified" datetime="2023-07-03T21:07:53+08:00">2023-07-03</time>
+      <time title="修改时间：2023-07-04 10:53:39" itemprop="dateModified" datetime="2023-07-04T10:53:39+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -385,7 +492,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-03 21:07:53" itemprop="dateModified" datetime="2023-07-03T21:07:53+08:00">2023-07-03</time>
+      <time title="修改时间：2023-07-04 10:53:39" itemprop="dateModified" datetime="2023-07-04T10:53:39+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -478,7 +585,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-03 21:07:53" itemprop="dateModified" datetime="2023-07-03T21:07:53+08:00">2023-07-03</time>
+      <time title="修改时间：2023-07-04 10:53:39" itemprop="dateModified" datetime="2023-07-04T10:53:39+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -601,7 +708,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-03 21:07:53" itemprop="dateModified" datetime="2023-07-03T21:07:53+08:00">2023-07-03</time>
+      <time title="修改时间：2023-07-04 10:53:39" itemprop="dateModified" datetime="2023-07-04T10:53:39+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1084,7 +1191,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-03 21:07:53" itemprop="dateModified" datetime="2023-07-03T21:07:53+08:00">2023-07-03</time>
+      <time title="修改时间：2023-07-04 10:53:39" itemprop="dateModified" datetime="2023-07-04T10:53:39+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1175,7 +1282,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-03 21:07:53" itemprop="dateModified" datetime="2023-07-03T21:07:53+08:00">2023-07-03</time>
+      <time title="修改时间：2023-07-04 10:53:39" itemprop="dateModified" datetime="2023-07-04T10:53:39+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1279,7 +1386,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-03 21:07:53" itemprop="dateModified" datetime="2023-07-03T21:07:53+08:00">2023-07-03</time>
+      <time title="修改时间：2023-07-04 10:53:39" itemprop="dateModified" datetime="2023-07-04T10:53:39+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1364,7 +1471,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-03 21:07:53" itemprop="dateModified" datetime="2023-07-03T21:07:53+08:00">2023-07-03</time>
+      <time title="修改时间：2023-07-04 10:53:39" itemprop="dateModified" datetime="2023-07-04T10:53:39+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1408,107 +1515,6 @@
 </li>
 </ol>
 <p>CDN 是只对网站的某一个具体的域名加速。如果同一个网站有多个域名，则访客访问加入 CDN 的域名获得加速效果，访问未加入 CDN 的域名，或者直接访问 IP 地址，则无法获得 CDN 效果</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-arp/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-arp/" class="post-title-link" itemprop="url">arp</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 19:26:34" itemprop="dateCreated datePublished" datetime="2023-04-26T19:26:34+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-03 21:07:53" itemprop="dateModified" datetime="2023-07-03T21:07:53+08:00">2023-07-03</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>ARP 协议根据 IP 地址获取 MAC 地址</p>
-<p>每台主机都有一个 ARP 高速缓存，存放了 IP 地址到硬件地址的映射，且映射经常动态更新</p>
-<p>当本地没有 IP 地址的 MAC 地址时，便向局域网上广播一个 ARP 请求</p>
-<p>ARP 解决的是同一局域网内 IP 与 MAC 地址的映射问题，当跨局域网时需要路由器转发 ARP 请求</p>
-<h2 id="ARP-表"><a href="#ARP-表" class="headerlink" title="ARP 表"></a>ARP 表</h2><p>在网络拓扑中的每个节点或说主机上都维护有一张 ARP 表，它记录着主机的 IP 地址到 MAC 地址的映射关系</p>
-<ol>
-<li><p>主机 A 想发送数据包给通过交换机相连的处于同一网段内的另一台主机 B，此时主机 A 已经知道主机 B 的 IP 地址</p>
-</li>
-<li><p>主机A首先会检查自己的 ARP 表，查看是否有主机 B 的 IP 地址与其 MAC 地址的对应关系，如果有则直接将主机 B 的 MAC 地址作为目的 MAC 地址封装到数据帧中，否则发送一个 ARP 请求信息，请求的目的 IP 地址是主机 B 的 IP 地址，目的 MAC 地址是 MAC 层的广播地址</p>
-</li>
-<li><p>交换机接收到该广播帧之后，将此数据帧从非接收的所有端口发送出去</p>
-</li>
-<li><p>同一网段中的所有节点都会接收到该 ARP 请求数据包，目的 IP 不匹配的节点会直接忽略该请求，而当主机 B 接收到此数据帧后，解析到 IP 地址与自己的 IP 地址一致，先将主机 A 的 IP 地址及其 MAC 地址的对应关系记录到自己的 ARP 表中，同时会发送一个 ARP 应答，应答数据包源 MAC 地址即主机 B 自身的 MAC 地址，该应答通过交换机转发至主机 A</p>
-</li>
-<li><p>主机 A 在收到这个回应的数据帧之后，在自己的 ARP 表中记录主机 B 的 IP 地址和 MAC 地址的对应关系</p>
-</li>
-</ol>
 
       
     </div>
