@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">388</span>
+          <span class="site-state-item-count">389</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,116 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-count%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/09/MySql-count%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">count 函数分析</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-09 15:02:27" itemprop="dateCreated datePublished" datetime="2023-04-09T15:02:27+08:00">2023-04-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>在不同的 MySQL 引擎中，<code>count(*)</code> 有不同的实现方式</p>
+<ol>
+<li><p>MyISAM 引擎把一个表的总行数存在了磁盘上，因此执行 <code>count(*)</code> 的时候会直接返回这个数，效率很高</p>
+</li>
+<li><p>InnoDB 执行 <code>count(*)</code> 的时候，需要把数据一行一行地从引擎里面读出来，然后累积计数</p>
+</li>
+</ol>
+<p>InnoDB 中即使是在同一个时刻的多个查询，由于多版本并发控制 MVCC 的原因，InnoDB 表应该返回多少行也是不确定的</p>
+<p>假设表 t 中现在有 10000 条记录，设计三个用户并行的会话：</p>
+<ul>
+<li><p>会话 A 先启动事务并查询一次表的总行数</p>
+</li>
+<li><p>会话 B 启动事务，插入一行后记录后，查询表的总行数</p>
+</li>
+<li><p>会话 C 先启动一个单独的语句，插入一行记录后，查询表的总行数</p>
+</li>
+</ul>
+<img src="/2023/04/09/MySql-count%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90/01.png" class="">
+
+<p>因此对于 <code>count(*)</code> 请求来说，InnoDB 只能把数据一行一行地读出依次判断，可见的行才能够用于计算表的总行数</p>
+<p>InnoDB 是索引组织表，主键索引树的叶子节点是数据，而普通索引树的叶子节点是主键值，所以普通索引树比主键索引树小很多；对于 <code>count(*)</code> 这样的操作，遍历哪个索引树得到的结果逻辑上都是一样的，因此 MySQL 优化器会找到最小的那棵树来遍历</p>
+<h2 id="不同的-count-用法"><a href="#不同的-count-用法" class="headerlink" title="不同的 count 用法"></a>不同的 count 用法</h2><p><code>count()</code> 是一个聚合函数，对于返回的结果集，一行行地判断，如果 <code>count</code> 函数的参数不是 NULL，累计值就加 1，否则不加。最后返回累计值</p>
+<p>对于 <code>count(主键 id)</code> 来说，InnoDB 引擎会遍历整张表，把每一行的 id 值都取出来，返回给 server 层。server 层拿到 id 后，判断是不可能为空的，就按行累加</p>
+<p>对于 <code>count(1)</code> 来说，InnoDB 引擎遍历整张表，但不取值。server 层对于返回的每一行，放一个数字 1 进去，判断是不可能为空的，按行累加</p>
+<p><code>count(1)</code> 执行得要比 <code>count(主键 id)</code> 快。因为从引擎返回 id 会涉及到解析数据行，以及拷贝字段值的操作</p>
+<p>按照效率排序的话，<code>count(字段)</code> &lt; <code>count(主键 id)</code> &lt; <code>count(1)</code> ≈ <code>count(*)</code>，所以建议尽量使用 <code>count(*)</code></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +305,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -296,7 +406,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -400,7 +510,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -527,7 +637,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -717,7 +827,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -817,7 +927,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
 
   
@@ -921,7 +1031,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1018,7 +1128,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1137,7 +1247,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1230,104 +1340,6 @@
 <h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><h3 id="定时器管理"><a href="#定时器管理" class="headerlink" title="定时器管理"></a>定时器管理</h3><p>对于定时器管理，需要预先计算出这些定时器下次被触发的时间点，然后根据这个时间点由小到大排序，从而加速定时器查找</p>
 <p>如果使用二分搜索树，由于定时器执行的时间点是一直在变化的，如果这棵二分查找树的根节点不变的情况下，二分查找树会变得很不平衡，所以使用能够自动调节高度的红黑树会比使用普通的二分查找树会来的更加合理</p>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E9%98%9F%E5%88%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E9%98%9F%E5%88%97/" class="post-title-link" itemprop="url">队列</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 16:33:59" itemprop="dateCreated datePublished" datetime="2023-04-02T16:33:59+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>队列是一种操作受限的线性表数据结构，先进者先出；队列只支持两个基本操作，入队和出队，从队列头部取一个元素</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E9%98%9F%E5%88%97/01.jpg" class="">
-
-<ul>
-<li><p>顺序队列：顺序队列用数组来实现</p>
-</li>
-<li><p>链式队列：链式队列用链表来实现</p>
-</li>
-<li><p>具体实现</p>
-</li>
-</ul>
-<p>队列需要两个指针，一个是 head 指针指向对头，一个 tail 指针指向队尾</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E9%98%9F%E5%88%97/02.jpg" class="">
-
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E9%98%9F%E5%88%97/03.jpg" class="">
       
     </div>
 

@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">388</span>
+          <span class="site-state-item-count">389</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,109 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-%E5%AD%97%E8%8A%82%E5%BA%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/Redis-%E5%AD%97%E8%8A%82%E5%BA%8F/" class="post-title-link" itemprop="url">字节序</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 21:22:49" itemprop="dateCreated datePublished" datetime="2023-04-28T21:22:49+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>redis 试图用小端存储所有内容，但由于需要向后兼容，因此仍有一部分使用的大端序</p>
+<p>ziplist、intset 和 zipmap 中有许多转换操作，因为它们需要被序列化后通过 RDB 写入文件</p>
+<ul>
+<li><p>本机序调用函数，将本机序转成小端</p>
+</li>
+<li><p>小端调用函数，将小端转成本机序</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 只有本机是大端时才执行实际的转换</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (BYTE_ORDER == LITTLE_ENDIAN)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev16ifbe(p) ((void)(0))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev32ifbe(p) ((void)(0))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev64ifbe(p) ((void)(0))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev16ifbe(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev32ifbe(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev64ifbe(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev16ifbe(p) memrev16(p)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev32ifbe(p) memrev32(p)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev64ifbe(p) memrev64(p)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev16ifbe(v) intrev16(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev32ifbe(v) intrev32(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev64ifbe(v) intrev64(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* The functions htonu64() and ntohu64() convert the specified value to</span></span><br><span class="line"><span class="comment"> * network byte ordering and back. In big endian systems they are no-ops. */</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (BYTE_ORDER == BIG_ENDIAN)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> htonu64(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ntohu64(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> htonu64(v) intrev64(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ntohu64(v) intrev64(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+<h2 id="memrev16"><a href="#memrev16" class="headerlink" title="memrev16"></a>memrev16</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">memrev16</span><span class="params">(<span class="type">void</span> *p)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *x = p, t;</span><br><span class="line"></span><br><span class="line">    t = x[<span class="number">0</span>];</span><br><span class="line">    x[<span class="number">0</span>] = x[<span class="number">1</span>];</span><br><span class="line">    x[<span class="number">1</span>] = t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="memrev32"><a href="#memrev32" class="headerlink" title="memrev32"></a>memrev32</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">memrev32</span><span class="params">(<span class="type">void</span> *p)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *x = p, t;</span><br><span class="line"></span><br><span class="line">    t = x[<span class="number">0</span>];</span><br><span class="line">    x[<span class="number">0</span>] = x[<span class="number">3</span>];</span><br><span class="line">    x[<span class="number">3</span>] = t;</span><br><span class="line">    t = x[<span class="number">1</span>];</span><br><span class="line">    x[<span class="number">1</span>] = x[<span class="number">2</span>];</span><br><span class="line">    x[<span class="number">2</span>] = t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="memrev64"><a href="#memrev64" class="headerlink" title="memrev64"></a>memrev64</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">memrev64</span><span class="params">(<span class="type">void</span> *p)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *x = p, t;</span><br><span class="line"></span><br><span class="line">    t = x[<span class="number">0</span>];</span><br><span class="line">    x[<span class="number">0</span>] = x[<span class="number">7</span>];</span><br><span class="line">    x[<span class="number">7</span>] = t;</span><br><span class="line">    t = x[<span class="number">1</span>];</span><br><span class="line">    x[<span class="number">1</span>] = x[<span class="number">6</span>];</span><br><span class="line">    x[<span class="number">6</span>] = t;</span><br><span class="line">    t = x[<span class="number">2</span>];</span><br><span class="line">    x[<span class="number">2</span>] = x[<span class="number">5</span>];</span><br><span class="line">    x[<span class="number">5</span>] = t;</span><br><span class="line">    t = x[<span class="number">3</span>];</span><br><span class="line">    x[<span class="number">3</span>] = x[<span class="number">4</span>];</span><br><span class="line">    x[<span class="number">4</span>] = t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="intrev16"><a href="#intrev16" class="headerlink" title="intrev16"></a>intrev16</h2><p>直接调用 <code>memrev16</code></p>
+<h2 id="intrev32"><a href="#intrev32" class="headerlink" title="intrev32"></a>intrev32</h2><p>直接调用 <code>memrev32</code></p>
+<h2 id="intrev64"><a href="#intrev64" class="headerlink" title="intrev64"></a>intrev64</h2><p>直接调用 <code>memrev64</code></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +298,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -287,7 +390,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -390,7 +493,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -540,7 +643,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -656,7 +759,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -768,7 +871,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -876,7 +979,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1031,7 +1134,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1173,7 +1276,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
+      <time title="修改时间：2023-07-04 17:25:40" itemprop="dateModified" datetime="2023-07-04T17:25:40+08:00">2023-07-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1243,264 +1346,6 @@
 <li><p>线程的创建、终止和切换都是通过系统调用的方式来进行，因此对于系统来说，系统开销比较大</p>
 </li>
 </ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/" class="post-title-link" itemprop="url">进程</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 20:47:10" itemprop="dateCreated datePublished" datetime="2023-04-28T20:47:10+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-04 11:45:57" itemprop="dateModified" datetime="2023-07-04T11:45:57+08:00">2023-07-04</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>进程是对运行时程序的封装，是系统进行资源调度和分配的的基本单位，实现了操作系统的并发</p>
-<ul>
-<li><p>一个线程只能属于一个进程，而一个进程可以有多个线程，但至少有一个线程，线程依赖于进程而存在</p>
-</li>
-<li><p>进程在执行过程中拥有独立的内存单元，而多个线程共享进程的内存；资源分配给进程，同一进程的所有线程共享该进程的所有资源，共享代码段（代码和常量），数据段（全局变量和静态变量），扩展段（堆存储）；每个线程拥有自己的栈段，栈段又叫运行时段，用来存放所有局部变量和临时变量</p>
-</li>
-<li><p>进程是资源分配的最小单位，线程是 CPU 调度的最小单位</p>
-</li>
-<li><p>进程切换的开销远大于线程切换的开销；在创建或撤消进程时，系统都要为之分配或回收资源，因此系统开销远大于创建或撤销线程的开销</p>
-</li>
-<li><p>由于同一进程中的多个线程具有相同的地址空间，致使它们之间的同步和通信可以使用直接读写进程数据段（如全局变量）；进程通信需要使用进程同步和互斥手段来保证数据的一致性</p>
-</li>
-<li><p>进程编程调试简单可靠性高，线程编程调试相对复杂</p>
-</li>
-<li><p>进程间不会相互影响；一个线程挂掉将导致整个进程挂掉</p>
-</li>
-<li><p>进程适应于多核、多机分布，线程适用于多核</p>
-</li>
-</ul>
-<h2 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h2><p>在一个进程的基本状态，即创建状态、运行状态、就绪状态、阻塞状态、挂起状态、结束状态</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/01.png" class="">
-
-<ul>
-<li><p>创建状态：进程正在被创建时的状态</p>
-</li>
-<li><p>运行状态：该时刻进程占用 CPU</p>
-</li>
-<li><p>就绪状态：可运行，但因为其他进程正在运行而暂停停止</p>
-</li>
-<li><p>阻塞状态：该进程正在等待某一事件发生而暂时停止运行，即使给它 CPU 控制权，它也无法运行</p>
-</li>
-<li><p>结束状态：进程正在从系统中消失时的状态</p>
-</li>
-</ul>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/02.png" class="">
-
-<p>挂起状态表示进程没有占有物理内存空间（由于虚拟内存管理原因，进程所使用的空间可能并没有映射到物理内存，而是在硬盘上）</p>
-<ul>
-<li><p>阻塞挂起状态：进程在外存（硬盘）并等待某个事件的出现</p>
-</li>
-<li><p>就绪挂起状态：进程在外存（硬盘），但只要进入内存，即刻立刻运行</p>
-</li>
-</ul>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/03.png" class="">
-
-<h2 id="进程控制结构"><a href="#进程控制结构" class="headerlink" title="进程控制结构"></a>进程控制结构</h2><p>在操作系统中，是用进程控制块（process control block，PCB）数据结构来描述进程，PCB 是进程存在的唯一标识</p>
-<p>一个进程的存在，必然会有一个 PCB，如果进程消失了，那么 PCB 也会随之消失</p>
-<h3 id="PCB-结构体"><a href="#PCB-结构体" class="headerlink" title="PCB 结构体"></a>PCB 结构体</h3><h4 id="进程描述信息"><a href="#进程描述信息" class="headerlink" title="进程描述信息"></a>进程描述信息</h4><ul>
-<li><p>进程标识符：标识各个进程，每个进程都有一个并且唯一的标识符</p>
-</li>
-<li><p>用户标识符：进程归属的用户，用户标识符主要为共享和保护服务</p>
-</li>
-</ul>
-<h4 id="进程控制和管理信息"><a href="#进程控制和管理信息" class="headerlink" title="进程控制和管理信息"></a>进程控制和管理信息</h4><ul>
-<li><p>进程当前状态，如 new、ready、running、waiting 或 blocked 等</p>
-</li>
-<li><p>进程优先级：进程抢占 CPU 时的优先级</p>
-</li>
-</ul>
-<h4 id="资源分配清单"><a href="#资源分配清单" class="headerlink" title="资源分配清单"></a>资源分配清单</h4><ul>
-<li><p>内存信息</p>
-</li>
-<li><p>进程打开所有文件的文件描述符表</p>
-</li>
-<li><p>进程的信号处理函数</p>
-</li>
-<li><p>I&#x2F;O 设备</p>
-</li>
-</ul>
-<h4 id="CPU-信息"><a href="#CPU-信息" class="headerlink" title="CPU 信息"></a>CPU 信息</h4><ul>
-<li>CPU 中各个寄存器的值，当进程被切换时，CPU 的状态信息都会被保存在相应的 PCB 中，以便进程重新执行时，能从断点处继续执行</li>
-</ul>
-<h3 id="PCB-组织方式"><a href="#PCB-组织方式" class="headerlink" title="PCB 组织方式"></a>PCB 组织方式</h3><p>通过链表的方式进行组织，把具有相同状态的进程链在一起，组成各种队列</p>
-<ul>
-<li><p>将所有处于就绪状态的进程链在一起，称为就绪队列</p>
-</li>
-<li><p>把所有因等待某事件而处于等待状态的进程链在一起就组成各种阻塞队列</p>
-</li>
-<li><p>对于运行队列，在单核 CPU 系统中则只有一个运行指针了，因为单核 CPU 在某个时间，只能运行一个程序</p>
-</li>
-</ul>
-<p>因为面临进程创建，销毁等调度导致进程状态发生变化，所以使用链表，以便能够更加灵活的插入和删除</p>
-<h2 id="进程控制"><a href="#进程控制" class="headerlink" title="进程控制"></a>进程控制</h2><h3 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h3><p>操作系统允许一个进程创建另一个进程，而且允许子进程继承父进程所拥有的资源，当子进程被终止时，其在父进程处继承的资源应当还给父进程，终止父进程时同时也会终止其所有的子进程</p>
-<ol>
-<li><p>为新进程分配一个唯一的进程标识号，并申请一个空白的 PCB，PCB 是有限的，若申请失败则创建失败</p>
-</li>
-<li><p>为进程分配资源，此处如果资源不足，进程就会进入等待状态，以等待资源</p>
-</li>
-<li><p>初始化 PCB</p>
-</li>
-<li><p>如果进程的调度队列能够接纳新进程，那就将进程插入到就绪队列，等待被调度运行</p>
-</li>
-</ol>
-<h3 id="终止"><a href="#终止" class="headerlink" title="终止"></a>终止</h3><p>进程可以有 3 种终止方式：正常结束、异常结束以及外界干预（信号 kill 掉）</p>
-<ol>
-<li><p>查找需要终止的进程的 PCB</p>
-</li>
-<li><p>如果处于执行状态，则立即终止该进程的执行，然后将 CPU 资源分配给其他进程</p>
-</li>
-<li><p>如果其还有子进程，则应将其所有子进程终止</p>
-</li>
-<li><p>将该进程所拥有的全部资源都归还给父进程或操作系统</p>
-</li>
-<li><p>将其从 PCB 所在队列中删除</p>
-</li>
-</ol>
-<h3 id="阻塞"><a href="#阻塞" class="headerlink" title="阻塞"></a>阻塞</h3><p>当进程需要等待某一事件完成时，它可以调用阻塞语句把自己阻塞等待；一旦被阻塞等待，它只能由另一个进程唤醒</p>
-<ol>
-<li><p>找到将要被阻塞进程标识号对应的 PCB</p>
-</li>
-<li><p>如果该进程为运行状态，则保护其现场，将其状态转为阻塞状态，停止运行</p>
-</li>
-<li><p>将该 PCB 插入的阻塞队列中去</p>
-</li>
-</ol>
-<h3 id="唤醒"><a href="#唤醒" class="headerlink" title="唤醒"></a>唤醒</h3><p>只有当该进程所期待的事件出现时，才由发现者进程用唤醒语句叫醒它</p>
-<ol>
-<li><p>在该事件的阻塞队列中找到相应进程的 PCB</p>
-</li>
-<li><p>将其从阻塞队列中移出，并置其状态为就绪状态</p>
-</li>
-<li><p>把该 PCB 插入到就绪队列中，等待调度程序调度</p>
-</li>
-</ol>
-<h2 id="多进程管理"><a href="#多进程管理" class="headerlink" title="多进程管理"></a>多进程管理</h2><h3 id="多进程并行"><a href="#多进程并行" class="headerlink" title="多进程并行"></a>多进程并行</h3><p>对于一个单核 CPU 来讲，从宏观上是并行的，而从微观上是串行的，它使用时间片划分周期调用来实现；每个任务在一段时间内会分到一段时间片(占 cpu 的时间)，在这段时间内该任务只能运行时间片长度从而达到同时的效果</p>
-<h3 id="父子进程"><a href="#父子进程" class="headerlink" title="父子进程"></a>父子进程</h3><p>Linux 中的进程都是由其它进程启动</p>
-<p>Linux 启动时，0 进程启动 1 号进程 (init) 和 2 号进程(内核线程)，0 号进程退出，其它进程是由 1、2 直接或间接产生</p>
-<ul>
-<li><p>1号进程 (init) 是所有用户进程的祖先</p>
-</li>
-<li><p>2号进程(内核线程)是内核进程的祖先</p>
-</li>
-</ul>
-<h3 id="进程退出"><a href="#进程退出" class="headerlink" title="进程退出"></a>进程退出</h3><ul>
-<li><p>正常退出：<code>main()</code> 中 <code>return</code> 进程的所有线程结束；<code>exit()</code> 代表整个进程的结束，是库函数；<code>_exit()</code> 或者 <code>_Exit()</code> 是系统调用函数；<code>exit()</code> 通过调用 <code>_exit()</code> 来实现退出的，但 <code>exit()</code> 多干了两件事情: 清空缓冲区、调用退出处理函数；退出处理函数可以做一些清理工作，需要先登记才生效，退出处理函数保存在退出处理函数栈中(先进后出的原则)</p>
-</li>
-<li><p>异常退出：被信号打断（ctrl + c、段错误、kill -9）；主线程被取消</p>
-</li>
-</ul>
-<h3 id="资源回收"><a href="#资源回收" class="headerlink" title="资源回收"></a>资源回收</h3><p>子进程退出时, 不管是正常还是异常, 父进程会收到信号；子进程退出后，内核会释放掉该进程资源（打开的文件、占用的内存等），但仍会保留一部分信息由父进程负责回收（进程号、退出状态、<br>运行时间），系统所能使用的进程号是有限的，如果大量的产生僵死进程，将因为没有可用的进程号而导致系统不能产生新的进程</p>
-<ul>
-<li><p>僵尸进程：子进程先结束，会通知父进程(通过信号)，让父进程回收资源，如果父进程不处理信号，子进程则变成僵尸进程；僵尸进程是一个进程必然会经过的过程，这是每个子进程在结束时都要经过的阶段</p>
-</li>
-<li><p>孤儿进程：父进程先结束，子进程就会变成孤儿进程，就会由 1 号进程（ init ）负责回收，但在实际编程中要避免这种情况</p>
-</li>
-</ul>
-<p>僵尸进程是一个早已死亡的进程，但在进程表中仍占了一个位置。由于进程表的容量是有限的，所以僵尸进程不仅占用系统的内存资源，影响系统的性能，而且如果其数目太多，还会导致系统瘫痪</p>
-<p>当子进程结束的时候，它并没有真正的被销毁，而是留下一个称为僵尸进程的数据结构，这些数据会一直保留到系统将它传递给它的父进程为止。此时，该僵尸子进程已经放弃了几乎所有的内存空间，没有任何可执行代码，也不能被调度，仅仅在进程列表中保留一个位置，记载该进程的退出状态信息供其他进程收集</p>
-<p>如果父进程没有捕获 SIGCHLD 信号处理函数调用 <code>wait()</code> 或 <code>waitpid()</code> 等待子进程结束，也没有显式忽略该信号，那么它就一直保持僵尸状态。如果父进程结束时子进程仍为僵尸进程，那么 init 进程会自动接手这个子进程，将它清除掉的。但是如果父进程是一个循环，不会结束，那么子进程就会一直保持僵尸状态</p>
-<p>僵尸进程是不能直接使用 kill -9 命令杀掉的，重启电脑或杀掉父进程可解决僵尸进程</p>
-<p>预防僵尸进程措施：</p>
-<ul>
-<li><p>在父进程创建子进程之前，就向系统申明自己不会对这个子进程的 exit 动作进行任何关注行为，这样子进程退出后，系统不会去等待父进程的操作，而是直接将该子进程的资源回收掉，也就不会出现僵尸进程了</p>
-</li>
-<li><p>在创建完子进程后，用 <code>waitpid()</code> 等待子进程返回</p>
-</li>
-</ul>
-<h3 id="父子进程共享的文件描述符"><a href="#父子进程共享的文件描述符" class="headerlink" title="父子进程共享的文件描述符"></a>父子进程共享的文件描述符</h3><p>PCB 里有个数组专门用于记录打开的文件，数组元素为指向所打开的文件所创建的文件表项，文件表项是用于描述文件当前被某个进程打开后的状态信息，包括文件状态标志，记录当前文件读取的位移量，以及文件的 i 节点指针</p>
-<p>不同进程打开同一个文件后，进程表和文件表的关系；<code>fork()</code> 之后打开文件，与不同进程打开同一文件情况相同</p>
-
-
-<p><code>fork()</code> 之前打开文件，子进程是共享父进程的文件表项</p>
-
-
-<p>进程调用 <code>fork()</code> 后，子进程和父进程的文件描述符所对应的文件表项是共享的，这意味着子进程对文件的读写直接影响父进程的文件位移量(反之同理)</p>
-<h2 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h2><p>自从多任务操作系统诞生以来，进程执行占用 cpu 的能力就是一个必须要可以人为控制的事情</p>
-<p>进程优先级起作用的方式，无论是只有一个 cpu 的时代，还是多核 cpu 时代，都是通过控制进程占用 cpu 时间的长短来实现的</p>
-<p>在同一个调度周期中，优先级高的进程占用的时间长些，而优先级低的进程占用的短些</p>
-<p>cgroup 相较于优先级，更能直观的反馈出资源分配的比例，但实际上从内核目前的进程调度器 cfs 的角度看，同时实现 cpushare 方式的 cgroup 和优先级这两个机制完全是相同的概念</p>
-<h3 id="nice"><a href="#nice" class="headerlink" title="nice"></a>nice</h3><p>nice 值是反应一个进程静态优先级状态的值，其取值范围是 -20 至 19，一共 40 个级别</p>
-<p>nice 越小，表示进程优先级越高，而值越大优先级越低</p>
-<p>可以通过 <code>nice</code> 命令来对一个将要执行的命令进行 <code>nice</code>值设置</p>
-<p>使用 <code>renice</code> 命令可以对一个正在运行的进程进行 nice 值的调整</p>
-<h3 id="priority"><a href="#priority" class="headerlink" title="priority"></a>priority</h3><p>priority 值表示 PRI 和 PR 值，动态优先级</p>
 
       
     </div>
