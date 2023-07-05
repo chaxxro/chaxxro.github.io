@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">391</span>
+          <span class="site-state-item-count">392</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,118 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/25/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E6%83%8A%E7%BE%A4%E6%95%88%E5%BA%94/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/25/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E6%83%8A%E7%BE%A4%E6%95%88%E5%BA%94/" class="post-title-link" itemprop="url">惊群效应</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-25 20:55:50" itemprop="dateCreated datePublished" datetime="2023-06-25T20:55:50+08:00">2023-06-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">网络编程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>惊群效应就是多进程（多线程）在同时阻塞等待同一个事件的时候，如果等待的事件发生，那么就会唤醒等待的所有进程（线程），但最终却只可能有一个进程（线程）获得这个事件并对该事件进行处理，而其他进程（线程）只能重新进入休眠状态，这种现象就叫做惊群</p>
+<h2 id="性能消耗"><a href="#性能消耗" class="headerlink" title="性能消耗"></a>性能消耗</h2><ul>
+<li><p>系统对用户进程&#x2F;线程频繁地做无效的调度，上下文切换系统性能大打折扣</p>
+</li>
+<li><p>为了确保只有一个线程得到资源，用户必须对资源操作进行加锁保护，进一步加大了系统开销</p>
+</li>
+</ul>
+<h2 id="accept-惊群"><a href="#accept-惊群" class="headerlink" title="accept 惊群"></a>accept 惊群</h2><p>主进程创建了 <code>socket()</code>、<code>bind()</code>、<code>listen()</code> 之后，<code>fork()</code> 出来多个进程，每个子进程都开始处理 <code>accept()</code>，这些进程都会阻塞在同一个 <code>accept()</code> 上</p>
+<p>当来了新的连接时，所有阻塞在 <code>accept</code> 上的的进程都会被唤醒，但是只有一个进程会接受成功，其余都会失败重新休眠</p>
+<p>linux 内核通过睡眠队列来组织所有等待某个事件的 task，而 wakeup 机制可以异步唤醒整个睡眠队列上的 task，wakeup 逻辑在唤醒睡眠队列时，会遍历该队列链表上的每一个节点，调用每一个节点的 <code>callback</code>，从而唤醒睡眠队列上的每个 task，造成惊群现象</p>
+<p>内核通过添加一个 <code>WQ_FLAG_EXCLUSIVE</code> 标记解决了 <code>accept</code> 惊群，该标记告诉内核进行排他性的唤醒，唤醒一个进程后即退出唤醒的过程</p>
+<h2 id="epoll-惊群"><a href="#epoll-惊群" class="headerlink" title="epoll 惊群"></a>epoll 惊群</h2><p>主进程创建 <code>socket()</code>、<code>bind</code>、<code>listen()</code> 后将该 socket 加入到 <code>epoll()</code> 中，然后 <code>fork()</code> 出多个子进程，每个进程共享一颗红黑树，都阻塞在 <code>epoll_wait()</code> 上</p>
+<p>当 <code>accept</code> 事件进来时所有进程都会被唤醒，然后只有一个进程能 <code>accept()</code> 成功，造成惊群现象</p>
+<h3 id="NGINX-解决方案"><a href="#NGINX-解决方案" class="headerlink" title="NGINX 解决方案"></a>NGINX 解决方案</h3><p>每个 worker 进程在监听 fd 事件之前先要通过 <code>ngx_trylock_accept_mutex</code> 去获取一个全局的锁</p>
+<ul>
+<li><p>如果获得锁成功，那么开始处理事件</p>
+</li>
+<li><p>如果获得锁失败，则放弃本次操作</p>
+</li>
+</ul>
+<p>所以从某种意义上来讲，对于某一个 fd，Nginx 同时只有一个 worker 来处理 fd 上的事件，从而避免惊群</p>
+<p>在用户空间实现进程间锁，需要有一个让所有进程共享的东西，比如 <code>mmap</code> 内存、文件等，然后通过这个东西来控制进程的互斥</p>
+<h3 id="LT、ET-下的惊群"><a href="#LT、ET-下的惊群" class="headerlink" title="LT、ET 下的惊群"></a>LT、ET 下的惊群</h3><p>LT 模式下会唤醒睡眠队列上所有进程，ET 模式下仅会唤醒一个进程，所以 ET 模式没有惊群</p>
+<h4 id="先-epoll-create-后-fork"><a href="#先-epoll-create-后-fork" class="headerlink" title="先 epoll_create 后 fork"></a>先 epoll_create 后 fork</h4><p>多个进程公用一个内核 <code>epoll</code> 对象，从而对 <code>epoll</code> 对象的操作会相互影响</p>
+<p>LT 模式下没法避免惊群，但 LT 是链式唤醒，唤醒过程中直到没有事件被处理时会终止唤醒</p>
+<h3 id="先-fork-后-epoll-create"><a href="#先-fork-后-epoll-create" class="headerlink" title="先 fork 后 epoll_create"></a>先 fork 后 epoll_create</h3><p>父进程创建了 listen fd 后 <code>fork</code> 多个 worker 子进程来共同处理请求，这个时候多个子进程分别创建自己独立的 <code>epoll</code> fd，然后将同一个 listen fd 加入到 <code>epoll</code> 中，监听其可读事件</p>
+<p>不管 listen fd 是以 LT 还是 ET 模式加入到 <code>epoll</code>，多个进程之间的 <code>epoll</code> 是平等的，于是 listen fd 上的一个请求会唤醒所有的进程</p>
+<p>Linux 新内核中增加了 <code>EPOLLEXCLUSIVE</code>，该选项通过 <code>EPOLL_CTL_ADD</code> 对需要监控的fd 设置 <code>EPOLLEXCLUSIVE</code> 标记，从而在遍历并唤醒等待队列上的进程时，遇到并唤醒第一个带 <code>WQ_FLAG_EXCLUSIVE</code> 标记进程后，就结束遍历唤醒过程，从而解决多进程独立 <code>epoll</code> 的惊群问题</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +307,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -370,7 +482,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -466,7 +578,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -601,7 +713,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -724,7 +836,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -839,7 +951,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -926,7 +1038,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1013,7 +1125,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1108,7 +1220,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1200,107 +1312,6 @@
 </li>
 </ol>
 <p>主从 Reactor 多线程模型中，主线程和子线程分工明确，主线程只负责接收新连接，子线程负责完成后续的业务处理，子线程处理完成后无须返回数据，直接就可以在子线程中将结果返回</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/08/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-rpc/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/08/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-rpc/" class="post-title-link" itemprop="url">rpc</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-08 10:19:27" itemprop="dateCreated datePublished" datetime="2023-06-08T10:19:27+08:00">2023-06-08</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5/" itemprop="url" rel="index"><span itemprop="name">常见概念</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>从 rpc 的调用关系看，分为客户端和服务端</p>
-<h2 id="路由标识"><a href="#路由标识" class="headerlink" title="路由标识"></a>路由标识</h2><p>一个服务的地址可以看作是 IP + Port + 协议</p>
-<p>从服务寻址角度看，服务需要一个路由标识来获取服务的地址</p>
-<p>路由标识必须全局唯一，且一般通过名字服务进行管理，所以路由标识也叫服务名或 Naming Service</p>
-<p>客户端通过路由标识向名字服务获取服务地址</p>
-<h2 id="接口标识"><a href="#接口标识" class="headerlink" title="接口标识"></a>接口标识</h2><p>rpc 调用接口也需要一个全剧唯一标识，称为接口标识或 RPC Name</p>
-<p>利用 pb 自动生成接口时，接口标识格式可使用 <code>/package.proto_service/method</code></p>
-<ul>
-<li><p>package 对应 pb 中的 package，可以理解为一个支持多级的名字空间，用来防止接口命名冲突</p>
-</li>
-<li><p>proto_service 对应 pb 中的 service，是一组 rpc 方法的集合，它是对接口的一个逻辑分组</p>
-</li>
-<li><p>method 对应 pb 中的 rpc 方法，每个 method 必须且只能属于一个 proto_service，一个proto_service 允许定义多个 method</p>
-</li>
-</ul>
-<h2 id="接口映射"><a href="#接口映射" class="headerlink" title="接口映射"></a>接口映射</h2><p>proto_service 负责定义 rpc 接口的定义和归类，Naming Service 负责网络连接和协议处理</p>
-<p>需要把 proto_service 和 Naming Service 关联起来，通过把 proto_service 注册到 Naming Service 来完成服务的组装</p>
 
       
     </div>

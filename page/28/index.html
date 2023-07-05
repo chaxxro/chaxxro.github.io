@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">391</span>
+          <span class="site-state-item-count">392</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,185 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/09/MySql-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/" class="post-title-link" itemprop="url">基础结构</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-09 15:08:22" itemprop="dateCreated datePublished" datetime="2023-04-09T15:08:22+08:00">2023-04-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <img src="/2023/04/09/MySql-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/01.png" class="">
+
+<p>MySQL 可以分为 Server 层和存储引擎层两部分</p>
+<p>Server 层包括连接器、查询缓存、分析器、优化器、执行器等，涵盖 MySQL 的大多数核心服务功能，以及所有的内置函数（如日期、时间、数学和加密函数等），所有跨存储引擎的功能都在这一层实现，比如存储过程、触发器、视图等</p>
+<p>存储引擎层负责数据的存储和提取，其架构模式是插件式的，支持 InnoDB、MyISAM、Memory 等多个存储引擎</p>
+<h2 id="连接器"><a href="#连接器" class="headerlink" title="连接器"></a>连接器</h2><p>连接器负责跟客户端建立连接、获取权限、维持和管理连接</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -h $ip -P $port -u $user -p</span><br></pre></td></tr></table></figure>
+
+<p>客户端跟服务端通过 TCP 建立连接</p>
+<p>如果用户名密码认证通过，连接器会到权限表里面查出客户端拥有的权限，之后这个连接里面的权限判断逻辑，都将依赖于此时读到的权限</p>
+<p>一个用户成功建立连接后，即使用管理员账号对这个用户的权限做了修改，也不会影响已经存在连接的权限；修改完成后，只有再新建的连接才会使用新的权限设置</p>
+<p>客户端如果太长时间没动静，连接器就会自动将它断开，这个时间是由参数 wait_timeout 控制的，默认值是 8 小时</p>
+<p>长连接是指连接成功后，如果客户端持续有请求，则一直使用同一个连接；短连接则是指每次执行完很少的几次查询就断开连接，下次查询再重新建立一个</p>
+<p>全部使用长连接后，有些时候 MySQL 占用内存涨得特别快，这是因为 MySQL 在执行过程中临时使用的内存是管理在连接对象里面的。这些资源会在连接断开的时候才释放。所以如果长连接累积下来，可能导致内存占用太大，被系统强行杀掉（OOM），从现象看就是 MySQL 异常重启了</p>
+<p>解决方案：</p>
+<ul>
+<li><p>定期断开长连接。使用一段时间，或者程序里面判断执行过一个占用内存的大查询后，断开连接，之后要查询再重连</p>
+</li>
+<li><p>在 MySQL 5.7 之后的版本，可以在每次执行一个比较大的操作后，通过执行 mysql_reset_connection 来重新初始化连接资源，这个过程不需要重连和重新做权限验证，但是会将连接恢复到刚刚创建完时的状态</p>
+</li>
+</ul>
+<h2 id="查询缓存"><a href="#查询缓存" class="headerlink" title="查询缓存"></a>查询缓存</h2><p>MySQL 查询缓存是用来缓存特定 Query 的整个结果集信息，且共享给所有客户端</p>
+<p>之前执行过的语句及其结果可能会以 key-value 对的形式，被直接缓存在内存中</p>
+<p>key 是查询的语句，value 是查询的结果，如果查询能够直接在这个缓存中找到 key，那么这个 value 通过权限验证后就可以直接返回给客户端</p>
+<p>如果语句不在查询缓存中，就会继续后面的执行阶段，执行完成后执行结果会被存入查询缓存中</p>
+<p>只要有对一个表的更新，这个表上所有的查询缓存都会被清空，对于频繁更新的表，查询缓存是不适合的，而对于一些不常改变数据且有大量相同 SQL 查询的表，查询缓存会节约很大的性能</p>
+<h3 id="命中条件"><a href="#命中条件" class="headerlink" title="命中条件"></a>命中条件</h3><ul>
+<li><p>两个 SQL 语句，只要相差哪怕一个字符，那么这两个 SQL 将使用不同的 Cache 地址</p>
+</li>
+<li><p>如果表中任何数据或是结构发生改变更改了，那么使用这个表的所有缓存查询将不再有效</p>
+</li>
+<li><p>当某个表正在写入数据，则这个表的缓存将会处于失效状态；在 Innodb 中，如果某个事务修改了这张表，则这个表的缓存在事务提交前都会处于失效状态，在这个事务提交前，这个表的相关查询都无法被缓存</p>
+</li>
+<li><p><code>where</code> 条件中如包含任何一个不确定的函数将永远不会被 cache, 比如 <code>current_date</code>, <code>now</code> 等</p>
+</li>
+<li><p>太大的 result set 不会被 cache</p>
+</li>
+</ul>
+<h3 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h3><p>MySQL Query Cache 使用内存池技术，自己管理内存释放和分配，而不是通过操作系统</p>
+<p>query_cache_limit：可以缓存的单条查询的最大结果集的大小，默认值为 1MB</p>
+<p>query_cache_min_res_unit：每次分配内存的最小空间大小，也就是用于缓存查询结果的最小内存空间的大小，默认值为 4KB</p>
+<p>query_cache_size：可以使用的最大内存空间的大小，必须是 1024 的整数倍</p>
+<ol>
+<li><p>数据库启动时需要初始化查询缓存需要的内存，这时内存池是一个完整的空闲块，而这个空闲块的大小是 query_cache_size 的值减去用于维护元数据的数据结构所消耗的空间（约 40KB）</p>
+</li>
+<li><p>当有查询结果需要缓存的时候，MySQL 先从大的空闲块中申请 query_cache_min_res_unit 大小的内存用于存储结果</p>
+</li>
+<li><p>MySQL 逐步向数据块写入数据，若数据块全部使用完成后仍然有剩余的数据需要存储，那么将再次向空闲空间申请一个数据块，直到数据全部存储完成</p>
+</li>
+<li><p>当存储完成后申请的数据块还有部分剩余空间，那么这部分将被释放，并入到空闲内存部分</p>
+</li>
+</ol>
+<p>并发插入和缓存失效都会导致内存碎片</p>
+<h3 id="额外消耗"><a href="#额外消耗" class="headerlink" title="额外消耗"></a>额外消耗</h3><ul>
+<li><p>读查询开始之前必须检查是否命中缓存</p>
+</li>
+<li><p>如果读查询可以缓存，那么执行完查询操作后，会把查询结果和查询语句写入缓存</p>
+</li>
+<li><p>当向某个表写入数据的时候，必须将这个表所有的缓存设置为失效，如果缓存空间很大，则消耗也会很大</p>
+</li>
+<li><p>对 InnoDB 表，当修改一个表时，设置了缓存失效，但是多版本特性会暂时将这修改对其他事务屏蔽，在这个事务提交之前，所有查询都无法使用缓存，直到这个事务被提交，所以长时间的事务，会大大降低查询缓存的命中</p>
+</li>
+</ul>
+<h2 id="分析器"><a href="#分析器" class="headerlink" title="分析器"></a>分析器</h2><p>对 SQL 语句做解析</p>
+<p>词法分析 —&gt; 语法分析</p>
+<p>词法分析：将 SQL 语句的字符串识别出来</p>
+<p>语法分析：根据语法规则判断 SQL 语句是否满足语法</p>
+<h2 id="优化器"><a href="#优化器" class="headerlink" title="优化器"></a>优化器</h2><p>优化器是在表里面有多个索引的时候，决定使用哪个索引；或者在一个语句有多表关联（join）的时候，决定各个表的连接顺序</p>
+<p>对于查询不在表里的字段，在优化器时就会报错，优化器在做优化时会拿到表的信息，从而不需要后续打开表</p>
+<p>优化器选择索引的目的，是找到一个最优的执行方案，并用最小的代价去执行语句；在数据库里面，扫描行数是影响执行代价的因素之一，扫描的行数越少，意味着访问磁盘数据的次数越少，消耗的 CPU 资源越少；扫描行数并不是唯一的判断标准，优化器还会结合是否使用临时表、是否排序等因素进行综合判断</p>
+<p>MySQL 在真正开始执行语句之前，并不能精确地知道满足这个条件的记录有多少条，而只能根据统计信息来估算记录数；这个统计信息就是索引的区分度，一个索引上不同的值越多，这个索引的区分度就越好，而一个索引上不同的值的个数，称之为基数；基数越大，索引的区分度越好</p>
+<p>MySQL 通过采样统计获得索引的基数；InnoDB 默认会选择 N 个数据页，统计这些页面上的不同值，得到一个平均值，然后乘以这个索引的页面数，就得到了这个索引的基数；当变更的数据行数超过 1&#x2F;M 的时候，会自动触发重新做一次索引统计</p>
+<p>对于由于索引统计信息不准确导致的慢查询问题，可以用 analyze table 来解决</p>
+<p>优化器还会考虑非主键索引的回表查询代价</p>
+<p>当使用排序时，选择排序字段可避免排序，因此优化器也会优先选择该字段</p>
+<h2 id="执行器"><a href="#执行器" class="headerlink" title="执行器"></a>执行器</h2><p>开始执行的时候，要先判断一下客户端对这个表 T 有没有执行查询的权限，如果没有，就会返回没有权限的错误</p>
+<p>如果查询没有命中索引：</p>
+<ol>
+<li><p>调用引擎接口取这个表的第一行，满足条件则放入结果集合中</p>
+</li>
+<li><p>调用引擎接口取下一行，重复相同逻辑，直到取到这个表的最后一行</p>
+</li>
+<li><p>执行器将上述遍历过程中所有满足条件的行组成的记录集作为结果集返回给客户端</p>
+</li>
+</ol>
+<p>如果查询命中索引：</p>
+<ol>
+<li><p>调用引擎满足条件第一行的接口</p>
+</li>
+<li><p>循环调用满足条件下一行的接口</p>
+</li>
+</ol>
+<h2 id="更新语句执行"><a href="#更新语句执行" class="headerlink" title="更新语句执行"></a>更新语句执行</h2><p>如果每一次的更新操作都需要写进磁盘，然后磁盘也要找到对应的那条记录，然后再更新，整个过程 IO 成本、查找成本都很高</p>
+<p>MySQL 使用 WAL 技术，其全称是 Write-Ahead Logging，它的关键点就是先写日志再写磁盘</p>
+<p>当有一条记录需要更新的时候，InnoDB 引擎就会先把记录写到 redo log 里面并更新内存，这个时候更新就算完成了；InnoDB 引擎会在适当的时候，将这个操作记录更新到磁盘里面，而这个更新往往是在系统比较空闲的时候做</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +374,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -543,7 +722,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -654,7 +833,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -764,7 +943,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -865,7 +1044,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -969,7 +1148,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1096,7 +1275,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1286,7 +1465,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1386,7 +1565,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 19:56:19" itemprop="dateModified" datetime="2023-07-05T19:56:19+08:00">2023-07-05</time>
     </span>
 
   
@@ -1429,103 +1608,6 @@
 </li>
 </ul>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%A0%88/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%A0%88/" class="post-title-link" itemprop="url">栈</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 16:40:02" itemprop="dateCreated datePublished" datetime="2023-04-02T16:40:02+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>栈是一种操作受限的线性表，只允许在一端插入和删除数据<br>后进者先出，先进者后出，不能冲中间任意抽出</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%A0%88/01.jpg" class="">
-
-<p>事实上，从功能上说数组或链表确实可以替代栈，但特定的数据结构是对特定场景的抽象；而且，数组或链表暴露了太多的操作接口，操作上的确灵活自由，但使用时就比较不可控，容易出错</p>
-<p>当某个数据集合只涉及在一端插入和删除数据，并满足后进先出、先进后出的特性，应该首选栈</p>
-<ul>
-<li><p>操作：栈的操作主要包括两个，入栈和出站，也就是在栈顶插入一个数据和从栈顶删除一个数据</p>
-</li>
-<li><p>实现方式：栈可以用数组来实现，也可以用链表来实现；用数组实现的栈叫顺序栈，用链表实现的栈叫链式栈</p>
-</li>
-<li><p>支持动态扩容的顺序栈：实现一个支持动态扩容的栈，只需要底层依赖一个支持动态扩容的数组就可以了；当栈满了之后，就申请一个更大的数组，将原来的数据全部拷贝到新的数组中</p>
-</li>
-</ul>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%A0%88/02.jpg" class="">
       
     </div>
 
