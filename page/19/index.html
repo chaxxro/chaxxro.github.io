@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">390</span>
+          <span class="site-state-item-count">391</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,145 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/" class="post-title-link" itemprop="url">缓存淘汰</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-20 21:02:47" itemprop="dateCreated datePublished" datetime="2023-04-20T21:02:47+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="缓存淘汰"><a href="#缓存淘汰" class="headerlink" title="缓存淘汰"></a>缓存淘汰</h2><p>应用 Redis 缓存时，如果能缓存会被反复访问的数据，那就能加速业务应用的访问</p>
+<p>在一些场景下，有些数据被访问的次数非常少，甚至只会被访问一次。当这些数据服务完访问请求后，如果还继续留存在缓存中的话，就只会白白占用缓存空间</p>
+<p>为了保证较高的性价比，缓存的空间容量必然要小于后端数据库的数据总量。不过，内存大小毕竟有限，随着要缓存的数据量越来越大，有限的缓存空间不可避免地会被写满</p>
+<p>淘汰机制包括两步：第一，根据一定的策略，筛选出对应用访问来说不重要的数据；第二，将这些数据从缓存中删除，为新来的数据腾出空间</p>
+<h2 id="设置缓存容量"><a href="#设置缓存容量" class="headerlink" title="设置缓存容量"></a>设置缓存容量</h2><h3 id="长尾效应"><a href="#长尾效应" class="headerlink" title="长尾效应"></a>长尾效应</h3><p>20% 的数据贡献了 80% 的访问</p>
+<h3 id="重尾效应"><a href="#重尾效应" class="headerlink" title="重尾效应"></a>重尾效应</h3><p>20% 的数据可能贡献不了 80% 的访问，而剩余的 80% 数据反而贡献了更多的访问量</p>
+<h3 id="经验"><a href="#经验" class="headerlink" title="经验"></a>经验</h3><p>把缓存容量设置为总数据量的 15% 到 30%，兼顾访问性能和内存空间开销</p>
+<h2 id="淘汰策略"><a href="#淘汰策略" class="headerlink" title="淘汰策略"></a>淘汰策略</h2><img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/01.png" class="">
+
+<p>volatie-* 四种淘汰策略，筛选的候选数据范围，被限制在已经设置了过期时间的键值对上，即使缓存没有写满，这些数据如果过期了，也会被删除</p>
+<p>allkeys-* 三种淘汰策略，筛选的候选数据范围，扩大到了所有键值对，无论这些键值对是否设置了过期时间</p>
+<h3 id="noevction"><a href="#noevction" class="headerlink" title="noevction"></a>noevction</h3><p>默认情况下，Redis 在使用的内存空间超过 maxmemory 值时，并不会淘汰数据；一旦缓存被写满了，再有写请求来时，Redis 不再提供服务，而是直接返回错误</p>
+<p>Redis 用作缓存时，实际的数据集通常都是大于缓存容量的，总会有新的数据要写入缓存，这个策略本身不淘汰数据，也就不会腾出新的缓存空间，因此不能把它用在 Redis 缓存中</p>
+<h3 id="volatile-ttl"><a href="#volatile-ttl" class="headerlink" title="volatile-ttl"></a>volatile-ttl</h3><p>针对设置了过期时间的键值对，根据过期时间的先后进行删除，越早过期的越先被删除</p>
+<h3 id="volatile-random"><a href="#volatile-random" class="headerlink" title="volatile-random"></a>volatile-random</h3><p>在设置了过期时间的键值对中，进行随机删除</p>
+<h3 id="volatile-lru"><a href="#volatile-lru" class="headerlink" title="volatile-lru"></a>volatile-lru</h3><p>使用 LRU 算法筛选设置了过期时间的键值对</p>
+<h3 id="volatile-lfu"><a href="#volatile-lfu" class="headerlink" title="volatile-lfu"></a>volatile-lfu</h3><p>使用 LFU 算法选择设置了过期时间的键值对</p>
+<h3 id="allkeys-random"><a href="#allkeys-random" class="headerlink" title="allkeys-random"></a>allkeys-random</h3><p>从所有键值对中随机选择并删除数据</p>
+<h3 id="allkeys-lru"><a href="#allkeys-lru" class="headerlink" title="allkeys-lru"></a>allkeys-lru</h3><p>使用 LRU 算法在所有数据中进行筛选</p>
+<h3 id="allkeys-lfu"><a href="#allkeys-lfu" class="headerlink" title="allkeys-lfu"></a>allkeys-lfu</h3><p>使用 LFU 算法在所有数据中进行筛选</p>
+<h2 id="random"><a href="#random" class="headerlink" title="random"></a>random</h2><p>volatile-random 和 allkeys-random 这两种策略，它们都是采用随机挑选数据的方式，来筛选即将被淘汰的数据</p>
+<p>随机挑选，那么 Redis 就不会根据数据的访问情况来筛选数据，在避免缓存污染这个问题上的效果非常有限</p>
+<h2 id="ttl"><a href="#ttl" class="headerlink" title="ttl"></a>ttl</h2><p>volatile-ttl 针对的是设置了过期时间的数据，把这些数据中剩余存活时间最短的筛选出来并淘汰掉；虽然 volatile-ttl 策略不再是随机选择淘汰数据了，但是剩余存活时间并不能直接反映数据再次访问的情况，所以和按随机方式淘汰数据类似，也可能出现数据被淘汰后，被再次访问导致的缓存缺失问题</p>
+<h2 id="LRU"><a href="#LRU" class="headerlink" title="LRU"></a>LRU</h2><p>LRU 算法的全称是 Least Recently Used，按照最近最少使用的原则来筛选数据，最不常用的数据会被筛选出来，而最近频繁使用的数据会留在缓存中</p>
+<p>LRU 会把所有的数据组织成一个链表，链表的头和尾分别表示 MRU 端和 LRU 端，分别代表最近最常使用的数据和最近最不常用的数据</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/02.png" class="">
+
+<p>LRU 算法选择删除数据时，都是从 LRU 端开始，所以把刚刚被访问的数据移到 MRU 端，就可以让它们尽可能地留在缓存中</p>
+<p>LRU 算法背后的想法非常朴素：它认为刚刚被访问的数据，肯定还会被再次访问，所以就把它放在 MRU 端；长久不访问的数据，肯定就不会再被访问了，所以就让它逐渐后移到 LRU 端，在缓存满时，就优先删除它</p>
+<p>LRU 算法在实际实现时，需要用链表管理所有的缓存数据，会带来额外的空间开销。而且，当有数据被访问时，需要在链表上把该数据移动到 MRU 端，如果有大量数据被访问，就会带来很多链表移动操作，会很耗时，进而会降低 Redis 缓存性能</p>
+<p>在 Redis 中，LRU 算法被做了简化，以减轻数据淘汰对缓存性能的影响：Redis 默认会记录每个数据的最近一次访问的时间戳（由键值对数据结构 RedisObject 中的 lru 字段记录）；Redis 在决定淘汰的数据时，第一次会随机选出 N 个数据，把它们作为一个候选集合；Redis 会比较这 N 个数据的 lru 字段，把 lru 字段值最小的数据从缓存中淘汰出去；不用为所有的数据维护一个大链表，也不用在每次数据访问时都移动链表项，提升了缓存的性能</p>
+<p>因为只看数据的访问时间，使用 LRU 策略在处理扫描式单次查询操作时，无法解决缓存污染</p>
+<p>应用对大量的数据进行一次全体读取，每个数据都会被读取，而且只会被读取一次。此时，因为这些被查询的数据刚刚被访问过，所以 lru 字段值都很大；在使用 LRU 策略淘汰数据时，这些数据会留存在缓存中很长一段时间，造成缓存污染</p>
+<h2 id="LFU"><a href="#LFU" class="headerlink" title="LFU"></a>LFU</h2><p>LFU 缓存策略是在 LRU 策略基础上，为每个数据增加了一个计数器，来统计这个数据的访问次数。当使用 LFU 策略筛选淘汰数据时，首先会根据数据的访问次数进行筛选，把访问次数最低的数据淘汰出缓存。如果两个数据的访问次数相同，LFU 策略再比较这两个数据的访问时效性，把距离上一次访问时间更久的数据淘汰出缓存</p>
+<p>Redis 在实现 LFU 策略的时候，只是把原来 24bit 大小的 lru 字段，又进一步拆分成了两部分</p>
+<ol>
+<li><p>ldt 值：lru 字段的前 16bit，表示数据的访问时间戳</p>
+</li>
+<li><p>counter 值：lru 字段的后 8bit，表示数据的访问次数，最大值是 255</p>
+</li>
+</ol>
+<p>在实现 LFU 策略时，Redis 并没有采用数据每被访问一次，就给对应的 counter 值加 1 的计数规则，而是采用了一个更优化的计数规则：使用配置项 lfu_log_factor、衰减因子配置项 lfu_decay_time 来统计计数</p>
+<p>当 LFU 策略筛选数据时，Redis 会在候选集合中，根据数据 lru 字段的后 8bit 选择访问次数最少的数据进行淘汰。当访问次数相同时，再根据 lru 字段的前 16bit 值大小，选择访问时间最久远的数据进行淘汰</p>
+<h2 id="淘汰操作"><a href="#淘汰操作" class="headerlink" title="淘汰操作"></a>淘汰操作</h2><img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E6%B7%98%E6%B1%B0/03.png" class="">
+
+<p>干净数据和脏数据的区别就在于，和最初从后端数据库里读取时的值相比，有没有被修改过。干净数据一直没有被修改，所以后端数据库里的数据也是最新值。在替换时，它可以被直接删除</p>
+<p>脏数据就是曾经被修改过的，已经和后端数据库中保存的数据不一致了。此时，如果不把脏数据写回到数据库中，这个数据的最新值就丢失了，就会影响应用的正常使用</p>
+<h2 id="使用建议"><a href="#使用建议" class="headerlink" title="使用建议"></a>使用建议</h2><ul>
+<li><p>优先使用 allkeys-lru 策略，充分利用 LRU 的优势，把最近最常访问的数据留在缓存中，提升应用的访问性能</p>
+</li>
+<li><p>如果业务应用中的数据访问频率相差不大，没有明显的冷热数据区分，建议使用 allkeys-random 策略</p>
+</li>
+<li><p>有置顶的需求，可以使用 volatile-lru 策略，同时不给这些置顶数据设置过期时间</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +334,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 10:41:16" itemprop="dateModified" datetime="2023-07-05T10:41:16+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -296,7 +435,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 10:41:17" itemprop="dateModified" datetime="2023-07-05T10:41:17+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -455,7 +594,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 10:41:16" itemprop="dateModified" datetime="2023-07-05T10:41:16+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -560,7 +699,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 10:41:16" itemprop="dateModified" datetime="2023-07-05T10:41:16+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -708,7 +847,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 10:41:16" itemprop="dateModified" datetime="2023-07-05T10:41:16+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -821,7 +960,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 10:41:16" itemprop="dateModified" datetime="2023-07-05T10:41:16+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -942,7 +1081,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 10:41:17" itemprop="dateModified" datetime="2023-07-05T10:41:17+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1083,7 +1222,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 10:41:17" itemprop="dateModified" datetime="2023-07-05T10:41:17+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1177,7 +1316,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 10:41:16" itemprop="dateModified" datetime="2023-07-05T10:41:16+08:00">2023-07-05</time>
+      <time title="修改时间：2023-07-05 11:40:00" itemprop="dateModified" datetime="2023-07-05T11:40:00+08:00">2023-07-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1261,135 +1400,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E6%97%81%E8%B7%AF%E7%BC%93%E5%AD%98/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E6%97%81%E8%B7%AF%E7%BC%93%E5%AD%98/" class="post-title-link" itemprop="url">旁路缓存</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-20 20:47:17" itemprop="dateCreated datePublished" datetime="2023-04-20T20:47:17+08:00">2023-04-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-05 10:41:17" itemprop="dateModified" datetime="2023-07-05T10:41:17+08:00">2023-07-05</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>一个系统中的不同层之间的访问速度不一样，所以才需要缓存，把一些需要频繁访问的数据放在缓存中，以加快它们的访问速度</p>
-<p>缓存的容量终究是有限的，缓存中的数据量也是有限的，肯定是没法时刻都满足访问需求的，缓存和后端慢速系统之间，必然存在数据写回和再读取的交互过程；缓存中的数据需要按一定规则淘汰出去，写回后端系统，而新的数据又要从后端系统中读取进来，写入缓存</p>
-<h2 id="缓存处理请求"><a href="#缓存处理请求" class="headerlink" title="缓存处理请求"></a>缓存处理请求</h2><ul>
-<li><p>缓存命中：Redis 中有相应数据，就直接读取 Redis，性能非常快</p>
-</li>
-<li><p>缓存缺失：Redis 中没有保存相应数据，就从后端数据库中读取数据，性能就会变慢。而且，一旦发生缓存缺失，为了让后续请求能从缓存中读取到数据，我们需要把缺失的数据写入 Redis，这个过程叫作缓存更新</p>
-</li>
-</ul>
-<p>使用 Redis 缓存时，基本有三个操作：</p>
-<ol>
-<li><p>应用读取数据时，需要先读取 Redis</p>
-</li>
-<li><p>发生缓存缺失时，需要从数据库读取数据</p>
-</li>
-<li><p>发生缓存缺失时，还需要更新缓存</p>
-</li>
-</ol>
-<h2 id="缓存类型"><a href="#缓存类型" class="headerlink" title="缓存类型"></a>缓存类型</h2><p>分成只读缓存和读写缓存</p>
-<h3 id="只读缓存"><a href="#只读缓存" class="headerlink" title="只读缓存"></a>只读缓存</h3><p>当 Redis 用作只读缓存时，应用要读取数据的话，会先调用 Redis GET 接口，查询数据是否存在</p>
-<p>所有的数据写请求，会直接发往后端的数据库，在数据库中增删改；对于删改的数据来说，如果 Redis 已经缓存了相应的数据，应用需要把这些缓存的数据删除；当应用再次读取这些数据时，会发生缓存缺失，应用会把这些数据从数据库中读出来，并写到缓存中</p>
-<p>所有最新的数据都在数据库中，而数据库是提供数据可靠性保障的，这些数据不会有丢失的风险；当需要缓存图片、短视频这些用户只读的数据时，就可以使用只读缓存这个类型了</p>
-<h3 id="读写缓存"><a href="#读写缓存" class="headerlink" title="读写缓存"></a>读写缓存</h3><p>读请求会发送到缓存进行处理（直接在缓存中查询数据是否存在)，所有的写请求也会发送到缓存，在缓存中直接对数据进行增删改操作</p>
-<p>得益于 Redis 的高性能访问特性，数据的增删改操作可以在缓存中快速完成，处理结果也会快速返回给业务应用，这就可以提升业务应用的响应速度</p>
-<p>在使用读写缓存时，最新的数据是在 Redis 中，而 Redis 是内存数据库，一旦出现掉电或宕机，内存中的数据就会丢失，给应用业务带来风险</p>
-<p>根据业务应用对数据可靠性和缓存性能的不同要求，有同步直写和异步写回两种策略。同步直写策略优先保证数据可靠性，而异步写回策略优先提供快速响应</p>
-<ul>
-<li><p>同步直写：写请求发给缓存的同时，也会发给后端数据库进行处理，等到缓存和数据库都写完数据，才给客户端返回；提供了数据可靠性保证；降低缓存的访问性能，即使缓存很快地处理了写请求，也需要等待数据库处理完所有的写请求，才能给应用返回结果，增加了缓存的响应延迟</p>
-</li>
-<li><p>异步写回：所有写请求都先在缓存中处理，等到这些增改的数据要被从缓存中淘汰出来时，缓存将它们写回后端数据库</p>
-</li>
-</ul>
-<img src="/2023/04/20/Redis-%E6%97%81%E8%B7%AF%E7%BC%93%E5%AD%98/01.png" class="">
-
-<p>只读缓存和使用直写策略的读写缓存都会把数据同步写到后端数据库中，它们的区别在于：</p>
-<ul>
-<li><p>使用只读缓存时，是先把修改写到后端数据库中，再把缓存中的数据删除。当下次访问这个数据时，会以后端数据库中的值为准，重新加载到缓存中。这样做的优点是，数据库和缓存可以保证完全一致，并且缓存中永远保留的是经常访问的热点数据。缺点是每次修改操作都会把缓存中的数据删除，之后访问时都会先触发一次缓存缺失，然后从后端数据库加载数据到缓存中，这个过程访问延迟会变大</p>
-</li>
-<li><p>使用读写缓存时，是同时修改数据库和缓存中的值。这样做的优点是，被修改后的数据永远在缓存中存在，下次访问时，能够直接命中缓存，不用再从后端数据库中查询，这个过程拥有比较好的性能，比较适合先修改又立即访问的业务场景。但缺点是在高并发场景下，如果存在多个操作同时修改同一个值的情况，可能会导致缓存和数据库的不一致</p>
-</li>
-<li><p>当使用只读缓存时，如果修改数据库失败了，那么缓存中的数据也不会被删除，此时数据库和缓存中的数据依旧保持一致。而使用读写缓存时，如果是先修改缓存，后修改数据库，如果缓存修改成功，而数据库修改失败了，那么此时数据库和缓存数据就不一致了。如果先修改数据库，再修改缓存，也会产生上面所说的并发场景下的不一致</p>
-</li>
-</ul>
-<h2 id="只读缓存是删除数据而不是修改数据"><a href="#只读缓存是删除数据而不是修改数据" class="headerlink" title="只读缓存是删除数据而不是修改数据"></a>只读缓存是删除数据而不是修改数据</h2><p>如果不是删除缓存值，而是直接更新缓存的值，这种情况相当于把 Redis 当做读写缓存使用，删改操作同时操作数据库和缓存</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/18/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/39/">39</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/20/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/18/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/40/">40</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/20/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
