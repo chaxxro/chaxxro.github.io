@@ -54,6 +54,8 @@ template< class T >
 struct add_lavalue_reference;
 ```
 
+如果 `T` 是函数、引用和 cv 属性是，`std::add_const` 会失效
+
 ## 类型转换
 
 - `std::decay` 将右值转换成左值，数组转换成指针，函数转换成指针
