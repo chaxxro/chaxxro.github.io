@@ -54,6 +54,7 @@ r
 
 ```
 set pagination off # 全部输出，中间不会暂停
+set logging on # 打开日志模式，将调试信息输出至日志中
 ```
 
 ## 命令
@@ -171,7 +172,15 @@ info args
 info lolcals
 // 查看全局变量和静态变量
 info variables
+// 查看内存映射进程空间信息
+info proc m
+// 查看寄存器
+info registers
 ```
+
+### disassemble
+
+查看汇编
 
 ### disable、enable
 
@@ -196,18 +205,13 @@ delete bpnum
 
 结束调试，可简写 `q`
 
-## 小技巧
-
-### shell
+## shell
 
 ```cpp
 // 在 gdb 中可执行 shell 命令
 shell command
 ```
 
-### 日志模式
-
-`set logging on` 打开日志模式，将调试信息输出至日志中
 
 ## core 文件
 
