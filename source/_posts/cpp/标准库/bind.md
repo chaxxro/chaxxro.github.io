@@ -23,7 +23,7 @@ template< class R, class F, class... Args >
 
 // 1. 绑定普通函数
 double my_divide (double x, double y) {return x/y;}
-auto fn_half = std::bind(my_divide, _1, 2);  
+auto fn_half = std::bind(my_divide, std::placeholders::_1, 2);  
 std::cout << fn_half(10) << '\n';    // 5
 // 第一个参数是函数名，普通函数做实参时，会隐式转换成函数指针，等价于 std::bind (&my_divide,_1,2)
 // _1表示占位符，位于 <functional> 中，std::placeholders::_1，表示第一个被传入的参数
@@ -51,9 +51,8 @@ int main()
 
 
 // 3. 绑定一个引用参数 
-// 不是占位符的参数被拷贝到bind返回的可调用对象中
+// 不是占位符的参数将拷贝到 std::bind 返回的可调用对象中
 // 但可以使用 std::ref 来传递引用
-
 ostream & print(ostream &os, const string& s, char c)
 {
     os << s << c;
@@ -62,18 +61,35 @@ ostream & print(ostream &os, const string& s, char c)
 
 int main()
 {
-    vector<string> words{"helo", "world", "this", "is", "C++11"};
-    ostringstream os;
+    std::vector<string> words{"helo", "world", "this", "is", "C++11"};
+    std::ostringstream os;
     char c = ' ';
-    for_each(words.begin(), words.end(), 
+    std::for_each(words.begin(), words.end(), 
                    [&os, c](const string & s){os << s << c;} );
-    cout << os.str() << endl;
+    std::cout << os.str() << std::endl;
 
-    ostringstream os1;
-    // ostream不能拷贝，若希望传递给bind一个对象，
-    // 而不拷贝它，就必须使用标准库提供的ref函数
-    for_each(words.begin(), words.end(),
-                   bind(print, ref(os1), _1, c));
-    cout << os1.str() << endl;
+    std::ostringstream os1;
+    // std::ostream 不能拷贝，若希望传递给 std::bind 一个对象而不拷贝它，就必须使用标准库提供的 std::ref 函数
+    std::for_each(words.begin(), words.end(),
+                  std::bind(print, std::ref(os1), _1, c));
+    std::cout << os1.str() << std::endl;
+}
+
+void f(int& x) {
+  std::cout <<"in f " << x << std::endl;
+  x += 1;
+}
+
+int main() {
+  int x = 0;
+  auto ff = std::bind(f, x);
+
+  std::cout << "s0 "<< x << std::endl;  // s0 0
+  ff();  // in f 0
+  std::cout << "s1 "<< x << std::endl;  // s1 0
+  ff();  // in f 1
+  std::cout << "s2 "<< x << std::endl; // s2 0
+
+  return 0;
 }
 ```
