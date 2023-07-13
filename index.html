@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">393</span>
+          <span class="site-state-item-count">394</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,129 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/07/13/cpp-%E5%B8%B8%E8%A7%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/07/13/cpp-%E5%B8%B8%E8%A7%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95/" class="post-title-link" itemprop="url">常见性能优化方法</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-07-13 10:34:41 / 修改时间：16:10:32" itemprop="dateCreated datePublished" datetime="2023-07-13T10:34:41+08:00">2023-07-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="栈内存偏见"><a href="#栈内存偏见" class="headerlink" title="栈内存偏见"></a>栈内存偏见</h2><p>堆是操作系统级别的概念，而栈是 cpu 级别的</p>
+<p><code>malloc</code> 堆区分配内存是很昂贵的，但栈内存的分配成本却很低</p>
+<p>cpu 会提供两个寄存器 sp 和 bp，bp 和 sp 分别存取栈底和栈顶的地址。栈是从高地址向低地址增长的，所以减小 sp 代表增大栈空间，增大sp代表减少栈空间</p>
+<p>而对于一个函数，该函数需要多少栈空间是编译期间决定的，不会对运行时造成任何开销。需要栈空间的大小，仅仅是改变了 sp 分配栈空间时操作数的变化而已</p>
+<p>x64 下 linux 默认给线程分配的栈是 8MB，如果在能保证不爆栈的情况下，务必优先在栈上分配内存空间，它是零开销的</p>
+<h2 id="函数内联"><a href="#函数内联" class="headerlink" title="函数内联"></a>函数内联</h2><p>函数调用的性能开销：</p>
+<ol>
+<li><p>函数参数的传递需要写内存或寄存器</p>
+</li>
+<li><p>调用函数的汇编可以简化为 <code>push return address</code> 和 <code>jump</code>，<code>jump</code> 是 cache 不友好的</p>
+</li>
+<li><p>为保证 caller 上下文不被覆盖，还需要对 caller 的寄存器进行入栈保存</p>
+</li>
+</ol>
+<p>函数內联的本质就是代码复制拷贝，它会直接将 callee 的代码内容复制到 caller 的上下文中</p>
+<p>內联函数好处：</p>
+<ol>
+<li><p>省略函数调用开销</p>
+</li>
+<li><p>将函数的代码拷贝到 caller 上下文，从而编译器能做更多优化</p>
+</li>
+</ol>
+<p>內联后是在任何调用者处对函数代码做了拷贝，因此可能会导致生成的二进制更大</p>
+<h2 id="内存对齐"><a href="#内存对齐" class="headerlink" title="内存对齐"></a>内存对齐</h2><p>编译器倾向于将每个结构体成员的地址放在其大小的整数倍上，如 <code>uint64_t</code> 存取的地址就是 8<em>n，<code>uint32_t</code> 存取的地址是 4</em>n</p>
+<p>非内存对齐可能会导致两次内存 IO</p>
+<h2 id="False-Sharing"><a href="#False-Sharing" class="headerlink" title="False Sharing"></a>False Sharing</h2><p>CPU 物理核心配有多级 sram cache，CPU 都是优先读写自己的 cache，然后才是访存，那么必然存在一致性问题</p>
+<p>为了解决一致性问题就引入了 cache 间通信协议来解决。如果 P1 更改了变量 a，为了保证一致性 P1 需要向 cache bus 上发送一个 Invalid Message，保证变量 a 所处的 cache line 在其他处理器的 cache 中失效。其他处理器要再次访问变量 a 需要向 P1 发送 Read Miss 消息提交申请，然后 P1 负责将最新 cache line 同步到其他处理器或者写到内存</p>
+<p>cache 之间沟通的最小单位是一个 cache line 大小，现代主流 CPU 都是 64 字节，所以 cache 之间失效的不会是单纯一个变量，而是整个变量所处的这个 cache line</p>
+<h2 id="无分支编程"><a href="#无分支编程" class="headerlink" title="无分支编程"></a>无分支编程</h2><p>在冯诺依曼架构计算机下，指令和数据都存在内存中。对于一条指令的执行肯定是分很多过程的，以最经典的五级流水线为例，一条指令分为如下阶段：</p>
+<ol>
+<li><p>取址(IF)：从内存中读取出指令</p>
+</li>
+<li><p>译码(ID)：咱们得先知道取的是什么指令</p>
+</li>
+<li><p>执行(EX)</p>
+</li>
+<li><p>访存(MEM)：指令总有操作数嘛，访存获取它们或者将计算结果写入到内存</p>
+</li>
+<li><p>写回(WB)：将执行结果写入到目标寄存器</p>
+</li>
+</ol>
+<p>每个阶段可以简单理解为有专门的一个 CPU 部件处理</p>
+<p>为了更好的压榨每个部件的，CPU 引入了流水化技术，核心原理就是上一条指令立马发射就紧跟着发射下一条待执行的指令</p>
+<p>遇到条件判断时 CPU 会面临一个问题，往后具有两个分支，流水线会停下来等到有结果了再继续执行</p>
+<p>分支预测是基于分支的历史信息，分支的条件越具有规律性，那么 CPU 对分支预测的越准确</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +318,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-11 14:43:01" itemprop="dateModified" datetime="2023-07-11T14:43:01+08:00">2023-07-11</time>
+      <time title="修改时间：2023-07-13 16:10:32" itemprop="dateModified" datetime="2023-07-13T16:10:32+08:00">2023-07-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -306,7 +429,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-11 14:43:01" itemprop="dateModified" datetime="2023-07-11T14:43:01+08:00">2023-07-11</time>
+      <time title="修改时间：2023-07-13 16:10:32" itemprop="dateModified" datetime="2023-07-13T16:10:32+08:00">2023-07-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -396,7 +519,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-11 14:43:01" itemprop="dateModified" datetime="2023-07-11T14:43:01+08:00">2023-07-11</time>
+      <time title="修改时间：2023-07-13 16:10:32" itemprop="dateModified" datetime="2023-07-13T16:10:32+08:00">2023-07-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -485,7 +608,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-11 14:43:01" itemprop="dateModified" datetime="2023-07-11T14:43:01+08:00">2023-07-11</time>
+      <time title="修改时间：2023-07-13 16:10:32" itemprop="dateModified" datetime="2023-07-13T16:10:32+08:00">2023-07-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -577,7 +700,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-11 14:43:01" itemprop="dateModified" datetime="2023-07-11T14:43:01+08:00">2023-07-11</time>
+      <time title="修改时间：2023-07-13 16:10:32" itemprop="dateModified" datetime="2023-07-13T16:10:32+08:00">2023-07-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -667,7 +790,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-11 14:43:01" itemprop="dateModified" datetime="2023-07-11T14:43:01+08:00">2023-07-11</time>
+      <time title="修改时间：2023-07-13 16:10:32" itemprop="dateModified" datetime="2023-07-13T16:10:32+08:00">2023-07-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -766,7 +889,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-11 14:43:01" itemprop="dateModified" datetime="2023-07-11T14:43:01+08:00">2023-07-11</time>
+      <time title="修改时间：2023-07-13 16:10:32" itemprop="dateModified" datetime="2023-07-13T16:10:32+08:00">2023-07-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -859,7 +982,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-11 14:43:01" itemprop="dateModified" datetime="2023-07-11T14:43:01+08:00">2023-07-11</time>
+      <time title="修改时间：2023-07-13 16:10:32" itemprop="dateModified" datetime="2023-07-13T16:10:32+08:00">2023-07-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -954,7 +1077,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-11 14:43:01" itemprop="dateModified" datetime="2023-07-11T14:43:01+08:00">2023-07-11</time>
+      <time title="修改时间：2023-07-13 16:10:32" itemprop="dateModified" datetime="2023-07-13T16:10:32+08:00">2023-07-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -983,104 +1106,6 @@
 
 <h2 id="与单例的区间"><a href="#与单例的区间" class="headerlink" title="与单例的区间"></a>与单例的区间</h2><p>在单例模式中，一个类只能创建一个对象</p>
 <p>在享元模式中，一个类可以创建多个对象，每个对象被多处代码引用共享</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/30/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E7%BB%93%E6%9E%84%E5%9E%8B-%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/30/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E7%BB%93%E6%9E%84%E5%9E%8B-%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">适配器模式</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-30 11:57:31" itemprop="dateCreated datePublished" datetime="2023-06-30T11:57:31+08:00">2023-06-30</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-11 14:43:01" itemprop="dateModified" datetime="2023-07-11T14:43:01+08:00">2023-07-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>适配器模式将不兼容的接口转换为可兼容的接口，让原本由于接口不兼容而不能一起工作的类可以一起工作</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ITarget 表示要转化成的接口定义</span></span><br><span class="line"><span class="comment">// Adaptee 是一组不兼容 ITarget 接口定义的接口</span></span><br><span class="line"><span class="comment">// Adaptor 将 Adaptee 转化成一组符合 ITarget 接口定义的接口</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ITarget</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">f</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">g</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">h</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Adaptee</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">f1</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">g1</span><span class="params">()</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">h1</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Adaptor</span> : <span class="keyword">public</span> ITarget &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="built_in">Adaptor</span>(Adaptee* ada) &#123;adaptee = ada;&#125;</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">f</span><span class="params">()</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    adaptee-&gt;<span class="built_in">f1</span>();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">g</span><span class="params">()</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    adaptee-&gt;<span class="built_in">g1</span>();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">h</span><span class="params">()</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    adaptee-&gt;<span class="built_in">h1</span>();</span><br><span class="line">  &#125;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  Adaptee* adaptee;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>应用场景：</p>
-<ul>
-<li><p>依赖的外部系统在接口设计方面有缺陷，为了隔离设计上的缺陷，希望对外部系统提供的接口进行二次封装，抽象出更好的接口设计，这个时候就可以使用适配器模式</p>
-</li>
-<li><p>某个功能的实现依赖多个外部系统或者类，通过适配器模式，将它们的接口适配为统一的接口定义，然后就可以使用多态的特性来复用代码逻辑</p>
-</li>
-<li><p>把项目中依赖的一个外部系统替换为另一个外部系统的时候，利用适配器模式可以减少对代码的改动</p>
-</li>
-<li><p>在做版本升级的时候，对于一些要废弃的接口不直接将其删除而是暂时保留，可以将其并且标注为 deprecated 并将内部实现逻辑委托为新的接口实现</p>
-</li>
-</ul>
 
       
     </div>
