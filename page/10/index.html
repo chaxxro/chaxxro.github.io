@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">395</span>
+          <span class="site-state-item-count">397</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,265 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/16/cpp-%E4%BA%94%E4%B8%AA%E7%89%B9%E6%AE%8A%E7%9A%84%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/16/cpp-%E4%BA%94%E4%B8%AA%E7%89%B9%E6%AE%8A%E7%9A%84%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0/" class="post-title-link" itemprop="url">五个特殊的成员函数</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-16 20:22:33" itemprop="dateCreated datePublished" datetime="2023-05-16T20:22:33+08:00">2023-05-16</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="构造函数初始化过程"><a href="#构造函数初始化过程" class="headerlink" title="构造函数初始化过程"></a>构造函数初始化过程</h2><p>构造函数的执行可以分成两个阶段，初始化阶段和计算阶段，初始化阶段先于计算阶段</p>
+<p>所有类成员都会在初始化阶段初始化，即使该成员没有出现在构造函数的初始化列表中</p>
+<p>在初始化列表中构造成员类，可以省去调用默认构造函数的过程，直接调用指定构造函数进行初始化</p>
+<p>初始化列表中的成员是按照在类中出现的顺序进行初始化的，而不是按照在初始化列表出现的顺序初始化</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Test1</span> &#123;</span><br><span class="line">    <span class="built_in">Test1</span>() &#123; </span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;Construct Test1&quot;</span> &lt;&lt; endl ;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">Test1</span>(<span class="type">const</span> Test1&amp; t1) &#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;Copy constructor for Test1&quot;</span> &lt;&lt; endl ;</span><br><span class="line">        <span class="keyword">this</span>-&gt;a = t1.a ;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Test1&amp; <span class="keyword">operator</span> = (<span class="type">const</span> Test1&amp; t1) &#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;Assignment for Test1&quot;</span> &lt;&lt; endl ;</span><br><span class="line">        <span class="keyword">this</span>-&gt;a = t1.a ;</span><br><span class="line">        <span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> a ;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Test2</span> &#123;</span><br><span class="line">    Test1 test1 ;</span><br><span class="line">    <span class="built_in">Test2</span>(Test1 &amp;t1) &#123;</span><br><span class="line">        test1 = t1 ;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Test1 t1;</span><br><span class="line"><span class="function">Test2 <span class="title">t2</span><span class="params">(t1)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">Construct Test1</span></span><br><span class="line"><span class="comment">Construct Test1</span></span><br><span class="line"><span class="comment">Assignment for Test1</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="自动生成特殊函数"><a href="#自动生成特殊函数" class="headerlink" title="自动生成特殊函数"></a>自动生成特殊函数</h2><p>C++ 标准中对于编译器自动生成特殊函数函数是这样规定的：</p>
+<ol>
+<li><p>对于一个类，如果用户没有声明特殊函数，那么编译器会自动生成隐式特殊函数，这些函数是 trivial 无实际效果的</p>
+</li>
+<li><p>编译器根据一些情况判断是否自动生成 nontrivial 的特殊函数</p>
+</li>
+</ol>
+<h2 id="自动生成有实际效果的默认构造函数"><a href="#自动生成有实际效果的默认构造函数" class="headerlink" title="自动生成有实际效果的默认构造函数"></a>自动生成有实际效果的默认构造函数</h2><p>在以下情况下编译器会自动生成 nontrivial 默认构造函数：</p>
+<ol>
+<li><p>类中的某个成员具有默认构造函数时，因为按照声明的方式正确构造对象是编译器的责任，所以编译器必须生成默认构造函数</p>
+</li>
+<li><p>父类具有默认构造函数时，因为必须在构造子类前正确构造父类对象，所以编译器必须生成默认构造函数</p>
+</li>
+<li><p>类中有虚函数时，因为虚函数底层使用 vptr 以及构造对象时必须正确初始化 vptr，所以编译器必须生成默认构造函数</p>
+</li>
+<li><p>具有虚基类时，因为虚基类底层使用 virtual base class，所以编译器必须生成默认构造函数</p>
+</li>
+</ol>
+<p>当编译器根据上述情况决定生成的默认构造函数时，其内部只会生成完成这部分初始化的代码，不会添加多余的代码</p>
+<p>即便满足了自动生成默认构造函数的条件，编译器也只会在实际使用到的时候才会生成</p>
+<h2 id="自动生成有实际效果的析构函数"><a href="#自动生成有实际效果的析构函数" class="headerlink" title="自动生成有实际效果的析构函数"></a>自动生成有实际效果的析构函数</h2><p>如果类本身不存在具备析构函数的成员，又没有具备析构函数的基类，那么这个类就不要一个析构函数，其对象销毁时也不需要做额外操作，直接清理回收对应内存即可</p>
+<p>也就是说，只有在类的成员或基类有析构函数时，才会自动生成一个析构函数来调用类的成员或基类的析构函数</p>
+<h2 id="自动生成有实际效果的拷贝构造函数"><a href="#自动生成有实际效果的拷贝构造函数" class="headerlink" title="自动生成有实际效果的拷贝构造函数"></a>自动生成有实际效果的拷贝构造函数</h2><p>同自动生成默认构造函数的情况相同，在以下情况编译器会自动生成拷贝构造函数：</p>
+<ol>
+<li><p>类中的某个成员具有拷贝构造函数</p>
+</li>
+<li><p>父类具有拷贝构造函数</p>
+</li>
+<li><p>类中有虚函数</p>
+</li>
+<li><p>具有虚基类</p>
+</li>
+</ol>
+<h2 id="自动生成特殊函数间的互斥"><a href="#自动生成特殊函数间的互斥" class="headerlink" title="自动生成特殊函数间的互斥"></a>自动生成特殊函数间的互斥</h2><ul>
+<li><p>当只定义了拷贝构造时，会生成拷贝赋值，移动操作会转而执行拷贝操作，不会生成默认构造</p>
+</li>
+<li><p>当只定义了移动构造时，默认构造、拷贝构造、拷贝赋值和移动赋值都不自动生成</p>
+</li>
+<li><p>当只定义了拷贝赋值时，会生成拷贝构造，移动操作会转而执行拷贝操作，会生成默认构造</p>
+</li>
+<li><p>当只定义了移动赋值时，默认构造、拷贝构造、拷贝赋值和移动构造都不自动生成</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Demo</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="built_in">Demo</span>() &#123; std::cout &lt;&lt; <span class="string">&quot;In default constructor\n&quot;</span>; &#125;</span><br><span class="line">  ~<span class="built_in">Demo</span>() &#123; std::cout &lt;&lt; <span class="string">&quot;In destructor\n&quot;</span>; &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">Demo</span>(<span class="type">const</span> Demo&amp; d) &#123; std::cout &lt;&lt; <span class="string">&quot;In copy constructor\n&quot;</span>; &#125;</span><br><span class="line">  <span class="built_in">Demo</span>(Demo&amp;&amp; d) &#123; std::cout &lt;&lt; <span class="string">&quot;In move constructor\n&quot;</span>; &#125;</span><br><span class="line"></span><br><span class="line">  Demo&amp; <span class="keyword">operator</span>=(<span class="type">const</span> Demo&amp; d) &#123; std::cout &lt;&lt; <span class="string">&quot;In copy assign\n&quot;</span>; &#125;</span><br><span class="line">  Demo&amp; <span class="keyword">operator</span>=(Demo&amp;&amp; d) &#123; std::cout &lt;&lt; <span class="string">&quot;In move assign\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  Demo demo;</span><br><span class="line"></span><br><span class="line">  <span class="function">Demo <span class="title">d0</span><span class="params">(demo)</span></span>;</span><br><span class="line"></span><br><span class="line">  Demo d1;</span><br><span class="line">  d1 = demo;</span><br><span class="line"></span><br><span class="line">  <span class="function">Demo <span class="title">d2</span><span class="params">(std::move(demo))</span></span>;</span><br><span class="line"></span><br><span class="line">  Demo d3;</span><br><span class="line">  d3 = std::<span class="built_in">move</span>(demo);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="经验法则"><a href="#经验法则" class="headerlink" title="经验法则"></a>经验法则</h2><p>默认构造、拷贝构造、拷贝赋值、移动构造和移动赋值这五个特殊函数，建议要么全部自定义，要么全部不自定义</p>
+<ol>
+<li><p>全部自定义</p>
+</li>
+<li><p>全部默认实现 <code>=default</code></p>
+</li>
+<li><p>全部删除 <code>=delete</code></p>
+</li>
+<li><p>全部不提供</p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/15/cpp-%E9%A2%84%E5%A4%84%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/15/cpp-%E9%A2%84%E5%A4%84%E7%90%86/" class="post-title-link" itemprop="url">预处理</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-15 21:25:29" itemprop="dateCreated datePublished" datetime="2023-05-15T21:25:29+08:00">2023-05-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>预处理是在编译器进行编译之前进行的操作</p>
+<p>预处理指令以符号 <code>#</code> 开头，且必须是该行除了任何空白字符外的第一个字符</p>
+<p>预处理过程扫描源代码，对其进行初步的转换，产生新的源代码提供给编译器</p>
+<h2 id="常用预处理"><a href="#常用预处理" class="headerlink" title="常用预处理"></a>常用预处理</h2><ul>
+<li><p><code>#include</code> 将包含的文件复制到当前位置，可以 <code>#include</code> 任何文件</p>
+</li>
+<li><p><code>#if/elif/endif</code> 条件判断</p>
+</li>
+<li><p><code>#error</code> 停止编译并显示错误信息</p>
+</li>
+<li><p><code>#pragma pack(n)</code> 对齐的时候就会把元素的大小和 n 进行比较，取较小的那个来对齐，合法 n 的数值分别为 1、2、4、8、16</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">test1</span> &#123;</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">    <span class="type">char</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">    <span class="type">char</span> d;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">sizeof</span>(test1) == <span class="number">12</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(2)</span></span><br><span class="line"><span class="keyword">struct</span> test2 &#123;</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">    <span class="type">char</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">    <span class="type">char</span> d;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack() <span class="comment">// 取消对齐</span></span></span><br><span class="line"><span class="built_in">sizeof</span>(test2) == <span class="number">10</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> test2 &#123;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">    <span class="type">int</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">sizeof</span>(test2) == <span class="number">12</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(2)</span></span><br><span class="line"><span class="keyword">struct</span> test3 &#123;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">    <span class="type">int</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack() <span class="comment">// 取消对齐</span></span></span><br><span class="line"><span class="built_in">sizeof</span>(test3) == <span class="number">8</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>#pragma pack(show)</code> 显示当前内存对齐的字节数</p>
+</li>
+<li><p><code>#pragma pack(push)</code> 将当前的对齐字节数压入栈顶，并设置这个值为新的对齐字节数</p>
+</li>
+<li><p><code>#pragma pack(push, n)</code> 将当前的对齐字节数压入栈顶，并设置 n 为新的对齐字节数</p>
+</li>
+<li><p><code>#pragma pack(pop)</code> 弹出栈顶对齐字节数，并设置其为新的内存对齐字节数</p>
+</li>
+<li><p><code>#pragma pack(pop, n)</code> 弹出栈顶并直接丢弃，设置 n 为其新的内存对齐字节数</p>
+</li>
+<li><p><code>#pragma GCC diagnostic [error|warning|ignored] &quot;message&quot;</code> 将诊断信息视为错误、告警或忽略，可以用于屏蔽局部代码的警告</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 搭配 push pop 来记录状态，用于还原</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic push</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic [<span class="keyword">error</span>|<span class="keyword">warning</span>|ignored] <span class="string">&quot;-W&lt;警告选项&gt;&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic pop</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +454,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -313,7 +572,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -481,7 +740,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -632,7 +891,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -721,7 +980,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -818,7 +1077,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -942,7 +1201,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1038,7 +1297,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1121,252 +1380,6 @@
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Test</span> &#123;</span><br><span class="line">  <span class="keyword">using</span> type1 = <span class="built_in">int</span> (*)[<span class="number">3</span>];</span><br><span class="line">  <span class="keyword">using</span> type2 = <span class="built_in">void</span> (*)(<span class="type">int</span>);</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f1</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f2</span><span class="params">(<span class="type">const</span> <span class="type">int</span> *)</span> &amp;&amp;</span>;</span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">f3</span><span class="params">()</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f4</span><span class="params">(<span class="type">int</span>)</span> &amp; <span class="keyword">noexcept</span></span>;</span><br><span class="line">  <span class="function">type1 <span class="title">f5</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">  <span class="function">type2 <span class="title">f6</span><span class="params">(<span class="type">double</span>)</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">void</span> (Test::)() <span class="type">const</span>;                  <span class="comment">// f1 类型</span></span><br><span class="line"><span class="built_in">void</span> (Test::)(<span class="type">const</span> <span class="type">int</span> *) &amp;&amp;;          <span class="comment">// f2 类型</span></span><br><span class="line"><span class="built_in">int</span> (Test::)() <span class="keyword">noexcept</span>;                <span class="comment">// f3 类型</span></span><br><span class="line"><span class="built_in">void</span> (Test::)(<span class="type">int</span>) &amp;<span class="keyword">noexcept</span>;           <span class="comment">// f4 类型</span></span><br><span class="line"><span class="built_in">int</span> (*(Test::)() <span class="type">const</span>)[<span class="number">3</span>];             <span class="comment">// f5 类型</span></span><br><span class="line"><span class="built_in">void</span>(*(Test::)(<span class="type">double</span>) <span class="keyword">noexcept</span>)(<span class="type">int</span>);  <span class="comment">// f6 类型</span></span><br></pre></td></tr></table></figure>
 
 <p>非静态成员函数的函数指针占 2 个指针大小，这是因为虚函数表的组织方式是基址加偏移</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/06/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-GNUInstallDirs/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/06/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-GNUInstallDirs/" class="post-title-link" itemprop="url">GNUInstallDirs</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-06 19:51:17" itemprop="dateCreated datePublished" datetime="2023-05-06T19:51:17+08:00">2023-05-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 引入模块</span><br><span class="line">include(GNUInstallDirs)</span><br></pre></td></tr></table></figure>
-
-<p>定义了一些 GNU 标准安装目录</p>
-<ul>
-<li><p><code>CMAKE_INSTALL_&lt;dir&gt;</code> 相对地址</p>
-</li>
-<li><p><code>CMAKE_INSTALL_FULL_&lt;dir&gt;</code> 绝对地址，如果还是相对地址则是相对于 <code>CMAKE_INSTALL_PREFIX</code></p>
-</li>
-</ul>
-<p><code>dir</code> 包括</p>
-<ul>
-<li><p><code>BINDIR</code> – bin</p>
-</li>
-<li><p><code>SBINDIR</code> – sbin</p>
-</li>
-<li><p><code>LIBEXEDIR</code> – libexec</p>
-</li>
-<li><p><code>SYSCONFDIR</code> – etc</p>
-</li>
-<li><p><code>SHAREDSTATEDIR</code> – com</p>
-</li>
-<li><p><code>LOCALSTATDIR</code> – var</p>
-</li>
-<li><p><code>RUNSTATEDIR</code> – LOCALSTATEDIR&#x2F;run</p>
-</li>
-<li><p><code>LIBDIR</code> – lib&#x2F;lib64</p>
-</li>
-<li><p><code>INCLUDEDIR</code> – include</p>
-</li>
-<li><p><code>OLDINCLUDEDIR</code> – &#x2F;usr&#x2F;include</p>
-</li>
-<li><p><code>DATAROOTDIR</code> – share</p>
-</li>
-<li><p><code>DATADIR</code> – DATAROOTDIR</p>
-</li>
-<li><p><code>INFODIR</code> – DATAROOTDIR&#x2F;info</p>
-</li>
-<li><p><code>LOCALDIR</code> – datarootdir&#x2F;local</p>
-</li>
-<li><p><code>MANDIR</code> – datarootdir&#x2F;man</p>
-</li>
-<li><p><code>DOCDIR</code> – datarootdir&#x2F;doc&#x2F;PROJECT_NAME</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-sds/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/Redis-sds/" class="post-title-link" itemprop="url">sds</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:30:54" itemprop="dateCreated datePublished" datetime="2023-04-28T21:30:54+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Redis 构建了一种简单动态字符串的抽象类型，作为 Redis 默认字符串的底层结构</p>
-<h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_5     0   <span class="comment">// 000</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_8     1   <span class="comment">// 001</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_16    2   <span class="comment">// 010</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_32    3   <span class="comment">// 011</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_64    4   <span class="comment">// 100</span></span></span><br><span class="line"><span class="comment">// 所有 sds 类型的 flags 低三位表示类型</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr5 &#123;</span><br><span class="line">    <span class="comment">// 高五位表示长度，长度最大 31</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr8 &#123;</span><br><span class="line">    <span class="comment">// 长度范围 32 ～ 255</span></span><br><span class="line">    <span class="type">uint8_t</span> len;</span><br><span class="line">    <span class="type">uint8_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr16 &#123;</span><br><span class="line">    <span class="comment">// 长度范围 256 ～ 65535</span></span><br><span class="line">    <span class="type">uint16_t</span> len;</span><br><span class="line">    <span class="type">uint16_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr32 &#123;</span><br><span class="line">    <span class="type">uint32_t</span> len;</span><br><span class="line">    <span class="type">uint32_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr64 &#123;</span><br><span class="line">    <span class="type">uint32_t</span> len;</span><br><span class="line">    <span class="type">uint32_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// __attribute__ 设置属性</span></span><br><span class="line"><span class="comment">// __packed__ 取消内存对齐</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>len</code> 当前已使用的字节数，不包括 <code>\0</code></p>
-</li>
-<li><p><code>alloc</code> 总共分配的字节数量，不包括 <code>\0</code></p>
-</li>
-<li><p><code>flags</code> 低三位表示当前字节数组的属性，是 <code>SDS_TYPE_5</code> 还是 <code>SDS_TYPE_8</code> 等</p>
-</li>
-<li><p><code>buf</code> 数组，用于保存字符串，包括结尾空白符 <code>\0</code></p>
-</li>
-</ul>
-<h2 id="选择依据"><a href="#选择依据" class="headerlink" title="选择依据"></a>选择依据</h2><p>根据所需长度返回 <code>sds::flags</code></p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">char</span> <span class="title">sdsReqType</span><span class="params">(<span class="type">size_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">5</span>) . <span class="comment">// 32</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_5;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">8</span>)   <span class="comment">// 258</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_8;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">16</span>)  <span class="comment">// 65536</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_16;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (LONG_MAX == LLONG_MAX)</span></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1ll</span> &lt;&lt; <span class="number">32</span>)</span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_32;</span><br><span class="line">    <span class="keyword">return</span> SDS_TYPE_64;</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    <span class="keyword">return</span> SDS_TYPE_5;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="获取-sds-长度"><a href="#获取-sds-长度" class="headerlink" title="获取 sds 长度"></a>获取 sds 长度</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">char</span>* sds;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_BITS 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_MASK  7   <span class="comment">// 111</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_5_LEN(f) ((f)&gt;&gt;SDS_TYPE_BITS)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 因为 buf 是柔性数组，所以可以这么根据 buf 获取首地址</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_HDR_VAR(T, s) \</span></span><br><span class="line"><span class="meta">    struct sdshdr##T* sh = (void*)((s) - (sizeof(struct sdshdr##T)));</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_HDR(T, s) \</span></span><br><span class="line"><span class="meta">        ((struct sdshdr##T*)((s)- (sizeof(struct sdshdr##T))))</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">size_t</span> <span class="title">sdslen</span><span class="params">(cosnt sds s)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// sdshdr* 取消了内存对齐，因此这里可以直接取到 flags</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags = s[<span class="number">-1</span>];</span><br><span class="line">    <span class="keyword">switch</span> (flags &amp; SDS_TYPE_MASK) &#123;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_5:</span><br><span class="line">            <span class="comment">// 高五位表示长度</span></span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_TYPE_5_LEN</span>(flags);</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_8:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">8</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_16:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">16</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_32:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">32</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_64:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">64</span>, s)-&gt;len;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="扩容机制"><a href="#扩容机制" class="headerlink" title="扩容机制"></a>扩容机制</h2><ol>
-<li><p>判断预留空间是否满足要求，若满足要求则不扩容</p>
-</li>
-<li><p>计算新 sds 占用空间大小，若小于 1M 则进行所需大小 2 倍的扩容</p>
-</li>
-<li><p>若新空间不小于 1M 时每次扩容 1M</p>
-</li>
-<li><p>根据新长度重新计算 sds 类型，若新类型与就类型一致则进行 <code>s_realloc</code> 动态扩容，若不一致则重新申请空构造新对象，并释放久对象</p>
-</li>
-</ol>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_MAX_PREALLOC (1024 * 1024)</span></span><br><span class="line"><span class="function">sds <span class="title">sdsMakeRoomFor</span><span class="params">(sds s, <span class="type">size_t</span> addlen)</span> </span>&#123;</span><br><span class="line">    <span class="type">void</span> *sh, *newsh;</span><br><span class="line">    <span class="type">size_t</span> avail = <span class="built_in">sdsavail</span>(s);  <span class="comment">// 当前可用空间</span></span><br><span class="line">    <span class="type">size_t</span> len, newlen, reqlen;</span><br><span class="line">    <span class="type">char</span> type, oldtype = s[<span class="number">-1</span>] &amp; SDS_TYPE_MASK;</span><br><span class="line">    <span class="type">int</span> hdrlen;</span><br><span class="line">    <span class="type">size_t</span> usable;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (avail &gt;= addlen) <span class="keyword">return</span> s;</span><br><span class="line">    len = <span class="built_in">sdslen</span>(s);  <span class="comment">// 当前长度</span></span><br><span class="line">    sh = (<span class="type">char</span>*)s - <span class="built_in">sdsHdrSize</span>(oldtype);  <span class="comment">// 旧对象指针</span></span><br><span class="line">    reqlen = newlen = len + addlen;  <span class="comment">// 期望长度</span></span><br><span class="line">    <span class="built_in">assert</span>(newlen &gt; len);  <span class="comment">// catch size_t overflow</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (newlen &lt; SDS_MAX_PREALLOC)</span><br><span class="line">        newlen *= <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        newlen += SDS_MAX_PREALLOC;</span><br><span class="line"></span><br><span class="line">    type = <span class="built_in">sdsReqType</span>(newlen);  <span class="comment">// 期望对象类型</span></span><br><span class="line">    <span class="keyword">if</span> (type == SDS_TYPE_5) type = SDS_TYPE_8;</span><br><span class="line"></span><br><span class="line">    hdrlen = <span class="built_in">sdsHdrSize</span>(type);  <span class="comment">// 期望对象所占内存大小</span></span><br><span class="line">    <span class="built_in">assert</span>(hdrlen + newlen + <span class="number">1</span> &gt; reqlen);  <span class="comment">// catch size_t overflow</span></span><br><span class="line">    <span class="keyword">if</span> (oldtype == type) &#123;</span><br><span class="line">        newsh = <span class="built_in">s_realloc_usable</span>(sh, hdrlen + newlen + <span class="number">1</span>, &amp;usable);</span><br><span class="line">        <span class="keyword">if</span> (newsh == <span class="literal">nullptr</span>) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">        s = (<span class="type">char</span>*)newsh + hdrlen;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        newsh = <span class="built_in">s_malloc_usable</span>(hdrlen + newlen + <span class="number">1</span>, &amp;usable);</span><br><span class="line">        <span class="keyword">if</span> (newsh == <span class="literal">nullptr</span>) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">        <span class="built_in">memcpy</span>((<span class="type">char</span>*)newsh + hdrlen, s, len + <span class="number">1</span>);</span><br><span class="line">        <span class="built_in">s_free</span>(sh);</span><br><span class="line">        s = (<span class="type">char</span>*)newsh + hdflen;</span><br><span class="line">        s[<span class="number">-1</span>] = type;</span><br><span class="line">        <span class="built_in">sdssetlen</span>(s, len);</span><br><span class="line">    &#125;</span><br><span class="line">    usable = usable - hdrlen - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (usable &gt; <span class="built_in">sdsTypeMaxSize</span>(type))</span><br><span class="line">        usable = <span class="built_in">sdsTypeMaxSize</span>(type);</span><br><span class="line">    <span class="built_in">sdssetalloc</span>(s, usable);</span><br><span class="line">    <span class="keyword">return</span> s;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>每次新开空间都会额外多加 1 字节，是为了保证最后可以写入一个 <code>\0</code></p>
-<h2 id="与-C-字符串区别"><a href="#与-C-字符串区别" class="headerlink" title="与 C 字符串区别"></a>与 C 字符串区别</h2><ul>
-<li><p>获取字符串长度时间复杂度 O(1)</p>
-</li>
-<li><p>杜绝缓冲区溢出，C 字符串每次增长都需要重新分配新的内存，每次缩短如果不重新分配内存会导致内存浪费</p>
-</li>
-<li><p>惰性空间释放</p>
-</li>
-<li><p>二进制安全，C 字符串必须符合某种编码，并且除字符串末尾外不能包涵空白字符，否者空白字符会被当作字符结尾，导致只能保存文本数据，不能保存图片视频等二进制数据，SDS 是通过 <code>len</code> 字段判断字符串结束</p>
-</li>
-<li><p>兼容性，SDS 的 API 都是二进制安全的，但也遵循 C 字符串以空白结尾的惯例</p>
-</li>
-</ul>
 
       
     </div>

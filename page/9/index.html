@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">395</span>
+          <span class="site-state-item-count">397</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,213 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp-std-forward%E5%92%8Cstd-move%E7%9A%84%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp-std-forward%E5%92%8Cstd-move%E7%9A%84%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82/" class="post-title-link" itemprop="url">std::forward 和 std::move 的实现细节</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:19:24" itemprop="dateCreated datePublished" datetime="2023-05-29T21:19:24+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><code>std::move</code> 和 <code>std::forward</code> 都是编译期做类型转换</p>
+<h2 id="move"><a href="#move" class="headerlink" title="move"></a>move</h2><p><code>std::move()</code> 执行到右值的无条件转换，返回右值引用本质上还是靠 <code>static_cast&lt;T&amp;&amp;&gt;</code> 完成的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">typename</span> remove_reference&lt;T&gt;::<span class="function">type &amp;&amp; <span class="title">move</span><span class="params">(T&amp;&amp; t)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">static_cast</span>&lt;<span class="keyword">typename</span> remove_reference&lt;T&gt;::type &amp;&amp;&gt;(t);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>std::move</code> 将左值转换成右值，从而可以方便使用移动语义</p>
+<ul>
+<li><p>c++11 中的所有容器都实现了 <code>move</code> 语义</p>
+</li>
+<li><p>如果是一些基本类型，如 <code>int</code> 和 <code>char[10]</code> 数组等，如果使用 <code>move</code> 仍会发生拷贝</p>
+</li>
+<li><p>对于自定义类型，真正使用移动语义还需手动实现移动构造和移动赋值</p>
+</li>
+</ul>
+<h2 id="forward"><a href="#forward" class="headerlink" title="forward"></a>forward</h2><p>一个右值引用作为函数的形参，在函数内部再转发该参数的时候它已经变成一个左值，因此需要一种方法能够按照参数原来的类型转发到另一个函数，这种转发类型称为完美转发</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt; <span class="keyword">typename</span> T &gt;</span></span><br><span class="line"><span class="function">T&amp;&amp; <span class="title">forward</span><span class="params">( <span class="keyword">typename</span> std::remove_reference&lt;T&gt;::type&amp; t )</span> <span class="keyword">noexcept</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">static_cast</span>&lt;T&amp;&amp;&gt;(t);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>std::forward()</code> 实现了参数在传递过程中保持其值属性的功能</p>
+<ul>
+<li><p>传入函数前是左值，则在函数内部进行转发时仍然是左值</p>
+</li>
+<li><p>传入函数前是右值，则在函数内部进行转发时仍然是右值</p>
+</li>
+</ul>
+<p><code>std::forward</code> 不仅可以保持左值或者右值不变，同时还可以保持 <code>const</code>、<code>Lreference</code>、<code>Rreference</code>、<code>volatile</code> 等属性不变</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">PrintV</span><span class="params">(<span class="type">int</span> &amp;t)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;lvalue&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">PrintV</span><span class="params">(<span class="type">int</span> &amp;&amp;t)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;rvalue&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Test</span><span class="params">(T &amp;&amp;t)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">PrintV</span>(t);</span><br><span class="line">    <span class="built_in">PrintV</span>(std::forward&lt;T&gt;(t));</span><br><span class="line"></span><br><span class="line">    <span class="built_in">PrintV</span>(std::<span class="built_in">move</span>(t));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">Test</span>(<span class="number">1</span>); <span class="comment">// lvalue rvalue rvalue</span></span><br><span class="line">    <span class="type">int</span> a = <span class="number">1</span>;</span><br><span class="line">    <span class="built_in">Test</span>(a); <span class="comment">// lvalue lvalue rvalue</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// std::forward 返回 T&amp;&amp;</span></span><br><span class="line">    <span class="built_in">Test</span>(std::forward&lt;<span class="type">int</span>&gt;(a)); <span class="comment">// lvalue rvalue rvalue</span></span><br><span class="line">    <span class="built_in">Test</span>(std::forward&lt;<span class="type">int</span>&amp;&gt;(a)); <span class="comment">// lvalue lvalue rvalue</span></span><br><span class="line">    <span class="built_in">Test</span>(std::forward&lt;<span class="type">int</span>&amp;&amp;&gt;(a)); <span class="comment">// lvalue rvalue rvalue</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp-std-enable-shared-from-this%E7%9A%84%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp-std-enable-shared-from-this%E7%9A%84%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82/" class="post-title-link" itemprop="url">std::enable_shared_from_this 的实现细节</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:19:14" itemprop="dateCreated datePublished" datetime="2023-05-29T21:19:14+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="将-this-指针暴露的隐患"><a href="#将-this-指针暴露的隐患" class="headerlink" title="将 this 指针暴露的隐患"></a>将 this 指针暴露的隐患</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SomeData</span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">SomeAPI</span><span class="params">(<span class="type">const</span> std::shared_ptr&lt;SomeData&gt;&amp; d)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">SomeData</span> &#123;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">NeedCallSomeAPI</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="built_in">SomeAPI</span>(std::<span class="built_in">shared_ptr</span>(<span class="keyword">this</span>));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>考虑这么个情况，直接使用 <code>this</code> 构建 <code>std::shared_ptr</code>，但函数调用结束后 <code>SomeAPI</code> 的入参会将 <code>this</code> 从而导致程序错误</p>
+<p>正确做法是使用 <code>std::enable_shared_from_this</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SomeData</span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">SomeAPI</span><span class="params">(<span class="type">const</span> std::shared_ptr&lt;SomeData&gt;&amp; d)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">SomeData</span> : <span class="keyword">public</span> std::enable_shared_from_this&lt;SomeData&gt; &#123;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">NeedCallSomeAPI</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="built_in">SomeAPI</span>(<span class="built_in">shared_from_this</span>());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="enable-shared-form-this-实现"><a href="#enable-shared-form-this-实现" class="headerlink" title="enable_shared_form_this 实现"></a>enable_shared_form_this 实现</h2><p><code>enable_shared_from_this</code> 是一个以其派生类为模板类型实参的基类模板，继承它后可调用 <code>shared_from_this</code> 获取 <code>this</code> 的 <code>std::shared_ptr</code></p>
+<p><code>std::enable_shared_from_this</code> 内部使用 <code>std::weak_ptr</code> 来帮助完成指针相关的控制数据同步，因为使用 <code>std::weak_ptr</code> 是为了防止资源永远不被释放从而必须内存泄漏</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> _Tp&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">enable_shared_from_this</span> &#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">  <span class="comment">// 子类必须使用 public 继承，不然不能调用父类构造函数</span></span><br><span class="line">  <span class="function"><span class="keyword">constexpr</span> <span class="title">enable_shared_from_this</span><span class="params">()</span> <span class="keyword">noexcept</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="comment">// 友元类，允许 __shared_ptr 能够修改 _M_weak_this</span></span><br><span class="line">  frind <span class="keyword">class</span> <span class="title class_">__shared_ptr</span>;</span><br><span class="line">  <span class="comment">// mutable 允许该变量能够被 const 函数修改</span></span><br><span class="line">  <span class="keyword">mutable</span> weak_ptr&lt;_Tp&gt; _M_weak_this;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看出 <code>std::enable_shared_from_this</code> 的核心代码还是比较简单的，但真正复杂的在 <code>__shared_ptr</code> 的构造函数中</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> _Tp, __Lock_policy _Lp&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">__shared_ptr</span> : <span class="keyword">public</span> __shared_ptr_access&lt;_Tp, _Lp&gt; &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="keyword">friend</span> <span class="keyword">class</span> <span class="title class_">__weak_ptr</span>&lt;_Tp, _Lp&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当 <code>std::shared_ptr</code> 进行初始化时，如果 <code>T</code> 是公有继承 <code>std::enable_shared_from_this&lt;T&gt;</code>，则才能在编译时使用 <code>std::enable_if</code> 和 <code>std::is_convertible</code> 来初始化 <code>_M_weak_this</code></p>
+<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><p>因为 <code>_M_weak_this</code> 的初始化依赖 <code>std::shared_ptr</code> 的初始化，因此不能对非 <code>std::shard_ptr</code> 的对象调用使用 <code>shared_from_this()</code> 的函数，所以 <code>shared_from_this()</code> 不能在构造函数中调用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	B b;</span><br><span class="line">	<span class="keyword">auto</span> sp = b.<span class="built_in">GetSelf</span>();  <span class="comment">// 奔溃</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +402,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -296,7 +503,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -390,7 +597,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -476,7 +683,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -645,7 +852,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -733,7 +940,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -844,7 +1051,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -942,7 +1149,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1010,265 +1217,6 @@
 </ol>
 <h2 id="弃用-POD"><a href="#弃用-POD" class="headerlink" title="弃用 POD"></a>弃用 POD</h2><p>自 cpp20 起，标准弃用了 POD 以及相应的 <code>std::is_pod</code> 和 <code>std::is_pod_v</code></p>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/16/cpp-%E4%BA%94%E4%B8%AA%E7%89%B9%E6%AE%8A%E7%9A%84%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/16/cpp-%E4%BA%94%E4%B8%AA%E7%89%B9%E6%AE%8A%E7%9A%84%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0/" class="post-title-link" itemprop="url">五个特殊的成员函数</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-16 20:22:33" itemprop="dateCreated datePublished" datetime="2023-05-16T20:22:33+08:00">2023-05-16</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="构造函数初始化过程"><a href="#构造函数初始化过程" class="headerlink" title="构造函数初始化过程"></a>构造函数初始化过程</h2><p>构造函数的执行可以分成两个阶段，初始化阶段和计算阶段，初始化阶段先于计算阶段</p>
-<p>所有类成员都会在初始化阶段初始化，即使该成员没有出现在构造函数的初始化列表中</p>
-<p>在初始化列表中构造成员类，可以省去调用默认构造函数的过程，直接调用指定构造函数进行初始化</p>
-<p>初始化列表中的成员是按照在类中出现的顺序进行初始化的，而不是按照在初始化列表出现的顺序初始化</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Test1</span> &#123;</span><br><span class="line">    <span class="built_in">Test1</span>() &#123; </span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;Construct Test1&quot;</span> &lt;&lt; endl ;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">Test1</span>(<span class="type">const</span> Test1&amp; t1) &#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;Copy constructor for Test1&quot;</span> &lt;&lt; endl ;</span><br><span class="line">        <span class="keyword">this</span>-&gt;a = t1.a ;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Test1&amp; <span class="keyword">operator</span> = (<span class="type">const</span> Test1&amp; t1) &#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;Assignment for Test1&quot;</span> &lt;&lt; endl ;</span><br><span class="line">        <span class="keyword">this</span>-&gt;a = t1.a ;</span><br><span class="line">        <span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> a ;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Test2</span> &#123;</span><br><span class="line">    Test1 test1 ;</span><br><span class="line">    <span class="built_in">Test2</span>(Test1 &amp;t1) &#123;</span><br><span class="line">        test1 = t1 ;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Test1 t1;</span><br><span class="line"><span class="function">Test2 <span class="title">t2</span><span class="params">(t1)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">Construct Test1</span></span><br><span class="line"><span class="comment">Construct Test1</span></span><br><span class="line"><span class="comment">Assignment for Test1</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="自动生成特殊函数"><a href="#自动生成特殊函数" class="headerlink" title="自动生成特殊函数"></a>自动生成特殊函数</h2><p>C++ 标准中对于编译器自动生成特殊函数函数是这样规定的：</p>
-<ol>
-<li><p>对于一个类，如果用户没有声明特殊函数，那么编译器会自动生成隐式特殊函数，这些函数是 trivial 无实际效果的</p>
-</li>
-<li><p>编译器根据一些情况判断是否自动生成 nontrivial 的特殊函数</p>
-</li>
-</ol>
-<h2 id="自动生成有实际效果的默认构造函数"><a href="#自动生成有实际效果的默认构造函数" class="headerlink" title="自动生成有实际效果的默认构造函数"></a>自动生成有实际效果的默认构造函数</h2><p>在以下情况下编译器会自动生成 nontrivial 默认构造函数：</p>
-<ol>
-<li><p>类中的某个成员具有默认构造函数时，因为按照声明的方式正确构造对象是编译器的责任，所以编译器必须生成默认构造函数</p>
-</li>
-<li><p>父类具有默认构造函数时，因为必须在构造子类前正确构造父类对象，所以编译器必须生成默认构造函数</p>
-</li>
-<li><p>类中有虚函数时，因为虚函数底层使用 vptr 以及构造对象时必须正确初始化 vptr，所以编译器必须生成默认构造函数</p>
-</li>
-<li><p>具有虚基类时，因为虚基类底层使用 virtual base class，所以编译器必须生成默认构造函数</p>
-</li>
-</ol>
-<p>当编译器根据上述情况决定生成的默认构造函数时，其内部只会生成完成这部分初始化的代码，不会添加多余的代码</p>
-<p>即便满足了自动生成默认构造函数的条件，编译器也只会在实际使用到的时候才会生成</p>
-<h2 id="自动生成有实际效果的析构函数"><a href="#自动生成有实际效果的析构函数" class="headerlink" title="自动生成有实际效果的析构函数"></a>自动生成有实际效果的析构函数</h2><p>如果类本身不存在具备析构函数的成员，又没有具备析构函数的基类，那么这个类就不要一个析构函数，其对象销毁时也不需要做额外操作，直接清理回收对应内存即可</p>
-<p>也就是说，只有在类的成员或基类有析构函数时，才会自动生成一个析构函数来调用类的成员或基类的析构函数</p>
-<h2 id="自动生成有实际效果的拷贝构造函数"><a href="#自动生成有实际效果的拷贝构造函数" class="headerlink" title="自动生成有实际效果的拷贝构造函数"></a>自动生成有实际效果的拷贝构造函数</h2><p>同自动生成默认构造函数的情况相同，在以下情况编译器会自动生成拷贝构造函数：</p>
-<ol>
-<li><p>类中的某个成员具有拷贝构造函数</p>
-</li>
-<li><p>父类具有拷贝构造函数</p>
-</li>
-<li><p>类中有虚函数</p>
-</li>
-<li><p>具有虚基类</p>
-</li>
-</ol>
-<h2 id="自动生成特殊函数间的互斥"><a href="#自动生成特殊函数间的互斥" class="headerlink" title="自动生成特殊函数间的互斥"></a>自动生成特殊函数间的互斥</h2><ul>
-<li><p>当只定义了拷贝构造时，会生成拷贝赋值，移动操作会转而执行拷贝操作，不会生成默认构造</p>
-</li>
-<li><p>当只定义了移动构造时，默认构造、拷贝构造、拷贝赋值和移动赋值都不自动生成</p>
-</li>
-<li><p>当只定义了拷贝赋值时，会生成拷贝构造，移动操作会转而执行拷贝操作，会生成默认构造</p>
-</li>
-<li><p>当只定义了移动赋值时，默认构造、拷贝构造、拷贝赋值和移动构造都不自动生成</p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Demo</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="built_in">Demo</span>() &#123; std::cout &lt;&lt; <span class="string">&quot;In default constructor\n&quot;</span>; &#125;</span><br><span class="line">  ~<span class="built_in">Demo</span>() &#123; std::cout &lt;&lt; <span class="string">&quot;In destructor\n&quot;</span>; &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">Demo</span>(<span class="type">const</span> Demo&amp; d) &#123; std::cout &lt;&lt; <span class="string">&quot;In copy constructor\n&quot;</span>; &#125;</span><br><span class="line">  <span class="built_in">Demo</span>(Demo&amp;&amp; d) &#123; std::cout &lt;&lt; <span class="string">&quot;In move constructor\n&quot;</span>; &#125;</span><br><span class="line"></span><br><span class="line">  Demo&amp; <span class="keyword">operator</span>=(<span class="type">const</span> Demo&amp; d) &#123; std::cout &lt;&lt; <span class="string">&quot;In copy assign\n&quot;</span>; &#125;</span><br><span class="line">  Demo&amp; <span class="keyword">operator</span>=(Demo&amp;&amp; d) &#123; std::cout &lt;&lt; <span class="string">&quot;In move assign\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  Demo demo;</span><br><span class="line"></span><br><span class="line">  <span class="function">Demo <span class="title">d0</span><span class="params">(demo)</span></span>;</span><br><span class="line"></span><br><span class="line">  Demo d1;</span><br><span class="line">  d1 = demo;</span><br><span class="line"></span><br><span class="line">  <span class="function">Demo <span class="title">d2</span><span class="params">(std::move(demo))</span></span>;</span><br><span class="line"></span><br><span class="line">  Demo d3;</span><br><span class="line">  d3 = std::<span class="built_in">move</span>(demo);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="经验法则"><a href="#经验法则" class="headerlink" title="经验法则"></a>经验法则</h2><p>默认构造、拷贝构造、拷贝赋值、移动构造和移动赋值这五个特殊函数，建议要么全部自定义，要么全部不自定义</p>
-<ol>
-<li><p>全部自定义</p>
-</li>
-<li><p>全部默认实现 <code>=default</code></p>
-</li>
-<li><p>全部删除 <code>=delete</code></p>
-</li>
-<li><p>全部不提供</p>
-</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/15/cpp-%E9%A2%84%E5%A4%84%E7%90%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/15/cpp-%E9%A2%84%E5%A4%84%E7%90%86/" class="post-title-link" itemprop="url">预处理</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-15 21:25:29" itemprop="dateCreated datePublished" datetime="2023-05-15T21:25:29+08:00">2023-05-15</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>预处理是在编译器进行编译之前进行的操作</p>
-<p>预处理指令以符号 <code>#</code> 开头，且必须是该行除了任何空白字符外的第一个字符</p>
-<p>预处理过程扫描源代码，对其进行初步的转换，产生新的源代码提供给编译器</p>
-<h2 id="常用预处理"><a href="#常用预处理" class="headerlink" title="常用预处理"></a>常用预处理</h2><ul>
-<li><p><code>#include</code> 将包含的文件复制到当前位置，可以 <code>#include</code> 任何文件</p>
-</li>
-<li><p><code>#if/elif/endif</code> 条件判断</p>
-</li>
-<li><p><code>#error</code> 停止编译并显示错误信息</p>
-</li>
-<li><p><code>#pragma pack(n)</code> 对齐的时候就会把元素的大小和 n 进行比较，取较小的那个来对齐，合法 n 的数值分别为 1、2、4、8、16</p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">test1</span> &#123;</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">    <span class="type">char</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">    <span class="type">char</span> d;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">sizeof</span>(test1) == <span class="number">12</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(2)</span></span><br><span class="line"><span class="keyword">struct</span> test2 &#123;</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">    <span class="type">char</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">    <span class="type">char</span> d;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack() <span class="comment">// 取消对齐</span></span></span><br><span class="line"><span class="built_in">sizeof</span>(test2) == <span class="number">10</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> test2 &#123;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">    <span class="type">int</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">sizeof</span>(test2) == <span class="number">12</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack(2)</span></span><br><span class="line"><span class="keyword">struct</span> test3 &#123;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">    <span class="type">int</span> b;</span><br><span class="line">    <span class="type">short</span> c;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> pack() <span class="comment">// 取消对齐</span></span></span><br><span class="line"><span class="built_in">sizeof</span>(test3) == <span class="number">8</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>#pragma pack(show)</code> 显示当前内存对齐的字节数</p>
-</li>
-<li><p><code>#pragma pack(push)</code> 将当前的对齐字节数压入栈顶，并设置这个值为新的对齐字节数</p>
-</li>
-<li><p><code>#pragma pack(push, n)</code> 将当前的对齐字节数压入栈顶，并设置 n 为新的对齐字节数</p>
-</li>
-<li><p><code>#pragma pack(pop)</code> 弹出栈顶对齐字节数，并设置其为新的内存对齐字节数</p>
-</li>
-<li><p><code>#pragma pack(pop, n)</code> 弹出栈顶并直接丢弃，设置 n 为其新的内存对齐字节数</p>
-</li>
-<li><p><code>#pragma GCC diagnostic [error|warning|ignored] &quot;message&quot;</code> 将诊断信息视为错误、告警或忽略，可以用于屏蔽局部代码的警告</p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 搭配 push pop 来记录状态，用于还原</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic push</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic [<span class="keyword">error</span>|<span class="keyword">warning</span>|ignored] <span class="string">&quot;-W&lt;警告选项&gt;&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> GCC diagnostic pop</span></span><br></pre></td></tr></table></figure>
       
     </div>
 

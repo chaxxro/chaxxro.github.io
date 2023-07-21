@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">395</span>
+          <span class="site-state-item-count">397</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,356 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" class="post-title-link" itemprop="url">文件系统</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 21:05:09" itemprop="dateCreated datePublished" datetime="2023-04-28T21:05:09+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">文件系统</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="磁盘空间划分"><a href="#磁盘空间划分" class="headerlink" title="磁盘空间划分"></a>磁盘空间划分</h2><p>可以把一个磁盘看做是一个大的数组，每个数组成员的大小通常是 512 byte，这是磁盘控制器所能够读写的最小单元，称之为物理块 Block</p>
+<p>文件系统能读写的最小块称为逻辑块 IO Block，它的大小一般在 512 byte 到 16 KiB 之间，因此一个 IO Block 会对应一个或多个连续的物理块，典型的逻辑块大小通常是是 4 KiB</p>
+<p>在 IO Block 之上还有块组的概念，文件系统都由大量块组组成，在硬盘上相继排布</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/09.png" class="">
+
+<ul>
+<li><p>最前面的第一个块是引导块，在系统启动时用于启用引导，接着后面就是一个一个连续的块组</p>
+</li>
+<li><p>超级块包含的是文件系统的重要信息，比如 inode 总个数、块总个数、每个块组的 inode 个数、每个块组的块个数等</p>
+</li>
+<li><p>块组描述符包含文件系统中各个块组的状态，比如块组中空闲块和 inode 的数目等，每个块组都包含了文件系统所有块组的组描述符信息</p>
+</li>
+<li><p>数据位图和 inode 位图</p>
+</li>
+<li><p>inode 列表，包含了块组中所有的 inode，inode 用于保存文件系统中与各个文件和目录相关的所有元数据</p>
+</li>
+<li><p>数据块，包含文件的有用数据</p>
+</li>
+</ul>
+<p>每个块组里有很多重复的信息，比如超级块和块组描述符表，这两个都是全局信息，这么做是有两个原因：</p>
+<ul>
+<li><p>如果系统崩溃破坏了超级块或块组描述符，有关文件系统结构和内容的所有信息都会丢失。如果有冗余的副本，该信息是可能恢复</p>
+</li>
+<li><p>通过使文件和管理数据尽可能接近，减少了磁头寻道和旋转，这可以提高文件系统的性能</p>
+</li>
+</ul>
+<h2 id="文件系统组成"><a href="#文件系统组成" class="headerlink" title="文件系统组成"></a>文件系统组成</h2><p>Linux 文件系统会为每个文件分配两个数据结构：索引节点 inode 和目录项 dentry，它们主要用来记录文件的元信息和目录层次结构</p>
+<ul>
+<li><p>inode 用来记录文件的元信息，比如 inode 编号、文件大小、访问权限、创建时间、修改时间、数据在磁盘的位置等</p>
+</li>
+<li><p>dentry 用来记录文件的名字、inode 指针以及与其他 dentry 的层级关联关系。多个目录项关联起来，就会形成目录结构</p>
+</li>
+</ul>
+<p>inode 是文件的唯一标识，它们之间一一对应且会被存储在硬盘中，所以 inode 同样占用磁盘空间，一般是 256B</p>
+<p>dentry 与 inode 不同的是，dentry 是由内核维护的一个数据结构，不存放于磁盘而是缓存在内存</p>
+<p>由于 inode 唯一标识一个文件，而 dentry 记录着文件的名，所以 dentry 和 inode 的关系是多对一，也就是说一个文件可以有多个别名，例如硬链接的实现就是多个 dentry 中的 inode 指向同一个文件</p>
+<p>目录也是文件，也是用 inode 唯一标识，和普通文件不同的是普通文件在磁盘里面保存的是文件数据，而目录文件在磁盘里面保存子目录或文件</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/01.png" class="">
+
+<h2 id="文件存放"><a href="#文件存放" class="headerlink" title="文件存放"></a>文件存放</h2><p>数据在磁盘上的存放方式有两种，连续空间存放方式和非连续空间存放方式</p>
+<h3 id="连续空间存放方式"><a href="#连续空间存放方式" class="headerlink" title="连续空间存放方式"></a>连续空间存放方式</h3><ul>
+<li><p>文件存放在磁盘连续的物理空间中，并且因为文件的数据都是紧密相连所以读写效率很高，一次磁盘寻道就可以读出整个文件</p>
+</li>
+<li><p>必须先知道一个文件的大小，这样文件系统才会根据文件的大小在磁盘上找到一块连续的空间分配给文件</p>
+</li>
+<li><p>有磁盘空间碎片和文件长度扩展的缺陷</p>
+</li>
+</ul>
+<h3 id="非连续空间存放方式"><a href="#非连续空间存放方式" class="headerlink" title="非连续空间存放方式"></a>非连续空间存放方式</h3><p>非连续空间存放方式分为链表方式和索引方式</p>
+<p>链表的方式存放是离散的，不用连续的，从而可以消除磁盘碎片，大大提高磁盘空间的利用率，同时文件的长度可以动态扩展</p>
+<h4 id="隐式链表方式"><a href="#隐式链表方式" class="headerlink" title="隐式链表方式"></a>隐式链表方式</h4><p>隐式链表的实现方式是在文件头保存第一块和最后一块的位置，并且每个数据块里面留出一个指针空间用来存放下一个数据块的位置，从链头开始就可以顺着指针找到所有的数据块</p>
+<p>隐式链表的存放方式的缺点在于无法直接访问数据块，只能通过指针顺序访问文件，以及数据块指针消耗了一定的存储空间</p>
+<p>隐式链接分配的稳定性较差，系统在运行过程中由于软件或者硬件错误导致链表中的指针丢失或损坏，会导致文件数据的丢失</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/05.png" class="">
+
+<h4 id="显式链表方式"><a href="#显式链表方式" class="headerlink" title="显式链表方式"></a>显式链表方式</h4><p>显式链表把用于链接文件各数据块的指针显式地存放在内存的文件分配表 FAT 中，每个表项中存放磁盘块地址和下个表项指针</p>
+<p>一个磁盘对应一个 FAT</p>
+<p>由于查找记录的过程是在内存中进行的，因而不仅显著地提高了检索速度，而且大大减少了访问磁盘的次数，但也正是整个表都存放在内存中的关系，其不适用于大磁盘</p>
+<h4 id="索引方式"><a href="#索引方式" class="headerlink" title="索引方式"></a>索引方式</h4><p>索引方式通过在磁盘中为每个文件创建一个索引数据块，里面存放的是指向文件数据块的指针列表，并且文件头有索引数据块的指针，这样就可以通过文件头知道索引数据块的位置，再通过索引数据块里的索引信息找到对应的数据块</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/06.png" class="">
+
+<p>由于索引数据也是存放在磁盘块的，如果文件很小只需一块磁盘块，但还是需要额外分配一块来存放索引数据，所以缺陷之一就是存储索引带来的开销</p>
+<p>如果文件很大，大到一个索引数据块放不下索引信息，可以通过将链表和索引组合的方式来处理大文件的存放</p>
+<p>在索引数据块留出一个存放下一个索引数据块的指针，于是当一个索引数据块的索引信息用完了，就可以通过指针的方式，找到下一个索引数据块的信息。这种方式同时会有链表方式存在的问题，万一某个指针损坏了，后面的数据也就会无法读取了</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/07.png" class="">
+
+<p>也可以使用多级索引，通过一个索引块来存放多个索引数据块，一层套一层索引</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/08.png" class="">
+
+<h4 id="Ext2-x2F-3-的解决方案"><a href="#Ext2-x2F-3-的解决方案" class="headerlink" title="Ext2&#x2F;3 的解决方案"></a>Ext2&#x2F;3 的解决方案</h4><p>根据文件的大小，存放的方式会有所变化：</p>
+<ul>
+<li><p>如果存放文件所需的数据块小于 10 块，则直接存放数据块指针</p>
+</li>
+<li><p>如果存放文件所需的数据块超过 10 块，则采用一级索引方式</p>
+</li>
+<li><p>如果前面两种方式都不够存放大文件，则采用二级索引方式</p>
+</li>
+<li><p>如果二级间接索引也不够存放大文件，则采用三级索引方式</p>
+</li>
+</ul>
+<p>从而 inode 就需要包含 13 个指针，10 个指向数据块的指针，第 11 个指向索引块的指针，第 12 个指向二级索引块的指针，第 13 个指向三级索引块的指针</p>
+<p>这个方案虽然解决大文件的存储，但是对于大文件的访问仍需要大量的查询，效率比较低</p>
+<h2 id="空闲空间管理"><a href="#空闲空间管理" class="headerlink" title="空闲空间管理"></a>空闲空间管理</h2><h3 id="空闲表"><a href="#空闲表" class="headerlink" title="空闲表"></a>空闲表</h3><p>为所有空闲空间建立一张表，表内容包括空闲区的第一个块号和该空闲区的块个数</p>
+<p>当请求分配磁盘空间时，系统依次扫描空闲表里的内容，直到找到一个合适的空闲区域为止</p>
+<p>当用户撤销一个文件时，系统回收文件空间需顺序扫描空闲表，寻找一个空闲表条目并将释放空间的第一个物理块号及它占用的块数填到这个条目中</p>
+<p>如果存储空间中有着大量的小的空闲区，则空闲表变得很大，这样查询效率会很低</p>
+<h3 id="空闲链表"><a href="#空闲链表" class="headerlink" title="空闲链表"></a>空闲链表</h3><p>每一个空闲块里有一个指针指向下一个空闲块，这样也能很方便地找到空闲块并管理起来</p>
+<p>当创建文件时，就从链头上依次取下一块或几块。当回收空间时，把这些空闲块依次接到链头上</p>
+<p>每当在链上增加或移动空闲块时需要做很多 IO 操作，所以工作效率低，并且数据块的指针消耗了一定的存储空间</p>
+<h3 id="位图"><a href="#位图" class="headerlink" title="位图"></a>位图</h3><p>利用二进制的一位来表示磁盘中一个盘块的使用情况，磁盘上所有的盘块都有一个二进制位与之对应</p>
+<p>Linux 文件系统不仅用位图来管理数据空闲块，还用于 inode 空闲块的管理，因为 inode 也是存储在磁盘的，自然也要对其管理</p>
+<h2 id="目录存储"><a href="#目录存储" class="headerlink" title="目录存储"></a>目录存储</h2><p>和普通文件不同的是，普通文件的块里面保存的是文件数据，而目录文件的块里面保存的是目录里面一项一项的文件信息</p>
+<p>在目录文件的块中，最简单的保存格式就是列表，就是一项一项地将目录下的文件信息列在表里。列表中每一项就代表该目录下的文件的文件名和对应的 inode，通过这个 inode，就可以找到真正的文件</p>
+<p>如果一个目录有超级多的文件，要想在这个目录下找文件，如果按照列表一项一项地找，效率就不高了。于是，保存目录的格式改成哈希表，对文件名进行哈希计算，把哈希值保存起来，如果要查找一个目录下面的文件名，可以通过名称取哈希。如果哈希能够匹配上，就说明这个文件的信息在相应的块里面</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/10.png" class="">
+
+<h2 id="虚拟文件系统"><a href="#虚拟文件系统" class="headerlink" title="虚拟文件系统"></a>虚拟文件系统</h2><p>文件系统的种类众多，而操作系统希望对用户提供一个统一的接口，于是在用户层与文件系统层引入了中间层，这个中间层就称为虚拟文件系统 VFS</p>
+<p>VFS 定义了一组所有文件系统都支持的数据结构和标准接口</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/04.png" class="">
+
+<p>Linux 支持的文件系统根据存储位置的不同，可以把文件系统分为三类：</p>
+<ul>
+<li><p>磁盘的文件系统，它是直接把数据存储在磁盘中，比如 Ext 2&#x2F;3&#x2F;4、XFS 等都是这类文件系统</p>
+</li>
+<li><p>内存的文件系统，这类文件系统的数据不是存储在硬盘的，而是占用内存空间，如经常用到的 &#x2F;proc 和 &#x2F;sys 文件系统都属于这一类，读写这类文件，实际上是读写内核中相关的数据</p>
+</li>
+<li><p>网络的文件系统，用来访问其他计算机主机数据的文件系统，比如 NFS、SMB</p>
+</li>
+</ul>
+<p>文件系统首先要先挂载到某个目录才可以正常使用，比如 Linux 系统在启动时会把文件系统挂载到根目录</p>
+<h2 id="硬链接和软连接"><a href="#硬链接和软连接" class="headerlink" title="硬链接和软连接"></a>硬链接和软连接</h2><p>硬链接是多个 dentry 指向同一个 inode，但是 inode 是不可以跨越文件系统的，每个文件系统都有各自的 inode 数据结构和列表，所以硬链接是不可用于跨文件系统的</p>
+<p>由于多个 dentry 都是指向一个 inode，那么只有删除文件的所有硬链接以及源文件时，系统才会彻底删除该文件</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/02.png" class="">
+
+<p>软链接相当于重新创建一个文件，这个文件有独立的 inode，但是这个文件的内容是另外一个文件的路径，所以访问软链接的时候，实际上相当于访问到了另外一个文件</p>
+<p>软链接是可以跨文件系统的，甚至目标文件被删除了，链接文件还是在的，只不过指向的文件找不到了而已</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/03.png" class="">
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/" class="post-title-link" itemprop="url">文件 IO</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 21:03:44" itemprop="dateCreated datePublished" datetime="2023-04-28T21:03:44+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">文件系统</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>IO 结构模型分为 Direct IO、mmap 和 Buffer IO</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/01.png" class="">
+
+<h2 id="缓存-IO"><a href="#缓存-IO" class="headerlink" title="缓存 IO"></a>缓存 IO</h2><p>缓存 IO 又被称作标准 IO，大多数文件系统的默认 IO 操作都是缓存 IO</p>
+<p>在 Linux 的缓存 IO 机制中，数据先从磁盘复制到内核空间的缓冲区，然后从内核空间缓冲区复制到应用程序的地址空间</p>
+<ul>
+<li><p>读操作：操作系统检查内核的缓冲区有没有需要的数据，如果已经缓存了就直接从缓存中返回，否则从磁盘中读取然后缓存在操作系统的缓存中</p>
+</li>
+<li><p>写操作：应用程序将数据从用户空间复制到内核空间的 page cache 中，数据什么时候写到磁盘由应用程序采用的写操作机制决定，默认是采用延迟写机制，应用程序不需要等待数据全部被写入磁盘，系统会负责定期将页缓存数据写入磁盘</p>
+</li>
+</ul>
+<p>优点：</p>
+<ul>
+<li><p>在一定程度上分离了内核空间和用户空间，保护系统本身的运行安全</p>
+</li>
+<li><p>可以减少读盘的次数，从而提高性能</p>
+</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li><p>读操作中，可以将数据直接从磁盘读到 page cache 中，或者将数据从 page cache 直接写回到磁盘上，而不能直接在应用程序地址空间和磁盘之间进行数据传输，数据在传输过程中需要在应用程序地址空间（用户空间）和缓存（内核空间）之间进行多次数据拷贝操作，这些数据拷贝操作所带来的 CPU 以及内存开销是非常大的</p>
+</li>
+<li><p>写操作中，延迟写机制可能会导致数据丢失，page cache 中被修改的内存称为脏页，内核通过 flush 线程定期将数据写入磁盘；在实际应用中，如果某些数据非常重要，是完全不允许有丢失风险的，这时应该采用同步写机制，在应用程序中使用 sync、fsync、msync 等系统调用时，内核都会立刻将相应的数据写回到磁盘</p>
+</li>
+</ul>
+<h2 id="直接-IO"><a href="#直接-IO" class="headerlink" title="直接 IO"></a>直接 IO</h2><p>直接 IO 就是应用程序直接访问磁盘数据，而不经过内核缓冲区，这样做的目的是减少一次从内核缓冲区到用户程序缓存的数据复制</p>
+<p>优点：</p>
+<ul>
+<li>应用程序自己选择缓存机制，提高数据的存取效率</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>如果访问的数据不在应用程序缓存中，那么每次数据都会直接从磁盘加载，这种直接加载会非常慢</li>
+</ul>
+<h2 id="内存映射"><a href="#内存映射" class="headerlink" title="内存映射"></a>内存映射</h2><p>内存映射，简而言之就是将内核空间的一段内存区域映射到用户空间。映射成功后，用户对这段内存区域的修改可以直接反映到内核空间，相反，内核空间对这段区域的修改也直接反映用户空间。那么对于内核空间与用户空间两者之间需要大量数据传输等操作的话效率是非常高的。当然，也可以将内核空间的一段内存区域同时映射到多个进程，这样还可以实现进程间的共享内存通信</p>
+<h2 id="mmap"><a href="#mmap" class="headerlink" title="mmap"></a>mmap</h2><p>使用 mmap 时，磁盘数据也是先读到 page cache 中，然后会将 mmap 返回的虚拟地址最终对应的页项表内容设定为和前面的 page chache 相同的物理页， 这样一来就免去了第二次的数据拷贝</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/02.png" class="">
+
+<p>内存映射服务的地址空间处在堆栈之间的空余部分</p>
+<h3 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h3><ol>
+<li><p>调用 <code>open()</code> 打开一个本地文件，获得文件 fd</p>
+</li>
+<li><p>进程在用户空间调用库函数 <code>void* mmap(void *start, size_t length, int prot, int flags, int fd, off_t offset)</code>，在当前进程的虚拟地址空间中，寻找一段空闲的满足要求的连续的虚拟地址</p>
+</li>
+</ol>
+<h3 id="mmap-与常规文件操作区别"><a href="#mmap-与常规文件操作区别" class="headerlink" title="mmap 与常规文件操作区别"></a>mmap 与常规文件操作区别</h3><p>常规文件操作为了提高读写效率和保护磁盘，使用了页缓存机制，造成读文件时需要先将文件页从磁盘拷贝到页缓存中，由于页缓存处在内核空间，不能被用户进程直接寻址，所以还需要将页缓存中数据页再次拷贝到内存对应的用户空间中。通过了两次数据拷贝过程，才能完成进程对文件内容的获取任务。写操作也是一样，待写入的 buffer 在内核空间不能直接访问，必须要先拷贝至内核空间对应的主存，再写回磁盘中（延迟写回），也是需要两次数据拷贝</p>
+<p>使用 mmap 操作文件中，创建新的虚拟内存区域和建立文件磁盘地址和虚拟内存区域映射这两步，没有任何文件拷贝操作。而之后访问数据时发现内存中并无数据而发起的缺页异常过程，可以通过已经建立好的映射关系，只使用一次数据拷贝，就从磁盘中将数据传入内存的用户空间中，供进程使用</p>
+<h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
+<li><p>实现了用户空间和内核空间的高效交互方式，两空间的各自修改操作可以直接反映在映射的区域内，从而被对方空间及时捕捉</p>
+</li>
+<li><p>提供进程间共享内存及相互通信的方式，不管是父子进程还是无亲缘关系的进程，都可以将自身用户空间映射到同一个文件或匿名映射到同一片区域，从而通过各自对映射区域的改动，达到进程间通信和进程间共享的目的</p>
+</li>
+<li><p>实现高效的大规模数据传输，通过 mmap 映射解决内存不足，但使用硬盘 IO 效率较低，并且无法增加文件长度，因为创建映射的时候需要指定长度</p>
+</li>
+</ul>
+<h3 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h3><ul>
+<li>mmap 映射区域大小必须是物理页大小（page_size）的整倍数（32 位系统中通常是 4kb）</li>
+</ul>
+<h3 id="与共享内存的区别"><a href="#与共享内存的区别" class="headerlink" title="与共享内存的区别"></a>与共享内存的区别</h3><ul>
+<li><p>shm 的内存共享，效率比 mmap 效率要高，但 mmap 操作更简单，存储量也更大</p>
+</li>
+<li><p>mmap 使用普通文件提供的内存映射，适用于任何进程之间；使用特殊文件提供匿名内存映射，适用于具有亲缘关系的进程之间</p>
+</li>
+<li><p>机器重启后，mmap 因为是映射磁盘文件所以数据不会丢失，而 shm 会丢失数据</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +545,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -311,7 +661,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -423,7 +773,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -531,7 +881,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -686,7 +1036,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -828,7 +1178,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -960,7 +1310,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1218,7 +1568,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
+      <time title="修改时间：2023-07-21 11:08:10" itemprop="dateModified" datetime="2023-07-21T11:08:10+08:00">2023-07-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1283,196 +1633,6 @@
 <p>程序对信号量的操作都是原子操作</p>
 <p>通过对信号量进行 PV 操作，获取共享资源；P 操作将信号量减一，若减一后大于等于 0，则继续执行，否者进入等待队列；S 操作将信号量加一，若加一后大于 0，则继续执行，否则释放等待队列中第一个进程</p>
 <p>互斥信号量的初值一般为 1，P、V 操作必须成对出现，先做 P 操作，进临界区，后做 V 操作，出临界区</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%8D%8F%E7%A8%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%8D%8F%E7%A8%8B/" class="post-title-link" itemprop="url">协程</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 20:41:25" itemprop="dateCreated datePublished" datetime="2023-04-28T20:41:25+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>协程是一种由程序来管理的用户空间线程，具有对内核来说不可见的特性</p>
-<p>线程的切换由操作系统负责调度，协程由用户自己进行调度，因此减少了上下文切换，提高了效率</p>
-<p>协程由于在同一个线程上，因此可以避免竞争关系而使用锁</p>
-<p>适用于被阻塞的，且需要大量并发的场景</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E4%B8%8A%E4%B8%8B%E6%96%87/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E4%B8%8A%E4%B8%8B%E6%96%87/" class="post-title-link" itemprop="url">上下文</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 20:38:16" itemprop="dateCreated datePublished" datetime="2023-04-28T20:38:16+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-18 11:40:24" itemprop="dateModified" datetime="2023-07-18T11:40:24+08:00">2023-07-18</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="CPU-上下文"><a href="#CPU-上下文" class="headerlink" title="CPU 上下文"></a>CPU 上下文</h2><p>在每个任务运行前，CPU 需要知道任务从哪里加载，又从哪里开始运行；操作系统需要事先帮 CPU 设置好 CPU 寄存器和程序计数器</p>
-<p>CPU 寄存器和程序计数器是 CPU 在运行任何任务前，所必须依赖的环境，这些环境就叫做 CPU 上下文</p>
-<p>CPU 上下文切换就是先把前一个任务的 CPU 上下文（CPU 寄存器和程序计数器）保存起来，然后加载新任务的上下文到这些寄存器和程序计数器，最后再跳转到程序计数器所指的新位置，运行新任务</p>
-<p>系统内核会存储保持下来的上下文信息，当此任务再次被分配给 CPU 运行时，CPU 会重新加载这些上下文，这样就能保证任务原来的状态不受影响，让任务看起来还是连续运行</p>
-<p>CPU 上下文切换分成：进程上下文切换、线程上下文切换和中断上下文切换</p>
-<h2 id="进程上下文"><a href="#进程上下文" class="headerlink" title="进程上下文"></a>进程上下文</h2><p>进程是由内核管理和调度的，所以进程的切换只能发生在内核态</p>
-<p>进程的上下文切换不仅包含了虚拟内存、栈、全局变量等用户空间的资源，还包括了内核堆栈、<br>寄存器等内核空间的资源</p>
-<p>系统会把交换的信息保存在进程的 PCB，当要运行另外一个进程的时候，我们需要从这个进程的 PCB<br>取出上下文，然后恢复到 CPU 中，这使得这个进程可以继续执行</p>
-<p>为了保证所有进程可以得到公平调度，CPU 时间被划分为一段段的时间片，这些时间片再被轮流分配给各个进程。<br>这样，当某个进程的时间片耗尽了，就会被系统挂起，切换到其它正在等待 CPU 的进程运行</p>
-<p>进程在系统资源不足（比如内存不足）时，要等到资源满足后才可以运行，这个时候进程也会被挂起，<br>并由系统调度其他进程运行</p>
-<p>当进程通过睡眠函数 sleep 这样的方法将自己主动挂起时，自然也会重新调度</p>
-<p>当有优先级更高的进程运行时，为了保证高优先级进程的运行，当前进程会被挂起，由高优先级进程来运行</p>
-<p>发生硬件中断时，CPU 上的进程会被中断挂起，转而执行内核中的中断服务程序</p>
-<h2 id="线程上下文"><a href="#线程上下文" class="headerlink" title="线程上下文"></a>线程上下文</h2><p>同一个进程内多个线程之间可以共享代码段、数据段、打开的文件等资源，但每个线程都有独立一套的寄存器和栈，这样可以确保线程的控制流是相对独立的</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E4%B8%8A%E4%B8%8B%E6%96%87/01.png" class="">
-
-<p>系统的任务调度，实际上的调度对象是线程，而进程只是给线程提供了虚拟内存、全局变量等资源</p>
-<p>线程上下文切换分为同一进程线程切换和不同进程线程切换：当两个线程不是属于同一个进程，则切换的过程就跟进程上下文切换一样；当两个线程是属于同一个进程，因为虚拟内存是共享的，所以在切换时，虚拟内存这些资源就保持不动，只需要切换线程的私有数据、寄存器等不共享的数据</p>
 
       
     </div>
