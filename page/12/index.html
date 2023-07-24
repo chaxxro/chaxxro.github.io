@@ -195,7 +195,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-24 20:53:55" itemprop="dateModified" datetime="2023-07-24T20:53:55+08:00">2023-07-24</time>
+      <time title="修改时间：2023-07-24 21:31:34" itemprop="dateModified" datetime="2023-07-24T21:31:34+08:00">2023-07-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -287,6 +287,7 @@
 <p>由于 inode 唯一标识一个文件，而 dentry 记录着文件的名，所以 dentry 和 inode 的关系是多对一，也就是说一个文件可以有多个别名，例如硬链接的实现就是多个 dentry 中的 inode 指向同一个文件</p>
 <img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/07.png" class="">
 
+<p>vfs 把所有的 dentry 都放到 dentry_hashtable 这个哈希表中，key 就是由目录项对象和文件名哈希产生。同时，为了避免缓存过大，dentry 缓存会清理缓存链表尾部没有用过的 dentry 缓存项</p>
 <p>目录也是文件，也是用 inode 唯一标识，和普通文件不同的是普通文件在磁盘里面保存的是文件数据，而目录文件在磁盘里面保存子目录或文件</p>
 <h3 id="磁盘划分"><a href="#磁盘划分" class="headerlink" title="磁盘划分"></a>磁盘划分</h3><p>将磁盘划分为若干个块组，每个块组的长度都相同</p>
 <p>一个文件占用的存储空间是块组长度的整数倍，一个块组不能用来存储两个文件</p>
@@ -326,7 +327,7 @@
 <li><p>通过使文件和管理数据尽可能接近，减少了磁头寻道和旋转，这可以提高文件系统的性能</p>
 </li>
 </ul>
-<p>根据文件的大小，存放的方式会有所变化：</p>
+<h3 id="数据存放"><a href="#数据存放" class="headerlink" title="数据存放"></a>数据存放</h3><p>根据文件的大小，存放的方式会有所变化：</p>
 <ul>
 <li><p>如果存放文件所需的数据块小于 10 块，则直接存放数据块指针</p>
 </li>
@@ -339,6 +340,26 @@
 </ul>
 <p>从而 inode 就需要包含 13 个指针，10 个指向数据块的指针，第 11 个指向索引块的指针，第 12 个指向二级索引块的指针，第 13 个指向三级索引块的指针</p>
 <p>这个方案虽然解决大文件的存储，但是对于大文件的访问仍需要大量的查询，效率比较低</p>
+<h3 id="读取操作流程"><a href="#读取操作流程" class="headerlink" title="读取操作流程"></a>读取操作流程</h3><p>假设打开一个 &#x2F;foo&#x2F;bar 的文件，将发起三次读请求</p>
+<ol>
+<li><p>读取根目录的 inode 并从中找到 foo 的 inode</p>
+</li>
+<li><p>读取 foo 的 inode 并从中找到 bar 的 inode</p>
+</li>
+<li><p>根据 inode 打开 bar 文件</p>
+</li>
+</ol>
+<h3 id="写入操作流程"><a href="#写入操作流程" class="headerlink" title="写入操作流程"></a>写入操作流程</h3><p>假设创建 &#x2F;foo&#x2F;bar，将发起三次写请求</p>
+<ol>
+<li><p>读取根目录 inode 并从中找到 foo 的 inode</p>
+</li>
+<li><p>读取 foo 的 inode，读取相应块组</p>
+</li>
+<li><p>写 inode bitmap、inode table 和 data table</p>
+</li>
+</ol>
+<h2 id="Journaling"><a href="#Journaling" class="headerlink" title="Journaling"></a>Journaling</h2><p>在文件系统新写入一个数据块需要发起多次 IO，如果在这个过程中因为断电、内核 bug 等各种原因导致这些数据没有完整的写入，会导致文件系统的数据不一致</p>
+<p>一种解决方案叫做日志 Journaling，在数据库技术中叫做 Write Ahead Logging，其基本思路是，在实际往磁盘写入数据之前，一次性把所有要写入的内容（即日志包括 bitmap，inode，数据块）先写到磁盘的某个地方，然后再实际写入data bitmap，inode 和数据块</p>
 <h2 id="硬链接和软连接"><a href="#硬链接和软连接" class="headerlink" title="硬链接和软连接"></a>硬链接和软连接</h2><p>硬链接是多个 dentry 指向同一个 inode，但是 inode 是不可以跨越文件系统的，每个文件系统都有各自的 inode 数据结构和列表，所以硬链接是不可用于跨文件系统的</p>
 <p>由于多个 dentry 都是指向一个 inode，那么只有删除文件的所有硬链接以及源文件时，系统才会彻底删除该文件</p>
 <img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/09.png" class="">
@@ -407,7 +428,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-24 20:53:55" itemprop="dateModified" datetime="2023-07-24T20:53:55+08:00">2023-07-24</time>
+      <time title="修改时间：2023-07-24 21:31:34" itemprop="dateModified" datetime="2023-07-24T21:31:34+08:00">2023-07-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -557,7 +578,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-24 20:53:55" itemprop="dateModified" datetime="2023-07-24T20:53:55+08:00">2023-07-24</time>
+      <time title="修改时间：2023-07-24 21:31:34" itemprop="dateModified" datetime="2023-07-24T21:31:34+08:00">2023-07-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -673,7 +694,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-24 20:53:55" itemprop="dateModified" datetime="2023-07-24T20:53:55+08:00">2023-07-24</time>
+      <time title="修改时间：2023-07-24 21:31:34" itemprop="dateModified" datetime="2023-07-24T21:31:34+08:00">2023-07-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -785,7 +806,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-24 20:53:55" itemprop="dateModified" datetime="2023-07-24T20:53:55+08:00">2023-07-24</time>
+      <time title="修改时间：2023-07-24 21:31:34" itemprop="dateModified" datetime="2023-07-24T21:31:34+08:00">2023-07-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -893,7 +914,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-24 20:53:55" itemprop="dateModified" datetime="2023-07-24T20:53:55+08:00">2023-07-24</time>
+      <time title="修改时间：2023-07-24 21:31:34" itemprop="dateModified" datetime="2023-07-24T21:31:34+08:00">2023-07-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1048,7 +1069,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-24 20:53:55" itemprop="dateModified" datetime="2023-07-24T20:53:55+08:00">2023-07-24</time>
+      <time title="修改时间：2023-07-24 21:31:34" itemprop="dateModified" datetime="2023-07-24T21:31:34+08:00">2023-07-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1190,7 +1211,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-24 20:53:55" itemprop="dateModified" datetime="2023-07-24T20:53:55+08:00">2023-07-24</time>
+      <time title="修改时间：2023-07-24 21:31:34" itemprop="dateModified" datetime="2023-07-24T21:31:34+08:00">2023-07-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1322,7 +1343,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-24 20:53:55" itemprop="dateModified" datetime="2023-07-24T20:53:55+08:00">2023-07-24</time>
+      <time title="修改时间：2023-07-24 21:31:34" itemprop="dateModified" datetime="2023-07-24T21:31:34+08:00">2023-07-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1580,7 +1601,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-24 20:53:55" itemprop="dateModified" datetime="2023-07-24T20:53:55+08:00">2023-07-24</time>
+      <time title="修改时间：2023-07-24 21:31:34" itemprop="dateModified" datetime="2023-07-24T21:31:34+08:00">2023-07-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
