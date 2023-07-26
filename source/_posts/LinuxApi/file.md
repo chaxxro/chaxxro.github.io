@@ -9,6 +9,8 @@ tags: LinuxApi
 categories: LinuxApi
 ---
 
+带有用户缓冲 IO 相关的函数
+
 ## fopen
 
 使用给定的模式打开文件
@@ -64,6 +66,21 @@ size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
 - `nmemb` 元素的个数
 
 - `stream` 指定了一个输出流
+
+## fgetc
+
+从流中读取单个字符
+```cpp
+int fgetc (FILE *stream);
+```
+
+## fputc
+
+向流中写入单个字符
+
+```cpp
+int fputc (int c, FILE *stream);
+```
 
 ## fflush
 

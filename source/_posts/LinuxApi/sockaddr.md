@@ -41,7 +41,7 @@ struct in_addr {
 /*
 sockaddr 和 sockaddr_in 两个结构体一样大，都是 16 个字节，而且都有 family 属性
 
-sckaddr 和 sockaddr_in 包含的数据都是一样的，sockaddr 是给操作系统用的，程序应使用 sockaddr_in 来表示地址，因为sockaddr_in 区分了地址和端口，使用更方便
+sckaddr 和 sockaddr_in 包含的数据都是一样的，sockaddr 是给操作系统用的，程序应使用 sockaddr_in 来表示地址，因为 sockaddr_in 区分了地址和端口，使用更方便
 */
 
 // IPv6 地址结构
@@ -72,7 +72,7 @@ struct sockaddr_un {
 };
 ```
 
-![](../../Picture/Linux/api/bind/1.jpg)
+{% asset_img 01.jpg %}
 
 ```cpp
 // 将 ipv4 字符串格式地址转化成无符号长整型的十进制地址
