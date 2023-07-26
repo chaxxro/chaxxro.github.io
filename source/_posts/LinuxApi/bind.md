@@ -27,4 +27,11 @@ unix: sockaddr_un
 
 addrlen：对应的是地址的长度
 */
+int fd = socket(AF_INET, SOCK_STREAM, 0);
+sockaddr_in addr;
+auto addr_len = sizeof addr;
+bzero(&addr, addr_len);
+addr.sin_addr.s_addr = inet_addr("0.0.0.0");
+addr.sin_port = htons(port);
+int ret = bind(fd, reinterpret_cast<sockaddr*>(&addr), addr_len);
 ```
