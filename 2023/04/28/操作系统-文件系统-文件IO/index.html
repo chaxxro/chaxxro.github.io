@@ -28,10 +28,8 @@
 <meta property="og:description" content="文件描述符内核会为每个进程维护一个打开文件的列表，该列表称为文件表。列表的每一项是一个打开的文件的信息，包括指向该文件 inode 内存拷贝的指针以及关联的元数据 当通过 fork 创建子进程时，子进程会维护一份父进程的文件表副本。在该副本中，打开文件列表及其访问模式、当前文件位置以及其他元数据，都和父进程的文件表相同    内核为每个进程都维护了一个文件表，文件表在底层是一个数组，索引从 0 开">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/01.png">
-<meta property="og:image" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/a.png">
-<meta property="og:image" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/b.png">
 <meta property="article:published_time" content="2023-04-28T13:03:44.000Z">
-<meta property="article:modified_time" content="2023-07-25T13:10:39.728Z">
+<meta property="article:modified_time" content="2023-07-26T08:39:15.246Z">
 <meta property="article:author" content="chaxxro">
 <meta property="article:tag" content="操作系统">
 <meta name="twitter:card" content="summary">
@@ -117,7 +115,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6"><span class="nav-text">文件描述符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%93%E5%AD%98-IO"><span class="nav-text">缓存 IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5-IO"><span class="nav-text">直接 IO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84"><span class="nav-text">内存映射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mmap"><span class="nav-text">mmap</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E8%BF%87%E7%A8%8B"><span class="nav-text">实现过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mmap-%E4%B8%8E%E5%B8%B8%E8%A7%84%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C%E5%8C%BA%E5%88%AB"><span class="nav-text">mmap 与常规文件操作区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E7%82%B9"><span class="nav-text">优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%86%E8%8A%82"><span class="nav-text">细节</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-text">与共享内存的区别</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6"><span class="nav-text">文件描述符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IO-%E5%88%86%E7%B1%BB"><span class="nav-text">IO 分类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%87%E5%87%86-IO"><span class="nav-text">标准 IO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E6%80%81%E7%BC%93%E5%86%B2-IO"><span class="nav-text">用户态缓冲 IO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5-IO"><span class="nav-text">直接 IO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84-mmap"><span class="nav-text">内存映射 mmap</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -130,7 +128,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">401</span>
+          <span class="site-state-item-count">402</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -204,7 +202,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-07-25 21:10:39" itemprop="dateModified" datetime="2023-07-25T21:10:39+08:00">2023-07-25</time>
+      <time title="修改时间：2023-07-26 16:39:15" itemprop="dateModified" datetime="2023-07-26T16:39:15+08:00">2023-07-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -244,15 +242,37 @@
 <li><p>打开的文件信息包括文件偏移量和状态标志</p>
 </li>
 </ul>
-<p>IO 结构模型分为 Direct IO、mmap 和 Buffer IO</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/a.png" class="">
+<h2 id="IO-分类"><a href="#IO-分类" class="headerlink" title="IO 分类"></a>IO 分类</h2><p>IO 结构模型分为 Direct IO、mmap 和标准 IO</p>
 
-<h2 id="缓存-IO"><a href="#缓存-IO" class="headerlink" title="缓存 IO"></a>缓存 IO</h2><p>缓存 IO 又被称作标准 IO，大多数文件系统的默认 IO 操作都是缓存 IO</p>
-<p>在 Linux 的缓存 IO 机制中，数据先从磁盘复制到内核空间的缓冲区，然后从内核空间缓冲区复制到应用程序的地址空间</p>
-<ul>
-<li><p>读操作：操作系统检查内核的缓冲区有没有需要的数据，如果已经缓存了就直接从缓存中返回，否则从磁盘中读取然后缓存在操作系统的缓存中</p>
+
+<h3 id="标准-IO"><a href="#标准-IO" class="headerlink" title="标准 IO"></a>标准 IO</h3><p>大多数文件系统的默认 IO 操作都是标准 IO</p>
+<p>在 Linux 的标准 IO 机制中，数据先从磁盘复制到内核空间的缓冲区，然后从内核空间缓冲区复制到应用程序的地址空间</p>
+
+
+<ol>
+<li><p>进程发起写请求，调用 <code>write</code></p>
 </li>
-<li><p>写操作：应用程序将数据从用户空间复制到内核空间的 page cache 中，数据什么时候写到磁盘由应用程序采用的写操作机制决定，默认是采用延迟写机制，应用程序不需要等待数据全部被写入磁盘，系统会负责定期将页缓存数据写入磁盘</p>
+<li><p><code>write</code> 更新内核空间中的页缓存，此次写请求需要更新两个页，分别是页缓存 1 和页缓存 2，此时页缓存中的数据和磁盘中的数据不一致，称这样的页为脏页</p>
+</li>
+<li><p>内核空间页缓存更新完毕，向进程返回成功。此时并未将页缓存中的数据刷新到磁盘文件</p>
+</li>
+<li><p>进程收到 <code>write</code> 返回成功，继续其他操作处理。一段时间后，发起读请求调用 <code>read</code></p>
+</li>
+<li><p>内核空间收到 <code>read</code> 调用请求，发现需要读取的数据部分落在页缓存 2 和页缓存 3 中，则从缓存中读取其内容</p>
+</li>
+<li><p><code>read</code> 请求发现数据不完全在页缓存 2 和页缓存 3 中，于是读取磁盘文件 1 并将文件中需要读取的数据放到页缓存 3 中</p>
+</li>
+<li><p><code>read</code> 将读取到的数据组装好返回给进程</p>
+</li>
+<li><p>满足一定条件时，内核空间将页缓存 1 和页缓存 2 中的数据刷新到磁盘</p>
+</li>
+</ol>
+<p>系统在进程发起 <code>write</code> 系统调用时，只是将数据写入内核缓冲区中的页缓存即返回，将内核空间页缓存中的数据刷新到磁盘是异步的。相比于同步刷盘，引入页缓存机制，能显著提高 <code>write</code> 和 <code>read</code>的性能，而且还不会修改读写语义（写完之后能立刻读到写的内容）</p>
+<p>页回写的时机可以分时间和空间两个维度分析：</p>
+<ul>
+<li><p>当内核缓冲区中某一个脏页存在的时长超过设定的阈值时，该脏页回写磁盘。该参数是 &#x2F;proc&#x2F;sys&#x2F;vm&#x2F;dirty_expire_centisecs，默认值是 30s</p>
+</li>
+<li><p>当内核缓冲区中脏页的数量达到一定比例，或者说空闲缓冲页比率小于设定的阈值时，脏页回写磁盘，回收缓冲页。该参数是 &#x2F;proc&#x2F;sys&#x2F;vm&#x2F;dirty_background_ratio，默认值是 10%，即空闲的页缓存比率小于 10% 时，触发页回写</p>
 </li>
 </ul>
 <p>优点：</p>
@@ -264,12 +284,14 @@
 </ul>
 <p>缺点：</p>
 <ul>
-<li><p>读操作中，可以将数据直接从磁盘读到 page cache 中，或者将数据从 page cache 直接写回到磁盘上，而不能直接在应用程序地址空间和磁盘之间进行数据传输，数据在传输过程中需要在应用程序地址空间（用户空间）和缓存（内核空间）之间进行多次数据拷贝操作，这些数据拷贝操作所带来的 CPU 以及内存开销是非常大的</p>
+<li><p>数据在传输过程中需要在用户空间和内核空间之间进行多次数据拷贝操作，这些数据拷贝操作所带来的 CPU 以及内存开销是非常大的</p>
 </li>
-<li><p>写操作中，延迟写机制可能会导致数据丢失，page cache 中被修改的内存称为脏页，内核通过 flush 线程定期将数据写入磁盘；在实际应用中，如果某些数据非常重要，是完全不允许有丢失风险的，这时应该采用同步写机制，在应用程序中使用 sync、fsync、msync 等系统调用时，内核都会立刻将相应的数据写回到磁盘</p>
+<li><p>延迟写机制可能会导致数据丢失，page cache 中被修改的内存称为脏页，内核通过 flush 线程定期将数据写入磁盘；在实际应用中，如果某些数据非常重要，是完全不允许有丢失风险的，这时应该采用同步写机制，在应用程序中使用 sync、fsync、msync 等系统调用时，内核都会立刻将相应的数据写回到磁盘</p>
 </li>
 </ul>
-<h2 id="直接-IO"><a href="#直接-IO" class="headerlink" title="直接 IO"></a>直接 IO</h2><p>直接 IO 就是应用程序直接访问磁盘数据，而不经过内核缓冲区，这样做的目的是减少一次从内核缓冲区到用户程序缓存的数据复制</p>
+<h3 id="用户态缓冲-IO"><a href="#用户态缓冲-IO" class="headerlink" title="用户态缓冲 IO"></a>用户态缓冲 IO</h3><p>在标准 IO 基础上，通过引入用户态缓冲，减少系统 IO 调用的次数和内核态用户态上下文切换</p>
+<p><code>fopen</code>、<code>fclose</code>、<code>fgetc</code>、<code>fputc</code> 等是带用户缓冲 IO 相关的函数</p>
+<h3 id="直接-IO"><a href="#直接-IO" class="headerlink" title="直接 IO"></a>直接 IO</h3><p>直接 IO 就是应用程序直接访问磁盘数据，而不经过内核缓冲区，这样做的目的是减少一次从内核缓冲区到用户程序缓存的数据复制</p>
 <p>优点：</p>
 <ul>
 <li>应用程序自己选择缓存机制，提高数据的存取效率</li>
@@ -278,36 +300,39 @@
 <ul>
 <li>如果访问的数据不在应用程序缓存中，那么每次数据都会直接从磁盘加载，这种直接加载会非常慢</li>
 </ul>
-<h2 id="内存映射"><a href="#内存映射" class="headerlink" title="内存映射"></a>内存映射</h2><p>内存映射，简而言之就是将内核空间的一段内存区域映射到用户空间。映射成功后，用户对这段内存区域的修改可以直接反映到内核空间，相反，内核空间对这段区域的修改也直接反映用户空间。那么对于内核空间与用户空间两者之间需要大量数据传输等操作的话效率是非常高的。当然，也可以将内核空间的一段内存区域同时映射到多个进程，这样还可以实现进程间的共享内存通信</p>
-<h2 id="mmap"><a href="#mmap" class="headerlink" title="mmap"></a>mmap</h2><p>使用 mmap 时，磁盘数据也是先读到 page cache 中，然后会将 mmap 返回的虚拟地址最终对应的页项表内容设定为和前面的 page chache 相同的物理页， 这样一来就免去了第二次的数据拷贝</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/b.png" class="">
+<h3 id="内存映射-mmap"><a href="#内存映射-mmap" class="headerlink" title="内存映射 mmap"></a>内存映射 mmap</h3><p>内存映射就是将内核空间的一段内存区域映射到用户空间。映射成功后，用户对这段内存区域的修改可以直接反映到内核空间，相反内核空间对这段区域的修改也直接反映用户空间</p>
+<p>内存映射对于内核空间与用户空间两者之间需要大量数据传输等操作的话效率是非常高的。当然，也可以将内核空间的一段内存区域同时映射到多个进程，这样还可以实现进程间的共享内存通信</p>
+<p><code>mmap</code> 返回的虚拟内存地址处在堆栈之间的空余部分，与文件的 page chache 具有相同的物理页，这样就免去了从内核缓冲区向用户态的数据拷贝</p>
+<p>使用 &#96;mmap&#96;&#96; 操作文件时，创建新的虚拟内存区域和建立文件磁盘地址和虚拟内存区域映射这两步，没有任何文件拷贝操作。而之后访问数据时发现内存中并无数据而发起的缺页异常过程，可以通过已经建立好的映射关系，只使用一次数据拷贝，就从磁盘中将数据传入内存的用户空间中，供进程使用</p>
+<p>通过 <code>mmap</code> 将用户态内存与文件建立映射后，即使调用 <code>close</code>，依旧可以写文件，因为存储映射还在</p>
+<p>使用 <code>munmap</code> 取消存储映射，取消映射后再对用户态内存进行操作就不会反应到文件中</p>
 
-<p>内存映射服务的地址空间处在堆栈之间的空余部分</p>
-<h3 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h3><ol>
-<li><p>调用 <code>open()</code> 打开一个本地文件，获得文件 fd</p>
-</li>
-<li><p>进程在用户空间调用库函数 <code>void* mmap(void *start, size_t length, int prot, int flags, int fd, off_t offset)</code>，在当前进程的虚拟地址空间中，寻找一段空闲的满足要求的连续的虚拟地址</p>
-</li>
-</ol>
-<h3 id="mmap-与常规文件操作区别"><a href="#mmap-与常规文件操作区别" class="headerlink" title="mmap 与常规文件操作区别"></a>mmap 与常规文件操作区别</h3><p>常规文件操作为了提高读写效率和保护磁盘，使用了页缓存机制，造成读文件时需要先将文件页从磁盘拷贝到页缓存中，由于页缓存处在内核空间，不能被用户进程直接寻址，所以还需要将页缓存中数据页再次拷贝到内存对应的用户空间中。通过了两次数据拷贝过程，才能完成进程对文件内容的获取任务。写操作也是一样，待写入的 buffer 在内核空间不能直接访问，必须要先拷贝至内核空间对应的主存，再写回磁盘中（延迟写回），也是需要两次数据拷贝</p>
-<p>使用 mmap 操作文件中，创建新的虚拟内存区域和建立文件磁盘地址和虚拟内存区域映射这两步，没有任何文件拷贝操作。而之后访问数据时发现内存中并无数据而发起的缺页异常过程，可以通过已经建立好的映射关系，只使用一次数据拷贝，就从磁盘中将数据传入内存的用户空间中，供进程使用</p>
-<h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
+
+<p>优点：</p>
+<ul>
 <li><p>实现了用户空间和内核空间的高效交互方式，两空间的各自修改操作可以直接反映在映射的区域内，从而被对方空间及时捕捉</p>
 </li>
 <li><p>提供进程间共享内存及相互通信的方式，不管是父子进程还是无亲缘关系的进程，都可以将自身用户空间映射到同一个文件或匿名映射到同一片区域，从而通过各自对映射区域的改动，达到进程间通信和进程间共享的目的</p>
 </li>
-<li><p>实现高效的大规模数据传输，通过 mmap 映射解决内存不足，但使用硬盘 IO 效率较低，并且无法增加文件长度，因为创建映射的时候需要指定长度</p>
+<li><p>读写文件时不会带来上下文切换，<code>write</code>、<code>read</code> 都需要从用户态切换到内核态，再从内核态切换到用户态</p>
 </li>
 </ul>
-<h3 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h3><ul>
-<li>mmap 映射区域大小必须是物理页大小（page_size）的整倍数（32 位系统中通常是 4kb）</li>
+<p>限制：</p>
+<ul>
+<li><p>&#96;mmap&#96;&#96; 映射区域大小必须是物理页大小（page_size）的整倍数</p>
+</li>
+<li><p><code>mmap</code> 必须将文件的 len 字节信息映射到进程空间的映射区，需要在一开始就确定 len 的大小，不太适用于随机读写的场景</p>
+</li>
+<li><p>由于需要进行映射，会占用进程映射区的空间，因此映射的大小有限制</p>
+</li>
 </ul>
-<h3 id="与共享内存的区别"><a href="#与共享内存的区别" class="headerlink" title="与共享内存的区别"></a>与共享内存的区别</h3><ul>
-<li><p>shm 的内存共享，效率比 mmap 效率要高，但 mmap 操作更简单，存储量也更大</p>
+<p>与共享内存的区别：</p>
+<ul>
+<li><p><code>shm</code> 的内存共享效率比 <code>mmap</code> 效率要高，但 <code>mmap</code> 操作更简单，存储量也更大</p>
 </li>
-<li><p>mmap 使用普通文件提供的内存映射，适用于任何进程之间；使用特殊文件提供匿名内存映射，适用于具有亲缘关系的进程之间</p>
+<li><p><code>mmap</code> 使用普通文件提供的内存映射，适用于任何进程之间；使用特殊文件提供匿名内存映射，适用于具有亲缘关系的进程之间</p>
 </li>
-<li><p>机器重启后，mmap 因为是映射磁盘文件所以数据不会丢失，而 shm 会丢失数据</p>
+<li><p>机器重启后，<code>mmap</code> 因为是映射磁盘文件所以数据不会丢失，而 <code>shm</code> 会丢失数据</p>
 </li>
 </ul>
 
