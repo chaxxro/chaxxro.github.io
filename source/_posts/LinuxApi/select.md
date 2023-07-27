@@ -72,24 +72,35 @@ FD_ISSET：用于测试指定的文件描述符是否在该集合中
 int svr_fd = get_svr_fd(10000);
 
 fd_set fd_reads;
-FD_ZERO(&fd_reads);
-FD_SET(svr_fd, &fd_reads);
+std::vector<int> fds {svr_fd};
 
 struct timeval tv;
 tv.tv_sec = 10;
 tv.tv_usec = 0;
 
-int ns = svr_fd + 1;
-int ret = select(ns, &fd_reads, nullptr, nullptr, &tv);
-if (ret == -1) {
-  // 错误
-  OUTPUT_ERRNO_EXIT;
-} else if (ret == 0) {
-  // 超时
-} else {
-  if (FD_ISSET(svr_fd, &fd_reads)) {
-    int cli = accept_cli(svr_fd);
-    send_msg(cli);
+while (1) {
+  FD_ZERO(&fd_reads);
+  int ns = 0;
+  std::for_each(fds.begin(), fds.end(), [&fd_reads, &ns](const int& fd) {ns = std::max(ns, fd); FD_SET(fd, &fd_reads);});
+
+  int ret = select(ns + 1, &fd_reads, nullptr, nullptr, &tv);
+  if (ret == -1) {
+    // 错误
+    OUTPUT_ERRNO_EXIT;
+  } else if (ret == 0) {
+    // 超时
+  } else {
+    for (const int& fd : fds) {
+      if (FD_ISSET(fd, &fd_reads)) {
+        if (fd == svr_fd) {
+          int cli = accept_cli(svr_fd);
+          send_msg(cli);
+          fds.push_back(cli);
+        } else {
+          recv_msg(fd);
+        }
+      }
+    }
   }
 }
 ```

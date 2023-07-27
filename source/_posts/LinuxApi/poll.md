@@ -44,29 +44,34 @@ POLLIN 等价于 POLLRDNORM |POLLRDBAND
 POLLOUT 则等价于 POLLWRNORM
 */
 
-struct pollfd fds[2];
+int svr_fd = get_svr_fd(10000);
 
-fds[0].fd = sock1;
-fds[0].events = POLLIN;
+std::vector<pollfd> fds{pollfd()};
+fds.back().fd = svr_fd;
+fds.back().events = POLLIN;
 
-fds[1].fd = sock2;
-fds[1].events = POLLOUT;
-
-int ret = poll( &fds, 2, 10000 );
-if (ret == -1) {
+while (1) {
+  int ret = poll(fds.data(), fds.size(), 10000);
+  if (ret == -1) {
     // 错误
-}
-else if (ret == 0) {
+  } else if (ret == 0) {
     // 超时
-}
-else {
-    if ( fds[0].revents & POLLIN )
-        fds[0].revents = 0;
-        // input event on sock1
-
-    if ( fds[1].revents & POLLOUT )
-        fds[1].revents = 0;
-        // output event on sock2
+  } else {
+    for (auto &fd : fds) {
+      if (fd.revents & POLLIN) {
+        fd.revents = 0;
+        if (fd.fd == svr_fd) {
+          int cli = accept_cli(svr_fd);
+          send_msg(cli);
+          fds.push_back(pollfd());
+          fds.back().fd = cli;
+          fds.back().events = POLLIN;
+        } else {
+          recv_msg(fd.fd);
+        }
+      }
+    }
+  }
 }
 ```
 

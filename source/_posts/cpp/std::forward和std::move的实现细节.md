@@ -51,31 +51,26 @@ T&& forward( typename std::remove_reference<T>::type& t ) noexcept {
 `std::forward` 不仅可以保持左值或者右值不变，同时还可以保持 `const`、`Lreference`、`Rreference`、`volatile` 等属性不变
 
 ```cpp
-void PrintV(int &t) {
-    std::cout << "lvalue" << std::endl;
-}
+void PrintV(int &t) { std::cout << "lvalue" << std::endl; }
 
-void PrintV(int &&t) {
-    std::cout << "rvalue" << std::endl;
-}
+void PrintV(int &&t) { std::cout << "rvalue" << std::endl; }
 
-template<typename T>
-void Test(T &&t) {
-    PrintV(t);
-    PrintV(std::forward<T>(t));
+template <typename T> void Test(T &&t) {
+  PrintV(t);
+  PrintV(std::forward<T>(t));
 
-    PrintV(std::move(t));
+  PrintV(std::move(t));
 }
 
 int main() {
-    Test(1); // lvalue rvalue rvalue
-    int a = 1;
-    Test(a); // lvalue lvalue rvalue
+  Test(1); // lvalue rvalue rvalue
+  int a = 1;
+  Test(a); // lvalue lvalue rvalue
 
-    // std::forward 返回 T&&
-    Test(std::forward<int>(a)); // lvalue rvalue rvalue
-    Test(std::forward<int&>(a)); // lvalue lvalue rvalue
-    Test(std::forward<int&&>(a)); // lvalue rvalue rvalue
-    return 0;
+  // std::forward 返回 T&&
+  Test(std::forward<int>(a));    // lvalue rvalue rvalue
+  Test(std::forward<int &>(a));  // lvalue lvalue rvalue
+  Test(std::forward<int &&>(a)); // lvalue rvalue rvalue
+  return 0;
 }
 ```

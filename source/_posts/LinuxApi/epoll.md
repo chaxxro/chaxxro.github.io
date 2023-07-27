@@ -62,35 +62,40 @@ EPOLLONESHOT：最多触发其上注册的一个可读、可写、或者异常�
 EPOLLET 通过与其他事件取或运算，使该事件成为边缘触发模式
 */
 
-int pollingfd = epoll_create( 0xCAFE );
+int svr_fd = get_svr_fd(10000);
 
-struct epoll_event ev = { 0 };
-// epoll_event.data 可挂接任何数据
-ev.data.ptr = pConnection1;
+int epoll_fd = epoll_create(1);
 
-ev.events = EPOLLIN | EPOLLONESHOT;
-if ( epoll_ctl( epollfd, EPOLL_CTL_ADD, pConnection1->getSocket(), &ev ) != 0 ) {
+epoll_event ev = {0};
+ev.data.fd = svr_fd;
+ev.events = EPOLLIN;
+epoll_ctl(epoll_fd, EPOLL_CTL_ADD, svr_fd, &ev);
+
+while (1) {
+  struct epoll_event pevents[20];
+  int ret = epoll_wait(epoll_fd, pevents, 20, 10000);
+  if (ret == -1) {
     // 错误
-}
-
-struct epoll_event pevents[ 20 ];
-int ret = epoll_wait( pollingfd, pevents, 20, 10000 );
-if (ret == -1) {
-    // 错误
-}
-else if (ret == 0) {
+  } else if (ret == 0) {
     // 超时
-}
-else {
-    for ( int i = 0; i < ret; i++ )
-    {
-        if ( pevents[i].events & EPOLLIN )
-        {
-            // Get back our connection pointer
-            Connection * c = (Connection*) pevents[i].data.ptr;
-            c->handleReadEvent();
-         }
+  } else {
+    for (int i = 0; i < ret; i++) {
+      auto &event = pevents[i];
+      if (event.events & EPOLLIN) {
+        if (event.data.fd == svr_fd) {
+          int cli = accept_cli(svr_fd);
+          send_msg(cli);
+
+          epoll_event cli_event;
+          cli_event.data.fd = cli;
+          cli_event.events = EPOLLIN;
+          epoll_ctl(epoll_fd, EPOLL_CTL_ADD, cli, &cli_event);
+        } else {
+          recv_msg(event.data.fd);
+        }
+      }
     }
+  }
 }
 ```
 
