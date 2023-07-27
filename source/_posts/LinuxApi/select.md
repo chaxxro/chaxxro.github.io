@@ -69,32 +69,28 @@ FD_CLR：用于在文件描述符集合中删除一个文件描述符
 FD_ISSET：用于测试指定的文件描述符是否在该集合中
 */
 
-fd_set fd_in, fd_out;
+int svr_fd = get_svr_fd(10000);
+
+fd_set fd_reads;
+FD_ZERO(&fd_reads);
+FD_SET(svr_fd, &fd_reads);
+
 struct timeval tv;
-
-FD_ZERO(&fd_in);
-FD_ZERO(&fd_out);
-
-FD_SET(sock1, &fd_in);
-FD_SET(sock2, &fd_out);
-int largest_sock = sock1 > sock2 ? sock1 : sock2;
 tv.tv_sec = 10;
 tv.tv_usec = 0;
 
-int ret = select(largest_sock + 1, &fd_in, &fd_out, NULL, &tv);
+int ns = svr_fd + 1;
+int ret = select(ns, &fd_reads, nullptr, nullptr, &tv);
 if (ret == -1) {
-    // 错误
-}
-else if (ret == 0) {
-    // 超时
-}
-else {
-    if (FD_ISSET( sock1, &fd_in )) {
-        // 检查 sock1
-    }
-    if (FD_ISSET( sock2, &fd_out )) {
-        // 检查 sock2
-    }
+  // 错误
+  OUTPUT_ERRNO_EXIT;
+} else if (ret == 0) {
+  // 超时
+} else {
+  if (FD_ISSET(svr_fd, &fd_reads)) {
+    int cli = accept_cli(svr_fd);
+    send_msg(cli);
+  }
 }
 ```
 
