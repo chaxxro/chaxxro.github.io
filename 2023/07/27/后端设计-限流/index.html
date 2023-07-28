@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="限流主要用于在流量突增时保护系统，使系统能够正常运行。在微服务架构中，限流通常应用在 API 接口，防止大流量冲击服务 漏桶算法请求来了之后会首先进到漏斗里，漏斗以恒定的速率将请求流出进行处理，从而起到平滑流量的作用 当请求的流量过大时，漏斗达到最大容量时会溢出，此时请求被丢弃 缺点：  漏桶的漏出速率是固定的，可以起到整流的作用，但在流量低时无法有效利用资源  不能解决流量突发的问题，即使服务没">
+<meta property="og:type" content="article">
+<meta property="og:title" content="限流">
+<meta property="og:url" content="https://chaxxro.github.io/2023/07/27/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E9%99%90%E6%B5%81/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="限流主要用于在流量突增时保护系统，使系统能够正常运行。在微服务架构中，限流通常应用在 API 接口，防止大流量冲击服务 漏桶算法请求来了之后会首先进到漏斗里，漏斗以恒定的速率将请求流出进行处理，从而起到平滑流量的作用 当请求的流量过大时，漏斗达到最大容量时会溢出，此时请求被丢弃 缺点：  漏桶的漏出速率是固定的，可以起到整流的作用，但在流量低时无法有效利用资源  不能解决流量突发的问题，即使服务没">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-07-27T09:15:22.000Z">
+<meta property="article:modified_time" content="2023-07-28T02:42:31.611Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="后端设计">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/07/27/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E9%99%90%E6%B5%81/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/07/27/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E9%99%90%E6%B5%81/","path":"2023/07/27/后端设计-限流/","title":"限流"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>限流 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BC%8F%E6%A1%B6%E7%AE%97%E6%B3%95"><span class="nav-text">漏桶算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A4%E7%89%8C%E6%A1%B6%E7%AE%97%E6%B3%95"><span class="nav-text">令牌桶算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BA%E5%AE%9A%E7%AA%97%E5%8F%A3%E7%AE%97%E6%B3%95"><span class="nav-text">固定窗口算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%E7%AE%97%E6%B3%95"><span class="nav-text">滑动窗口算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis-%E5%88%86%E5%B8%83%E5%BC%8F%E9%99%90%E6%B5%81"><span class="nav-text">Redis 分布式限流</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">403</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/07/27/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E9%99%90%E6%B5%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="限流 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          限流
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-07-27 17:15:22" itemprop="dateCreated datePublished" datetime="2023-07-27T17:15:22+08:00">2023-07-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-07-28 10:42:31" itemprop="dateModified" datetime="2023-07-28T10:42:31+08:00">2023-07-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">后端设计</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>限流主要用于在流量突增时保护系统，使系统能够正常运行。在微服务架构中，限流通常应用在 API 接口，防止大流量冲击服务</p>
+<h2 id="漏桶算法"><a href="#漏桶算法" class="headerlink" title="漏桶算法"></a>漏桶算法</h2><p>请求来了之后会首先进到漏斗里，漏斗以恒定的速率将请求流出进行处理，从而起到平滑流量的作用</p>
+<p>当请求的流量过大时，漏斗达到最大容量时会溢出，此时请求被丢弃</p>
+<p>缺点：</p>
+<ul>
+<li><p>漏桶的漏出速率是固定的，可以起到整流的作用，但在流量低时无法有效利用资源</p>
+</li>
+<li><p>不能解决流量突发的问题，即使服务没有负载请求也需要在队列中等待一段时间</p>
+</li>
+</ul>
+<h2 id="令牌桶算法"><a href="#令牌桶算法" class="headerlink" title="令牌桶算法"></a>令牌桶算法</h2><p>令牌桶算法是对漏斗算法的一种改进，允许一定程度的流量突发</p>
+<p>在令牌桶算法中存在一个令牌桶，并且以恒定的速率向令牌桶中放入令牌。令牌桶有一定的容量，如果令牌桶满了令牌则无法放进去</p>
+<p>请求会需要先到令牌桶中去拿令牌，如果拿到了令牌，则该请求会被处理，并消耗掉拿到的令牌。如果令牌桶为空，则该请求会被丢弃</p>
+<h2 id="固定窗口算法"><a href="#固定窗口算法" class="headerlink" title="固定窗口算法"></a>固定窗口算法</h2><p>在固定时间段内，只允许固定数量的请求被执行</p>
+<p>缺点：</p>
+<ul>
+<li><p>流量曲线可能不够平滑，有突刺现象</p>
+</li>
+<li><p>一段时间内（不超过时间窗口）服务可能不可用</p>
+</li>
+<li><p>存在边界双倍问题，恶意用户可以在窗口前置前后发送双倍请求从而瞬间压垮服务</p>
+</li>
+</ul>
+<h2 id="滑动窗口算法"><a href="#滑动窗口算法" class="headerlink" title="滑动窗口算法"></a>滑动窗口算法</h2><p>滑动窗口解决了固定窗口切换时存在的边界双倍问题</p>
+<p>滑动窗口算法将一个计时窗口分成了若干个小窗口，然后每个小窗口维护一个独立的计数器。当请求的时间大于当前窗口的最大时间时，则将计时窗口向前平移一个小窗口。平移时，将第一个小窗口的数据丢弃，然后将第二个小窗口设置为第一个小窗口，同时在最后面新增一个小窗口，将新的请求放在新增的小窗口中</p>
+<p>滑动窗口算法其实就是对请求数进行了更细粒度的限流，窗口划分的越多，则限流越精准</p>
+<h2 id="Redis-分布式限流"><a href="#Redis-分布式限流" class="headerlink" title="Redis 分布式限流"></a>Redis 分布式限流</h2><p>Redis 中的固定窗口限流是使用 &#96;incr&#96;&#96; 命令和时间戳信息作为 key 就可以统计每秒的请求量，以此达到限流目的</p>
+<p><code>incr`` 和 </code>expire&#96;&#96; 命令操作应该在一个原子操作中提交，以保证每个 key 都正确设置了过期时间，不然会有 key 值无法自动删除而导致的内存溢出，所以需要用 lua 脚本来实现原子操作</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1/" rel="tag"># 后端设计</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/07/25/LinuxApi-mmap/" rel="prev" title="mmap">
+                  <i class="fa fa-chevron-left"></i> mmap
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
