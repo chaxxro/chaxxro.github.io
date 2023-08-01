@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">403</span>
+          <span class="site-state-item-count">404</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,100 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/08/01/LinuxApi-sendfile/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/01/LinuxApi-sendfile/" class="post-title-link" itemprop="url">sendfile</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-08-01 21:40:14 / 修改时间：21:52:08" itemprop="dateCreated datePublished" datetime="2023-08-01T21:40:14+08:00">2023-08-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><code>sendfile</code> 将 <code>mmap</code> + <code>write</code> 合二为一，实现了一样效果的同时还简化了用户接口</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> <span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/sendfile.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">sendfile</span><span class="params">(<span class="type">int</span> out_fd, <span class="type">int</span> in_fd, <span class="type">off_t</span> *offset, <span class="type">size_t</span> count)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">out_fd 和 in_fd 分别代表了写入和读出的文件描述符</span></span><br><span class="line"><span class="comment">in_fd 必须是一个指向文件的文件描述符，且要能支持类 mmap() 内存映射，不能是 Socket 类型</span></span><br><span class="line"><span class="comment">out_fd 可以是任意类型的文件描述符</span></span><br><span class="line"><span class="comment">offset 是一个代表了 in_fd 偏移量的指针，指示该从 in_fd 的哪个位置开始读取</span></span><br><span class="line"><span class="comment">count 参数是此次调用需要传输的字节总数</span></span><br><span class="line"><span class="comment">函数返回后，offset 会被更新成最后读取的字节位置处，表明此次调用共读取了多少文件数据</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>数据读写流程：</p>
+<ol>
+<li><p>调用 <code>sendfile</code> 时用户态陷入内核态</p>
+</li>
+<li><p>DMA 将数据从硬盘拷贝到内核缓冲区</p>
+</li>
+<li><p>CPU 将内核缓冲区拷贝到 socket 缓冲区</p>
+</li>
+<li><p>DMA 将 socket 缓冲区拷贝到网卡完成数据传输</p>
+</li>
+<li><p><code>snedfile</code> 返回，上下文切换到用户态</p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +289,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-01 15:46:37" itemprop="dateModified" datetime="2023-08-01T15:46:37+08:00">2023-08-01</time>
+      <time title="修改时间：2023-08-01 21:52:09" itemprop="dateModified" datetime="2023-08-01T21:52:09+08:00">2023-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -308,7 +402,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-01 15:46:37" itemprop="dateModified" datetime="2023-08-01T15:46:37+08:00">2023-08-01</time>
+      <time title="修改时间：2023-08-01 21:52:08" itemprop="dateModified" datetime="2023-08-01T21:52:08+08:00">2023-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -393,7 +487,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-01 15:46:37" itemprop="dateModified" datetime="2023-08-01T15:46:37+08:00">2023-08-01</time>
+      <time title="修改时间：2023-08-01 21:52:08" itemprop="dateModified" datetime="2023-08-01T21:52:08+08:00">2023-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -489,7 +583,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-01 15:46:37" itemprop="dateModified" datetime="2023-08-01T15:46:37+08:00">2023-08-01</time>
+      <time title="修改时间：2023-08-01 21:52:08" itemprop="dateModified" datetime="2023-08-01T21:52:08+08:00">2023-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -577,7 +671,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-01 15:46:37" itemprop="dateModified" datetime="2023-08-01T15:46:37+08:00">2023-08-01</time>
+      <time title="修改时间：2023-08-01 21:52:08" itemprop="dateModified" datetime="2023-08-01T21:52:08+08:00">2023-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -661,7 +755,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-01 15:46:37" itemprop="dateModified" datetime="2023-08-01T15:46:37+08:00">2023-08-01</time>
+      <time title="修改时间：2023-08-01 21:52:08" itemprop="dateModified" datetime="2023-08-01T21:52:08+08:00">2023-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -746,7 +840,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-01 15:46:37" itemprop="dateModified" datetime="2023-08-01T15:46:37+08:00">2023-08-01</time>
+      <time title="修改时间：2023-08-01 21:52:09" itemprop="dateModified" datetime="2023-08-01T21:52:09+08:00">2023-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -899,7 +993,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-01 15:46:37" itemprop="dateModified" datetime="2023-08-01T15:46:37+08:00">2023-08-01</time>
+      <time title="修改时间：2023-08-01 21:52:09" itemprop="dateModified" datetime="2023-08-01T21:52:09+08:00">2023-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1007,7 +1101,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-01 15:46:37" itemprop="dateModified" datetime="2023-08-01T15:46:37+08:00">2023-08-01</time>
+      <time title="修改时间：2023-08-01 21:52:09" itemprop="dateModified" datetime="2023-08-01T21:52:09+08:00">2023-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1074,117 +1168,6 @@
 <p>为了更好的压榨每个部件的，CPU 引入了流水化技术，核心原理就是上一条指令立马发射就紧跟着发射下一条待执行的指令</p>
 <p>遇到条件判断时 CPU 会面临一个问题，往后具有两个分支，流水线会停下来等到有结果了再继续执行</p>
 <p>分支预测是基于分支的历史信息，分支的条件越具有规律性，那么 CPU 对分支预测的越准确</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/07/06/cpp-%E7%BB%93%E6%9E%84%E5%8C%96%E7%BB%91%E5%AE%9A/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/07/06/cpp-%E7%BB%93%E6%9E%84%E5%8C%96%E7%BB%91%E5%AE%9A/" class="post-title-link" itemprop="url">结构化绑定</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-07-06 17:11:25" itemprop="dateCreated datePublished" datetime="2023-07-06T17:11:25+08:00">2023-07-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-01 15:46:37" itemprop="dateModified" datetime="2023-08-01T15:46:37+08:00">2023-08-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="std-tie"><a href="#std-tie" class="headerlink" title="std::tie"></a>std::tie</h2><p>C++11 提供了 <code>std::tie</code> 完成对 <code>std::tuple</code> 进行结构化绑定</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">auto</span> tuple = std::<span class="built_in">make_tuple</span>(<span class="number">1</span>, <span class="number">1.0</span>, <span class="string">&quot;abc&quot;</span>, <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">  <span class="type">int</span> i;</span><br><span class="line">  <span class="type">float</span> j;</span><br><span class="line">  std::string k;</span><br><span class="line">  std::<span class="built_in">tie</span>(i, j, k, std::ignore) = tuple;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><code>std::ignore</code> 是一个占位符，所在位置的赋值被忽略</p>
-<p><code>std::tie</code> 存在一个问题：变量必须事先单独声明，其类型都需显式表示，无法自动推导</p>
-<h2 id="结构化绑定"><a href="#结构化绑定" class="headerlink" title="结构化绑定"></a>结构化绑定</h2><p>C++17 引入了结构化绑定</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[attr] cv-<span class="keyword">auto</span> [ref-<span class="keyword">operator</span>] [ identifier-list ] = expression;</span><br><span class="line">[attr] cv-<span class="keyword">auto</span> [ref-<span class="keyword">operator</span>] [ identifier-list ] &#123; expression &#125;;</span><br><span class="line">[attr] cv-<span class="keyword">auto</span> [ref-<span class="keyword">operator</span>] [ identifier-list ] ( expression );</span><br><span class="line"><span class="comment">// 统一形式</span></span><br><span class="line">[attr] cv-<span class="keyword">auto</span> [ref-<span class="keyword">operator</span>] [ identifier-list ] initializer;</span><br><span class="line"><span class="comment">// attr 为可选的 attributes</span></span><br><span class="line"><span class="comment">// cv-auto 为可能有 const 或 volatile 修饰的 auto，也可以使用 static 和 thread_local</span></span><br><span class="line"><span class="comment">// ref-operator 为可选的 &amp; 或 &amp;&amp;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">auto</span> tuple = std::<span class="built_in">make_tuple</span>(<span class="number">1</span>, <span class="number">1.0</span>, <span class="string">&quot;abc&quot;</span>, <span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">auto</span>&amp;&amp; [v0, v1, v2, v3] = tuple;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>结构化绑定声明首先引入一个类型为 <code>E</code> 的变量 <code>e</code> 来持有其 <code>initializer</code> 表达式的值，其中 <code>E = std::remove_reference_t&lt;decltype((expression))&gt;</code></p>
-<ul>
-<li><p>因为 <code>auto</code> 作用于数组时会推到成指针，所以如果 <code>expression</code> 是数组类型且结构化绑定表达式中不存在 <code>ref-qualifier</code>，则 <code>E</code> 为 <code>cv[]</code>，其中 <code>cv</code> 是 <code>cv-auto</code> 中的 cv 限定符，且 <code>e</code> 中的各个元素从 <code>expression</code> 的对应元素进行拷贝初始化或直接初始化</p>
-</li>
-<li><p>否则，相当于用 <code>e</code> 替换 <code>identifier-list</code>，即 <code>attr cv-auto ref-qualifier e initializer</code>，此时 <code>attr cv-auto ref-qualifier</code> 都是修饰 <code>e</code> 的，而不是那些新声明的变量</p>
-</li>
-</ul>
-<h3 id="当-E-是数组"><a href="#当-E-是数组" class="headerlink" title="当 E 是数组"></a>当 E 是数组</h3><p><code>identifier-list</code> 中的变量数量必须等于数组长度</p>
-<p>变量是数组 <code>e</code> 的各个元素，但其类型不是左值引用，<code>cv</code> 也会修饰变量</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">print_msg</span><span class="params">(<span class="type">const</span> std::string&amp; info, T value)</span> </span>&#123;</span><br><span class="line">  std::cout &lt;&lt; info &lt;&lt; <span class="built_in">static_cast</span>&lt;<span class="type">const</span> <span class="type">void</span>*&gt;(value) &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> arr[<span class="number">2</span>] = &#123;<span class="number">1</span>, <span class="number">2</span>&#125;;</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;arr[0]: &quot;</span>, &amp;arr[<span class="number">0</span>]);</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;arr[1]: &quot;</span>, &amp;arr[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 拷贝一份数组到 e[2]</span></span><br><span class="line">  <span class="comment">// x y 都是左值，且引用 e[0] e[1]</span></span><br><span class="line">  <span class="keyword">auto</span> [x, y] = arr;</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;x: &quot;</span>, &amp;x);</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;y: &quot;</span>, &amp;y);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// xr yr 都是左值，且引用 arr[0] arr[1]</span></span><br><span class="line">  <span class="keyword">auto</span> &amp;[rx, ry] = arr;</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;rx: &quot;</span>, &amp;rx);</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;ry: &quot;</span>, &amp;ry);</span><br><span class="line">  <span class="built_in">static_assert</span>(!std::is_reference_v&lt;<span class="keyword">decltype</span>(rx)&gt;);</span><br><span class="line"></span><br><span class="line">  <span class="type">const</span> <span class="keyword">auto</span>&amp; [crx, cry] = arr;</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;crx: &quot;</span>, &amp;crx);</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;cry: &quot;</span>, &amp;cry);</span><br><span class="line">  <span class="built_in">static_assert</span>(!std::is_reference_v&lt;<span class="keyword">decltype</span>(crx)&gt;);</span><br><span class="line">  <span class="built_in">static_assert</span>(std::is_const_v&lt;<span class="keyword">decltype</span>(crx)&gt;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="当-E-是类-tuple-类型"><a href="#当-E-是类-tuple-类型" class="headerlink" title="当 E 是类 tuple 类型"></a>当 E 是类 tuple 类型</h3><p>类 tuple 类型是指 <code>std::tuple_size&lt;E&gt;::value</code> 是整形数表达式且等于 <code>E</code> 的元素数量</p>
-<p>变量是 <code>e</code> 的各个元素，但其类型不是左值引用，其类型是 <code>std::tuple_element&lt;i, E&gt;::type</code></p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="type">float</span> x&#123;&#125;;</span><br><span class="line">  <span class="type">char</span> y&#123;<span class="string">&#x27;a&#x27;</span>&#125;;</span><br><span class="line">  <span class="type">int</span> z&#123;&#125;;</span><br><span class="line"></span><br><span class="line">  <span class="function">std::tuple&lt;<span class="type">float</span> &amp;, <span class="type">char</span> &amp;&amp;, <span class="type">int</span>&gt; <span class="title">tpl</span><span class="params">(x, std::move(y), z)</span></span>;</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;tpl.0 &quot;</span>, &amp;std::<span class="built_in">get</span>&lt;<span class="number">0</span>&gt;(tpl));</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;tpl.1 &quot;</span>, &amp;std::<span class="built_in">get</span>&lt;<span class="number">1</span>&gt;(tpl));</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;tpl.2 &quot;</span>, &amp;std::<span class="built_in">get</span>&lt;<span class="number">2</span>&gt;(tpl));</span><br><span class="line">  <span class="type">const</span> <span class="keyword">auto</span> &amp;[a, b, c] = tpl;</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;a &quot;</span>, &amp;a);</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;b &quot;</span>, &amp;b);</span><br><span class="line">  <span class="built_in">print_msg</span>(<span class="string">&quot;&amp;c &quot;</span>, &amp;c);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">static_assert</span>(std::is_same_v&lt;<span class="keyword">decltype</span>(a), <span class="type">float</span>&amp;&gt;);</span><br><span class="line">  <span class="built_in">static_assert</span>(std::is_same_v&lt;<span class="keyword">decltype</span>(b), <span class="type">char</span>&amp;&amp;&gt;);</span><br><span class="line">  <span class="built_in">static_assert</span>(std::is_same_v&lt;<span class="keyword">decltype</span>(c), <span class="type">const</span> <span class="type">int</span>&gt;);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">static_assert</span>(std::is_same_v&lt;std::<span class="type">tuple_element_t</span>&lt;<span class="number">0</span>, <span class="type">const</span> <span class="keyword">decltype</span>(tpl)&gt;, <span class="type">float</span>&amp;&gt;);</span><br><span class="line">  <span class="built_in">static_assert</span>(std::is_same_v&lt;std::<span class="type">tuple_element_t</span>&lt;<span class="number">1</span>, <span class="type">const</span> <span class="keyword">decltype</span>(tpl)&gt;, <span class="type">char</span>&amp;&amp;&gt;);</span><br><span class="line">  <span class="built_in">static_assert</span>(std::is_same_v&lt;std::<span class="type">tuple_element_t</span>&lt;<span class="number">2</span>, <span class="type">const</span> <span class="keyword">decltype</span>(tpl)&gt;, <span class="type">const</span> <span class="type">int</span>&gt;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这里 <code>c</code> 是 <code>const</code> 而 <code>a</code> 和 <code>b</code> 不带 <code>const</code>，原因是 <code>std::tuple_element_t</code> 底层调用了 <code>std::add_const</code>，而 <code>std::add_const</code> 对引用失效</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">template &lt;size_t __i, typename _Tp&gt;</span><br><span class="line">struct tuple_element&lt;__i, const _Tp&gt; &#123;</span><br><span class="line">  typedef typename add_const&lt;__tuple_element_t&lt;__i, _Tp&gt;&gt;::type type;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">template &lt;size_t __i, typename _Tp&gt;</span><br><span class="line">struct tuple_element&lt;__i, volatile _Tp&gt; &#123;</span><br><span class="line">  typedef typename add_volatile&lt;__tuple_element_t&lt;__i, _Tp&gt;&gt;::type type;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">template &lt;size_t __i, typename _Tp&gt;</span><br><span class="line">struct tuple_element&lt;__i, const volatile _Tp&gt; &#123;</span><br><span class="line">  typedef typename add_cv&lt;__tuple_element_t&lt;__i, _Tp&gt;&gt;::type type;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="绑定成员变量"><a href="#绑定成员变量" class="headerlink" title="绑定成员变量"></a>绑定成员变量</h3><p>绑定所有非静态成员变量</p>
 
       
     </div>
