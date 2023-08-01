@@ -16,6 +16,8 @@ int open (const char* name, int flags);
 int open (const char* name, int flags, mode_t mode);
 /*
 flags 表示文件的访问模式
+O_RDONLY、O_WRONLY、O_RDWR 是必选项
+以下时可选项
 O_APPEND 以追加模式打开
 O_ASYNC 当指定的文件可读可写时，会产生一个信号。该标志位只适用于 FIFO、管道、socket 和终端，不适用普通文件
 O_CREAT 文件不存在时，内核自动创建

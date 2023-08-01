@@ -17,7 +17,6 @@ target_compile_definitions(<target>
 
 `target` 不能是 alias target
 
-
 ```cmake
 add_compile_definitions(target MACRO_FEATURE_A)
 # 等同于 add_compile_options(target -DMACRO_FEATURE_A)
