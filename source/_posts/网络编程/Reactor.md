@@ -37,7 +37,7 @@ Reactor 模式是灵活多变的，可根据不同场景特殊设计：
 
 整体流程：
 
-1. Reactor 对象通过 `select` 监控事件，收到事件后通过事件类型进行转发
+1. Reactor 对象通过 IO 复用监控事件，收到事件后通过事件类型进行转发
 
 2. 如果是连接建立的事件，则由 Acceptor 对象进行处理，并创建 Handler 对象负责处理后续事件
 
@@ -53,7 +53,7 @@ Reactor 模式是灵活多变的，可根据不同场景特殊设计：
 
 {% asset_img 02.png %}
 
-1. Reactor 对象通过 `select` 监控事件，收到事件后通过事件类型进行分发
+1. Reactor 对象通过 IO 复用监控事件，收到事件后通过事件类型进行转发
 
 2. 如果是连接建立的事件，则由 Acceptor 对象进行处理，并创建 Handler 对象负责处理后续事件
 
@@ -73,9 +73,9 @@ Reactor 模式是灵活多变的，可根据不同场景特殊设计：
 
 {% asset_img 03.png %}
 
-1. 主线程中的 MainReactor 对象通过 `select` 监控连接事件，收到事件后通过 Acceptor 对象将新连接分配给子线程的 SubReactor
+1. 主线程中的 MainReactor 对象通过 IO 复用监控连接事件，收到事件后通过 Acceptor 对象将新连接分配给子线程的 SubReactor
 
-2. 子线程中的 SubReactor 对象将接收的新连接加入自己的 `select` 中继续监控，并创建一个 Handler 对象处理后续事件
+2. 子线程中的 SubReactor 对象将接收的新连接加入自己的 IO 复用中继续监控，并创建一个 Handler 对象处理后续事件
 
 3. 当有新事件发生时，由 SubReactor 对象调用相应 Handler 对象进行处理
 
