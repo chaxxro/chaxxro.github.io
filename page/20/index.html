@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">405</span>
+          <span class="site-state-item-count">406</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,133 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-stream/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/20/Redis-stream/" class="post-title-link" itemprop="url">stream</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-20 21:10:56" itemprop="dateCreated datePublished" datetime="2023-04-20T21:10:56+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-03 03:16:32" itemprop="dateModified" datetime="2023-08-03T03:16:32+08:00">2023-08-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="消息队列存取需求"><a href="#消息队列存取需求" class="headerlink" title="消息队列存取需求"></a>消息队列存取需求</h2><p>在分布式系统中，当两个组件要基于消息队列进行通信时，一个组件会把要处理的数据以消息的形式传递给消息队列，然后这个组件就可以继续执行其他操作了；远端的另一个组件从消息队列中把消息读取出来，再在本地进行处理</p>
+<img src="/2023/04/20/Redis-stream/01.png" class="">
+
+<p>在使用消息队列时，消费者可以异步读取生产者消息，然后再进行处理。这样一来，即使生产者发送消息的速度远远超过了消费者处理消息的速度，生产者已经发送的消息也可以缓存在消息队列中，避免阻塞生产者</p>
+<p>消息队列在存取消息时，必须要满足三个需求，分别是消息保序、处理重复的消息和保证消息可靠性</p>
+<h3 id="消息保序"><a href="#消息保序" class="headerlink" title="消息保序"></a>消息保序</h3><p>消费者是异步处理消息，但是消费者仍然需要按照生产者发送消息的顺序来处理消息，避免后发送的消息被先处理了</p>
+<h3 id="重复消息处理"><a href="#重复消息处理" class="headerlink" title="重复消息处理"></a>重复消息处理</h3><p>消费者从消息队列读取消息时，有时会因为网络堵塞而出现消息重传的情况，消费者可能会收到多条重复的消息</p>
+<h3 id="消息可靠性保证"><a href="#消息可靠性保证" class="headerlink" title="消息可靠性保证"></a>消息可靠性保证</h3><p>消费者在处理消息的时候，可能出现因为故障或宕机导致消息没有处理完成的情况</p>
+<p>消息队列需要能提供消息可靠性的保证，当消费者重启后，可以重新读取消息再次进行处理，否则就会出现消息漏处理的问题了</p>
+<h2 id="基于-List-的解决方案"><a href="#基于-List-的解决方案" class="headerlink" title="基于 List 的解决方案"></a>基于 List 的解决方案</h2><p>生产者可以使用 LPUSH 命令把要发送的消息依次写入 List，而消费者则可以使用 RPOP 命令，从 List 的另一端按照消息的写入顺序，依次读取消息并进行处理</p>
+<h3 id="消息保序-1"><a href="#消息保序-1" class="headerlink" title="消息保序"></a>消息保序</h3><p>在生产者往 List 中写入数据时，List 并不会主动地通知消费者有新消息写入，如果消费者想要及时处理消息，就需要在程序中不停地调用 RPOP 命令，会导致消费者程序的 CPU 一直消耗在执行 RPOP 命令上，带来不必要的性能损失</p>
+<p>Redis 提供了 BRPOP 命令，客户端在没有读到队列数据时，自动阻塞直到有新的数据写入队列，再开始读取新数据。和消费者程序自己不停地调用 RPOP 命令相比，这种方式能节省 CPU 开销</p>
+<h3 id="重复信息处理"><a href="#重复信息处理" class="headerlink" title="重复信息处理"></a>重复信息处理</h3><p>List 本身是不会为每个消息生成 ID 号的，所以消息的全局唯一 ID 号就需要生产者程序在发送消息前自行生成；生成之后，在用 LPUSH 命令把消息插入 List 时，需要在消息中包含这个全局唯一 ID</p>
+<p>消费者程序要把已经处理过的消息的 ID 号记录下来，就可以对比收到的消息 ID 和记录的已处理过的消息 ID，来判断当前收到的消息有没有经过处理</p>
+<h3 id="消息可靠性保证-1"><a href="#消息可靠性保证-1" class="headerlink" title="消息可靠性保证"></a>消息可靠性保证</h3><p>List 类型提供了 BRPOPLPUSH 命令，作用是让消费者程序从一个 List 中读取消息，同时 Redis 会把这个消息再插入到另一个 List（可以叫作备份 List）留存</p>
+<p>如果消费者程序读了消息但没能正常处理，等它重启后，就可以从备份 List 中重新读取消息并进行处理了</p>
+<h3 id="不足"><a href="#不足" class="headerlink" title="不足"></a>不足</h3><p>生产者消息发送很快，而消费者处理消息的速度比较慢，这就导致 List 中的消息越积越多，给 Redis 的内存带来很大压力</p>
+<p>List 作为消息队列不支持消费组，不能启动多个消费者程序一起处理 List 中的消息</p>
+<h2 id="基于-Stream-的解决方案"><a href="#基于-Stream-的解决方案" class="headerlink" title="基于 Stream 的解决方案"></a>基于 Stream 的解决方案</h2><p>Stream 是 Redis 专门为消息队列设计的数据类型，它提供了丰富的消息队列操作命令</p>
+<p>Stream 是一个序列，使用XADD向其中添加的消息不会被自动删除（在 Stream 长度限制之内），所有消息始终在那里</p>
+<h3 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h3><img src="/2023/04/20/Redis-stream/02.png" class="">
+
+<ul>
+<li><p>Consumer Group：消费者组可以看成 Stream 的一种数据结构；消费者可以使用 XREAD 单独消费，也可以多个消费者加入一个消费者组进行组内消费；同一条消息只会被一个消费者消费</p>
+</li>
+<li><p>last_delivered_id：表示消费者组在 Stream 上的消费位置信息；每个消费者组都有一个 Stream 内唯一的名称；消费者组不会自动创建，需要使用 XGROUP CREATE 显示创建，并指明开始消费的消息 ID，用来初始化该变量</p>
+</li>
+<li><p>pending_ids：每个消费者内部的状态变量，表示已经被获取但未 ACK 的消息，用来保证消息被客户端至少消费一次</p>
+</li>
+<li><p>ID：第一部分是数据插入时，以毫秒为单位计算的当前服务器时间，第二部分表示插入消息在当前毫秒内的消息序号；保证了 ID 自增，支持范围查找；支持客户端自定义，但需满足整数-整数格式</p>
+</li>
+<li><p>消息内容：普通键值对</p>
+</li>
+</ul>
+<h3 id="消费者组"><a href="#消费者组" class="headerlink" title="消费者组"></a>消费者组</h3><p>当多个消费者同时消费一个消息队列时，可以重复的消费相同的消息，就是消息队列中有 10 条消息，三个消费者都可以消费到这 10 条消息</p>
+<p>消费者组为需要多个消费者配合协作来消费同一个消息队列，就是消息队列中有 10 条消息，三个消费者分别消费其中的某些消息</p>
+<img src="/2023/04/20/Redis-stream/03.png" class="">
+
+<p>每个消费者组内可以挂多个消费者分担读取消息进行消费，消费完成后，各自向 Redis 发送 XACK，标记自己的消费组已经消费到了哪个位置，而且消费组之间互不影响</p>
+<h3 id="Stream-上限"><a href="#Stream-上限" class="headerlink" title="Stream 上限"></a>Stream 上限</h3><p>消息积累太多，Stream 的链表会变得很长，XDEL 不会删除消息，只是给消息做了个标志位</p>
+<p>Redis 提供了定长的 Stream 功能，在 XADD 的指令提供一个定长长度 maxlen；当 Stream 达到指定长度后会自动淘汰老的信息，确保最多不超过指定长度</p>
+<h3 id="PEL"><a href="#PEL" class="headerlink" title="PEL"></a>PEL</h3><p>Stream 在每个消费者结构中保存了正在处理中的消息 ID 列表 PEL，如果消费者收到了消息处理完了但是没有回复 ACK，就会导致 PEL 列表不断增长，如果有很多消费组的话，那么这个 PEL 占用的内存就会放大</p>
+<p>客户端断开连接重连后，读取数据时使用 0-0 来读取所有 PEL 消息及 last_delivered_id 之后消息</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +322,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-02 17:28:04" itemprop="dateModified" datetime="2023-08-02T17:28:04+08:00">2023-08-02</time>
+      <time title="修改时间：2023-08-03 03:16:32" itemprop="dateModified" datetime="2023-08-03T03:16:32+08:00">2023-08-03</time>
     </span>
 
   
@@ -288,7 +415,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-02 17:28:04" itemprop="dateModified" datetime="2023-08-02T17:28:04+08:00">2023-08-02</time>
+      <time title="修改时间：2023-08-03 03:16:32" itemprop="dateModified" datetime="2023-08-03T03:16:32+08:00">2023-08-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -411,7 +538,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-02 17:28:04" itemprop="dateModified" datetime="2023-08-02T17:28:04+08:00">2023-08-02</time>
+      <time title="修改时间：2023-08-03 03:16:32" itemprop="dateModified" datetime="2023-08-03T03:16:32+08:00">2023-08-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -540,7 +667,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-02 17:28:04" itemprop="dateModified" datetime="2023-08-02T17:28:04+08:00">2023-08-02</time>
+      <time title="修改时间：2023-08-03 03:16:32" itemprop="dateModified" datetime="2023-08-03T03:16:32+08:00">2023-08-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -667,7 +794,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-02 17:28:04" itemprop="dateModified" datetime="2023-08-02T17:28:04+08:00">2023-08-02</time>
+      <time title="修改时间：2023-08-03 03:16:32" itemprop="dateModified" datetime="2023-08-03T03:16:32+08:00">2023-08-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -806,7 +933,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-02 17:28:04" itemprop="dateModified" datetime="2023-08-02T17:28:04+08:00">2023-08-02</time>
+      <time title="修改时间：2023-08-03 03:16:32" itemprop="dateModified" datetime="2023-08-03T03:16:32+08:00">2023-08-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -907,7 +1034,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-02 17:28:04" itemprop="dateModified" datetime="2023-08-02T17:28:04+08:00">2023-08-02</time>
+      <time title="修改时间：2023-08-03 03:16:32" itemprop="dateModified" datetime="2023-08-03T03:16:32+08:00">2023-08-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1066,7 +1193,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-02 17:28:04" itemprop="dateModified" datetime="2023-08-02T17:28:04+08:00">2023-08-02</time>
+      <time title="修改时间：2023-08-03 03:16:32" itemprop="dateModified" datetime="2023-08-03T03:16:32+08:00">2023-08-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1171,7 +1298,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-02 17:28:04" itemprop="dateModified" datetime="2023-08-02T17:28:04+08:00">2023-08-02</time>
+      <time title="修改时间：2023-08-03 03:16:32" itemprop="dateModified" datetime="2023-08-03T03:16:32+08:00">2023-08-03</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1257,119 +1384,6 @@
 
 <p>当主从库全量同步时，如果主库接收到了一条 EXPIRE 命令，那么，主库会直接执行这条命令。这条命令会在全量同步完成后，发给从库执行。而从库在执行时，就会在当前时间的基础上加上数据的存活时间，这样一来，从库上数据的过期时间就会比主库上延后了</p>
 <p>在业务应用中使用 EXPIREAT&#x2F;PEXPIREAT 命令，把数据的过期时间设置为具体的时间点，避免读到过期数据，同时主从节点上的时钟要保持一致</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-IO%E6%A8%A1%E5%9E%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-IO%E6%A8%A1%E5%9E%8B/" class="post-title-link" itemprop="url">IO 模型</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-20 20:56:27" itemprop="dateCreated datePublished" datetime="2023-04-20T20:56:27+08:00">2023-04-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-02 17:28:04" itemprop="dateModified" datetime="2023-08-02T17:28:04+08:00">2023-08-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Redis 是单线程，主要是指 Redis 的网络 IO 和键值对读写是由一个线程来完成的，这也是 Redis 对外提供键值存储服务的主要流程，但 Redis 的其他功能，比如持久化、异步删除、集群数据同步等，其实是由额外的线程执行的</p>
-<h2 id="多线程开销"><a href="#多线程开销" class="headerlink" title="多线程开销"></a>多线程开销</h2><p>对于一个多线程的系统来说，在有合理的资源分配的情况下，可以增加系统中处理请求操作的资源实体，进而提升系统能够同时处理的请求数</p>
-<p>但是在采用多线程后，如果没有良好的系统设计，进一步增加线程时，系统吞吐率就增长迟缓了，有时甚至还会出现下降的情况</p>
-<p>多线程编程模式面临的共享资源的并发访问控制问题，当有多个线程要修改这个共享资源时，为了保证共享资源的正确性，就需要有额外的机制进行保证，而这个额外的机制，就会带来额外的开销</p>
-<h2 id="单线程-Redis-快"><a href="#单线程-Redis-快" class="headerlink" title="单线程 Redis 快"></a>单线程 Redis 快</h2><ul>
-<li><p>大部分操作在内存上完成</p>
-</li>
-<li><p>采用了高效的数据结构，如哈希表和跳表</p>
-</li>
-<li><p>采用了 IO 复用机制，使其在网络 IO 操作中能并发处理大量的客户端请求，实现高吞吐率</p>
-</li>
-</ul>
-<h2 id="多路复用"><a href="#多路复用" class="headerlink" title="多路复用"></a>多路复用</h2><p>Redis 网络框架调用 epoll 机制，让内核监听套接字，并且提供了基于事件的回调机制；select&#x2F;epoll 一旦监测到 FD 上有请求到达时，就会触发相应的事件，事件会被放进一个事件队列，Redis 单线程对该事件队列不断进行处理</p>
-<h2 id="潜在性能瓶颈"><a href="#潜在性能瓶颈" class="headerlink" title="潜在性能瓶颈"></a>潜在性能瓶颈</h2><ul>
-<li><p>操作 bigkey：写入一个 bigkey 在分配内存时需要消耗更多的时间，同样删除 bigkey 释放内存同样会产生耗时</p>
-</li>
-<li><p>使用复杂度过高的命令</p>
-</li>
-<li><p>Redis 的过期机制也是在主线程中执行的，大量 key 集中过期会导致处理一个请求时，耗时都在删除过期 key，耗时变长</p>
-</li>
-<li><p>淘汰策略也是在主线程执行的，当内存超过 Redis 内存上限后，每次写入都需要淘汰一些 key，也会造成耗时变长</p>
-</li>
-<li><p>AOF 刷盘开启 always 机制</p>
-</li>
-<li><p>主从全量同步生成 RDB，虽然采用 fork 子进程生成数据快照，但 fork 这一瞬间也是会阻塞整个线程的，实例越大，阻塞时间越久</p>
-</li>
-<li><p>并发量非常大时，单线程读写客户端 IO 数据存在性能瓶颈，虽然采用 IO 多路复用机制，但是读写客户端数据依旧是同步 IO，只能单线程依次读取客户端的数据，无法利用到 CPU 多核</p>
-</li>
-</ul>
 
       
     </div>
