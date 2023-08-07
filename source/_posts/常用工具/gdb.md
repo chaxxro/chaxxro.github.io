@@ -23,10 +23,9 @@ int main() {
 }
 
 // 为 g++ 添加 -g 选项
-// g++ -g main.cpp
+// g++ -g main.
 
-// 运行程序
-gdb a.out
+// 运行程序 gdb a.out
 ```
 
 ## 启动 GDB
@@ -43,9 +42,9 @@ gdb a.out
 
 ```
 gdb program
-// 方式 1
+# 方式 1
 r hello
-// 方式 2
+# 方式 2
 set args hello
 r
 ```
@@ -55,6 +54,13 @@ r
 ```
 set pagination off # 全部输出，中间不会暂停
 set logging on # 打开日志模式，将调试信息输出至日志中
+set print pretty on
+set print object on
+set print static-members on
+set print vtbl on
+set print demangle on
+set demangle-style gnu-v3
+set print sevenbit-strings off
 ```
 
 ## 命令
@@ -67,10 +73,10 @@ set logging on # 打开日志模式，将调试信息输出至日志中
 
 查看程序代码
 
-```cpp
-// 展开指定行号附近代码
+```
+# 展开指定行号附近代码
 list [file:]linenum
-// 展开指定函数附近代码
+# 展开指定函数附近代码
 list [file:]function
 ```
 
@@ -78,13 +84,13 @@ list [file:]function
 
 在指定文件函数打断点，可简写 `b`
 
-```cpp
-// 指定函数入口打断点
+```
+# 指定函数入口打断点
 b [file:]function if expr
-// 指定行号打断点
+# 指定行号打断点
 b [file:]linenum if expr
 
-// 当前行的前几行或后几行设置断点
+# 当前行的前几行或后几行设置断点
 b +OFFSET
 b -OFFSET
 ```
@@ -97,7 +103,7 @@ b -OFFSET
 
 对变量设置观察点，当变量值变化时展示新旧值
 
-```cpp
+```
 watch var
 ```
 
@@ -117,7 +123,7 @@ condition bnum exp
 
 按表达式打印值，可简写 `p`
 
-```cpp
+```
 p expr
 
 p {var1, var2, var3}
@@ -161,20 +167,20 @@ p {var1, var2, var3}
 
 查看相关信息
 
-```cpp
-// 查看断点
+```
+# 查看断点
 info breakpoints
-// 查看线程
+# 查看线程
 info thread
-// 查看当前函数参数
+# 查看当前函数参数
 info args
-// 查看当前局部变量
+# 查看当前局部变量
 info lolcals
-// 查看全局变量和静态变量
+# 查看全局变量和静态变量
 info variables
-// 查看内存映射进程空间信息
+# 查看内存映射进程空间信息
 info proc m
-// 查看寄存器
+# 查看寄存器
 info registers
 ```
 
@@ -186,8 +192,8 @@ info registers
 
 禁用、启用断点
 
-```cpp
-// bp num 可从 info 得到
+```
+# bp num 可从 info 得到
 disable bpnum
 enable bpnum
 ```
@@ -196,8 +202,8 @@ enable bpnum
 
 删除断点
 
-```cpp
-// bp num 可从 info 得到
+```
+# bp num 可从 info 得到
 delete bpnum
 ```
 
@@ -205,18 +211,60 @@ delete bpnum
 
 结束调试，可简写 `q`
 
-## shell
+### set
 
-```cpp
-// 在 gdb 中可执行 shell 命令
-shell command
+设置别名
+
+```
+# 别名一定要是 $ 开头
+set $a=*ctx
+p $a.search_id_
 ```
 
+## shell
+
+```
+# 在 gdb 中可执行 shell 命令
+shell command
+```
 
 ## core 文件
 
 当打开生成 core 文件后，程序奔溃会生成 core 文件
 
-```cpp
+```
 gdb a.out core
+```
+
+## 技巧
+
+可以将内存地址按照它指向对象的真实类型进行转型然后输出
+
+```
+set $c =*(guodong::CommKvInfo*)0x7fef48c93df0
+p $c
+```
+
+## gdbinit
+
+https://gist.github.com/apetresc/436804
+
+该 .gdbinit 中提供了几个函数来打印 STL 容器
+
+`pvector`、`plist`、`pmap`、`pset`、`dequeue`、`pstack`、`pqueue`、`pqueue`、`pbitset`、`pstring`
+
+这份 .gdbinit 不支持 `std::unordered_map`，可以使用 gdb 自带的 `printers.py`
+
+```sh
+# 1. 先找到 printers.py
+find / -name "printers.py" 2> /dev/null
+# 输出 /usr/share/gcc-4.8.2/python/libstdcxx/v6/printers.py
+
+# 2. 在 .gdbinit 中引入 printers.py
+python
+import sys 
+sys.path.insert(0, '/usr/share/gcc-4.8.2/python')
+from libstdcxx.v6.printers import register_libstdcxx_printers
+register_libstdcxx_printers (None)
+end
 ```
