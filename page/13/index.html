@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">406</span>
+          <span class="site-state-item-count">404</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,334 +150,6 @@
     </div>
 
     <div class="main-inner index posts-expand">
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/" class="post-title-link" itemprop="url">文件 IO</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:03:44" itemprop="dateCreated datePublished" datetime="2023-04-28T21:03:44+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-07 18:04:01" itemprop="dateModified" datetime="2023-08-07T18:04:01+08:00">2023-08-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">文件系统</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="文件描述符"><a href="#文件描述符" class="headerlink" title="文件描述符"></a>文件描述符</h2><p>内核会为每个进程维护一个打开文件的列表，该列表称为文件表。列表的每一项是一个打开的文件的信息，包括指向该文件 inode 内存拷贝的指针以及关联的元数据</p>
-<p>当通过 <code>fork</code> 创建子进程时，子进程会维护一份父进程的文件表副本。在该副本中，打开文件列表及其访问模式、当前文件位置以及其他元数据，都和父进程的文件表相同</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/01.png" class="">
-
-<ul>
-<li><p>内核为每个进程都维护了一个文件表，文件表在底层是一个数组，索引从 0 开始，索引即为文件描述符，几乎所有对文件的操作均以文件描述符作为基本参数</p>
-</li>
-<li><p>每个文件描述符都对应一个文件指针，该指针指向系统中已经打开的文件信息，该文件信息也是一个数组，打开的文件信息包括文件偏移量、状态标志以及 inode 指针</p>
-</li>
-<li><p>inode 指针指向系统中的 inode 表，inode 表中的每个数据项都对应一个具体的磁盘文件</p>
-</li>
-<li><p>同一个进程内可以有两个文件指针指向同一个打开的文件信息</p>
-</li>
-<li><p>不同进程下可以有两个文件指针指向同一个打开的文件信息</p>
-</li>
-<li><p>打开的文件信息包括文件偏移量和状态标志</p>
-</li>
-</ul>
-<h2 id="IO-分类"><a href="#IO-分类" class="headerlink" title="IO 分类"></a>IO 分类</h2><p>IO 结构模型分为 Direct IO、mmap 和标准 IO</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/02.png" class="">
-
-<h3 id="标准-IO"><a href="#标准-IO" class="headerlink" title="标准 IO"></a>标准 IO</h3><p>大多数文件系统的默认 IO 操作都是标准 IO</p>
-<p>在 Linux 的标准 IO 机制中，数据先从磁盘复制到内核空间的缓冲区，然后从内核空间缓冲区复制到应用程序的地址空间</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/03.png" class="">
-
-<ol>
-<li><p>进程发起写请求，调用 <code>write</code></p>
-</li>
-<li><p><code>write</code> 更新内核空间中的页缓存，此次写请求需要更新两个页，分别是页缓存 1 和页缓存 2，此时页缓存中的数据和磁盘中的数据不一致，称这样的页为脏页</p>
-</li>
-<li><p>内核空间页缓存更新完毕，向进程返回成功。此时并未将页缓存中的数据刷新到磁盘文件</p>
-</li>
-<li><p>进程收到 <code>write</code> 返回成功，继续其他操作处理。一段时间后，发起读请求调用 <code>read</code></p>
-</li>
-<li><p>内核空间收到 <code>read</code> 调用请求，发现需要读取的数据部分落在页缓存 2 和页缓存 3 中，则从缓存中读取其内容</p>
-</li>
-<li><p><code>read</code> 请求发现数据不完全在页缓存 2 和页缓存 3 中，于是读取磁盘文件 1 并将文件中需要读取的数据放到页缓存 3 中</p>
-</li>
-<li><p><code>read</code> 将读取到的数据组装好返回给进程</p>
-</li>
-<li><p>满足一定条件时，内核空间将页缓存 1 和页缓存 2 中的数据刷新到磁盘</p>
-</li>
-</ol>
-<p>系统在进程发起 <code>write</code> 系统调用时，只是将数据写入内核缓冲区中的页缓存即返回，将内核空间页缓存中的数据刷新到磁盘是异步的。相比于同步刷盘，引入页缓存机制，能显著提高 <code>write</code> 和 <code>read</code>的性能，而且还不会修改读写语义（写完之后能立刻读到写的内容）</p>
-<p>页回写的时机可以分时间和空间两个维度分析：</p>
-<ul>
-<li><p>当内核缓冲区中某一个脏页存在的时长超过设定的阈值时，该脏页回写磁盘。该参数是 &#x2F;proc&#x2F;sys&#x2F;vm&#x2F;dirty_expire_centisecs，默认值是 30s</p>
-</li>
-<li><p>当内核缓冲区中脏页的数量达到一定比例，或者说空闲缓冲页比率小于设定的阈值时，脏页回写磁盘，回收缓冲页。该参数是 &#x2F;proc&#x2F;sys&#x2F;vm&#x2F;dirty_background_ratio，默认值是 10%，即空闲的页缓存比率小于 10% 时，触发页回写</p>
-</li>
-</ul>
-<p>优点：</p>
-<ul>
-<li><p>在一定程度上分离了内核空间和用户空间，保护系统本身的运行安全</p>
-</li>
-<li><p>可以减少读盘的次数，从而提高性能</p>
-</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li><p>数据在传输过程中需要在用户空间和内核空间之间进行多次数据拷贝操作，这些数据拷贝操作所带来的 CPU 以及内存开销是非常大的</p>
-</li>
-<li><p>延迟写机制可能会导致数据丢失，page cache 中被修改的内存称为脏页，内核通过 flush 线程定期将数据写入磁盘；在实际应用中，如果某些数据非常重要，是完全不允许有丢失风险的，这时应该采用同步写机制，在应用程序中使用 sync、fsync、msync 等系统调用时，内核都会立刻将相应的数据写回到磁盘</p>
-</li>
-</ul>
-<h3 id="用户态缓冲-IO"><a href="#用户态缓冲-IO" class="headerlink" title="用户态缓冲 IO"></a>用户态缓冲 IO</h3><p>在标准 IO 基础上，通过引入用户态缓冲，减少系统 IO 调用的次数和内核态用户态上下文切换</p>
-<p><code>fopen</code>、<code>fclose</code>、<code>fgetc</code>、<code>fputc</code> 等是带用户缓冲 IO 相关的函数</p>
-<h3 id="直接-IO"><a href="#直接-IO" class="headerlink" title="直接 IO"></a>直接 IO</h3><p>直接 IO 就是应用程序直接访问磁盘数据，而不经过内核缓冲区，这样做的目的是减少一次从内核缓冲区到用户程序缓存的数据复制</p>
-<p>优点：</p>
-<ul>
-<li><p>应用程序自己选择缓存机制，提高数据的存取效率</p>
-</li>
-<li><p>写操作：由于其不使用 page cache，所以其写文件如果返回成功，数据就落盘了（不考虑磁盘自带的缓存）</p>
-</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li><p>如果访问的数据不在应用程序缓存中，那么每次数据都会直接从磁盘加载，这种直接加载会非常慢</p>
-</li>
-<li><p>在部分操作系统中，<code>write</code> 系统调用能够确保文件数据落盘，但是文件元数据不一定落盘</p>
-</li>
-<li><p>强制的地址对齐限制，必须使用 <code>posix_memalign</code> 开启地址对其的内存，再将数据拷贝至这个内存中。这个对齐的大小也跟文件系统和存储介质相关，因为文件系统中存储数据是按 IO Block 为单位</p>
-</li>
-<li><p>由于设备之间的数据传输是通过 DMA 完成的，因此用户空间的数据缓冲区内存页必须进行页锁定 page pinning，这是为了防止其物理页框地址被交换到磁盘或者被移动到新的地址而导致 DMA 去拷贝数据的时候在指定的地址找不到内存页从而引发缺页错误，而页锁定的开销并不比 CPU 拷贝小，所以为了避免频繁的页锁定系统调用，应用程序必须分配和注册一个持久的内存池，用于数据缓冲</p>
-</li>
-</ul>
-<h3 id="内存映射-mmap"><a href="#内存映射-mmap" class="headerlink" title="内存映射 mmap"></a>内存映射 mmap</h3><p>内存映射就是将内核空间的一段内存区域映射到用户空间。映射成功后，用户对这段内存区域的修改可以直接反映到内核空间，相反内核空间对这段区域的修改也直接反映用户空间</p>
-<p>内存映射对于内核空间与用户空间两者之间需要大量数据传输等操作的话效率是非常高的。当然，也可以将内核空间的一段内存区域同时映射到多个进程，这样还可以实现进程间的共享内存通信</p>
-<p><code>mmap</code> 返回的虚拟内存地址处在堆栈之间的空余部分，与文件的 page chache 具有相同的物理页，这样就免去了从内核缓冲区向用户态的数据拷贝</p>
-<p>使用 &#96;mmap&#96;&#96; 操作文件时，创建新的虚拟内存区域和建立文件磁盘地址和虚拟内存区域映射这两步，没有任何文件拷贝操作。而之后访问数据时发现内存中并无数据而发起的缺页异常过程，可以通过已经建立好的映射关系，只使用一次数据拷贝，就从磁盘中将数据传入内存的用户空间中，供进程使用</p>
-<p>通过 <code>mmap</code> 将用户态内存与文件建立映射后，即使调用 <code>close</code>，依旧可以写文件，因为存储映射还在</p>
-<p>使用 <code>munmap</code> 取消存储映射，取消映射后再对用户态内存进行操作就不会反应到文件中</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/04.png" class="">
-
-<p>优点：</p>
-<ul>
-<li><p>实现了用户空间和内核空间的高效交互方式，两空间的各自修改操作可以直接反映在映射的区域内，从而被对方空间及时捕捉，并且可以节省一半的内存占用</p>
-</li>
-<li><p>提供进程间共享内存及相互通信的方式，不管是父子进程还是无亲缘关系的进程，都可以将自身用户空间映射到同一个文件或匿名映射到同一片区域，从而通过各自对映射区域的改动，达到进程间通信和进程间共享的目的</p>
-</li>
-<li><p>读写文件时不会带来上下文切换，<code>write</code>、<code>read</code> 都需要从用户态切换到内核态，再从内核态切换到用户态</p>
-</li>
-</ul>
-<p>限制：</p>
-<ul>
-<li><p>&#96;mmap&#96;&#96; 映射区域大小必须是物理页大小（page_size）的整倍数</p>
-</li>
-<li><p><code>mmap</code> 必须将文件的 len 字节信息映射到进程空间的映射区，需要在一开始就确定 len 的大小，不太适用于随机读写的场景</p>
-</li>
-<li><p>由于需要进行映射，会占用进程映射区的空间，因此映射的大小有限制</p>
-</li>
-<li><p><code>mmap</code> 是一个开销很大的虚拟存储操作，这种操作需要修改页表以及用内核缓冲区里的文件数据汰换掉当前 TLB 里的缓存以维持虚拟内存映射的一致性</p>
-</li>
-</ul>
-<p>因为映射后的内存是物理页的整数倍，所以一般内存将大于文件大小。拓展出的内存将被填位 0。越界访问拓展出的内存将不会报错，但写操作不会作用在文件中</p>
-<p>进行完内存映射后可以再改变文件大小，使访问的内存合法。这样方便随时扩充文件空间，随时写入文件，不造成空间浪费</p>
-<p>与共享内存的区别：</p>
-<ul>
-<li><p><code>shm</code> 的内存共享效率比 <code>mmap</code> 效率要高，但 <code>mmap</code> 操作更简单，存储量也更大</p>
-</li>
-<li><p><code>mmap</code> 使用普通文件提供的内存映射，适用于任何进程之间；使用特殊文件提供匿名内存映射，适用于具有亲缘关系的进程之间</p>
-</li>
-<li><p>机器重启后，<code>mmap</code> 因为是映射磁盘文件所以数据不会丢失，而 <code>shm</code> 会丢失数据</p>
-</li>
-</ul>
-<h2 id="DMA"><a href="#DMA" class="headerlink" title="DMA"></a>DMA</h2><p>传统 IO 需要 CPU 把数据从磁盘控制器的缓冲区拷贝到主存里的内核缓冲区，然后再把内核缓冲区拷贝到用户缓冲区</p>
-<p>从内核缓冲区到用户缓冲区，因为缓冲区都是在内存里，所以这一步只能由 CPU 亲自完成。从磁盘控制器的缓冲区到内存，是两个设备之间的数据传输，这一步并非一定要 CPU 来完成，可以借助 DMA 来完成，从而减轻 CPU 的负担</p>
-<p>DMA 全称是 Direct Memory Access，即直接存储器存取，是一种用来提供在外设和存储器之间或者存储器和存储器之间的高速数据传输。整个数据拷贝过程无须 CPU 参与，数据直接通过 DMA 控制器进行快速地移动拷贝，节省 CPU 的资源去做其他工作</p>
-<p>一次读操作或写操作，会触发 2 次用户态和内核态的上下文切换，2 次 CPU 拷贝数据。借助 DMA，将 2 次 CPU 拷贝数据转换成 1 次 CPU 拷贝数据和 1 次 DMA 拷贝</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E9%94%81/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E9%94%81/" class="post-title-link" itemprop="url">锁</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:01:22" itemprop="dateCreated datePublished" datetime="2023-04-28T21:01:22+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-07 18:04:01" itemprop="dateModified" datetime="2023-08-07T18:04:01+08:00">2023-08-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E9%94%81/" itemprop="url" rel="index"><span itemprop="name">锁</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <ul>
-<li><p>互斥锁 mutex：用于保证在任何时刻，都只能有一个线程访问该对象。当获取锁操作失败时，线程会释放 CPU；等到锁被释放后，内核会在合适的时机唤醒线程，当这个线程成功获取到锁后，于是就可以继续执行；存在两次线程上下文切换开销</p>
-</li>
-<li><p>读写锁 rwlock：分为读锁和写锁；处于读操作时，可以允许多个线程同时获得读操作；同一时刻只能有一个线程可以获得写锁，其它获取写锁失败的线程都会进入睡眠状态，直到写锁释放时被唤醒；写锁会阻塞其它读写锁，当有一个线程获得写锁在写时，读锁也不能被其它线程获取，写锁优先于读锁（一旦有写锁，则后续读者必须等待，唤醒时优先考虑写锁）；适用于读取数据的频率远远大于写数据的频率的场合</p>
-</li>
-<li><p>自旋锁 spinlock：在任何时刻同样只能有一个线程访问对象，但是当获取锁操作失败时，不会释放 CPU，而是会在原地自旋，直到锁被释放；保护的临界区必须小，且操作过程必须短；节省了线程从睡眠状态到被唤醒期间的消耗，在加锁时间短暂的环境下会极大的提高效率；加锁时间过长，则会非常浪费 CPU 资源；自旋锁在用户态完成加锁和解锁，不会主动产生线程上下文切换；被广泛应用于内核</p>
-</li>
-<li><p>RCU(read-copy-update)：在修改数据时首先需要读取数据，然后生成一个副本，对副本进行修改，修改完成后再将老数据 update 成新的数据；读锁几乎不需要同步开销，既不需要获得锁，也不使用原子指令，不会导致锁竞争；对于写锁的同步开销较大，它需要复制被修改的数据，还必须使用锁机制同步并行其它写锁的修改操作；在有大量读操作，少量写操作的情况下效率非常高</p>
-</li>
-</ul>
-<h2 id="Test-and-Set"><a href="#Test-and-Set" class="headerlink" title="Test-and-Set"></a>Test-and-Set</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 形式如下</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">TestAndSet</span><span class="params">(<span class="type">int</span> * old_ptr, <span class="type">int</span> <span class="keyword">new</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> old = *old_ptr;</span><br><span class="line">    *old_ptr = <span class="keyword">new</span>;</span><br><span class="line">    <span class="keyword">return</span> old;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这些代码是原子执行，既可以测试旧值，又可以设置新值</p>
-<h3 id="忙等待"><a href="#忙等待" class="headerlink" title="忙等待"></a>忙等待</h3><p>用 Test-and-Set 指令来实现忙等待锁</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">stuct <span class="type">lock_t</span> &#123;</span><br><span class="line">    <span class="comment">// flag == 0 时锁未被持有</span></span><br><span class="line">    <span class="comment">// flag == 1 时锁被持有</span></span><br><span class="line">    <span class="type">int</span> flag;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="built_in">TestAndSet</span>(lock, <span class="number">1</span>) == <span class="number">1</span>) ;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>当获取不到锁时，线程就会一直 <code>while</code> 循环，不做任何事情，所以就被称为忙等待锁，也被称为自旋锁</p>
-<p>自旋锁利用 CPU 周期，一直自旋直到锁可用；在单处理器上，需要抢占式的调度器，因为一个自旋的线程永远不会放弃 CPU</p>
-<h3 id="无忙等待"><a href="#无忙等待" class="headerlink" title="无忙等待"></a>无忙等待</h3><p>当没获取到锁的时候，就把当前线程放入到锁的等待队列，然后执行调度程序，把 CPU 让给其他线程执行</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">stuct <span class="type">lock_t</span> &#123;</span><br><span class="line">    <span class="type">int</span> flag;</span><br><span class="line">    <span class="type">queue_t</span> * q;  <span class="comment">// 等待队列</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">queue_init</span>(lock-&gt;q);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="built_in">TestAndSet</span>(lock, <span class="number">1</span>) == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="comment">// 保存现在运行线程 TCB，并插入等待队列</span></span><br><span class="line">        <span class="comment">// 设置该线程为等待状态</span></span><br><span class="line">        <span class="comment">// 调度</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(lock-&gt;q != <span class="literal">nullptr</span>) &#123;</span><br><span class="line">        <span class="comment">// 移除等待队列的队头元素</span></span><br><span class="line">        <span class="comment">// 将该线程的 TCB 插入到就绪队列</span></span><br><span class="line">        <span class="comment">// 设置线程为就绪状态</span></span><br><span class="line">    &#125;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Compare-and-Swap"><a href="#Compare-and-Swap" class="headerlink" title="Compare_and_Swap"></a>Compare_and_Swap</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">CompareAndSwap</span><span class="params">(<span class="type">int</span> *ptr, <span class="type">int</span> expected, <span class="type">int</span> <span class="keyword">new</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> actual = *ptr;</span><br><span class="line">    <span class="keyword">if</span> (actual == expected) *ptr = <span class="keyword">new</span>;</span><br><span class="line">    <span class="keyword">return</span> actual;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="信号量实现"><a href="#信号量实现" class="headerlink" title="信号量实现"></a>信号量实现</h2><p>为每类共享资源设置一个信号量 s，其初值为 1，表示该临界资源未被占用</p>
-<p>只要把进入临界区的操作置于 P(s) 和 V(s) 之间，即可实现进程&#x2F;线程互斥</p>
-<p>任何想进入临界区的线程，必先在互斥信号量上执行 P 操作，在完成对临界资源的访问后再执行 V 操作</p>
-<p>由于互斥信号量的初始值为 1，故在第一个线程执行 P 操作后 s 值变为 0，表示临界资源为空闲，</p>
-<p>可分配给该线程，使之进入临界区；第二个线程想进入临界区，也应先执行 P 操作，结果使 s 变为</p>
-<p>负值，这就意味着临界资源已被占用，第二个线程被阻塞；第一个线程执行 V 操作，释放临界资源</p>
-<p>而恢复 s 值为 0 后，才唤醒第二个线程，使之进入临界区，待它完成临界资源的访问后，<br>又执行 V 操作，使 s 恢复到初始值 1</p>
-<p>通过 V 操作的加 1 唤醒一个线程使得达到线程同步效果</p>
-<h2 id="读写锁实现"><a href="#读写锁实现" class="headerlink" title="读写锁实现"></a>读写锁实现</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RWLock</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">RWLock</span>() : <span class="built_in">m_readCount</span>(<span class="number">0</span>), <span class="built_in">m_writeCount</span>(<span class="number">0</span>), <span class="built_in">m_isWriting</span>(<span class="literal">false</span>) &#123;&#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">RWLock</span>() = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lockWrite</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        ++m_writeCount;</span><br><span class="line">        m_writeCond.<span class="built_in">wait</span>(ul, [=]()&#123;<span class="keyword">return</span> !m_isWriting &amp;&amp; m_readCount == <span class="number">0</span>&#125;);</span><br><span class="line">        m_isWriting = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlockWrite</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        m_isWriting = <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">if</span>(<span class="number">0</span> == (--m_writeCount)) &#123;</span><br><span class="line">            m_readCond.<span class="built_in">notify_all</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            m_writeCond.<span class="built_in">notify_one</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lockRead</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        m_readCond.<span class="built_in">wait</span>(ul, [=]()&#123;<span class="keyword">return</span> <span class="number">0</span> == m_writeCount;&#125;);</span><br><span class="line">        ++m_readCount;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlockRead</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        <span class="keyword">if</span>(<span class="number">0</span> == (--m_readCount) &amp;&amp; m_writeCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            m_writeCond.<span class="built_in">notify_one</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">int</span> m_readCount;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">int</span> m_writeCount;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">bool</span> m_isWriting;</span><br><span class="line">    std::mutex m_lock;</span><br><span class="line">    std::condition_variable m_readCond;</span><br><span class="line">    std::condition_variable m_writeCond;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ReadGuard</span> &#123;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">ReadGuard</span><span class="params">(RWLock&amp; lock)</span> : m_lock(lock) &#123;</span></span><br><span class="line">        m_lock.<span class="built_in">lockRead</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">ReadGuard</span>() &#123;</span><br><span class="line">        m_lock.<span class="built_in">unlockRead</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">ReadGuard</span>(<span class="type">const</span> ReadGuard&amp;);</span><br><span class="line">    ReadGuard&amp; <span class="keyword">operator</span>=(<span class="type">const</span> ReadGuard&amp;);</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    RWLock &amp;m_lock;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">WriteGuard</span> &#123;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">WriteGuard</span><span class="params">(RWLock&amp; lock)</span> : m_lock(lock) &#123;</span></span><br><span class="line">        m_lock.<span class="built_in">lockWrite</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">WriteGuard</span>() &#123;</span><br><span class="line">        m_lock.<span class="built_in">unlockWrite</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">WriteGuard</span>(<span class="type">const</span> WriteGuard&amp;);</span><br><span class="line">    WriteGuard&amp; <span class="keyword">operator</span>=(<span class="type">const</span> WriteGuard&amp;);</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">  RWLock&amp; m_lock;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
 
     
 
@@ -523,7 +195,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-07 18:04:01" itemprop="dateModified" datetime="2023-08-07T18:04:01+08:00">2023-08-07</time>
+      <time title="修改时间：2023-08-08 15:35:00" itemprop="dateModified" datetime="2023-08-08T15:35:00+08:00">2023-08-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -635,7 +307,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-07 18:04:01" itemprop="dateModified" datetime="2023-08-07T18:04:01+08:00">2023-08-07</time>
+      <time title="修改时间：2023-08-08 15:35:00" itemprop="dateModified" datetime="2023-08-08T15:35:00+08:00">2023-08-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -743,7 +415,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-07 18:04:01" itemprop="dateModified" datetime="2023-08-07T18:04:01+08:00">2023-08-07</time>
+      <time title="修改时间：2023-08-08 15:35:00" itemprop="dateModified" datetime="2023-08-08T15:35:00+08:00">2023-08-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -878,7 +550,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-07 18:04:01" itemprop="dateModified" datetime="2023-08-07T18:04:01+08:00">2023-08-07</time>
+      <time title="修改时间：2023-08-08 15:35:00" itemprop="dateModified" datetime="2023-08-08T15:35:00+08:00">2023-08-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1020,7 +692,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-07 18:04:01" itemprop="dateModified" datetime="2023-08-07T18:04:01+08:00">2023-08-07</time>
+      <time title="修改时间：2023-08-08 15:35:00" itemprop="dateModified" datetime="2023-08-08T15:35:00+08:00">2023-08-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1153,7 +825,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-07 18:04:01" itemprop="dateModified" datetime="2023-08-07T18:04:01+08:00">2023-08-07</time>
+      <time title="修改时间：2023-08-08 15:35:00" itemprop="dateModified" datetime="2023-08-08T15:35:00+08:00">2023-08-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1411,7 +1083,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-07 18:04:01" itemprop="dateModified" datetime="2023-08-07T18:04:01+08:00">2023-08-07</time>
+      <time title="修改时间：2023-08-08 15:35:00" itemprop="dateModified" datetime="2023-08-08T15:35:00+08:00">2023-08-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1538,7 +1210,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-07 18:04:01" itemprop="dateModified" datetime="2023-08-07T18:04:01+08:00">2023-08-07</time>
+      <time title="修改时间：2023-08-08 15:35:00" itemprop="dateModified" datetime="2023-08-08T15:35:00+08:00">2023-08-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1564,6 +1236,206 @@
 <p>线程的切换由操作系统负责调度，协程由用户自己进行调度，因此减少了上下文切换，提高了效率</p>
 <p>协程由于在同一个线程上，因此可以避免竞争关系而使用锁</p>
 <p>适用于被阻塞的，且需要大量并发的场景</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E4%B8%8A%E4%B8%8B%E6%96%87/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E4%B8%8A%E4%B8%8B%E6%96%87/" class="post-title-link" itemprop="url">上下文</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 20:38:16" itemprop="dateCreated datePublished" datetime="2023-04-28T20:38:16+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-08 15:35:00" itemprop="dateModified" datetime="2023-08-08T15:35:00+08:00">2023-08-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="CPU-上下文"><a href="#CPU-上下文" class="headerlink" title="CPU 上下文"></a>CPU 上下文</h2><p>在每个任务运行前，CPU 需要知道任务从哪里加载，又从哪里开始运行；操作系统需要事先帮 CPU 设置好 CPU 寄存器和程序计数器</p>
+<p>CPU 寄存器和程序计数器是 CPU 在运行任何任务前，所必须依赖的环境，这些环境就叫做 CPU 上下文</p>
+<p>CPU 上下文切换就是先把前一个任务的 CPU 上下文（CPU 寄存器和程序计数器）保存起来，然后加载新任务的上下文到这些寄存器和程序计数器，最后再跳转到程序计数器所指的新位置，运行新任务</p>
+<p>系统内核会存储保持下来的上下文信息，当此任务再次被分配给 CPU 运行时，CPU 会重新加载这些上下文，这样就能保证任务原来的状态不受影响，让任务看起来还是连续运行</p>
+<p>CPU 上下文切换分成：进程上下文切换、线程上下文切换和中断上下文切换</p>
+<h2 id="进程上下文"><a href="#进程上下文" class="headerlink" title="进程上下文"></a>进程上下文</h2><p>进程是由内核管理和调度的，所以进程的切换只能发生在内核态</p>
+<p>进程的上下文切换不仅包含了虚拟内存、栈、全局变量等用户空间的资源，还包括了内核堆栈、<br>寄存器等内核空间的资源</p>
+<p>系统会把交换的信息保存在进程的 PCB，当要运行另外一个进程的时候，我们需要从这个进程的 PCB<br>取出上下文，然后恢复到 CPU 中，这使得这个进程可以继续执行</p>
+<p>为了保证所有进程可以得到公平调度，CPU 时间被划分为一段段的时间片，这些时间片再被轮流分配给各个进程。<br>这样，当某个进程的时间片耗尽了，就会被系统挂起，切换到其它正在等待 CPU 的进程运行</p>
+<p>进程在系统资源不足（比如内存不足）时，要等到资源满足后才可以运行，这个时候进程也会被挂起，<br>并由系统调度其他进程运行</p>
+<p>当进程通过睡眠函数 sleep 这样的方法将自己主动挂起时，自然也会重新调度</p>
+<p>当有优先级更高的进程运行时，为了保证高优先级进程的运行，当前进程会被挂起，由高优先级进程来运行</p>
+<p>发生硬件中断时，CPU 上的进程会被中断挂起，转而执行内核中的中断服务程序</p>
+<h2 id="线程上下文"><a href="#线程上下文" class="headerlink" title="线程上下文"></a>线程上下文</h2><p>同一个进程内多个线程之间可以共享代码段、数据段、打开的文件等资源，但每个线程都有独立一套的寄存器和栈，这样可以确保线程的控制流是相对独立的</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E4%B8%8A%E4%B8%8B%E6%96%87/01.png" class="">
+
+<p>系统的任务调度，实际上的调度对象是线程，而进程只是给线程提供了虚拟内存、全局变量等资源</p>
+<p>线程上下文切换分为同一进程线程切换和不同进程线程切换：当两个线程不是属于同一个进程，则切换的过程就跟进程上下文切换一样；当两个线程是属于同一个进程，因为虚拟内存是共享的，所以在切换时，虚拟内存这些资源就保持不动，只需要切换线程的私有数据、寄存器等不共享的数据</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E6%A0%B8%E6%80%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E6%A0%B8%E6%80%81/" class="post-title-link" itemprop="url">内核态</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 21:31:07" itemprop="dateCreated datePublished" datetime="2023-04-26T21:31:07+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-08 15:35:00" itemprop="dateModified" datetime="2023-08-08T15:35:00+08:00">2023-08-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">操作系统</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>操作系统的核心是内核，独立于普通的应用程序，可以访问受保护的内存空间，也有访问底层硬件设备的所有权限。为了保证用户进程不能直接操作内核，保证内核的安全，操心系统将虚拟空间划分为两部分，一部分为内核空间，一部分为用户空间</p>
+<p>因为操作系统的资源是有限的，如果访问资源的操作过多，必然会消耗过多的系统资源，并且在 cpu 的一些指令如果用错，将会导致整个系统崩溃</p>
+<p>用户态和内核态是操作系统的两种运行级别，两者最大的区别就是特权级不同</p>
+<p>运行于用户态的进程可以执行的操作和访问的资源都会受到极大的限制，而运行在内核态的进程则可以执行任何操作并且在资源的使用上没有限制。很多程序开始时运行于用户态，但在执行的过程中，一些操作需要在内核权限下才能执行，这就涉及到一个从用户态切换到内核态的过程</p>
+<p><code>malloc</code> 通过 <code>sbrk</code> 系统调用来分配内存，当 <code>malloc</code> 调用 <code>sbrk</code> 的时候就涉及一次从用户态到内核态的切换，类似的函数还有 <code>printf</code> 调用的是 <code>wirte</code></p>
+<p>内核态和用户态之间的转换方式主要包括：系统调用，异常和中断</p>
+<ul>
+<li><p>系统调用：用户进程通过系统调用申请操作系统提供的服务程序完成工作</p>
+</li>
+<li><p>异常：当 CPU 在执行运行在用户态下的程序时，发生了某些事先不可知的异常，就会触发由当前运行进程切换到处理此异常的内核相关程序中，也就转到了内核态，比如缺页异常</p>
+</li>
+<li><p>中断：当外围设备完成用户请求的操作之后，会向 CPU 发出相应的中断信号，这时 CPU 会暂停执行下一条将要执行的指令，转而去执行中断信号的处理程序，如果先执行的指令是用户态下的程序，那么这个转换的过程自然也就发生了有用户态到内核态的切换</p>
+</li>
+</ul>
 
       
     </div>
