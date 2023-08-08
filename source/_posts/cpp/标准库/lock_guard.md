@@ -27,37 +27,31 @@ lock_guard& operator=(lock_guard const&) = delete;
 ```cpp
 std::mutex my_lock;
 
-void add(int &num, int &sum)
-{
-    while(true)
-    {
-        std::lock_guard<std::mutex> lock(my_lock);  
-        if (num < 100)
-        { 
-            //运行条件
-            num += 1;
-            sum += num;
-        }   
-        else 
-        {  
-            //退出条件
-            break;
-        }   
-    }   
+void add(int &num, int &sum) {
+  while (true) {
+    std::lock_guard<std::mutex> lock(my_lock);
+    if (num < 100) {
+      num += 1;
+      sum += num;
+    } else {
+      break;
+    }
+  }
 }
 
-int main()
-{
-    int sum = 0;
-    int num = 0;
-    std::vector<std::thread> ver;   //保存线程的vector
-    for(int i = 0; i < 20; ++i)
-    {
-        std::thread t = std::thread(add, std::ref(num), std::ref(sum));
-        ver.emplace_back(std::move(t)); //保存线程
-    }   
+int main() {
+  int sum = 0;
+  int num = 0;
+  std::vector<std::thread> ver; // 保存线程的vector
+  for (int i = 0; i < 20; ++i) {
+    std::thread t = std::thread(add, std::ref(num), std::ref(sum));
+    ver.emplace_back(std::move(t)); // 保存线程
+  }
 
-    std::for_each(ver.begin(), ver.end(), std::mem_fn(&std::thread::join)); //join
-    std::cout << sum << std::endl;
+  std::for_each(ver.begin(), ver.end(),
+                std::mem_fn(&std::thread::join)); // join
+  std::cout << sum << std::endl;
 }
 ```
+
+`std::unique_lock` 相比于 `std::lock_gurad` 适用范围更广，`std::unique_lock` 有更多成员函数函数，可以手动释放锁，所以一般配合条件变量使用

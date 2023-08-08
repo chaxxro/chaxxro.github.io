@@ -38,7 +38,7 @@ b = *p;
 
 可以把一个非 `volatile int` 赋给 `volatile int`，但是不能把非 `volatile` 对象赋给一个 `volatile` 对象
 
-数据只在内存中读写，直接操作它既不能保证操作是 atomic 的，也不能保证 Memory Order
+数据只在内存中读写，直接操作它既不能保证操作是原子的，也不能保证 Memory Order
 
 ## volatile 类
 
