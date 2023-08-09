@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">404</span>
+          <span class="site-state-item-count">405</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,235 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-ziplist/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/Redis-ziplist/" class="post-title-link" itemprop="url">ziplist</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 21:29:42" itemprop="dateCreated datePublished" datetime="2023-04-28T21:29:42+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="内存布局"><a href="#内存布局" class="headerlink" title="内存布局"></a>内存布局</h2><p>ziplist 不是一个用结构体定义的数据结构，而是一块连续的内存，这样不仅可以利用 CPU 缓存，而且会针对不同长度的数据，进行相应编码，这种方法可以有效地节省内存开销</p>
+<p>数组中的每一个元素都对应保存一个数据</p>
+<p>entry 会挨个放置在内存中，不需要再用额外的指针进行连接，这样就可以节省指针所占用的空间</p>
+<p>压缩列表在表头有三个字段 zlbytes、zltail 和 zllen，分别表示列表长度、列表尾的偏移量和列表中的 entry 个数</p>
+<p>压缩列表在表尾还有一个 zlend，表示列表结束</p>
+<img src="/2023/04/28/Redis-ziplist/01.png" class="">
+
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>长度</th>
+<th>值</th>
+<th>字节序</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>zlbytes</td>
+<td>uint32_t</td>
+<td>整个 ziplist 占用的内存字节数</td>
+<td>小端</td>
+</tr>
+<tr>
+<td>zltail</td>
+<td>uint32_t</td>
+<td>起始位置与最后一个元素的偏移量</td>
+<td>小端</td>
+</tr>
+<tr>
+<td>zllen</td>
+<td>uint16_t</td>
+<td>ziplist 中节点的数量，当这个值小于 UINT16_MAX （65535）时，这个值就是 ziplist 中节点的数量； 当这个值等于 UINT16_MAX 时，节点的数量需要遍历整个 ziplist 才能计算得出</td>
+<td>小端</td>
+</tr>
+<tr>
+<td>zlend</td>
+<td>uint8_t</td>
+<td>255 的二进制值 1111 1111 （UINT8_MAX） ，用于标记 ziplist 的末端</td>
+<td>小端</td>
+</tr>
+</tbody></table>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ziplist 结束标志位</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIP_END 255</span></span><br><span class="line"><span class="comment">// zlbytes(32) + zltail(32) + zllen(16)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_HEADER_SIZE     (sizeof(uint32_t)*2+sizeof(uint16_t))</span></span><br><span class="line"><span class="comment">// zlend(8)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_END_SIZE        (sizeof(uint8_t))</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取 zlbytes 值</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_BYTES(zl)       (*((uint32_t*)(zl)))</span></span><br><span class="line"><span class="comment">// 获取 zltail 值</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_TAIL_OFFSET(zl) (*((uint32_t*)((zl)+sizeof(uint32_t))))</span></span><br><span class="line"><span class="comment">// 获取 zllen 值</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_LENGTH(zl)      (*((uint16_t*)((zl)+sizeof(uint32_t)*2)))</span></span><br><span class="line"><span class="comment">// 获取 ziplist 最后一个字节的指针</span></span><br><span class="line"><span class="comment">// 由于需要从 zlbytes 取值所以需要大小端转换</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_ENTRY_END(zl)   ((zl)+intrev32ifbe(ZIPLIST_BYTES(zl))-1)</span></span><br></pre></td></tr></table></figure>
+
+<p>在压缩列表中，如果要查找定位第一个元素和最后一个元素，可以通过表头三个字段的长度直接定位，复杂度是 O(1)</p>
+<p>查找其他元素则只能逐个查找，此时的复杂度就是 O(N)</p>
+<h2 id="entry"><a href="#entry" class="headerlink" title="entry"></a>entry</h2><p>压缩列表之所以能节省内存，就在于它是用一系列连续的 entry 保存数据</p>
+<img src="/2023/04/28/Redis-ziplist/02.png" class="">
+
+<ul>
+<li><p>prev_len：表示前一个 entry 的长度，可能会占用 1 字节或 5 字节。占用 1 字节时，表示上一个 entry 的长度小于 254 字节。虽然 1 字节的值能表示的数值范围是 0 到 255，但是压缩列表中 zlend 的取值默认是 255，因此，就默认用 255 表示整个压缩列表的结束，其他表示长度的地方就不能再用 255 这个值了。所以，当上一个 entry 长度小于 254 字节时，prev_len 占用 1 字节，否则，就占用 5 字节，并通过最低字节 254 做标记</p>
+</li>
+<li><p>encoding：可以表示整型和字符串；当高两位是 11 时表示编码方式是整型，高两位其他情况时表示编码方式是字符串，并且还表示字符串长度</p>
+</li>
+<li><p>data：保存实际数据，当 data 存储整型时，都会使用小端表示，即便运行的机器是大端序</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> ZIP_BIG_PREVLEN 254</span></span><br><span class="line"><span class="comment">// 获取第一个 entry 地址</span></span><br><span class="line"><span class="comment">// 这里不需要打小端转换是因为 ZIPLIST_HEADER_SIZE 不从 ziplist 中取值</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_ENTRY_HEAD(zl)  ((zl)+ZIPLIST_HEADER_SIZE)</span></span><br><span class="line"><span class="comment">// 获取最后一个 entry 地址</span></span><br><span class="line"><span class="comment">// 由于需要从 zltail 取值所以需要大小端转换</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_ENTRY_TAIL(zl)  ((zl)+intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl)))</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ptr 指向 entry</span></span><br><span class="line"><span class="comment">// 因为数据都是小端存储，所以可以直接通过 ptr[0] 取到低位的数据，从而判断与 254 的关系</span></span><br><span class="line"><span class="comment">// 返回本 entry 的 prevlen 字段所占内存大小</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIP_DECODE_PREVLENSIZE(ptr, prevlensize) do &#123;                          \</span></span><br><span class="line"><span class="meta">    <span class="keyword">if</span> ((ptr)[0] &lt; ZIP_BIG_PREVLEN) &#123;                                          \</span></span><br><span class="line"><span class="meta">        (prevlensize) = 1;                                                     \</span></span><br><span class="line"><span class="meta">    &#125; <span class="keyword">else</span> &#123;                                                                   \</span></span><br><span class="line"><span class="meta">        (prevlensize) = 5;                                                     \</span></span><br><span class="line"><span class="meta">    &#125;                                                                          \</span></span><br><span class="line"><span class="meta">&#125; while(0)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 返回 entry prevlen 字段和 prevlen 字段所占内存</span></span><br><span class="line"><span class="comment">// 当 prevlen 占 5 个字节时，不会占用最低位的一个字节</span></span><br><span class="line"><span class="comment">// </span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIP_DECODE_PREVLEN(ptr, prevlensize, prevlen) do &#123;                     \</span></span><br><span class="line"><span class="meta">    ZIP_DECODE_PREVLENSIZE(ptr, prevlensize);                                  \</span></span><br><span class="line"><span class="meta">    <span class="keyword">if</span> ((prevlensize) == 1) &#123;                                                  \</span></span><br><span class="line"><span class="meta">        (prevlen) = (ptr)[0];                                                  \</span></span><br><span class="line"><span class="meta">    &#125; <span class="keyword">else</span> &#123; <span class="comment">/* prevlensize == 5 */</span>                                            \</span></span><br><span class="line"><span class="meta">        (prevlen) = ((ptr)[4] &lt;&lt; 24) |                                         \</span></span><br><span class="line"><span class="meta">                    ((ptr)[3] &lt;&lt; 16) |                                         \</span></span><br><span class="line"><span class="meta">                    ((ptr)[2] &lt;&lt;  8) |                                         \</span></span><br><span class="line"><span class="meta">                    ((ptr)[1]);                                                \</span></span><br><span class="line"><span class="meta">    &#125;                                                                          \</span></span><br><span class="line"><span class="meta">&#125; while(0)</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>编码</th>
+<th>encoding 长度</th>
+<th>data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>00pppppp</td>
+<td>1 字节</td>
+<td>字符串长度小于等于 63（2^6 -1），后 6 位表示长度</td>
+</tr>
+<tr>
+<td>01pppppp,qqqqqqqq</td>
+<td>2 字节，后 14 位使用大端存储</td>
+<td>字符串长度小于等于 16383（2^14 -1），后 14 位表示长度，大端序</td>
+</tr>
+<tr>
+<td>10000000,qqqqqqqq,rrrrrrrr,ssssssss,tttttttt</td>
+<td>5 字节，后 32 位使用大端存储</td>
+<td>字符串长度小于等于 2^32 -1，第一个字节的后六位未使用，大端序</td>
+</tr>
+<tr>
+<td>11000000</td>
+<td>1 字节</td>
+<td>int16_t</td>
+</tr>
+<tr>
+<td>11010000</td>
+<td>1 字节</td>
+<td>int32_t</td>
+</tr>
+<tr>
+<td>11100000</td>
+<td>1 字节</td>
+<td>int64_t</td>
+</tr>
+<tr>
+<td>11110000</td>
+<td>1 字节</td>
+<td>int24 类型</td>
+</tr>
+<tr>
+<td>11111110</td>
+<td>1 字节</td>
+<td>int8_t</td>
+</tr>
+<tr>
+<td>1111xxxx</td>
+<td>1 字节</td>
+<td>xxxx 是 0001(1) 到 1101(13)，分别用来表示 0～12，此时没有 data 数据</td>
+</tr>
+</tbody></table>
+<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">/*</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *  [0f 00 00 00] [0c 00 00 00] [02 00] [00 f3] [02 f6] [ff]</span></span><br><span class="line"><span class="comment"> *        |             |          |       |       |     |</span></span><br><span class="line"><span class="comment"> *     zlbytes        zltail    entries   &quot;2&quot;     &quot;5&quot;   end</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// zlbytes 表示整个 ziplist 占 15 个字节</span></span><br><span class="line"><span class="comment">// zltail 最后一个元素离 ziplist 开始处 12 个字节</span></span><br><span class="line"><span class="comment">// entries 表示整个 ziplist 有两个元素</span></span><br><span class="line"><span class="comment">// 第一个 entry 的 prev_len 是 0，占一个字节</span></span><br><span class="line"><span class="comment">// 第一个 entry 的 f3 表示 encoding 是 1111xxxx，所以这个 entry 存储的值是 3 - 1 = 2</span></span><br><span class="line"><span class="comment">// 第二个 entry 的 prev_len 是 2</span></span><br><span class="line"><span class="comment">// 第二个 entry 的 f6 表示 encoding 是 1111xxxx，所以这个 entry 存储的值是 6 - 1 = 5</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="zlentry"><a href="#zlentry" class="headerlink" title="zlentry"></a>zlentry</h2><p>插入一个 entry 的全部信息，但并不是 entry 的实际信息</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">zlentry</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> prevrawlensize;  <span class="comment">// 前一个 entry 的 prevlen 占内存大小</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> prevrawlen;      <span class="comment">// </span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> lensize;         <span class="comment">// 本 entry encoding 的内存大小</span></span><br><span class="line">                                  <span class="comment">// 字符串对应 1、2、5 字节，整形 1 字节</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> len;             <span class="comment">// data 所占大小</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> headersize;      <span class="comment">// prevrawlensize + lensize</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> encoding;       <span class="comment">// entry 的 encoding</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *p;             <span class="comment">// entry 的插入位置</span></span><br><span class="line">&#125; zlentry;</span><br></pre></td></tr></table></figure>
+
+<h2 id="插入过程"><a href="#插入过程" class="headerlink" title="插入过程"></a>插入过程</h2><ol>
+<li><p>计算插入位置</p>
+</li>
+<li><p>重新分配空间，将后面元素后移</p>
+</li>
+<li><p>插入元素</p>
+</li>
+<li><p>调整 ziplist 大小</p>
+</li>
+</ol>
+<h2 id="删除过程"><a href="#删除过程" class="headerlink" title="删除过程"></a>删除过程</h2><ol>
+<li><p>将后面的元素向前覆盖</p>
+</li>
+<li><p>调整 ziplist 大小</p>
+</li>
+</ol>
+<h2 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h2><ul>
+<li><p>查找复杂度高</p>
+</li>
+<li><p>压缩列表新增某个元素或修改某个元素时，如果空间不够，压缩列表占用的内存空间就需要重新分配</p>
+</li>
+<li><p>当新插入的元素较大时，因为压缩列表节点的 prevlen 属性会根据前一个节点的长度进行不同的空间大小分配，所以可能会导致后续元素的 prevlen 占用空间都发生变化，从而引起连锁更新问题，导致每个元素的空间都要重新分配，造成访问压缩列表性能的下降</p>
+</li>
+</ul>
+<p>压缩列表只会用于保存的节点数量不多的场景，只要节点数量足够小，即使发生连锁更新，也是能接受的</p>
+<h2 id="主要函数"><a href="#主要函数" class="headerlink" title="主要函数"></a>主要函数</h2><h3 id="ziplistNew"><a href="#ziplistNew" class="headerlink" title="ziplistNew"></a>ziplistNew</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// intrev32ifbe 本机序转换成小端</span></span><br><span class="line"><span class="function"><span class="type">unsigned</span> <span class="type">char</span> *<span class="title">ziplistNew</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> bytes = ZIPLIST_HEADER_SIZE+ZIPLIST_END_SIZE;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *zl = <span class="built_in">zmalloc</span>(bytes);</span><br><span class="line">    <span class="comment">// 设置 zlbytes</span></span><br><span class="line">    <span class="built_in">ZIPLIST_BYTES</span>(zl) = <span class="built_in">intrev32ifbe</span>(bytes);</span><br><span class="line">    <span class="comment">// 设置 zltail，直接指向 zlend</span></span><br><span class="line">    <span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl) = <span class="built_in">intrev32ifbe</span>(ZIPLIST_HEADER_SIZE);</span><br><span class="line">    <span class="comment">// 设置 zllen</span></span><br><span class="line">    <span class="built_in">ZIPLIST_LENGTH</span>(zl) = <span class="number">0</span>;</span><br><span class="line">    zl[bytes<span class="number">-1</span>] = ZIP_END;</span><br><span class="line">    <span class="keyword">return</span> zl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ziplistPush"><a href="#ziplistPush" class="headerlink" title="ziplistPush"></a>ziplistPush</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_HEAD 0</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ZIPLIST_TAIL 1</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">unsigned</span> <span class="type">char</span> *<span class="title">ziplistPush</span><span class="params">(<span class="type">unsigned</span> <span class="type">char</span> *zl, <span class="type">unsigned</span> <span class="type">char</span> *s, <span class="type">unsigned</span> <span class="type">int</span> slen, <span class="type">int</span> where)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *p;</span><br><span class="line">    p = (where == ZIPLIST_HEAD) ? <span class="built_in">ZIPLIST_ENTRY_HEAD</span>(zl) : <span class="built_in">ZIPLIST_ENTRY_END</span>(zl);</span><br><span class="line">    <span class="keyword">return</span> __ziplistInsert(zl,p,s,slen);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> <span class="type">char</span> *__ziplistInsert(<span class="type">unsigned</span> <span class="type">char</span> *zl, <span class="type">unsigned</span> <span class="type">char</span> *p, <span class="type">unsigned</span> <span class="type">char</span> *s, <span class="type">unsigned</span> <span class="type">int</span> slen) &#123;</span><br><span class="line">    <span class="type">size_t</span> curlen = <span class="built_in">intrev32ifbe</span>(<span class="built_in">ZIPLIST_BYTES</span>(zl)), reqlen, newlen;</span><br><span class="line">    <span class="comment">// prevlensize 表示 entry 的 encoding 长度</span></span><br><span class="line">    <span class="comment">// prevlen 表示 entry 的 encoding 长度</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> prevlensize, prevlen = <span class="number">0</span>;</span><br><span class="line">    <span class="type">size_t</span> offset;</span><br><span class="line">    <span class="type">int</span> nextdiff = <span class="number">0</span>;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> encoding = <span class="number">0</span>;</span><br><span class="line">    <span class="type">long</span> <span class="type">long</span> value = <span class="number">123456789</span>; </span><br><span class="line">    zlentry tail;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (p[<span class="number">0</span>] != ZIP_END) &#123;</span><br><span class="line">        <span class="comment">// 头部插入</span></span><br><span class="line">        <span class="comment">// 利用 p 指向的 entry 解析 prevlensize 和 prevlen</span></span><br><span class="line">        <span class="built_in">ZIP_DECODE_PREVLEN</span>(p, prevlensize, prevlen);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 尾部插入，插入处是 zlend</span></span><br><span class="line">        <span class="type">unsigned</span> <span class="type">char</span> *ptail = <span class="built_in">ZIPLIST_ENTRY_TAIL</span>(zl);  <span class="comment">// 指向最后一个 entry</span></span><br><span class="line">        <span class="keyword">if</span> (ptail[<span class="number">0</span>] != ZIP_END) &#123;</span><br><span class="line">            <span class="comment">// ziplist 尾部插入，ziplist 中有元素</span></span><br><span class="line">            prevlen = <span class="built_in">zipRawEntryLengthSafe</span>(zl, curlen, ptail);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* See if the entry can be encoded */</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">zipTryEncoding</span>(s,slen,&amp;value,&amp;encoding)) &#123;</span><br><span class="line">        <span class="comment">/* &#x27;encoding&#x27; is set to the appropriate integer encoding */</span></span><br><span class="line">        reqlen = <span class="built_in">zipIntSize</span>(encoding);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* &#x27;encoding&#x27; is untouched, however zipStoreEntryEncoding will use the</span></span><br><span class="line"><span class="comment">         * string length to figure out how to encode it. */</span></span><br><span class="line">        reqlen = slen;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* We need space for both the length of the previous entry and</span></span><br><span class="line"><span class="comment">     * the length of the payload. */</span></span><br><span class="line">    reqlen += <span class="built_in">zipStorePrevEntryLength</span>(<span class="literal">NULL</span>,prevlen);</span><br><span class="line">    reqlen += <span class="built_in">zipStoreEntryEncoding</span>(<span class="literal">NULL</span>,encoding,slen);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* When the insert position is not equal to the tail, we need to</span></span><br><span class="line"><span class="comment">     * make sure that the next entry can hold this entry&#x27;s length in</span></span><br><span class="line"><span class="comment">     * its prevlen field. */</span></span><br><span class="line">    <span class="type">int</span> forcelarge = <span class="number">0</span>;</span><br><span class="line">    nextdiff = (p[<span class="number">0</span>] != ZIP_END) ? <span class="built_in">zipPrevLenByteDiff</span>(p,reqlen) : <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (nextdiff == <span class="number">-4</span> &amp;&amp; reqlen &lt; <span class="number">4</span>) &#123;</span><br><span class="line">        nextdiff = <span class="number">0</span>;</span><br><span class="line">        forcelarge = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Store offset because a realloc may change the address of zl. */</span></span><br><span class="line">    offset = p-zl;</span><br><span class="line">    newlen = curlen+reqlen+nextdiff;</span><br><span class="line">    zl = <span class="built_in">ziplistResize</span>(zl,newlen);</span><br><span class="line">    p = zl+offset;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Apply memory move when necessary and update tail offset. */</span></span><br><span class="line">    <span class="keyword">if</span> (p[<span class="number">0</span>] != ZIP_END) &#123;</span><br><span class="line">        <span class="comment">/* Subtract one because of the ZIP_END bytes */</span></span><br><span class="line">        <span class="built_in">memmove</span>(p+reqlen,p-nextdiff,curlen-offset<span class="number">-1</span>+nextdiff);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Encode this entry&#x27;s raw length in the next entry. */</span></span><br><span class="line">        <span class="keyword">if</span> (forcelarge)</span><br><span class="line">            <span class="built_in">zipStorePrevEntryLengthLarge</span>(p+reqlen,reqlen);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="built_in">zipStorePrevEntryLength</span>(p+reqlen,reqlen);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* Update offset for tail */</span></span><br><span class="line">        <span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl) =</span><br><span class="line">            <span class="built_in">intrev32ifbe</span>(<span class="built_in">intrev32ifbe</span>(<span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl))+reqlen);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* When the tail contains more than one entry, we need to take</span></span><br><span class="line"><span class="comment">         * &quot;nextdiff&quot; in account as well. Otherwise, a change in the</span></span><br><span class="line"><span class="comment">         * size of prevlen doesn&#x27;t have an effect on the *tail* offset. */</span></span><br><span class="line">        <span class="built_in">assert</span>(<span class="built_in">zipEntrySafe</span>(zl, newlen, p+reqlen, &amp;tail, <span class="number">1</span>));</span><br><span class="line">        <span class="keyword">if</span> (p[reqlen+tail.headersize+tail.len] != ZIP_END) &#123;</span><br><span class="line">            <span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl) =</span><br><span class="line">                <span class="built_in">intrev32ifbe</span>(<span class="built_in">intrev32ifbe</span>(<span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl))+nextdiff);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* This element will be the new tail. */</span></span><br><span class="line">        <span class="built_in">ZIPLIST_TAIL_OFFSET</span>(zl) = <span class="built_in">intrev32ifbe</span>(p-zl);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* When nextdiff != 0, the raw length of the next entry has changed, so</span></span><br><span class="line"><span class="comment">     * we need to cascade the update throughout the ziplist */</span></span><br><span class="line">    <span class="keyword">if</span> (nextdiff != <span class="number">0</span>) &#123;</span><br><span class="line">        offset = p-zl;</span><br><span class="line">        zl = __ziplistCascadeUpdate(zl,p+reqlen);</span><br><span class="line">        p = zl+offset;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Write the entry */</span></span><br><span class="line">    p += <span class="built_in">zipStorePrevEntryLength</span>(p,prevlen);</span><br><span class="line">    p += <span class="built_in">zipStoreEntryEncoding</span>(p,encoding,slen);</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">ZIP_IS_STR</span>(encoding)) &#123;</span><br><span class="line">        <span class="built_in">memcpy</span>(p,s,slen);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">zipSaveInteger</span>(p,value,encoding);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">ZIPLIST_INCR_LENGTH</span>(zl,<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> zl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +424,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 15:54:49" itemprop="dateModified" datetime="2023-08-09T15:54:49+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -281,7 +510,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 15:54:49" itemprop="dateModified" datetime="2023-08-09T15:54:49+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -385,7 +614,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 15:54:49" itemprop="dateModified" datetime="2023-08-09T15:54:49+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -519,7 +748,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 15:54:49" itemprop="dateModified" datetime="2023-08-09T15:54:49+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -603,7 +832,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 15:54:49" itemprop="dateModified" datetime="2023-08-09T15:54:49+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -691,7 +920,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 15:54:49" itemprop="dateModified" datetime="2023-08-09T15:54:49+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -794,7 +1023,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 15:54:50" itemprop="dateModified" datetime="2023-08-09T15:54:50+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -892,7 +1121,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 15:54:50" itemprop="dateModified" datetime="2023-08-09T15:54:50+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1125,7 +1354,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 15:54:50" itemprop="dateModified" datetime="2023-08-09T15:54:50+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1277,121 +1506,6 @@
 <p>DMA 全称是 Direct Memory Access，即直接存储器存取，是一种用来提供在外设和存储器之间或者存储器和存储器之间的高速数据传输。整个数据拷贝过程无须 CPU 参与，数据直接通过 DMA 控制器进行快速地移动拷贝，节省 CPU 的资源去做其他工作</p>
 <p>一次读操作或写操作，会触发 2 次用户态和内核态的上下文切换，2 次 CPU 拷贝数据。借助 DMA，将 2 次 CPU 拷贝数据转换成 1 次 CPU 拷贝数据和 1 次 DMA 拷贝</p>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E9%94%81/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E9%94%81-%E9%94%81/" class="post-title-link" itemprop="url">锁</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:01:22" itemprop="dateCreated datePublished" datetime="2023-04-28T21:01:22+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 15:54:50" itemprop="dateModified" datetime="2023-08-09T15:54:50+08:00">2023-08-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E9%94%81/" itemprop="url" rel="index"><span itemprop="name">锁</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <ul>
-<li><p>互斥锁 mutex：用于保证在任何时刻，都只能有一个线程访问该对象。当获取锁操作失败时，线程会释放 CPU；等到锁被释放后，内核会在合适的时机唤醒线程，当这个线程成功获取到锁后，于是就可以继续执行；存在两次线程上下文切换开销</p>
-</li>
-<li><p>读写锁 rwlock：分为读锁和写锁；处于读操作时，可以允许多个线程同时获得读操作；同一时刻只能有一个线程可以获得写锁，其它获取写锁失败的线程都会进入睡眠状态，直到写锁释放时被唤醒；写锁会阻塞其它读写锁，当有一个线程获得写锁在写时，读锁也不能被其它线程获取，写锁优先于读锁（一旦有写锁，则后续读者必须等待，唤醒时优先考虑写锁）；适用于读取数据的频率远远大于写数据的频率的场合</p>
-</li>
-<li><p>自旋锁 spinlock：在任何时刻同样只能有一个线程访问对象，但是当获取锁操作失败时，不会释放 CPU，而是会在原地自旋，直到锁被释放；保护的临界区必须小，且操作过程必须短；节省了线程从睡眠状态到被唤醒期间的消耗，在加锁时间短暂的环境下会极大的提高效率；加锁时间过长，则会非常浪费 CPU 资源；自旋锁在用户态完成加锁和解锁，不会主动产生线程上下文切换；被广泛应用于内核</p>
-</li>
-<li><p>RCU(read-copy-update)：在修改数据时首先需要读取数据，然后生成一个副本，对副本进行修改，修改完成后再将老数据 update 成新的数据；读锁几乎不需要同步开销，既不需要获得锁，也不使用原子指令，不会导致锁竞争；对于写锁的同步开销较大，它需要复制被修改的数据，还必须使用锁机制同步并行其它写锁的修改操作；在有大量读操作，少量写操作的情况下效率非常高</p>
-</li>
-</ul>
-<h2 id="Test-and-Set"><a href="#Test-and-Set" class="headerlink" title="Test-and-Set"></a>Test-and-Set</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 形式如下</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">TestAndSet</span><span class="params">(<span class="type">int</span> * old_ptr, <span class="type">int</span> <span class="keyword">new</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> old = *old_ptr;</span><br><span class="line">    *old_ptr = <span class="keyword">new</span>;</span><br><span class="line">    <span class="keyword">return</span> old;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这些代码是原子执行，既可以测试旧值，又可以设置新值</p>
-<h3 id="忙等待"><a href="#忙等待" class="headerlink" title="忙等待"></a>忙等待</h3><p>用 Test-and-Set 指令来实现忙等待锁</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">stuct <span class="type">lock_t</span> &#123;</span><br><span class="line">    <span class="comment">// flag == 0 时锁未被持有</span></span><br><span class="line">    <span class="comment">// flag == 1 时锁被持有</span></span><br><span class="line">    <span class="type">int</span> flag;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="built_in">TestAndSet</span>(lock, <span class="number">1</span>) == <span class="number">1</span>) ;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>当获取不到锁时，线程就会一直 <code>while</code> 循环，不做任何事情，所以就被称为忙等待锁，也被称为自旋锁</p>
-<p>自旋锁利用 CPU 周期，一直自旋直到锁可用；在单处理器上，需要抢占式的调度器，因为一个自旋的线程永远不会放弃 CPU</p>
-<h3 id="无忙等待"><a href="#无忙等待" class="headerlink" title="无忙等待"></a>无忙等待</h3><p>当没获取到锁的时候，就把当前线程放入到锁的等待队列，然后执行调度程序，把 CPU 让给其他线程执行</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">stuct <span class="type">lock_t</span> &#123;</span><br><span class="line">    <span class="type">int</span> flag;</span><br><span class="line">    <span class="type">queue_t</span> * q;  <span class="comment">// 等待队列</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">init</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">queue_init</span>(lock-&gt;q);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(<span class="built_in">TestAndSet</span>(lock, <span class="number">1</span>) == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="comment">// 保存现在运行线程 TCB，并插入等待队列</span></span><br><span class="line">        <span class="comment">// 设置该线程为等待状态</span></span><br><span class="line">        <span class="comment">// 调度</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">(<span class="type">lock_t</span> * lock)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(lock-&gt;q != <span class="literal">nullptr</span>) &#123;</span><br><span class="line">        <span class="comment">// 移除等待队列的队头元素</span></span><br><span class="line">        <span class="comment">// 将该线程的 TCB 插入到就绪队列</span></span><br><span class="line">        <span class="comment">// 设置线程为就绪状态</span></span><br><span class="line">    &#125;</span><br><span class="line">    lock-&gt;flag = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Compare-and-Swap"><a href="#Compare-and-Swap" class="headerlink" title="Compare_and_Swap"></a>Compare_and_Swap</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">CompareAndSwap</span><span class="params">(<span class="type">int</span> *ptr, <span class="type">int</span> expected, <span class="type">int</span> <span class="keyword">new</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> actual = *ptr;</span><br><span class="line">    <span class="keyword">if</span> (actual == expected) *ptr = <span class="keyword">new</span>;</span><br><span class="line">    <span class="keyword">return</span> actual;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="信号量实现"><a href="#信号量实现" class="headerlink" title="信号量实现"></a>信号量实现</h2><p>为每类共享资源设置一个信号量 s，其初值为 1，表示该临界资源未被占用</p>
-<p>只要把进入临界区的操作置于 P(s) 和 V(s) 之间，即可实现进程&#x2F;线程互斥</p>
-<p>任何想进入临界区的线程，必先在互斥信号量上执行 P 操作，在完成对临界资源的访问后再执行 V 操作</p>
-<p>由于互斥信号量的初始值为 1，故在第一个线程执行 P 操作后 s 值变为 0，表示临界资源为空闲，</p>
-<p>可分配给该线程，使之进入临界区；第二个线程想进入临界区，也应先执行 P 操作，结果使 s 变为</p>
-<p>负值，这就意味着临界资源已被占用，第二个线程被阻塞；第一个线程执行 V 操作，释放临界资源</p>
-<p>而恢复 s 值为 0 后，才唤醒第二个线程，使之进入临界区，待它完成临界资源的访问后，<br>又执行 V 操作，使 s 恢复到初始值 1</p>
-<p>通过 V 操作的加 1 唤醒一个线程使得达到线程同步效果</p>
-<h2 id="读写锁实现"><a href="#读写锁实现" class="headerlink" title="读写锁实现"></a>读写锁实现</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RWLock</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">RWLock</span>() : <span class="built_in">m_readCount</span>(<span class="number">0</span>), <span class="built_in">m_writeCount</span>(<span class="number">0</span>), <span class="built_in">m_isWriting</span>(<span class="literal">false</span>) &#123;&#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">RWLock</span>() = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lockWrite</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        ++m_writeCount;</span><br><span class="line">        m_writeCond.<span class="built_in">wait</span>(ul, [=]()&#123;<span class="keyword">return</span> !m_isWriting &amp;&amp; m_readCount == <span class="number">0</span>&#125;);</span><br><span class="line">        m_isWriting = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlockWrite</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        m_isWriting = <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">if</span>(<span class="number">0</span> == (--m_writeCount)) &#123;</span><br><span class="line">            m_readCond.<span class="built_in">notify_all</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            m_writeCond.<span class="built_in">notify_one</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lockRead</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        m_readCond.<span class="built_in">wait</span>(ul, [=]()&#123;<span class="keyword">return</span> <span class="number">0</span> == m_writeCount;&#125;);</span><br><span class="line">        ++m_readCount;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlockRead</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">ul</span><span class="params">(m_lock)</span></span>;</span><br><span class="line">        <span class="keyword">if</span>(<span class="number">0</span> == (--m_readCount) &amp;&amp; m_writeCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            m_writeCond.<span class="built_in">notify_one</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">int</span> m_readCount;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">int</span> m_writeCount;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="type">bool</span> m_isWriting;</span><br><span class="line">    std::mutex m_lock;</span><br><span class="line">    std::condition_variable m_readCond;</span><br><span class="line">    std::condition_variable m_writeCond;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ReadGuard</span> &#123;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">ReadGuard</span><span class="params">(RWLock&amp; lock)</span> : m_lock(lock) &#123;</span></span><br><span class="line">        m_lock.<span class="built_in">lockRead</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">ReadGuard</span>() &#123;</span><br><span class="line">        m_lock.<span class="built_in">unlockRead</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">ReadGuard</span>(<span class="type">const</span> ReadGuard&amp;);</span><br><span class="line">    ReadGuard&amp; <span class="keyword">operator</span>=(<span class="type">const</span> ReadGuard&amp;);</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    RWLock &amp;m_lock;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">WriteGuard</span> &#123;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">WriteGuard</span><span class="params">(RWLock&amp; lock)</span> : m_lock(lock) &#123;</span></span><br><span class="line">        m_lock.<span class="built_in">lockWrite</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">WriteGuard</span>() &#123;</span><br><span class="line">        m_lock.<span class="built_in">unlockWrite</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">    <span class="built_in">WriteGuard</span>(<span class="type">const</span> WriteGuard&amp;);</span><br><span class="line">    WriteGuard&amp; <span class="keyword">operator</span>=(<span class="type">const</span> WriteGuard&amp;);</span><br><span class="line"></span><br><span class="line"> <span class="keyword">private</span>:</span><br><span class="line">  RWLock&amp; m_lock;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
       
     </div>
 
