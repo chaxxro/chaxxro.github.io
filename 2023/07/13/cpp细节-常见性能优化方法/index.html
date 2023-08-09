@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="栈内存偏见堆是操作系统级别的概念，而栈是 cpu 级别的 malloc 堆区分配内存是很昂贵的，但栈内存的分配成本却很低 cpu 会提供两个寄存器 sp 和 bp，bp 和 sp 分别存取栈底和栈顶的地址。栈是从高地址向低地址增长的，所以减小 sp 代表增大栈空间，增大sp代表减少栈空间 而对于一个函数，该函数需要多少栈空间是编译期间决定的，不会对运行时造成任何开销。需要栈空间的大小，仅仅是改变了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="常见性能优化方法">
+<meta property="og:url" content="https://chaxxro.github.io/2023/07/13/cpp%E7%BB%86%E8%8A%82-%E5%B8%B8%E8%A7%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="栈内存偏见堆是操作系统级别的概念，而栈是 cpu 级别的 malloc 堆区分配内存是很昂贵的，但栈内存的分配成本却很低 cpu 会提供两个寄存器 sp 和 bp，bp 和 sp 分别存取栈底和栈顶的地址。栈是从高地址向低地址增长的，所以减小 sp 代表增大栈空间，增大sp代表减少栈空间 而对于一个函数，该函数需要多少栈空间是编译期间决定的，不会对运行时造成任何开销。需要栈空间的大小，仅仅是改变了">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-07-13T02:34:41.000Z">
+<meta property="article:modified_time" content="2023-08-09T07:54:49.986Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="cpp">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/07/13/cpp%E7%BB%86%E8%8A%82-%E5%B8%B8%E8%A7%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/07/13/cpp%E7%BB%86%E8%8A%82-%E5%B8%B8%E8%A7%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95/","path":"2023/07/13/cpp细节-常见性能优化方法/","title":"常见性能优化方法"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>常见性能优化方法 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%88%E5%86%85%E5%AD%98%E5%81%8F%E8%A7%81"><span class="nav-text">栈内存偏见</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E5%86%85%E8%81%94"><span class="nav-text">函数内联</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90"><span class="nav-text">内存对齐</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#False-Sharing"><span class="nav-text">False Sharing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A0%E5%88%86%E6%94%AF%E7%BC%96%E7%A8%8B"><span class="nav-text">无分支编程</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">404</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/07/13/cpp%E7%BB%86%E8%8A%82-%E5%B8%B8%E8%A7%81%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E6%96%B9%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="常见性能优化方法 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          常见性能优化方法
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-07-13 10:34:41" itemprop="dateCreated datePublished" datetime="2023-07-13T10:34:41+08:00">2023-07-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-09 15:54:49" itemprop="dateModified" datetime="2023-08-09T15:54:49+08:00">2023-08-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="栈内存偏见"><a href="#栈内存偏见" class="headerlink" title="栈内存偏见"></a>栈内存偏见</h2><p>堆是操作系统级别的概念，而栈是 cpu 级别的</p>
+<p><code>malloc</code> 堆区分配内存是很昂贵的，但栈内存的分配成本却很低</p>
+<p>cpu 会提供两个寄存器 sp 和 bp，bp 和 sp 分别存取栈底和栈顶的地址。栈是从高地址向低地址增长的，所以减小 sp 代表增大栈空间，增大sp代表减少栈空间</p>
+<p>而对于一个函数，该函数需要多少栈空间是编译期间决定的，不会对运行时造成任何开销。需要栈空间的大小，仅仅是改变了 sp 分配栈空间时操作数的变化而已</p>
+<p>x64 下 linux 默认给线程分配的栈是 8MB，如果在能保证不爆栈的情况下，务必优先在栈上分配内存空间，它是零开销的</p>
+<h2 id="函数内联"><a href="#函数内联" class="headerlink" title="函数内联"></a>函数内联</h2><p>函数调用的性能开销：</p>
+<ol>
+<li><p>函数参数的传递需要写内存或寄存器</p>
+</li>
+<li><p>调用函数的汇编可以简化为 <code>push return address</code> 和 <code>jump</code>，<code>jump</code> 是 cache 不友好的</p>
+</li>
+<li><p>为保证 caller 上下文不被覆盖，还需要对 caller 的寄存器进行入栈保存</p>
+</li>
+</ol>
+<p>函数內联的本质就是代码复制拷贝，它会直接将 callee 的代码内容复制到 caller 的上下文中</p>
+<p>內联函数好处：</p>
+<ol>
+<li><p>省略函数调用开销</p>
+</li>
+<li><p>将函数的代码拷贝到 caller 上下文，从而编译器能做更多优化</p>
+</li>
+</ol>
+<p>內联后是在任何调用者处对函数代码做了拷贝，因此可能会导致生成的二进制更大</p>
+<h2 id="内存对齐"><a href="#内存对齐" class="headerlink" title="内存对齐"></a>内存对齐</h2><p>编译器倾向于将每个结构体成员的地址放在其大小的整数倍上，如 <code>uint64_t</code> 存取的地址就是 8<em>n，<code>uint32_t</code> 存取的地址是 4</em>n</p>
+<p>非内存对齐可能会导致两次内存 IO</p>
+<h2 id="False-Sharing"><a href="#False-Sharing" class="headerlink" title="False Sharing"></a>False Sharing</h2><p>CPU 物理核心配有多级 sram cache，CPU 都是优先读写自己的 cache，然后才是访存，那么必然存在一致性问题</p>
+<p>为了解决一致性问题就引入了 cache 间通信协议来解决。如果 P1 更改了变量 a，为了保证一致性 P1 需要向 cache bus 上发送一个 Invalid Message，保证变量 a 所处的 cache line 在其他处理器的 cache 中失效。其他处理器要再次访问变量 a 需要向 P1 发送 Read Miss 消息提交申请，然后 P1 负责将最新 cache line 同步到其他处理器或者写到内存</p>
+<p>cache 之间沟通的最小单位是一个 cache line 大小，现代主流 CPU 都是 64 字节，所以 cache 之间失效的不会是单纯一个变量，而是整个变量所处的这个 cache line</p>
+<h2 id="无分支编程"><a href="#无分支编程" class="headerlink" title="无分支编程"></a>无分支编程</h2><p>在冯诺依曼架构计算机下，指令和数据都存在内存中。对于一条指令的执行肯定是分很多过程的，以最经典的五级流水线为例，一条指令分为如下阶段：</p>
+<ol>
+<li><p>取址(IF)：从内存中读取出指令</p>
+</li>
+<li><p>译码(ID)：咱们得先知道取的是什么指令</p>
+</li>
+<li><p>执行(EX)</p>
+</li>
+<li><p>访存(MEM)：指令总有操作数嘛，访存获取它们或者将计算结果写入到内存</p>
+</li>
+<li><p>写回(WB)：将执行结果写入到目标寄存器</p>
+</li>
+</ol>
+<p>每个阶段可以简单理解为有专门的一个 CPU 部件处理</p>
+<p>为了更好的压榨每个部件的，CPU 引入了流水化技术，核心原理就是上一条指令立马发射就紧跟着发射下一条待执行的指令</p>
+<p>遇到条件判断时 CPU 会面临一个问题，往后具有两个分支，流水线会停下来等到有结果了再继续执行</p>
+<p>分支预测是基于分支的历史信息，分支的条件越具有规律性，那么 CPU 对分支预测的越准确</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cpp/" rel="tag"># cpp</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/07/06/cpp%E7%BB%86%E8%8A%82-%E7%BB%93%E6%9E%84%E5%8C%96%E7%BB%91%E5%AE%9A/" rel="prev" title="结构化绑定">
+                  <i class="fa fa-chevron-left"></i> 结构化绑定
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/07/20/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E7%A3%81%E7%9B%98%E7%AE%A1%E7%90%86/" rel="next" title="磁盘结构">
+                  磁盘结构 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
