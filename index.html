@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">407</span>
+          <span class="site-state-item-count">408</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,103 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/08/10/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/10/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C/" class="post-title-link" itemprop="url">一致性哈希</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-08-10 09:48:52 / 修改时间：21:23:40" itemprop="dateCreated datePublished" datetime="2023-08-10T09:48:52+08:00">2023-08-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">后端设计</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>假设有 n 台缓存服务器，对于所有的 key，可以对 key 进哈希运算后对 n 取模，即 hash(key) % n</p>
+<p>该方案具有一定的局限性，因为生产环境会根据业务量的大小调整服务器数量。当 n 变化时，取模的结果会随之变化。同样的 key 在不同服务器数量下，将计算出不同的结果，从而之前缓存的 key 数据将会失去作用和意义。大量的缓存同一时间失效将造成缓存雪崩，进而导致整个系统不可用</p>
+<h2 id="一致性哈希原理"><a href="#一致性哈希原理" class="headerlink" title="一致性哈希原理"></a>一致性哈希原理</h2><p>一致性哈希是一种特殊的哈希算法，在移除或者添加服务器时，能够尽可能小地改变已存在的服务请求与处理请求服务器之间的映射关系</p>
+<p>一致性哈希算法本质上也是一种取模算法，不过不同于按数量取模，一致性哈希是对固定值 2^32 取模</p>
+<p>IPv4 的地址是 4 组 8 位 2 进制数组成，所以用 2^32 可以保证每个 IP 地址会有唯一的映射</p>
+<ol>
+<li><p>将 2^32 看成一个圆环，由 2^32 个点组成</p>
+</li>
+<li><p>对服务器 IP 进行哈希运算后对 2^32 取模，将服务器映射到环上的一个点</p>
+</li>
+<li><p>对 key 进行哈希运算后对 2^32 取模得到环上对应的点位，如果该点位没有相应的服务器则顺时针在环上找服务器</p>
+</li>
+</ol>
+<p>一致性哈希就是将原本单个点的哈希映射，转变为了在一个环上的某个片段上的映射</p>
+<h2 id="数据偏斜问题"><a href="#数据偏斜问题" class="headerlink" title="数据偏斜问题"></a>数据偏斜问题</h2><p>在实际场景中很难选取到一个哈希函数能够完美地将各个服务器散列到环上，从而在服务器节点数量太少的情况下，很容易因为节点分布不均匀而造成数据倾斜问题</p>
+<p>针对数据倾斜问题，可以将每台物理服务器虚拟为一组虚拟服务器，将虚拟服务器放置到哈希环上。如果要确定对象的服务器，需先确定对象的虚拟服务器，再由虚拟服务器确定物理服务器</p>
+<p>虚拟节点的哈希计算通常可以采用对应节点的 IP 地址加数字编号后缀的方式，如 10.24.23.227#1 的方式</p>
+<p>引入虚拟节点的同时也增加了新的问题，要做虚拟节点和真实节点间的映射</p>
+<h2 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h2><p>一致性哈希在分布式系统中应该是实现负载均衡的首选算法，它的实现比较灵活，既可以在客户端实现，也可以在中间件上实现，比如日常使用较多的缓存中间件 memcached 和 redis</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -189,7 +286,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2023-08-10 09:08:42 / 修改时间：09:16:31" itemprop="dateCreated datePublished" datetime="2023-08-10T09:08:42+08:00">2023-08-10</time>
+      <time title="创建时间：2023-08-10 09:08:42 / 修改时间：21:23:40" itemprop="dateCreated datePublished" datetime="2023-08-10T09:08:42+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -282,7 +379,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 09:16:31" itemprop="dateModified" datetime="2023-08-10T09:16:31+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -417,7 +514,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 09:16:31" itemprop="dateModified" datetime="2023-08-10T09:16:31+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -518,7 +615,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 09:16:31" itemprop="dateModified" datetime="2023-08-10T09:16:31+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -626,7 +723,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 09:16:31" itemprop="dateModified" datetime="2023-08-10T09:16:31+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -719,7 +816,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 09:16:30" itemprop="dateModified" datetime="2023-08-10T09:16:30+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -819,7 +916,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 09:16:31" itemprop="dateModified" datetime="2023-08-10T09:16:31+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -938,7 +1035,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 09:16:31" itemprop="dateModified" datetime="2023-08-10T09:16:31+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1051,7 +1148,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 09:16:30" itemprop="dateModified" datetime="2023-08-10T09:16:30+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1074,102 +1171,6 @@
     
     <div class="post-body" itemprop="articleBody">
           <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/mman.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">void</span> *<span class="title">mmap</span><span class="params">(<span class="type">void</span> *addr, <span class="type">size_t</span> length, <span class="type">int</span> prot, <span class="type">int</span> flags,</span></span></span><br><span class="line"><span class="params"><span class="function">           <span class="type">int</span> fd, <span class="type">off_t</span> offset)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">addr 指定内核映射文件的最佳位置，一般情况下传 0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">length fd 指向的字节数</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">prot 指定访问权限，访问权限不可与 fd 打开的访问模式冲突</span></span><br><span class="line"><span class="comment">PROT_READ 页可读</span></span><br><span class="line"><span class="comment">PROT_WRITE 页可写</span></span><br><span class="line"><span class="comment">PROT_EXEC 页可执行</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">flags 指定其他操作行为</span></span><br><span class="line"><span class="comment">MAP_PRIVATE 表示映射区不共享，文件映射采用了写时复制，进程对内存的任何改变不影响真正文件或其他进程的映射</span></span><br><span class="line"><span class="comment">MAP_SHARED 表示和所有其他映射该文件的进程共享映射内存，对内存的写操作等效于写文件</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">offset 映射起点与文件头的偏移</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 取消映射</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">munmap</span><span class="params">(<span class="type">void</span> *addr, <span class="type">size_t</span> length)</span></span>;</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/07/25/LinuxApi-sync/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/07/25/LinuxApi-sync/" class="post-title-link" itemprop="url">sync</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-07-25 21:02:47" itemprop="dateCreated datePublished" datetime="2023-07-25T21:02:47+08:00">2023-07-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 09:16:30" itemprop="dateModified" datetime="2023-08-10T09:16:30+08:00">2023-08-10</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>同步磁盘的系统调用函数</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">sync</span><span class="params">(<span class="type">void</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">fsync</span><span class="params">(<span class="type">int</span> fildes)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">fdatasync</span><span class="params">(<span class="type">int</span> fd)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>sync</code> 一次将内核缓冲区中的数据全部写入磁盘，linux 系统下该函数是同步函数，即所有脏页回写磁盘后才会返回</p>
-</li>
-<li><p><code>fsync</code> 将 fd 对应的内核缓冲区中的脏页刷盘，并且会写元数据，元数据包括文件修改的时间戳以及 inode 中的其他属性</p>
-</li>
-<li><p><code>fdatasync</code> 只会回写文件的数据及文件大小，文件的其他元数据不会被更新</p>
-</li>
-</ul>
-<p>就性能而言，<code>fdatasync`` &gt; </code>fsync&#96;&#96; &gt;&gt; <code>sync</code></p>
 
       
     </div>
