@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">405</span>
+          <span class="site-state-item-count">406</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,124 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-sds/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/Redis-sds/" class="post-title-link" itemprop="url">sds</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 21:30:54" itemprop="dateCreated datePublished" datetime="2023-04-28T21:30:54+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Redis 构建了一种简单动态字符串的抽象类型，作为 Redis 默认字符串的底层结构</p>
+<h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_5     0   <span class="comment">// 000</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_8     1   <span class="comment">// 001</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_16    2   <span class="comment">// 010</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_32    3   <span class="comment">// 011</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_64    4   <span class="comment">// 100</span></span></span><br><span class="line"><span class="comment">// 所有 sds 类型的 flags 低三位表示类型</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr5 &#123;</span><br><span class="line">    <span class="comment">// 高五位表示长度，长度最大 31</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr8 &#123;</span><br><span class="line">    <span class="comment">// 长度范围 32 ～ 255</span></span><br><span class="line">    <span class="type">uint8_t</span> len;</span><br><span class="line">    <span class="type">uint8_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr16 &#123;</span><br><span class="line">    <span class="comment">// 长度范围 256 ～ 65535</span></span><br><span class="line">    <span class="type">uint16_t</span> len;</span><br><span class="line">    <span class="type">uint16_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr32 &#123;</span><br><span class="line">    <span class="type">uint32_t</span> len;</span><br><span class="line">    <span class="type">uint32_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">__attribute__</span> ((__packed__)) sdshdr64 &#123;</span><br><span class="line">    <span class="type">uint32_t</span> len;</span><br><span class="line">    <span class="type">uint32_t</span> alloc;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags;</span><br><span class="line">    <span class="type">char</span> buf[];  <span class="comment">// 柔性数组</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// __attribute__ 设置属性</span></span><br><span class="line"><span class="comment">// __packed__ 取消内存对齐</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>len</code> 当前已使用的字节数，不包括 <code>\0</code></p>
+</li>
+<li><p><code>alloc</code> 总共分配的字节数量，不包括 <code>\0</code></p>
+</li>
+<li><p><code>flags</code> 低三位表示当前字节数组的属性，是 <code>SDS_TYPE_5</code> 还是 <code>SDS_TYPE_8</code> 等</p>
+</li>
+<li><p><code>buf</code> 数组，用于保存字符串，包括结尾空白符 <code>\0</code></p>
+</li>
+</ul>
+<h2 id="选择依据"><a href="#选择依据" class="headerlink" title="选择依据"></a>选择依据</h2><p>根据所需长度返回 <code>sds::flags</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">char</span> <span class="title">sdsReqType</span><span class="params">(<span class="type">size_t</span> len)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">5</span>) . <span class="comment">// 32</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_5;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">8</span>)   <span class="comment">// 258</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_8;</span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1</span> &lt;&lt; <span class="number">16</span>)  <span class="comment">// 65536</span></span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_16;</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (LONG_MAX == LLONG_MAX)</span></span><br><span class="line">    <span class="keyword">if</span> (len &lt; <span class="number">1ll</span> &lt;&lt; <span class="number">32</span>)</span><br><span class="line">        <span class="keyword">return</span> SDS_TYPE_32;</span><br><span class="line">    <span class="keyword">return</span> SDS_TYPE_64;</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    <span class="keyword">return</span> SDS_TYPE_5;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="获取-sds-长度"><a href="#获取-sds-长度" class="headerlink" title="获取 sds 长度"></a>获取 sds 长度</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="type">char</span>* sds;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_BITS 3</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_MASK  7   <span class="comment">// 111</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_TYPE_5_LEN(f) ((f)&gt;&gt;SDS_TYPE_BITS)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 因为 buf 是柔性数组，所以可以这么根据 buf 获取首地址</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_HDR_VAR(T, s) \</span></span><br><span class="line"><span class="meta">    struct sdshdr##T* sh = (void*)((s) - (sizeof(struct sdshdr##T)));</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_HDR(T, s) \</span></span><br><span class="line"><span class="meta">        ((struct sdshdr##T*)((s)- (sizeof(struct sdshdr##T))))</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">size_t</span> <span class="title">sdslen</span><span class="params">(cosnt sds s)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// sdshdr* 取消了内存对齐，因此这里可以直接取到 flags</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> flags = s[<span class="number">-1</span>];</span><br><span class="line">    <span class="keyword">switch</span> (flags &amp; SDS_TYPE_MASK) &#123;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_5:</span><br><span class="line">            <span class="comment">// 高五位表示长度</span></span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_TYPE_5_LEN</span>(flags);</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_8:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">8</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_16:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">16</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_32:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">32</span>, s)-&gt;len;</span><br><span class="line">        <span class="keyword">case</span> SDS_TYPE_64:</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">SDS_HDR</span>(<span class="number">64</span>, s)-&gt;len;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="扩容机制"><a href="#扩容机制" class="headerlink" title="扩容机制"></a>扩容机制</h2><ol>
+<li><p>判断预留空间是否满足要求，若满足要求则不扩容</p>
+</li>
+<li><p>计算新 sds 占用空间大小，若小于 1M 则进行所需大小 2 倍的扩容</p>
+</li>
+<li><p>若新空间不小于 1M 时每次扩容 1M</p>
+</li>
+<li><p>根据新长度重新计算 sds 类型，若新类型与就类型一致则进行 <code>s_realloc</code> 动态扩容，若不一致则重新申请空构造新对象，并释放久对象</p>
+</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SDS_MAX_PREALLOC (1024 * 1024)</span></span><br><span class="line"><span class="function">sds <span class="title">sdsMakeRoomFor</span><span class="params">(sds s, <span class="type">size_t</span> addlen)</span> </span>&#123;</span><br><span class="line">    <span class="type">void</span> *sh, *newsh;</span><br><span class="line">    <span class="type">size_t</span> avail = <span class="built_in">sdsavail</span>(s);  <span class="comment">// 当前可用空间</span></span><br><span class="line">    <span class="type">size_t</span> len, newlen, reqlen;</span><br><span class="line">    <span class="type">char</span> type, oldtype = s[<span class="number">-1</span>] &amp; SDS_TYPE_MASK;</span><br><span class="line">    <span class="type">int</span> hdrlen;</span><br><span class="line">    <span class="type">size_t</span> usable;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (avail &gt;= addlen) <span class="keyword">return</span> s;</span><br><span class="line">    len = <span class="built_in">sdslen</span>(s);  <span class="comment">// 当前长度</span></span><br><span class="line">    sh = (<span class="type">char</span>*)s - <span class="built_in">sdsHdrSize</span>(oldtype);  <span class="comment">// 旧对象指针</span></span><br><span class="line">    reqlen = newlen = len + addlen;  <span class="comment">// 期望长度</span></span><br><span class="line">    <span class="built_in">assert</span>(newlen &gt; len);  <span class="comment">// catch size_t overflow</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (newlen &lt; SDS_MAX_PREALLOC)</span><br><span class="line">        newlen *= <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        newlen += SDS_MAX_PREALLOC;</span><br><span class="line"></span><br><span class="line">    type = <span class="built_in">sdsReqType</span>(newlen);  <span class="comment">// 期望对象类型</span></span><br><span class="line">    <span class="keyword">if</span> (type == SDS_TYPE_5) type = SDS_TYPE_8;</span><br><span class="line"></span><br><span class="line">    hdrlen = <span class="built_in">sdsHdrSize</span>(type);  <span class="comment">// 期望对象所占内存大小</span></span><br><span class="line">    <span class="built_in">assert</span>(hdrlen + newlen + <span class="number">1</span> &gt; reqlen);  <span class="comment">// catch size_t overflow</span></span><br><span class="line">    <span class="keyword">if</span> (oldtype == type) &#123;</span><br><span class="line">        newsh = <span class="built_in">s_realloc_usable</span>(sh, hdrlen + newlen + <span class="number">1</span>, &amp;usable);</span><br><span class="line">        <span class="keyword">if</span> (newsh == <span class="literal">nullptr</span>) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">        s = (<span class="type">char</span>*)newsh + hdrlen;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        newsh = <span class="built_in">s_malloc_usable</span>(hdrlen + newlen + <span class="number">1</span>, &amp;usable);</span><br><span class="line">        <span class="keyword">if</span> (newsh == <span class="literal">nullptr</span>) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">        <span class="built_in">memcpy</span>((<span class="type">char</span>*)newsh + hdrlen, s, len + <span class="number">1</span>);</span><br><span class="line">        <span class="built_in">s_free</span>(sh);</span><br><span class="line">        s = (<span class="type">char</span>*)newsh + hdflen;</span><br><span class="line">        s[<span class="number">-1</span>] = type;</span><br><span class="line">        <span class="built_in">sdssetlen</span>(s, len);</span><br><span class="line">    &#125;</span><br><span class="line">    usable = usable - hdrlen - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (usable &gt; <span class="built_in">sdsTypeMaxSize</span>(type))</span><br><span class="line">        usable = <span class="built_in">sdsTypeMaxSize</span>(type);</span><br><span class="line">    <span class="built_in">sdssetalloc</span>(s, usable);</span><br><span class="line">    <span class="keyword">return</span> s;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每次新开空间都会额外多加 1 字节，是为了保证最后可以写入一个 <code>\0</code></p>
+<h2 id="与-C-字符串区别"><a href="#与-C-字符串区别" class="headerlink" title="与 C 字符串区别"></a>与 C 字符串区别</h2><ul>
+<li><p>获取字符串长度时间复杂度 O(1)</p>
+</li>
+<li><p>杜绝缓冲区溢出，C 字符串每次增长都需要重新分配新的内存，每次缩短如果不重新分配内存会导致内存浪费</p>
+</li>
+<li><p>惰性空间释放</p>
+</li>
+<li><p>二进制安全，C 字符串必须符合某种编码，并且除字符串末尾外不能包涵空白字符，否者空白字符会被当作字符结尾，导致只能保存文本数据，不能保存图片视频等二进制数据，SDS 是通过 <code>len</code> 字段判断字符串结束</p>
+</li>
+<li><p>兼容性，SDS 的 API 都是二进制安全的，但也遵循 C 字符串以空白结尾的惯例</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +313,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -424,7 +542,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -510,7 +628,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -614,7 +732,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -748,7 +866,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -832,7 +950,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -920,7 +1038,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1023,7 +1141,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1121,7 +1239,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1293,219 +1411,6 @@
 <p>软链接相当于重新创建一个文件，这个文件有独立的 inode，但是这个文件的内容是另外一个文件的路径，所以访问软链接的时候，实际上相当于访问到了另外一个文件</p>
 <p>软链接是可以跨文件系统的，甚至目标文件被删除了，链接文件还是在的，只不过指向的文件找不到了而已</p>
 <img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/10.png" class="">
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/" class="post-title-link" itemprop="url">文件 IO</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:03:44" itemprop="dateCreated datePublished" datetime="2023-04-28T21:03:44+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">文件系统</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="文件描述符"><a href="#文件描述符" class="headerlink" title="文件描述符"></a>文件描述符</h2><p>内核会为每个进程维护一个打开文件的列表，该列表称为文件表。列表的每一项是一个打开的文件的信息，包括指向该文件 inode 内存拷贝的指针以及关联的元数据</p>
-<p>当通过 <code>fork</code> 创建子进程时，子进程会维护一份父进程的文件表副本。在该副本中，打开文件列表及其访问模式、当前文件位置以及其他元数据，都和父进程的文件表相同</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/01.png" class="">
-
-<ul>
-<li><p>内核为每个进程都维护了一个文件表，文件表在底层是一个数组，索引从 0 开始，索引即为文件描述符，几乎所有对文件的操作均以文件描述符作为基本参数</p>
-</li>
-<li><p>每个文件描述符都对应一个文件指针，该指针指向系统中已经打开的文件信息，该文件信息也是一个数组，打开的文件信息包括文件偏移量、状态标志以及 inode 指针</p>
-</li>
-<li><p>inode 指针指向系统中的 inode 表，inode 表中的每个数据项都对应一个具体的磁盘文件</p>
-</li>
-<li><p>同一个进程内可以有两个文件指针指向同一个打开的文件信息</p>
-</li>
-<li><p>不同进程下可以有两个文件指针指向同一个打开的文件信息</p>
-</li>
-<li><p>打开的文件信息包括文件偏移量和状态标志</p>
-</li>
-</ul>
-<h2 id="IO-分类"><a href="#IO-分类" class="headerlink" title="IO 分类"></a>IO 分类</h2><p>IO 结构模型分为 Direct IO、mmap 和标准 IO</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/02.png" class="">
-
-<h3 id="标准-IO"><a href="#标准-IO" class="headerlink" title="标准 IO"></a>标准 IO</h3><p>大多数文件系统的默认 IO 操作都是标准 IO</p>
-<p>在 Linux 的标准 IO 机制中，数据先从磁盘复制到内核空间的缓冲区，然后从内核空间缓冲区复制到应用程序的地址空间</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/03.png" class="">
-
-<ol>
-<li><p>进程发起写请求，调用 <code>write</code></p>
-</li>
-<li><p><code>write</code> 更新内核空间中的页缓存，此次写请求需要更新两个页，分别是页缓存 1 和页缓存 2，此时页缓存中的数据和磁盘中的数据不一致，称这样的页为脏页</p>
-</li>
-<li><p>内核空间页缓存更新完毕，向进程返回成功。此时并未将页缓存中的数据刷新到磁盘文件</p>
-</li>
-<li><p>进程收到 <code>write</code> 返回成功，继续其他操作处理。一段时间后，发起读请求调用 <code>read</code></p>
-</li>
-<li><p>内核空间收到 <code>read</code> 调用请求，发现需要读取的数据部分落在页缓存 2 和页缓存 3 中，则从缓存中读取其内容</p>
-</li>
-<li><p><code>read</code> 请求发现数据不完全在页缓存 2 和页缓存 3 中，于是读取磁盘文件 1 并将文件中需要读取的数据放到页缓存 3 中</p>
-</li>
-<li><p><code>read</code> 将读取到的数据组装好返回给进程</p>
-</li>
-<li><p>满足一定条件时，内核空间将页缓存 1 和页缓存 2 中的数据刷新到磁盘</p>
-</li>
-</ol>
-<p>系统在进程发起 <code>write</code> 系统调用时，只是将数据写入内核缓冲区中的页缓存即返回，将内核空间页缓存中的数据刷新到磁盘是异步的。相比于同步刷盘，引入页缓存机制，能显著提高 <code>write</code> 和 <code>read</code>的性能，而且还不会修改读写语义（写完之后能立刻读到写的内容）</p>
-<p>页回写的时机可以分时间和空间两个维度分析：</p>
-<ul>
-<li><p>当内核缓冲区中某一个脏页存在的时长超过设定的阈值时，该脏页回写磁盘。该参数是 &#x2F;proc&#x2F;sys&#x2F;vm&#x2F;dirty_expire_centisecs，默认值是 30s</p>
-</li>
-<li><p>当内核缓冲区中脏页的数量达到一定比例，或者说空闲缓冲页比率小于设定的阈值时，脏页回写磁盘，回收缓冲页。该参数是 &#x2F;proc&#x2F;sys&#x2F;vm&#x2F;dirty_background_ratio，默认值是 10%，即空闲的页缓存比率小于 10% 时，触发页回写</p>
-</li>
-</ul>
-<p>优点：</p>
-<ul>
-<li><p>在一定程度上分离了内核空间和用户空间，保护系统本身的运行安全</p>
-</li>
-<li><p>可以减少读盘的次数，从而提高性能</p>
-</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li><p>数据在传输过程中需要在用户空间和内核空间之间进行多次数据拷贝操作，这些数据拷贝操作所带来的 CPU 以及内存开销是非常大的</p>
-</li>
-<li><p>延迟写机制可能会导致数据丢失，page cache 中被修改的内存称为脏页，内核通过 flush 线程定期将数据写入磁盘；在实际应用中，如果某些数据非常重要，是完全不允许有丢失风险的，这时应该采用同步写机制，在应用程序中使用 sync、fsync、msync 等系统调用时，内核都会立刻将相应的数据写回到磁盘</p>
-</li>
-</ul>
-<h3 id="用户态缓冲-IO"><a href="#用户态缓冲-IO" class="headerlink" title="用户态缓冲 IO"></a>用户态缓冲 IO</h3><p>在标准 IO 基础上，通过引入用户态缓冲，减少系统 IO 调用的次数和内核态用户态上下文切换</p>
-<p><code>fopen</code>、<code>fclose</code>、<code>fgetc</code>、<code>fputc</code> 等是带用户缓冲 IO 相关的函数</p>
-<h3 id="直接-IO"><a href="#直接-IO" class="headerlink" title="直接 IO"></a>直接 IO</h3><p>直接 IO 就是应用程序直接访问磁盘数据，而不经过内核缓冲区，这样做的目的是减少一次从内核缓冲区到用户程序缓存的数据复制</p>
-<p>优点：</p>
-<ul>
-<li><p>应用程序自己选择缓存机制，提高数据的存取效率</p>
-</li>
-<li><p>写操作：由于其不使用 page cache，所以其写文件如果返回成功，数据就落盘了（不考虑磁盘自带的缓存）</p>
-</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li><p>如果访问的数据不在应用程序缓存中，那么每次数据都会直接从磁盘加载，这种直接加载会非常慢</p>
-</li>
-<li><p>在部分操作系统中，<code>write</code> 系统调用能够确保文件数据落盘，但是文件元数据不一定落盘</p>
-</li>
-<li><p>强制的地址对齐限制，必须使用 <code>posix_memalign</code> 开启地址对其的内存，再将数据拷贝至这个内存中。这个对齐的大小也跟文件系统和存储介质相关，因为文件系统中存储数据是按 IO Block 为单位</p>
-</li>
-<li><p>由于设备之间的数据传输是通过 DMA 完成的，因此用户空间的数据缓冲区内存页必须进行页锁定 page pinning，这是为了防止其物理页框地址被交换到磁盘或者被移动到新的地址而导致 DMA 去拷贝数据的时候在指定的地址找不到内存页从而引发缺页错误，而页锁定的开销并不比 CPU 拷贝小，所以为了避免频繁的页锁定系统调用，应用程序必须分配和注册一个持久的内存池，用于数据缓冲</p>
-</li>
-</ul>
-<h3 id="内存映射-mmap"><a href="#内存映射-mmap" class="headerlink" title="内存映射 mmap"></a>内存映射 mmap</h3><p>内存映射就是将内核空间的一段内存区域映射到用户空间。映射成功后，用户对这段内存区域的修改可以直接反映到内核空间，相反内核空间对这段区域的修改也直接反映用户空间</p>
-<p>内存映射对于内核空间与用户空间两者之间需要大量数据传输等操作的话效率是非常高的。当然，也可以将内核空间的一段内存区域同时映射到多个进程，这样还可以实现进程间的共享内存通信</p>
-<p><code>mmap</code> 返回的虚拟内存地址处在堆栈之间的空余部分，与文件的 page chache 具有相同的物理页，这样就免去了从内核缓冲区向用户态的数据拷贝</p>
-<p>使用 &#96;mmap&#96;&#96; 操作文件时，创建新的虚拟内存区域和建立文件磁盘地址和虚拟内存区域映射这两步，没有任何文件拷贝操作。而之后访问数据时发现内存中并无数据而发起的缺页异常过程，可以通过已经建立好的映射关系，只使用一次数据拷贝，就从磁盘中将数据传入内存的用户空间中，供进程使用</p>
-<p>通过 <code>mmap</code> 将用户态内存与文件建立映射后，即使调用 <code>close</code>，依旧可以写文件，因为存储映射还在</p>
-<p>使用 <code>munmap</code> 取消存储映射，取消映射后再对用户态内存进行操作就不会反应到文件中</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6IO/04.png" class="">
-
-<p>优点：</p>
-<ul>
-<li><p>实现了用户空间和内核空间的高效交互方式，两空间的各自修改操作可以直接反映在映射的区域内，从而被对方空间及时捕捉，并且可以节省一半的内存占用</p>
-</li>
-<li><p>提供进程间共享内存及相互通信的方式，不管是父子进程还是无亲缘关系的进程，都可以将自身用户空间映射到同一个文件或匿名映射到同一片区域，从而通过各自对映射区域的改动，达到进程间通信和进程间共享的目的</p>
-</li>
-<li><p>读写文件时不会带来上下文切换，<code>write</code>、<code>read</code> 都需要从用户态切换到内核态，再从内核态切换到用户态</p>
-</li>
-</ul>
-<p>限制：</p>
-<ul>
-<li><p>&#96;mmap&#96;&#96; 映射区域大小必须是物理页大小（page_size）的整倍数</p>
-</li>
-<li><p><code>mmap</code> 必须将文件的 len 字节信息映射到进程空间的映射区，需要在一开始就确定 len 的大小，不太适用于随机读写的场景</p>
-</li>
-<li><p>由于需要进行映射，会占用进程映射区的空间，因此映射的大小有限制</p>
-</li>
-<li><p><code>mmap</code> 是一个开销很大的虚拟存储操作，这种操作需要修改页表以及用内核缓冲区里的文件数据汰换掉当前 TLB 里的缓存以维持虚拟内存映射的一致性</p>
-</li>
-</ul>
-<p>因为映射后的内存是物理页的整数倍，所以一般内存将大于文件大小。拓展出的内存将被填位 0。越界访问拓展出的内存将不会报错，但写操作不会作用在文件中</p>
-<p>进行完内存映射后可以再改变文件大小，使访问的内存合法。这样方便随时扩充文件空间，随时写入文件，不造成空间浪费</p>
-<p>与共享内存的区别：</p>
-<ul>
-<li><p><code>shm</code> 的内存共享效率比 <code>mmap</code> 效率要高，但 <code>mmap</code> 操作更简单，存储量也更大</p>
-</li>
-<li><p><code>mmap</code> 使用普通文件提供的内存映射，适用于任何进程之间；使用特殊文件提供匿名内存映射，适用于具有亲缘关系的进程之间</p>
-</li>
-<li><p>机器重启后，<code>mmap</code> 因为是映射磁盘文件所以数据不会丢失，而 <code>shm</code> 会丢失数据</p>
-</li>
-</ul>
-<h2 id="DMA"><a href="#DMA" class="headerlink" title="DMA"></a>DMA</h2><p>传统 IO 需要 CPU 把数据从磁盘控制器的缓冲区拷贝到主存里的内核缓冲区，然后再把内核缓冲区拷贝到用户缓冲区</p>
-<p>从内核缓冲区到用户缓冲区，因为缓冲区都是在内存里，所以这一步只能由 CPU 亲自完成。从磁盘控制器的缓冲区到内存，是两个设备之间的数据传输，这一步并非一定要 CPU 来完成，可以借助 DMA 来完成，从而减轻 CPU 的负担</p>
-<p>DMA 全称是 Direct Memory Access，即直接存储器存取，是一种用来提供在外设和存储器之间或者存储器和存储器之间的高速数据传输。整个数据拷贝过程无须 CPU 参与，数据直接通过 DMA 控制器进行快速地移动拷贝，节省 CPU 的资源去做其他工作</p>
-<p>一次读操作或写操作，会触发 2 次用户态和内核态的上下文切换，2 次 CPU 拷贝数据。借助 DMA，将 2 次 CPU 拷贝数据转换成 1 次 CPU 拷贝数据和 1 次 DMA 拷贝</p>
-
       
     </div>
 

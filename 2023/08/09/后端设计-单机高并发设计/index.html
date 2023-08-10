@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="在微服务架构下，通常会选择通过水平扩展来提升系统的并发能力，即使用多服务器，通过分布式部署的方式来支持高并发的请求。但只有在单台机器处理能力达到更高水平的同时，再配合水平扩展，才能最大程度地利用服务器资源，避免资源浪费 服务器在处理网络请求时，主要可以分为接收网络请求和处理网络请求两个步骤。连接管理功能决定着是否可以接收高并发的网络连接，而请求处理功能则决定是否可以及时处理和响应用户的请求 连接管">
+<meta property="og:type" content="article">
+<meta property="og:title" content="单机高并发设计">
+<meta property="og:url" content="https://chaxxro.github.io/2023/08/09/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E5%8D%95%E6%9C%BA%E9%AB%98%E5%B9%B6%E5%8F%91%E8%AE%BE%E8%AE%A1/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="在微服务架构下，通常会选择通过水平扩展来提升系统的并发能力，即使用多服务器，通过分布式部署的方式来支持高并发的请求。但只有在单台机器处理能力达到更高水平的同时，再配合水平扩展，才能最大程度地利用服务器资源，避免资源浪费 服务器在处理网络请求时，主要可以分为接收网络请求和处理网络请求两个步骤。连接管理功能决定着是否可以接收高并发的网络连接，而请求处理功能则决定是否可以及时处理和响应用户的请求 连接管">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-08-09T13:11:17.000Z">
+<meta property="article:modified_time" content="2023-08-10T01:08:05.424Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="后端设计">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/08/09/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E5%8D%95%E6%9C%BA%E9%AB%98%E5%B9%B6%E5%8F%91%E8%AE%BE%E8%AE%A1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/08/09/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E5%8D%95%E6%9C%BA%E9%AB%98%E5%B9%B6%E5%8F%91%E8%AE%BE%E8%AE%A1/","path":"2023/08/09/后端设计-单机高并发设计/","title":"单机高并发设计"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>单机高并发设计 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E7%AE%A1%E7%90%86%E9%AB%98%E5%B9%B6%E5%8F%91%E8%AE%BE%E8%AE%A1"><span class="nav-text">连接管理高并发设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5"><span class="nav-text">实践</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%B7%E6%B1%82%E5%A4%84%E7%90%86%E9%AB%98%E5%B9%B6%E5%8F%91%E8%AE%BE%E8%AE%A1"><span class="nav-text">请求处理高并发设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5-1"><span class="nav-text">实践</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">406</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/08/09/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E5%8D%95%E6%9C%BA%E9%AB%98%E5%B9%B6%E5%8F%91%E8%AE%BE%E8%AE%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="单机高并发设计 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          单机高并发设计
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-08-09 21:11:17" itemprop="dateCreated datePublished" datetime="2023-08-09T21:11:17+08:00">2023-08-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">后端设计</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>在微服务架构下，通常会选择通过水平扩展来提升系统的并发能力，即使用多服务器，通过分布式部署的方式来支持高并发的请求。但只有在单台机器处理能力达到更高水平的同时，再配合水平扩展，才能最大程度地利用服务器资源，避免资源浪费</p>
+<p>服务器在处理网络请求时，主要可以分为接收网络请求和处理网络请求两个步骤。连接管理功能决定着是否可以接收高并发的网络连接，而请求处理功能则决定是否可以及时处理和响应用户的请求</p>
+<h2 id="连接管理高并发设计"><a href="#连接管理高并发设计" class="headerlink" title="连接管理高并发设计"></a>连接管理高并发设计</h2><p>一个合适的网络 IO 模式对于网络后台非常重要，它决定着网络后台能够管理的最大并发连接数</p>
+<p>常用网络 IO 模式都是基于事件驱动的。服务端在接收到网络连接后不会立即分配线程处理连接，而是监听事件，在有事件时再分配进程或者线程进行处理</p>
+<p>目前使用最广泛的两种事件驱动模式是 Reactor 和 Proactor</p>
+<h3 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h3><p>Proactor 模式需要操作系统支持异步 IO 模型，目前只有 Windows 操作系统下的 IOCP 是完整的支持 socket 的异步编程接口，所以选择主从 Reactor 模式作为服务端的网络 IO 处理模式</p>
+<p>使用 <code>epoll</code> 管理文件描述符，监听网络事件</p>
+<ul>
+<li><p>更高效的处理大量的文件描述符，并且没有数量的限制</p>
+</li>
+<li><p>支持边缘触发，只有所监听的事件状态改变或者有事件发生时才会触发一次，可以有效的减少 IO 操作次数</p>
+</li>
+</ul>
+<p>使用多 Reactor 多线程方案</p>
+<ul>
+<li><p>主线程中的 MainReactor 只负责通过 <code>epoll</code> 监听连接建立事件，收到事件后通过 Acceptor 对象中的 &#96;accept&#96;&#96; 获取连接，将新的连接分配给子线程中的 Reactor 处理</p>
+</li>
+<li><p>子线程中的 SubReactor 对象将 MainReactor 对象分配的连接加入<code>epoll</code> 继续进行监听，并创建一个 Handler 用于处理连接的响应事件</p>
+</li>
+<li><p>Handler 对象不负责业务处理，只负责数据的接收和发送，Handler 对象通过 <code>read</code> 读取到数据后，会将数据发给 Work 线程进行业务处理</p>
+</li>
+</ul>
+<h2 id="请求处理高并发设计"><a href="#请求处理高并发设计" class="headerlink" title="请求处理高并发设计"></a>请求处理高并发设计</h2><p>使用多进程多线程时，针对不同的场景和任务类型，存在不同的并行处理模式，选择合适的模式可以更好的提高并行处理效率</p>
+<ul>
+<li><p>生产者-消费者模式：生产者和消费者使用缓冲区进行解耦，多个任务在进程线程内串行执行，在不同的进程线程间并行执行，达到并行处理请求的目的</p>
+</li>
+<li><p>Future 模式：一种异步调用模式，通过新建一个异步处理逻辑在后台处理耗时调用，而主流程不阻塞继续执行。当执行完所有流程后再获取异步调用的结果</p>
+</li>
+<li><p>Master-Worker 模式：对子任务进行拆分，将一个大任务分成若干个小任务，分别在不同的进程线程中处理，最后将子任务结果进行合并</p>
+</li>
+<li><p>流水线模式：当处理请求的每个阶段存在依赖不适合拆分子任务时，可以按照流水线思想，将任务的不同阶段交给不同的进程线程执行</p>
+</li>
+</ul>
+<p>还需要注意进程间通信效率以及线程间的锁竞争导致的并发度下降问题，这样才能利用多核 CPU 的优势，实现任务的并行处理，达到高并发处理请求的目的</p>
+<h3 id="实践-1"><a href="#实践-1" class="headerlink" title="实践"></a>实践</h3><h4 id="多进程划分"><a href="#多进程划分" class="headerlink" title="多进程划分"></a>多进程划分</h4><p>连接管理逻辑和业务处理逻辑相互之间比较独立，因此可以把整个服务划分为连接管理进程和业务处理进程。对于不同的服务，只需要修改业务处理进程实现各自的逻辑即可，完全不用改动连接管理进程</p>
+<p>划分进程后需要实现进程间的高效通信来减少多进程对高并发请求处理的影响。进程间通信主要包括数据缓存和数据通知两方面，为此的网络框架可以封装统一的 MQ 通信结构用于进程间通信，该结构内部封装了共享内存和命名管道两种结构</p>
+<p>在共享内存上构建了环形缓冲区结构，环形缓冲区适用于一方生产数据，另一方消费数据的场景。通过环形缓冲区可以实现在进程间有序传输非固定大小数据的目的。并且框架中只有一个生产者和一个消费者，所以只需要保证环形缓冲区的写入索引指针只允许生产者访问并修改，读取索引指针只允许消费者访问并修改，因此就不用对该结构进行额外加锁保护</p>
+<p>可以通过命名管道传输数据的写入信号来实现通知目的。在通信时，进程首先把数据写入共享内存的环形缓冲区队列中，当队列中的数据达到一定长度时，通过管道传输一个字符，对端进程只要通过 <code>epoll</code> 监听管道句柄，就可以及时地获得读写信号，进行数据读写</p>
+<h4 id="多线程并行处理"><a href="#多线程并行处理" class="headerlink" title="多线程并行处理"></a>多线程并行处理</h4><p>为了避免线程的频繁创建和销毁，需要使用线程池来管理多个线程。预先创建好线程放入线程池内，当任务到达时，任务可以不需要等待线程创建就能立即执行，通过线程池统一管理线程可以提高线程对任务处理的响应速度和减少性能消耗</p>
+<p>在实现任务缓冲队列时，为了减少锁竞争对多线程并发访问的影响，可以通过无锁编程技术实现无锁的缓冲队列结构。无锁队列的实现机制是使用 CAS 操作，即在对数据执行写操作前，先比较下数据是否有变更，没有变更的情况下才去执行写操作，否则返回失败。由于 CAS 整体是一个原子操作，因此在 CAS 修改成功的情况下，能够保证是线程安全的</p>
+<p>相对于加锁，使用无锁队列的优点是 CAS 不需要进行消耗繁重的上下文切换，因为上下文切换对于 CPU 来说消耗是比 CAS 轮询更大的</p>
+<h4 id="Future-模式应用"><a href="#Future-模式应用" class="headerlink" title="Future 模式应用"></a>Future 模式应用</h4><p>Future 模式适用于对单个耗时任务的加速处理，配合生产者-消费者模式，在消费者线程内部使用</p>
+<p>使用 Future 模式最多的就是异步查询 MySQL 任务</p>
+<h4 id="锁优化"><a href="#锁优化" class="headerlink" title="锁优化"></a>锁优化</h4><ul>
+<li><p>降低锁范围，将一些不需要放到同步锁内执行的逻辑放到外面执行，降低锁内逻辑的处理时长，减少其他线程阻塞等待的时间</p>
+</li>
+<li><p>在对数组结构或者基于数组的 HashTable 结构加锁时，可以采用分段加锁的方式，把整个数组细分为多个段，每个段分别加锁</p>
+</li>
+<li><p>细化锁的使用场景，根据不同的场景使用不同类型的锁</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1/" rel="tag"># 后端设计</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/08/09/cpp%E7%BB%86%E8%8A%82-RTTI/" rel="prev" title="RTTI">
+                  <i class="fa fa-chevron-left"></i> RTTI
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

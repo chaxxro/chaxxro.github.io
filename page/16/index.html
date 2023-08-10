@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">405</span>
+          <span class="site-state-item-count">406</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,93 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-bind/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/26/LinuxApi-bind/" class="post-title-link" itemprop="url">bind</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 20:48:10" itemprop="dateCreated datePublished" datetime="2023-04-26T20:48:10+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>调用 <code>socket()</code> 创建一个 socket 时，返回的 socket 描述符没有一个具体的地址</p>
+<p>给 socket 赋值一个地址，就必须调用 <code>bind()</code> 函数，否则当调用 <code>connect()</code>、<code>listen()</code> 时系统会自动随机分配一个端口</p>
+<p><code>bind()</code> 通过传递进来的文件描述符找到对应的 socket 结构，把一个地址族中的特定地址赋给 socket，也可以说是绑定 ip 端口和 socket</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">bind</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">const</span> <span class="keyword">struct</span> sockaddr *addr, <span class="type">socklen_t</span> addrlen)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">addr: 一个 const struct sockaddr * 指针，指向要绑定给 sockfd 的协议地址</span></span><br><span class="line"><span class="comment">ipv4: sockaddr_in</span></span><br><span class="line"><span class="comment">ipv6: sockaddr_in6</span></span><br><span class="line"><span class="comment">unix: sockaddr_un</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">addrlen：对应的是地址的长度</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">int</span> fd = <span class="built_in">socket</span>(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">sockaddr_in addr;</span><br><span class="line"><span class="keyword">auto</span> addr_len = <span class="keyword">sizeof</span> addr;</span><br><span class="line"><span class="built_in">bzero</span>(&amp;addr, addr_len);</span><br><span class="line">addr.sin_addr.s_addr = <span class="built_in">inet_addr</span>(<span class="string">&quot;0.0.0.0&quot;</span>);</span><br><span class="line">addr.sin_port = <span class="built_in">htons</span>(port);</span><br><span class="line"><span class="type">int</span> ret = <span class="built_in">bind</span>(fd, <span class="built_in">reinterpret_cast</span>&lt;sockaddr*&gt;(&amp;addr), addr_len);</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +282,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:52" itemprop="dateModified" datetime="2023-08-09T21:09:52+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -288,7 +375,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -423,7 +510,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -577,7 +664,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -752,7 +839,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -854,7 +941,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -939,7 +1026,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1291,7 +1378,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1383,7 +1470,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
+      <time title="修改时间：2023-08-10 09:08:05" itemprop="dateModified" datetime="2023-08-10T09:08:05+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1429,101 +1516,6 @@
 </li>
 </ul>
 <img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-icmp/02.png" class="">
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-nat/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-nat/" class="post-title-link" itemprop="url">nat</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 19:42:44" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:44+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-09 21:09:53" itemprop="dateModified" datetime="2023-08-09T21:09:53+08:00">2023-08-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>NAT(Network Address Translation)，网络地址转换，允许一个整体机构以一个公用 IP 地址出现在 Internet 上，它是一种把内部私有网络地址（IP 地址）翻译成合法网络 IP 地址的技术</p>
-<p>NAT 在一定程度上，能够有效的解决公网地址不足的问题</p>
-<p>NAT 有三种类型：</p>
-<ul>
-<li><p>静态 NAT：一个公网 IP 对应一个私有 IP，是一对一的转换，没有进行端口的转换</p>
-</li>
-<li><p>动态 NAT：在路由器上配置一个外网 IP 地址池，当内部有计算机需要和外部通信时，就从地址池里动态的取出一个外网 IP，并将他们的对应关系绑定到 NAT 表中，通信结束后，这个外网 IP 才被释放，可供其他内部 IP 地址转换使用</p>
-</li>
-<li><p>网络地址端口转换：不但要转换 IP 地址，还要进行传输层的端口转换，把内部地址映射到外部网络的一个 IP 地址的不同端口</p>
-</li>
-</ul>
-
       
     </div>
 
