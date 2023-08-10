@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">408</span>
+          <span class="site-state-item-count">409</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,104 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/26/cpp%E6%A0%87%E5%87%86%E5%BA%93-typeinfo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/26/cpp%E6%A0%87%E5%87%86%E5%BA%93-typeinfo/" class="post-title-link" itemprop="url">typeinfo</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-26 19:45:09" itemprop="dateCreated datePublished" datetime="2023-05-26T19:45:09+08:00">2023-05-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-08-10 21:50:49" itemprop="dateModified" datetime="2023-08-10T21:50:49+08:00">2023-08-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>引入头文件 <code>#include &lt;typeinfo&gt;</code></p>
+<p>主要包括三个类 <code>std::type_info</code>、<code>std::bad_typeid</code>、<code>std::bad_cast</code></p>
+<h2 id="std-type-info"><a href="#std-type-info" class="headerlink" title="std::type_info"></a>std::type_info</h2><p><code>std::type_info</code> 类保存了类型中编译器特定实现的信息，包括类型的名称以及比较两个类型是否相等或排序顺序的方法</p>
+<p>获取 <code>std::type_info</code> 对象需要通过 <code>typeid</code> 操作符</p>
+<p><code>std::type_info</code> 是禁止拷贝构造和拷贝赋值的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">typeid</span> ( type )</span><br><span class="line"><span class="built_in">typeid</span> ( expression )</span><br><span class="line"><span class="comment">// 顶层的 cv 限制符是会被忽略的 typeid(const T) == typeid(T)</span></span><br><span class="line"><span class="comment">// 当作用于非多态类型时，计算结果发生在编译时</span></span><br><span class="line"><span class="comment">// 当作用于多态类型时，计算结果发生在运行时</span></span><br></pre></td></tr></table></figure>
+
+<p><code>std::type_info</code> 提供成员函数 <code>std::size_t hash_code()</code>、<code>const char* name()</code>、<code>bool before(const type_info&amp; rhs)</code>、<code>operator==</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Base</span> &#123; <span class="keyword">virtual</span> ~<span class="built_in">Base</span>() = <span class="keyword">default</span>; &#125;;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Derived</span> : Base &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">func</span><span class="params">(<span class="type">const</span> Base* pb)</span> </span>&#123;</span><br><span class="line">  <span class="type">const</span> <span class="keyword">auto</span> type = <span class="built_in">typeid</span>(*pb);</span><br><span class="line">	std::cout &lt;&lt; <span class="string">&quot;name: &quot;</span> &lt;&lt; type.<span class="built_in">name</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;  <span class="comment">// 4Base</span></span><br><span class="line">	std::cout &lt;&lt; <span class="string">&quot;hash_code: &quot;</span> &lt;&lt; type.<span class="built_in">hash_code</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;  <span class="comment">// 4Base</span></span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	Base b1;</span><br><span class="line">	Derived d1;</span><br><span class="line">	<span class="type">const</span> Base *pb = &amp;b1;</span><br><span class="line">  <span class="comment">// name: 4Base</span></span><br><span class="line">  <span class="comment">// hash_code: 1646098473708828226</span></span><br><span class="line">  <span class="built_in">func</span>(pb);</span><br><span class="line">	pb = &amp;d1;</span><br><span class="line">  <span class="comment">// name: 7Derived</span></span><br><span class="line">  <span class="comment">// hash_code: 6509159466577508456</span></span><br><span class="line">  <span class="built_in">func</span>(pb);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">A</span> &#123;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">A</span>() &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">B</span> : A &#123;&#125;;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">C</span> : A &#123;&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">using</span> TypeInfoRef = std::reference_wrapper&lt;<span class="type">const</span> std::type_info&gt;;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Hasher</span> &#123;</span><br><span class="line">  <span class="function">std::<span class="type">size_t</span> <span class="title">operator</span><span class="params">()</span><span class="params">(TypeInfoRef code)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> code.<span class="built_in">get</span>().<span class="built_in">hash_code</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">EqualTo</span> &#123;</span><br><span class="line">  <span class="function"><span class="type">bool</span> <span class="title">operator</span><span class="params">()</span><span class="params">(TypeInfoRef lhs, TypeInfoRef rhs)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> lhs.<span class="built_in">get</span>() == rhs.<span class="built_in">get</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  std::unordered_map&lt;TypeInfoRef, std::string, Hasher, EqualTo&gt; type_names;</span><br><span class="line"></span><br><span class="line">  type_names[<span class="built_in">typeid</span>(<span class="type">int</span>)] = <span class="string">&quot;int&quot;</span>;</span><br><span class="line">  type_names[<span class="built_in">typeid</span>(<span class="type">double</span>)] = <span class="string">&quot;double&quot;</span>;</span><br><span class="line">  type_names[<span class="built_in">typeid</span>(A)] = <span class="string">&quot;A&quot;</span>;</span><br><span class="line">  type_names[<span class="built_in">typeid</span>(B)] = <span class="string">&quot;B&quot;</span>;</span><br><span class="line">  type_names[<span class="built_in">typeid</span>(C)] = <span class="string">&quot;C&quot;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="type">int</span> i;</span><br><span class="line">  <span class="type">double</span> d;</span><br><span class="line">  A a;</span><br><span class="line"></span><br><span class="line">  <span class="function">std::unique_ptr&lt;A&gt; <span class="title">b</span><span class="params">(<span class="keyword">new</span> B)</span></span>;</span><br><span class="line">  <span class="function">std::unique_ptr&lt;A&gt; <span class="title">c</span><span class="params">(<span class="keyword">new</span> C)</span></span>;</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;i is &quot;</span> &lt;&lt; type_names[<span class="built_in">typeid</span>(i)] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;d is &quot;</span> &lt;&lt; type_names[<span class="built_in">typeid</span>(d)] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;a is &quot;</span> &lt;&lt; type_names[<span class="built_in">typeid</span>(a)] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;b is &quot;</span> &lt;&lt; type_names[<span class="built_in">typeid</span>(*b)] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;c is &quot;</span> &lt;&lt; type_names[<span class="built_in">typeid</span>(*c)] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  <span class="comment">// i is int</span></span><br><span class="line">  <span class="comment">// d is double</span></span><br><span class="line">  <span class="comment">// a is A</span></span><br><span class="line">  <span class="comment">// b is B</span></span><br><span class="line">  <span class="comment">// c is C</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="std-bad-typeid"><a href="#std-bad-typeid" class="headerlink" title="std::bad_typeid"></a>std::bad_typeid</h2><p>当 <code>typeid</code> 应用于多态类型的解引用空指针值时，将引发此类型的异常</p>
+<h2 id="std-bad-cast"><a href="#std-bad-cast" class="headerlink" title="std::bad_cast"></a>std::bad_cast</h2><p>当 <code>dynamic_cast</code> 的运行时检查失败会抛出此类型的异常</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +293,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:50:49" itemprop="dateModified" datetime="2023-08-10T21:50:49+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -324,7 +422,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:50:49" itemprop="dateModified" datetime="2023-08-10T21:50:49+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -470,7 +568,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:50:49" itemprop="dateModified" datetime="2023-08-10T21:50:49+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -583,7 +681,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:50:49" itemprop="dateModified" datetime="2023-08-10T21:50:49+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -701,7 +799,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:50:49" itemprop="dateModified" datetime="2023-08-10T21:50:49+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -869,7 +967,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:50:49" itemprop="dateModified" datetime="2023-08-10T21:50:49+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1020,7 +1118,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:50:49" itemprop="dateModified" datetime="2023-08-10T21:50:49+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1109,7 +1207,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:50:49" itemprop="dateModified" datetime="2023-08-10T21:50:49+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1206,7 +1304,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
+      <time title="修改时间：2023-08-10 21:50:49" itemprop="dateModified" datetime="2023-08-10T21:50:49+08:00">2023-08-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1269,102 +1367,6 @@
 
 <p>在泛型编程中，<code>auto</code> 和 <code>decltype</code> 结合使用达到返回类型后置</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt; <span class="keyword">typename</span> T, <span class="keyword">typename</span> U&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">add</span><span class="params">(T t, U u)</span> -&gt; <span class="title">decltype</span><span class="params">(t+u)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> t + u;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, _TCHAR* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="type">int</span> a = <span class="number">1</span>; <span class="type">float</span> b = <span class="number">2.0</span>;</span><br><span class="line">	<span class="keyword">auto</span> c = <span class="built_in">add</span>(a, b);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/10/cpp%E7%BB%86%E8%8A%82-%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/10/cpp%E7%BB%86%E8%8A%82-%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%B8%80%E4%BA%9B%E7%BB%86%E8%8A%82/" class="post-title-link" itemprop="url">引用</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-10 20:54:59" itemprop="dateCreated datePublished" datetime="2023-05-10T20:54:59+08:00">2023-05-10</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-10 21:23:40" itemprop="dateModified" datetime="2023-08-10T21:23:40+08:00">2023-08-10</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>指针只是引用的一种实现方式，这本身跟引用语义无关</p>
-<h2 id="const-与引用"><a href="#const-与引用" class="headerlink" title="const 与引用"></a>const 与引用</h2><p>指针本身可以是 <code>const</code>，解类型也可以是 <code>const</code>，但引用本身是没有 <code>const</code> 的</p>
-<h2 id="快照"><a href="#快照" class="headerlink" title="快照"></a>快照</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 本机序是小端的情况</span></span><br><span class="line"><span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> &amp;r = a;</span><br><span class="line">a = <span class="number">8</span>;</span><br><span class="line">std::cout &lt;&lt; r &lt;&lt; std::endl; <span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="type">uint32_t</span> b = <span class="number">0</span>;</span><br><span class="line"><span class="type">uint16_t</span> &amp;r2 = <span class="built_in">reinterpret_cast</span>&lt;<span class="type">uint16_t</span> &amp;r&gt;(b);</span><br><span class="line">b = <span class="number">0xabcd1234</span>;</span><br><span class="line">std::cout &lt;&lt; std::hex &lt;&lt; r2 &lt;&lt; std::endl; <span class="comment">// 1234</span></span><br><span class="line"></span><br><span class="line"><span class="type">uint32_t</span> c = <span class="number">10</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">uint16_t</span> &amp;r1 = c;</span><br><span class="line">c = <span class="number">8</span>;</span><br><span class="line">std::cout &lt;&lt; std::dec &lt;&lt; r1 &lt;&lt; std::endl; <span class="comment">// 10</span></span><br></pre></td></tr></table></figure>
-
-<p><code>const</code> 引用的快照只在两种场景触发</p>
-<ol>
-<li><p>绑定纯右值</p>
-</li>
-<li><p>绑定不同类型，并且允许发生隐式构造时</p>
-</li>
-</ol>
-<p>触发快照时，编译器会构造一个临时匿名变量，并用快照的值来初始化引用</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> cs[] = <span class="string">&quot;Hello!&quot;</span>;</span><br><span class="line"><span class="type">const</span> std::string &amp;str = cs; <span class="comment">// 隐式构造</span></span><br></pre></td></tr></table></figure>
       
     </div>
 
