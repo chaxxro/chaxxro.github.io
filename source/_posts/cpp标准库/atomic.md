@@ -135,7 +135,7 @@ bool compare_exchange_strong(T& expect, T desr, memory_order m = memory_order_se
 bool compare_exchange_strong(T& expect, T desr, memory_order m = memory_order_seq_cst) noexcept;
 ```
 
-比较 `*this` 和 `expect`
+`compare_exchange` 就是 CAS，在对数据执行写操作前，先比较下数据是否有变更，没有变更的情况下才去执行写操作，否则返回失败
 
 - `*this == expect`，返回 `true` 且将 `desr` 赋值给 `*this`，整个过程是一个读-修改-写操作，对应 `success` 内存序
 
