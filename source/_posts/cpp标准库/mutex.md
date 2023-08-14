@@ -134,3 +134,54 @@ template <class L1, class L2, class... L3>
 template <class L1, class L2, class... L3>
   void lock(L1&, L2&, L3&...);
 ```
+
+## std::shared_mutex
+
+cpp17 引入了读写锁 `std::shared_mutex`
+
+共享锁方法 `lock_shared`、`try_lock_shared`、`unlock_shared`，也可以使用 `std::shared_lock`
+
+排他锁方法 `lock`、`try_lock`、`unlock`，也可以使用 `std::unique_lock`
+
+```cpp
+class ThreadSafeCounter {
+public:
+  ThreadSafeCounter() = default;
+
+  unsigned int get() const {
+    std::shared_lock lock(mutex_);
+    return value_;
+  }
+
+  unsigned int increment() {
+    std::unique_lock lock(mutex_);
+    return ++value_;
+  }
+
+  void reset() {
+    std::unique_lock lock(mutex_);
+    value_ = 0;
+  }
+
+private:
+  mutable std::shared_mutex mutex_;
+  unsigned int value_ = 0;
+};
+
+int main() {
+  ThreadSafeCounter counter;
+
+  auto increment_and_print = [&counter]() {
+    for (int i = 0; i < 3; i++) {
+      std::cout << std::this_thread::get_id() << ' ' << counter.increment()
+                << '\n';
+    }
+  };
+
+  std::thread thread1(increment_and_print);
+  std::thread thread2(increment_and_print);
+
+  thread1.join();
+  thread2.join();
+}
+```
