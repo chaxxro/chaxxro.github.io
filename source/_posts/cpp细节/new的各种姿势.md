@@ -210,4 +210,4 @@ int (*p)[3] = (int(*)[3])malloc(sizeof(int) * 5 * 3);
 
 `malloc` 和 `free` 只是分配和释放内存
 
-`malloc` 内存分配成功则是返回 `void*`，需要通过强制类型转换将 `void*` 指针转换成我们需要的类型
+`malloc` 内存分配成功则是返回 `void*`，需要通过强制类型转换将 `void*` 指针转换成需要的类型

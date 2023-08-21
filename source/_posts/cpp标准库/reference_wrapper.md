@@ -23,7 +23,7 @@ std::cout << valueRef.get() << std::endl;  // 输出100
 
 ```cpp
 int value = 0;
-std::vector<std::reference_wrapper<int>> valueRefs{};  // 我们无法使用std::vector<int&>
+std::vector<std::reference_wrapper<int>> valueRefs{};  // 无法使用std::vector<int&>
 
 valueRefs.push_back(std::ref(value));
 

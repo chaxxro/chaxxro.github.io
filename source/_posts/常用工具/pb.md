@@ -223,7 +223,7 @@ void PrintDebugString() const;	//Convenience function useful in GDB. Prints Debu
 解析 API
 
 ```cpp
-bool SerializeToString(string* output) const; //将消息序列化并储存在指定的string中。注意里面的内容是二进制的，而不是文本；我们只是使用string作为一个很方便的容器。
+bool SerializeToString(string* output) const; //将消息序列化并储存在指定的string中。注意里面的内容是二进制的，而不是文本；只是使用string作为一个很方便的容器。
 
 bool ParseFromString(const string& data); //从给定的string解析消息。
 

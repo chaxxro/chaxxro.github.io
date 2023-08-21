@@ -9,7 +9,7 @@ tags: cpp
 categories: cpp
 ---
 
-`lock_guard` 提供了简单上锁、解锁操作，但当我们需要更灵活的操作时便无能为力了
+`lock_guard` 提供了简单上锁、解锁操作，但当需要更灵活的操作时便无能为力了
 
 `unique_lock` 拥有对 `mutex` 的所有权，一但初始化了 `unique_lock`，其就接管了该 `mutex`，在 `unique_lock` 结束生命周期前（析构前），其它地方就不要再直接使用该 `mutex` 了
 
