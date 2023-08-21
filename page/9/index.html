@@ -128,12 +128,12 @@
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">29</span>
+        <span class="site-state-item-count">30</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-count">28</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -195,7 +195,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-14 11:46:19" itemprop="dateModified" datetime="2023-08-14T11:46:19+08:00">2023-08-14</time>
+      <time title="修改时间：2023-08-21 21:58:54" itemprop="dateModified" datetime="2023-08-21T21:58:54+08:00">2023-08-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -217,7 +217,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <p><code>lock_guard</code> 提供了简单上锁、解锁操作，但当我们需要更灵活的操作时便无能为力了</p>
+          <p><code>lock_guard</code> 提供了简单上锁、解锁操作，但当需要更灵活的操作时便无能为力了</p>
 <p><code>unique_lock</code> 拥有对 <code>mutex</code> 的所有权，一但初始化了 <code>unique_lock</code>，其就接管了该 <code>mutex</code>，在 <code>unique_lock</code> 结束生命周期前（析构前），其它地方就不要再直接使用该 <code>mutex</code> 了</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Mutex</span>&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">unique_lock</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="keyword">typedef</span> Mutex mutex_type;</span><br><span class="line">    <span class="comment">// 空unique_lock对象</span></span><br><span class="line">    <span class="built_in">unique_lock</span>() <span class="keyword">noexcept</span>;</span><br><span class="line">    <span class="comment">// 管理m, 并调用m.lock进行上锁，如果m已被其它线程锁定，由该构造了函数会阻塞。</span></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">unique_lock</span><span class="params">(mutex_type&amp; m)</span></span>;</span><br><span class="line">    <span class="comment">// 仅管理m，构造函数中不对m上锁。可以在初始化后调用lock, try_lock, try_lock_xxx系列进行上锁。</span></span><br><span class="line">    <span class="built_in">unique_lock</span>(mutex_type&amp; m, <span class="type">defer_lock_t</span>) <span class="keyword">noexcept</span>;</span><br><span class="line">    <span class="comment">// 管理m, 并调用m.try_lock，上锁不成功不会阻塞当前线程</span></span><br><span class="line">    <span class="built_in">unique_lock</span>(mutex_type&amp; m, <span class="type">try_to_lock_t</span>);</span><br><span class="line">    <span class="comment">// 管理m, 该函数假设m已经被当前线程锁定，不再尝试上锁。</span></span><br><span class="line">    <span class="built_in">unique_lock</span>(mutex_type&amp; m, <span class="type">adopt_lock_t</span>);</span><br><span class="line">    <span class="comment">// 管理m, 并调用m.try_lock_unitil函数进行加锁</span></span><br><span class="line">    <span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Clock</span>, <span class="keyword">class</span> <span class="title class_">Duration</span>&gt;</span><br><span class="line">        <span class="built_in">unique_lock</span>(mutex_type&amp; m, <span class="type">const</span> chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time);</span><br><span class="line">    <span class="comment">// 管理m，并调用m.try_lock_for函数进行加锁</span></span><br><span class="line">    <span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Rep</span>, <span class="keyword">class</span> <span class="title class_">Period</span>&gt;</span><br><span class="line">        <span class="built_in">unique_lock</span>(mutex_type&amp; m, <span class="type">const</span> chrono::duration&lt;Rep, Period&gt;&amp; rel_time);</span><br><span class="line">    <span class="comment">// 析构，如果此前成功加锁(或通过adopt_lock_t进行构造)，并且对mutex拥有所有权，则解锁mutex</span></span><br><span class="line">    ~<span class="built_in">unique_lock</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 禁止拷贝操作</span></span><br><span class="line">    <span class="built_in">unique_lock</span>(unique_lock <span class="type">const</span>&amp;) = <span class="keyword">delete</span>;</span><br><span class="line">    unique_lock&amp; <span class="keyword">operator</span>=(unique_lock <span class="type">const</span>&amp;) = <span class="keyword">delete</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 支持move语义</span></span><br><span class="line">    <span class="built_in">unique_lock</span>(unique_lock&amp;&amp; u) <span class="keyword">noexcept</span>;</span><br><span class="line">    unique_lock&amp; <span class="keyword">operator</span>=(unique_lock&amp;&amp; u) <span class="keyword">noexcept</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">try_lock</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Rep</span>, <span class="keyword">class</span> <span class="title class_">Period</span>&gt;</span><br><span class="line">        <span class="function"><span class="type">bool</span> <span class="title">try_lock_for</span><span class="params">(<span class="type">const</span> chrono::duration&lt;Rep, Period&gt;&amp; rel_time)</span></span>;</span><br><span class="line">    <span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Clock</span>, <span class="keyword">class</span> <span class="title class_">Duration</span>&gt;</span><br><span class="line">        <span class="function"><span class="type">bool</span> <span class="title">try_lock_until</span><span class="params">(<span class="type">const</span> chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 显示式解锁，该函数调用后，除非再次调用lock系列函数进行上锁，否则析构中不再进行解锁</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 与另一个unique_lock交换所有权</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">swap</span><span class="params">(unique_lock&amp; u)</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">    <span class="comment">// 返回当前管理的mutex对象的指针，并释放所有权</span></span><br><span class="line">    <span class="function">mutex_type* <span class="title">release</span><span class="params">()</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 当前实例是否获得了锁</span></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">owns_lock</span><span class="params">()</span> <span class="type">const</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">    <span class="comment">// 同owns_lock</span></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="title">bool</span> <span class="params">()</span> <span class="type">const</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">    <span class="comment">// 返回mutex指针，便于开发人员进行更灵活的操作</span></span><br><span class="line">    <span class="comment">// 注意：此时mutex的所有权仍归unique_lock所有，因此不要对mutex进行加锁、解锁操作</span></span><br><span class="line">    <span class="function">mutex_type* <span class="title">mutex</span><span class="params">()</span> <span class="type">const</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
@@ -283,7 +283,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-14 11:46:19" itemprop="dateModified" datetime="2023-08-14T11:46:19+08:00">2023-08-14</time>
+      <time title="修改时间：2023-08-21 21:58:54" itemprop="dateModified" datetime="2023-08-21T21:58:54+08:00">2023-08-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -398,7 +398,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-14 11:46:19" itemprop="dateModified" datetime="2023-08-14T11:46:19+08:00">2023-08-14</time>
+      <time title="修改时间：2023-08-21 21:58:54" itemprop="dateModified" datetime="2023-08-21T21:58:54+08:00">2023-08-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -508,7 +508,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-14 11:46:19" itemprop="dateModified" datetime="2023-08-14T11:46:19+08:00">2023-08-14</time>
+      <time title="修改时间：2023-08-21 21:58:54" itemprop="dateModified" datetime="2023-08-21T21:58:54+08:00">2023-08-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -610,7 +610,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-14 11:46:19" itemprop="dateModified" datetime="2023-08-14T11:46:19+08:00">2023-08-14</time>
+      <time title="修改时间：2023-08-21 21:58:54" itemprop="dateModified" datetime="2023-08-21T21:58:54+08:00">2023-08-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -638,7 +638,7 @@
 <ul>
 <li>无法使用 <code>&amp;</code> 的场合</li>
 </ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> value = <span class="number">0</span>;</span><br><span class="line">std::vector&lt;std::reference_wrapper&lt;<span class="type">int</span>&gt;&gt; valueRefs&#123;&#125;;  <span class="comment">// 我们无法使用std::vector&lt;int&amp;&gt;</span></span><br><span class="line"></span><br><span class="line">valueRefs.<span class="built_in">push_back</span>(std::<span class="built_in">ref</span>(value));</span><br><span class="line"></span><br><span class="line">value = <span class="number">100</span>;</span><br><span class="line">std::cout &lt;&lt; valueRefs[<span class="number">0</span>] &lt;&lt; std::endl;  <span class="comment">// 输出100</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> value = <span class="number">0</span>;</span><br><span class="line">std::vector&lt;std::reference_wrapper&lt;<span class="type">int</span>&gt;&gt; valueRefs&#123;&#125;;  <span class="comment">// 无法使用std::vector&lt;int&amp;&gt;</span></span><br><span class="line"></span><br><span class="line">valueRefs.<span class="built_in">push_back</span>(std::<span class="built_in">ref</span>(value));</span><br><span class="line"></span><br><span class="line">value = <span class="number">100</span>;</span><br><span class="line">std::cout &lt;&lt; valueRefs[<span class="number">0</span>] &lt;&lt; std::endl;  <span class="comment">// 输出100</span></span><br></pre></td></tr></table></figure>
 
 <ul>
 <li>在进行类型推断时，<code>&amp;</code> 会被丢弃的情况</li>
@@ -711,7 +711,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-14 11:46:19" itemprop="dateModified" datetime="2023-08-14T11:46:19+08:00">2023-08-14</time>
+      <time title="修改时间：2023-08-21 21:58:54" itemprop="dateModified" datetime="2023-08-21T21:58:54+08:00">2023-08-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -801,7 +801,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-14 11:46:19" itemprop="dateModified" datetime="2023-08-14T11:46:19+08:00">2023-08-14</time>
+      <time title="修改时间：2023-08-21 21:58:54" itemprop="dateModified" datetime="2023-08-21T21:58:54+08:00">2023-08-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -948,7 +948,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-14 11:46:19" itemprop="dateModified" datetime="2023-08-14T11:46:19+08:00">2023-08-14</time>
+      <time title="修改时间：2023-08-21 21:58:54" itemprop="dateModified" datetime="2023-08-21T21:58:54+08:00">2023-08-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1087,7 +1087,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-14 11:46:19" itemprop="dateModified" datetime="2023-08-14T11:46:19+08:00">2023-08-14</time>
+      <time title="修改时间：2023-08-21 21:58:54" itemprop="dateModified" datetime="2023-08-21T21:58:54+08:00">2023-08-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1177,7 +1177,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-08-14 11:46:19" itemprop="dateModified" datetime="2023-08-14T11:46:19+08:00">2023-08-14</time>
+      <time title="修改时间：2023-08-21 21:58:54" itemprop="dateModified" datetime="2023-08-21T21:58:54+08:00">2023-08-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
