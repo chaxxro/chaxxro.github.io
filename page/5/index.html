@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">410</span>
+          <span class="site-state-item-count">411</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,160 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/08/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Reactor/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/08/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Reactor/" class="post-title-link" itemprop="url">Reactor</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-08 20:40:24" itemprop="dateCreated datePublished" datetime="2023-06-08T20:40:24+08:00">2023-06-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-09-08 15:04:13" itemprop="dateModified" datetime="2023-09-08T15:04:13+08:00">2023-09-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">网络编程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Reactor 模式其实就是利用面向对象的思想对非阻塞同步 IO 复用的封装，即 IO 多路复用监听事件，收到事件后根据事件类型分配给某个线程或进程</p>
+<p>Reactor 模式主要由 Reactor 和处理资源池组成：</p>
+<ul>
+<li><p>Reactor 负责监听和分发事件，事件包括连接和读写</p>
+</li>
+<li><p>处理资源池负责处理事件</p>
+</li>
+</ul>
+<p>Reactor 模式是灵活多变的，可根据不同场景特殊设计：</p>
+<ul>
+<li><p>Reactor 数量灵活</p>
+</li>
+<li><p>处理资源池可以是单个进程、线程，也可以是多个进程、线程</p>
+</li>
+</ul>
+<h2 id="单-Reactor-单线程模型"><a href="#单-Reactor-单线程模型" class="headerlink" title="单 Reactor 单线程模型"></a>单 Reactor 单线程模型</h2><img src="/2023/06/08/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Reactor/01.png" class="">
+
+<p>单 Reactor 单线程模型中有 Reactor、Acceptor、Handler 三个对象</p>
+<ul>
+<li><p>Reactor 对象负责监听和分发事件</p>
+</li>
+<li><p>Acceptor 对象负责处理新连接</p>
+</li>
+<li><p>Handler 对象负责处理业务</p>
+</li>
+</ul>
+<p>整体流程：</p>
+<ol>
+<li><p>Reactor 对象通过 IO 复用监控事件，收到事件后通过事件类型进行转发</p>
+</li>
+<li><p>如果是连接建立的事件，则由 Acceptor 对象进行处理，并创建 Handler 对象负责处理后续事件</p>
+</li>
+<li><p>如果不是建立连接事件，则交由当前连接对应的 Handler 进行处理</p>
+</li>
+<li><p>Handler 通过 <code>read</code>、业务处理、<code>send</code> 完成完整业务流程</p>
+</li>
+</ol>
+<p>单 Reactor 单线程模型只是在代码上进行了组件的区分，但是整体操作还是单线程，不能充分利用硬件资源，并且当业务处理耗时较长时，会造成响应延迟</p>
+<p>单 Reactor 单线程的方案不适用计算机密集型的场景，只适用于业务处理非常快速的场景</p>
+<h2 id="单-Reactor-多线程模型"><a href="#单-Reactor-多线程模型" class="headerlink" title="单 Reactor 多线程模型"></a>单 Reactor 多线程模型</h2><img src="/2023/06/08/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Reactor/02.png" class="">
+
+<ol>
+<li><p>Reactor 对象通过 IO 复用监控事件，收到事件后通过事件类型进行转发</p>
+</li>
+<li><p>如果是连接建立的事件，则由 Acceptor 对象进行处理，并创建 Handler 对象负责处理后续事件</p>
+</li>
+<li><p>如果不是建立连接事件，则交由当前连接对应的 Handler 进行处理</p>
+</li>
+<li><p>Handler 对象不再负责业务处理，只负责接收、发送数据，Handler 通过 <code>read</code> 读取数据后会分发给子线程 Processor 对象进行业务处理</p>
+</li>
+<li><p>子线程 Processor 完成业务处理后，将结果发给主线程中的 Handler 对象进行处理</p>
+</li>
+<li><p>Handler 对象收到结果后通过 <code>send</code> 将结果返回</p>
+</li>
+</ol>
+<p>将业务处理交由线程池来处理，使得 Reactor 能更专注的做事件分发工作了，提升整个应用的吞吐</p>
+<p>又因为 Reactor 承担了所有事件的监听和响应，且只在主线程中运行，所以当面对瞬间高并发场景时容易成为性能瓶颈</p>
+<h2 id="主从-Reactor-多线程模型"><a href="#主从-Reactor-多线程模型" class="headerlink" title="主从 Reactor 多线程模型"></a>主从 Reactor 多线程模型</h2><img src="/2023/06/08/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-Reactor/03.png" class="">
+
+<ol>
+<li><p>主线程中的 MainReactor 对象通过 IO 复用监控连接事件，收到事件后通过 Acceptor 对象将新连接分配给子线程的 SubReactor</p>
+</li>
+<li><p>子线程中的 SubReactor 对象将接收的新连接加入自己的 IO 复用中继续监控，并创建一个 Handler 对象处理后续事件</p>
+</li>
+<li><p>当有新事件发生时，由 SubReactor 对象调用相应 Handler 对象进行处理</p>
+</li>
+<li><p>Handler 对象通过 <code>read</code>、业务处理、<code>send</code> 完成完整业务处理</p>
+</li>
+</ol>
+<p>主从 Reactor 多线程模型中，主线程和子线程分工明确，主线程只负责接收新连接，子线程负责完成后续的业务处理，子线程处理完成后无须返回数据，直接就可以在子线程中将结果返回</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +349,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-07 17:47:55" itemprop="dateModified" datetime="2023-09-07T17:47:55+08:00">2023-09-07</time>
+      <time title="修改时间：2023-09-08 15:04:12" itemprop="dateModified" datetime="2023-09-08T15:04:12+08:00">2023-09-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -296,7 +450,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-07 17:47:55" itemprop="dateModified" datetime="2023-09-07T17:47:55+08:00">2023-09-07</time>
+      <time title="修改时间：2023-09-08 15:04:12" itemprop="dateModified" datetime="2023-09-08T15:04:12+08:00">2023-09-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -538,7 +692,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-07 17:47:55" itemprop="dateModified" datetime="2023-09-07T17:47:55+08:00">2023-09-07</time>
+      <time title="修改时间：2023-09-08 15:04:12" itemprop="dateModified" datetime="2023-09-08T15:04:12+08:00">2023-09-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -634,7 +788,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-07 17:47:55" itemprop="dateModified" datetime="2023-09-07T17:47:55+08:00">2023-09-07</time>
+      <time title="修改时间：2023-09-08 15:04:12" itemprop="dateModified" datetime="2023-09-08T15:04:12+08:00">2023-09-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -774,7 +928,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-07 17:47:55" itemprop="dateModified" datetime="2023-09-07T17:47:55+08:00">2023-09-07</time>
+      <time title="修改时间：2023-09-08 15:04:12" itemprop="dateModified" datetime="2023-09-08T15:04:12+08:00">2023-09-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -935,7 +1089,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-07 17:47:55" itemprop="dateModified" datetime="2023-09-07T17:47:55+08:00">2023-09-07</time>
+      <time title="修改时间：2023-09-08 15:04:12" itemprop="dateModified" datetime="2023-09-08T15:04:12+08:00">2023-09-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1030,7 +1184,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-07 17:47:55" itemprop="dateModified" datetime="2023-09-07T17:47:55+08:00">2023-09-07</time>
+      <time title="修改时间：2023-09-08 15:04:12" itemprop="dateModified" datetime="2023-09-08T15:04:12+08:00">2023-09-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1130,7 +1284,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-07 17:47:55" itemprop="dateModified" datetime="2023-09-07T17:47:55+08:00">2023-09-07</time>
+      <time title="修改时间：2023-09-08 15:04:12" itemprop="dateModified" datetime="2023-09-08T15:04:12+08:00">2023-09-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1264,7 +1418,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-07 17:47:55" itemprop="dateModified" datetime="2023-09-07T17:47:55+08:00">2023-09-07</time>
+      <time title="修改时间：2023-09-08 15:04:12" itemprop="dateModified" datetime="2023-09-08T15:04:12+08:00">2023-09-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1313,96 +1467,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-typename%E7%94%A8%E6%B3%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-typename%E7%94%A8%E6%B3%95/" class="post-title-link" itemprop="url">typename 用法</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-02 20:52:43" itemprop="dateCreated datePublished" datetime="2023-06-02T20:52:43+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-07 17:47:55" itemprop="dateModified" datetime="2023-09-07T17:47:55+08:00">2023-09-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><code>typename</code> 用于引入一个模板参数，这个关键字用于指出模板中的非独立名称是类型名，而非变量名</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function"><span class="type">const</span> T&amp; <span class="title">max</span><span class="params">(<span class="type">const</span> T&amp; x, <span class="type">const</span> T&amp; y)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    T::iterator * iter;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">T::iterator实际上可以是以下三种中的任何一种类型：</span></span><br><span class="line"><span class="comment">1. 静态数据成员</span></span><br><span class="line"><span class="comment">2. 静态成员函数</span></span><br><span class="line"><span class="comment">3. 嵌套类型</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">typename</span> T::iterator * iter;  <span class="comment">// 表示 T::iterator 一定要是个类型才行</span></span><br><span class="line">    <span class="comment">// ... </span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">T</span>,<span class="keyword">class</span> <span class="title class_">Alloc</span>=alloc&gt;</span><br><span class="line"><span class="keyword">class</span> vector&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    <span class="keyword">typedef</span> <span class="type">size_t</span> size_type;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">typename</span> std::vector&lt;T&gt;::size_type size_type;</span><br></pre></td></tr></table></figure>
-
-<p><code>typedef</code> 创建了存在类型的别名，而 <code>typename</code> 告诉编译器是一个类型而不是一个成员</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 模版实现以下代码</span></span><br><span class="line"><span class="type">int</span> result = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span> (n != <span class="number">0</span>) &#123;</span><br><span class="line">  result = result + n;</span><br><span class="line">  n = n - <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="type">bool</span> condition,<span class="keyword">typename</span> Body&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">WhileLoop</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Body&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">WhileLoop</span>&lt;<span class="literal">true</span>, Body&gt; &#123;</span><br><span class="line">    <span class="keyword">typedef</span> <span class="keyword">typename</span> WhileLoop&lt;Body::cond_value, <span class="keyword">typename</span> Body::next_type&gt;::type type;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Body&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">WhileLoop</span>&lt;<span class="literal">false</span>, Body&gt; &#123;</span><br><span class="line">    <span class="keyword">typedef</span> <span class="keyword">typename</span> Body::res_type type;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">Body 必须提供一个静态数据成员，cond_value</span></span><br><span class="line"><span class="comment">Body 必须提供两个子类型定义 res_type 和 next_type</span></span><br><span class="line"><span class="comment">res_type 代表退出循环时的状态</span></span><br><span class="line"><span class="comment">next_type 代表下面循环执行一次时的状态</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Body&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">While</span> &#123;</span><br><span class="line">    <span class="keyword">typedef</span> <span class="keyword">typename</span> WhileLoop&lt; Body::cond_value, Body&gt;::type  type;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">T</span>, T v&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">integral_constant</span> &#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">const</span> T value = v;</span><br><span class="line">    <span class="keyword">typedef</span> T value_type;</span><br><span class="line">    <span class="keyword">typedef</span> integral_constant type;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="type">int</span> result, <span class="type">int</span> n&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">SumLoop</span> &#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">const</span> <span class="type">bool</span> cond_value = n != <span class="number">0</span>;</span><br><span class="line">    <span class="type">static</span> <span class="type">const</span> <span class="type">int</span> res_value = result;</span><br><span class="line">    <span class="keyword">typedef</span> integral_constant&lt; <span class="type">int</span>, res_value&gt;  res_type;</span><br><span class="line">    <span class="keyword">typedef</span> SumLoop&lt;result + n, n - <span class="number">1</span>&gt;  next_type;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="type">int</span> n&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Sum</span> &#123;</span><br><span class="line">    <span class="keyword">typedef</span> SumLoop&lt;<span class="number">0</span>, n&gt; type;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/6/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/6/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
