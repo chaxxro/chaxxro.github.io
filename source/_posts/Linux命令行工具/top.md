@@ -57,7 +57,6 @@ top [-a | -d | -e | -c mode]
 
 - `k` 终止一个进程
 
-
 ## 显示信息
 
 {% asset_img 01.png %}
