@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">413</span>
+          <span class="site-state-item-count">415</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,215 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/08/09/cpp%E7%BB%86%E8%8A%82-RTTI/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/09/cpp%E7%BB%86%E8%8A%82-RTTI/" class="post-title-link" itemprop="url">RTTI</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-08-09 16:30:17" itemprop="dateCreated datePublished" datetime="2023-08-09T16:30:17+08:00">2023-08-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>RTTI（Runtime Type Identification）运行时类型识别，指的是程序在运行的时候才确定需要用到的对象是什么类型的，用于在运行时而不是编译时获取有关对象的信息</p>
+<p>RTTI 可以通过特有的方式来告诉调用方其所调用的对象具体信息，一般有 <code>typeid</code> 操作符、<code>type_info</code> 类和 <code>dynamic_cast</code> 操作符</p>
+<h2 id="typeid-和-type-info"><a href="#typeid-和-type-info" class="headerlink" title="typeid 和 type_info"></a>typeid 和 type_info</h2><p><code>typeid</code> 操作符的结果是 <code>type_info</code> 对象的引用，或者说 <code>typeid</code> 表达式的类型是 <code>const std::type_info&amp;</code></p>
+<p><code>std::type_info</code> 存储了对象的基本信息。如果对象至少包含一个虚函数，那么 <code>typeid</code> 是运行时的事情，否则在编译期就能获取其具体类型</p>
+<p>对于存在虚函数的类来说，其对象的 <code>type_info</code> 存储在该类的虚函数表中。在运行时刻，根据虚函数指针的实际指向，获取其 <code>type_info</code> 信息从而进行相关操作</p>
+<h2 id="dynamic-cast"><a href="#dynamic-cast" class="headerlink" title="dynamic_cast"></a>dynamic_cast</h2><p><code>dynamic_cast</code> 是 C++ 中几个常用的类型转换符之一，其通过类型信息 <code>type_info</code> 进行相对安全的类型转换</p>
+<p>在转换时，会检查转换的 src 对象是否真的可以转换成 dst 类型。对于指针类型转换，如果失败则返回 <code>nullptr</code>，而对于引用转换失败就抛出 <code>bad_cast</code></p>
+<p><code>dynamic_cast</code> 转换符只能用于含有虚函数的类，因此其常常用于运行期，对于不包括虚函数的类，完全可以使用其它几个转换符在编译期进行转换</p>
+<p><code>dynamic_cast</code> 向上转换是静态操作，在编译阶段完成</p>
+<h2 id="虚函数表"><a href="#虚函数表" class="headerlink" title="虚函数表"></a>虚函数表</h2><p>每个存在虚函数的类都存在一个虚函数表 vtable，表的内容不仅只有包含虚函数</p>
+<p>在创建类对象时候，对象最前面会有一个指针 vptr，指向类虚函数表的对应位置，需要注意的是并不是指向 vtable 的头</p>
+<p>虚函数在 vtable 中的索引是根据函数的声明顺序而来</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base1</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f0</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">f1</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">  <span class="type">int</span> a;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Base2</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">f2</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">  <span class="type">int</span> b;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Derived1</span> : <span class="keyword">public</span> Base1, <span class="keyword">public</span> Base2 &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">d</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f2</span><span class="params">()</span> </span>&#123;&#125; <span class="comment">// override Base2::f2()</span></span><br><span class="line">  <span class="type">int</span> c;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Derived2</span> : <span class="keyword">public</span> Base1, <span class="keyword">public</span> Base2 &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">d</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f1</span><span class="params">()</span> </span>&#123;&#125; <span class="comment">// override Base1::f1()</span></span><br><span class="line">  <span class="type">int</span> c;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  Derived1 *d = <span class="keyword">new</span> Derived1;</span><br><span class="line">  Base1 *b1 = (Base1 *)d;</span><br><span class="line">  Base2 *b2 = (Base2 *)d;</span><br><span class="line"></span><br><span class="line">  std::cout &lt;&lt; d &lt;&lt; <span class="string">&quot; &quot;</span> &lt;&lt; b1 &lt;&lt; <span class="string">&quot; &quot;</span> &lt;&lt; b2 &lt;&lt; std::endl;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 转换指针时发生地址变化</span></span><br><span class="line"><span class="comment">// 0x23baeb0 0x23baeb0 0x23baec0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// g++ main.cc -fdump-lang-class</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">Vtable for Base1</span></span><br><span class="line"><span class="comment">Base1::_ZTV5Base1: 3 entries</span></span><br><span class="line"><span class="comment">0     (int (*)(...))0</span></span><br><span class="line"><span class="comment">8     (int (*)(...))(&amp; _ZTI5Base1)</span></span><br><span class="line"><span class="comment">16    (int (*)(...))Base1::f1</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Class Base1</span></span><br><span class="line"><span class="comment">   size=16 align=8</span></span><br><span class="line"><span class="comment">   base size=12 base align=8</span></span><br><span class="line"><span class="comment">Base1 (0x0x7fb096037960) 0</span></span><br><span class="line"><span class="comment">    vptr=((&amp; Base1::_ZTV5Base1) + 16)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Vtable for Base2</span></span><br><span class="line"><span class="comment">Base2::_ZTV5Base2: 3 entries</span></span><br><span class="line"><span class="comment">0     (int (*)(...))0</span></span><br><span class="line"><span class="comment">8     (int (*)(...))(&amp; _ZTI5Base2)</span></span><br><span class="line"><span class="comment">16    (int (*)(...))Base2::f2</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Class Base2</span></span><br><span class="line"><span class="comment">   size=16 align=8</span></span><br><span class="line"><span class="comment">   base size=12 base align=8</span></span><br><span class="line"><span class="comment">Base2 (0x0x7fb096037a80) 0</span></span><br><span class="line"><span class="comment">    vptr=((&amp; Base2::_ZTV5Base2) + 16)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Vtable for Derived1</span></span><br><span class="line"><span class="comment">Derived1::_ZTV8Derived1: 7 entries</span></span><br><span class="line"><span class="comment">0     (int (*)(...))0</span></span><br><span class="line"><span class="comment">8     (int (*)(...))(&amp; _ZTI8Derived1)</span></span><br><span class="line"><span class="comment">16    (int (*)(...))Base1::f1</span></span><br><span class="line"><span class="comment">24    (int (*)(...))Derived1::f2</span></span><br><span class="line"><span class="comment">32    (int (*)(...))-16</span></span><br><span class="line"><span class="comment">40    (int (*)(...))(&amp; _ZTI8Derived1)</span></span><br><span class="line"><span class="comment">48    (int (*)(...))Derived1::_ZThn16_N8Derived12f2Ev</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Class Derived1</span></span><br><span class="line"><span class="comment">   size=32 align=8</span></span><br><span class="line"><span class="comment">   base size=32 base align=8</span></span><br><span class="line"><span class="comment">Derived1 (0x0x7fb09604d000) 0</span></span><br><span class="line"><span class="comment">    vptr=((&amp; Derived1::_ZTV8Derived1) + 16)</span></span><br><span class="line"><span class="comment">  Base1 (0x0x7fb096037b40) 0</span></span><br><span class="line"><span class="comment">      primary-for Derived1 (0x0x7fb09604d000)</span></span><br><span class="line"><span class="comment">  Base2 (0x0x7fb096037ba0) 16</span></span><br><span class="line"><span class="comment">      vptr=((&amp; Derived1::_ZTV8Derived1) + 48)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Vtable for Derived2</span></span><br><span class="line"><span class="comment">Derived2::_ZTV8Derived2: 6 entries</span></span><br><span class="line"><span class="comment">0     (int (*)(...))0</span></span><br><span class="line"><span class="comment">8     (int (*)(...))(&amp; _ZTI8Derived2)</span></span><br><span class="line"><span class="comment">16    (int (*)(...))Derived2::f1</span></span><br><span class="line"><span class="comment">24    (int (*)(...))-16</span></span><br><span class="line"><span class="comment">32    (int (*)(...))(&amp; _ZTI8Derived2)</span></span><br><span class="line"><span class="comment">40    (int (*)(...))Base2::f2</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Class Derived2</span></span><br><span class="line"><span class="comment">   size=32 align=8</span></span><br><span class="line"><span class="comment">   base size=32 base align=8</span></span><br><span class="line"><span class="comment">Derived2 (0x0x7fb09604d070) 0</span></span><br><span class="line"><span class="comment">    vptr=((&amp; Derived2::_ZTV8Derived2) + 16)</span></span><br><span class="line"><span class="comment">  Base1 (0x0x7fb096037cc0) 0</span></span><br><span class="line"><span class="comment">      primary-for Derived2 (0x0x7fb09604d070)</span></span><br><span class="line"><span class="comment">  Base2 (0x0x7fb096037d20) 16</span></span><br><span class="line"><span class="comment">      vptr=((&amp; Derived2::_ZTV8Derived2) + 40)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>从 <code>Base1</code> 和 <code>Base2</code> 的 vtable 可以看出，表中第一行是 offset 且为 0，第二行是一个结构体指针，指向 RTTI 信息，后面才是虚函数的函数指针</p>
+<p>从 <code>Base1</code> 和 <code>Base2</code> 的内存布局可以看出，vptr 位于内存布局开始处，且 vptr 并不指向 vtable，而是第一个虚函数的函数指针</p>
+<p>从 <code>Derived</code> 的 vtable 可以看</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/08/09/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/09/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" class="post-title-link" itemprop="url">内存管理</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-08-09 14:47:58" itemprop="dateCreated datePublished" datetime="2023-08-09T14:47:58+08:00">2023-08-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">内存管理</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Linux 的内存管理系统自底向上大致可以被划分为内核层内存管理、用户层内存管理和应用程序内存管理</p>
+<h2 id="内核层内存管理"><a href="#内核层内存管理" class="headerlink" title="内核层内存管理"></a>内核层内存管理</h2><p><code>kmalloc()</code>、<code>__get_free_pages()</code> 用于申请较小内存，申请的内存位于物理内存的映射区域，而且在物理上也是连续的，它们与真实的物理地址只有一个固定的偏移</p>
+<ul>
+<li><p><code>kmalloc()</code> 以字节为单位</p>
+</li>
+<li><p><code>__get_free_pages()</code> 以页为单位</p>
+</li>
+</ul>
+<p><code>vmalloc()</code> 用于申请较大内存，虚拟内存空间给出一块连续的内存区，但不保证物理内存连续，开销远大于 <code>__get_free_pages()</code>，需要建立新的页表</p>
+<h2 id="用户层内存管理"><a href="#用户层内存管理" class="headerlink" title="用户层内存管理"></a>用户层内存管理</h2><p>通过调用系统调用函数 <code>brk()</code>、<code>mmap()</code> 等实现的常用的内存管理接口 <code>malloc</code>、<code>free</code>、<code>realloc</code>、<code>calloc</code></p>
+<p>经典内存管理库 ptmalloc2、tcmalloc、jemalloc</p>
+<h2 id="应用程序内存管理"><a href="#应用程序内存管理" class="headerlink" title="应用程序内存管理"></a>应用程序内存管理</h2><p>应用程序通过内存管理库或直接调用系统内存管理函数分配内存，根据应用程序本身的程序特性进行使用，如：单个变量内存申请和释放、内存池化复用等。</p>
+<h2 id="malloc"><a href="#malloc" class="headerlink" title="malloc"></a>malloc</h2><p>glibc 库实现了 <code>malloc()</code>，它实现 linux 系统的堆管理</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> <span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> *<span class="title">malloc</span><span class="params">(<span class="type">size_t</span> size)</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">free</span><span class="params">(<span class="type">void</span> *ptr)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>malloc()</code> 维护了多个不定长的内存块全局链表，每个链表负责一个大小范围。这种做法有效减少了分配大内存时的遍历开销，类似于哈希的方式将很大范围的数据散列到有限的几个小的范围内，虽然最终还是要在小的范围内查找，但还是可以省去很多的开销</p>
+<p>glibc 另外的策略就是不止维护一类空闲链表，而是另外再维护一个缓冲链表和一个高速缓冲链表。在分配的时候首先在高速缓存中查找，失败之后再在空闲链表查找。如果找到的内存块比较大，那么将切割之后的剩余内存块插入到缓存链表。如果空闲链表查找失败那么就往缓存链表中查找，如果还是没有合适的空闲块，就向内存申请比请求数更大的内存块，然后把剩下的内存放入链表中</p>
+<p>调用 <code>free()</code> 时，它将用户释放的内存块回收到空闲链表。到最后，空闲链会被切成很多的小内存片段，如果这时用户申请一个大的内存片段，那么空闲链上可能没有可以满足用户要求的片段了。于是 <code>malloc()</code> 会开始在空闲链上检查各内存片段，对它们进行整理，将相邻的小空闲块合并成较大的内存块</p>
+<h3 id="内存分配原理"><a href="#内存分配原理" class="headerlink" title="内存分配原理"></a>内存分配原理</h3><p><code>malloc()</code> 底层使用 <code>brk()</code> 和 <code>mmap()</code> 两个系统调用</p>
+<p><code>brk()</code> 用于申请和释放小内存。数据段的末尾，堆内存的开始，叫做 brk。<code>brk()</code> 将数据段的最高地址指针 _edata 向高或低移动实现堆内存的扩张或收缩。低地址堆内存必须在高地址堆内存的释放之后才能得到的释放。默认情况下，当最高地址空间的空闲内存超过 128K 时，执行内存紧缩操作</p>
+<p><code>mmap()</code> 用于申请大内存。大于 128 K 的内存申请使用系统调用 <code>mmap()</code> 分配内存，申请的内存在堆和栈中间。与 <code>brk()</code> 分配内存不同的是 <code>mmap()</code> 分配的内存可以单独释放</p>
+<p>这两种方式分配的都是虚拟内存，没有分配物理内存。在第一次访问已分配的虚拟地址空间的时候，发生缺页中断，操作系统负责分配物理内存，然后建立虚拟内存和物理内存之间的映射关系</p>
+<h3 id="malloc-头"><a href="#malloc-头" class="headerlink" title="malloc 头"></a>malloc 头</h3><p><code>malloc()</code> 返回的地址前有一个 16 字节的地址头，用来表示分配的内存大小</p>
+<p>前 8 个字节表示之前的空间有多少没有被分配的字节大小，后 8 个字节表示当前 <code>malloc()</code> 已经分配的字节大小，前 8 个字节通过加 1 来作为前一个数据块是否已经分配的标志，加1表示前一个数据块已经分配</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +404,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:28" itemprop="dateModified" datetime="2023-09-11T21:12:28+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -288,7 +497,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -388,7 +597,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:28" itemprop="dateModified" datetime="2023-09-11T21:12:28+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -507,7 +716,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:28" itemprop="dateModified" datetime="2023-09-11T21:12:28+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -620,7 +829,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -705,7 +914,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -801,7 +1010,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -889,7 +1098,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -912,244 +1121,6 @@
     
     <div class="post-body" itemprop="articleBody">
           <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Linux 中最基本的读写函数，可以用于各种数据的读写</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">read</span><span class="params">(<span class="type">int</span> fd, <span class="type">void</span> *buf, <span class="type">size_t</span> count)</span></span>;</span><br><span class="line"><span class="function"><span class="type">ssize_t</span> <span class="title">write</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="type">void</span> *buf, <span class="type">size_t</span> count)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">read() 函数是负责从 fd 中读取内容</span></span><br><span class="line"><span class="comment">当读成功时，read 返回实际所读的字节数，如果返回的值是 0 表示已经读到文件的结束了，小于 0 表示出现了错误</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">write() 函数将 buf 中的 n 字节内容写入文件描述符 fd，成功时返回写的字节数，失败时返回 -1</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">一般来说对于常规文件的读写不会阻塞，函数一定会在有限的时间内返回，但对于网络读取就不一定了，如果网络通信消息一直没有到达则函数剧一直阻塞等待</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">发送数据的长度超过 socket 缓冲区长度，则返回错误 SOCKET_ERROR</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/07/25/LinuxApi-open/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/07/25/LinuxApi-open/" class="post-title-link" itemprop="url">open</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-07-25 10:17:17" itemprop="dateCreated datePublished" datetime="2023-07-25T10:17:17+08:00">2023-07-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>linux 系统下一切皆文件，而对文件的所有操作都需要打开文件，所有操作结束之后都需要关闭文件，否则会出现预期之外的错误</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">open</span> <span class="params">(<span class="type">const</span> <span class="type">char</span>* name, <span class="type">int</span> flags)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">open</span> <span class="params">(<span class="type">const</span> <span class="type">char</span>* name, <span class="type">int</span> flags, <span class="type">mode_t</span> mode)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">flags 表示文件的访问模式</span></span><br><span class="line"><span class="comment">O_RDONLY、O_WRONLY、O_RDWR 是必选项</span></span><br><span class="line"><span class="comment">以下时可选项</span></span><br><span class="line"><span class="comment">O_APPEND 以追加模式打开</span></span><br><span class="line"><span class="comment">O_ASYNC 当指定的文件可读可写时，会产生一个信号。该标志位只适用于 FIFO、管道、socket 和终端，不适用普通文件</span></span><br><span class="line"><span class="comment">O_CREAT 文件不存在时，内核自动创建</span></span><br><span class="line"><span class="comment">O_SYNC 打开文件用于同步 IO，在数据写到磁盘此前，写操作都不会完成</span></span><br><span class="line"><span class="comment">O_NONBLOCK 非阻塞模式打开</span></span><br><span class="line"><span class="comment">O_DIRECT 直接 IO</span></span><br><span class="line"><span class="comment">flags 参数取值并非是互斥的，可进行按位或操作</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">当创建文件时，mode 提供了新建文件的权限</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/07/20/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-proc%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/07/20/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-proc%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" class="post-title-link" itemprop="url">proc 文件系统</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-07-20 21:55:43" itemprop="dateCreated datePublished" datetime="2023-07-20T21:55:43+08:00">2023-07-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:28" itemprop="dateModified" datetime="2023-09-11T21:12:28+08:00">2023-09-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">文件系统</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Linux 系统上的 &#x2F;proc 目录是一种虚拟文件系统，存储的是当前内核运行状态的一系列特殊文件，用户可以通过这些文件查看有关系统硬件及当前正在运行进程的信息，甚至可以通过更改其中某些文件来改变内核的运行状态</p>
-<ul>
-<li><p>buddyinfo：内存碎片问题的相关信息文件</p>
-</li>
-<li><p>cmdline：系统启动时传递至内核的相关参数信息</p>
-</li>
-<li><p>cpuinfo：处理器的相关信息的文件</p>
-</li>
-<li><p>crypto：已安装的内核使用的密码算法</p>
-</li>
-<li><p>devices：已经加载的所有块设备和字符设备的信息</p>
-</li>
-<li><p>diskstats：每块磁盘设备的磁盘 IO 统计信息列表</p>
-</li>
-<li><p>filesystems：支持的文件系统类型列表文件</p>
-</li>
-<li><p>kmsg：内核输出的信息</p>
-</li>
-<li><p>loadavg：保存关于 CPU 和磁盘 IO 的负载平均值</p>
-</li>
-<li><p>locks：当前由内核锁定的文件的相关信息，包含内核内部的调试数据</p>
-</li>
-<li><p>meminfo：当前内存的利用状况等的信息</p>
-</li>
-<li><p>mounts：当前挂载的所有文件系统</p>
-</li>
-<li><p>stat：实时追踪自系统上次启动以来的多种统计信息</p>
-</li>
-<li><p>swaps：当前系统上的交换分区及其空间利用信息</p>
-</li>
-<li><p>uptime：系统上次启动以来的运行时间</p>
-</li>
-<li><p>version：内核版本号</p>
-</li>
-<li><p>vmstat：系统虚拟内存的多种统计数据</p>
-</li>
-</ul>
-<h2 id="以数字命名的目录"><a href="#以数字命名的目录" class="headerlink" title="以数字命名的目录"></a>以数字命名的目录</h2><p>数字表示系统当前正在运行进程的进程号，里面包含对应进程相关的多个信息文件</p>
-<img src="/2023/07/20/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-proc%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/01.png" class="">
-
-<ul>
-<li><p>cmdline：启动当前进程的完整命令，但僵尸进程目录中的此文件不包含任何信息</p>
-</li>
-<li><p>cwd：指向当前进程运行目录的一个符号链接</p>
-</li>
-<li><p>environ：当前进程的环境变量列表，彼此间用空字符隔开</p>
-</li>
-</ul>
-<p>-exe：指向启动当前进程的可执行文件的符号链接</p>
-<ul>
-<li><p>fd：包含当前进程打开的每一个文件的文件描述符的目录，这些文件描述符是指向实际文件的一个符号链接</p>
-</li>
-<li><p>limits：当前进程所使用的每一个受限资源的软限制、硬限制和管理单元</p>
-</li>
-<li><p>maps：当前进程关联到的每个可执行文件和库文件在内存中的映射区域及其访问权限所组成的列表</p>
-</li>
-<li><p>mem：当前进程所占用的内存空间，由 <code>open</code>、<code>read</code> 和lseek等系统调用使用，不能被用户读取</p>
-</li>
-<li><p>root：指向当前进程运行根目录的符号链接</p>
-</li>
-<li><p>stat：当前进程的状态信息</p>
-</li>
-<li><p>statm：当前进程占用内存的状态信息</p>
-</li>
-<li><p>status：与 stat 所提供信息类似，但可读性较好</p>
-</li>
-<li><p>task：目录文件，包含由当前进程所运行的每一个线程的相关信息，每个线程的相关信息文件均保存在一个由线程号 tid 命名的目录中，这类似于其内容类似于每个进程目录中的内容</p>
-</li>
-</ul>
-
       
     </div>
 

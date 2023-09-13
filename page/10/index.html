@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">413</span>
+          <span class="site-state-item-count">415</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,197 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-reference-wrapper/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-reference-wrapper/" class="post-title-link" itemprop="url">reference_wrapper</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:21:27" itemprop="dateCreated datePublished" datetime="2023-05-29T21:21:27+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><code>std::ref</code> 用于创建 <code>std::reference_wrapper</code> 类型的对象，该类型会保存对象的引用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> value = <span class="number">0</span>;</span><br><span class="line">std::reference_wrapper&lt;<span class="type">int</span>&gt; valueRef = std::<span class="built_in">ref</span>(value);</span><br><span class="line"></span><br><span class="line">value = <span class="number">100</span>;</span><br><span class="line">std::cout &lt;&lt; valueRef.<span class="built_in">get</span>() &lt;&lt; std::endl;  <span class="comment">// 输出100</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>无法使用 <code>&amp;</code> 的场合</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> value = <span class="number">0</span>;</span><br><span class="line">std::vector&lt;std::reference_wrapper&lt;<span class="type">int</span>&gt;&gt; valueRefs&#123;&#125;;  <span class="comment">// 无法使用std::vector&lt;int&amp;&gt;</span></span><br><span class="line"></span><br><span class="line">valueRefs.<span class="built_in">push_back</span>(std::<span class="built_in">ref</span>(value));</span><br><span class="line"></span><br><span class="line">value = <span class="number">100</span>;</span><br><span class="line">std::cout &lt;&lt; valueRefs[<span class="number">0</span>] &lt;&lt; std::endl;  <span class="comment">// 输出100</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在进行类型推断时，<code>&amp;</code> 会被丢弃的情况</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> value = <span class="number">0</span>;</span><br><span class="line"><span class="type">int</span>&amp; valueRef = value;</span><br><span class="line"><span class="keyword">auto</span> myTuple = std::<span class="built_in">make_tuple</span>(valueRef);  <span class="comment">// myTuple的类型为std::tuple&lt;int&gt;，&amp;被丢弃</span></span><br><span class="line"><span class="keyword">auto</span> myTupleRef = std::<span class="built_in">make_tuple</span>(std::<span class="built_in">ref</span>(value));</span><br><span class="line">value = <span class="number">99</span>;</span><br><span class="line">std::cout &lt;&lt; std::<span class="built_in">get</span>&lt;<span class="number">0</span>&gt;(myTuple) &lt;&lt; std::endl;  <span class="comment">// 输出0</span></span><br><span class="line">std::cout &lt;&lt; std::<span class="built_in">get</span>&lt;<span class="number">0</span>&gt;(myTupleRef) &lt;&lt; std::endl;  <span class="comment">// 输出99</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>函数式编程，如 <code>std::bind</code>，在绑定参数时，使用的是拷贝，而不是引用</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">MyFunc</span><span class="params">(<span class="type">int</span>&amp; value0, <span class="type">int</span>&amp; value1)</span> </span>&#123;</span><br><span class="line">    ++value0;</span><br><span class="line">    ++value1;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> value0 = <span class="number">0</span>, value1 = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">auto</span> func = std::<span class="built_in">bind</span>(MyFunc, value0, std::<span class="built_in">ref</span>(value1));</span><br><span class="line"><span class="built_in">func</span>();</span><br><span class="line">std::cout &lt;&lt; value0 &lt;&lt; std::endl;  <span class="comment">// 输出0</span></span><br><span class="line">std::cout &lt;&lt; value1 &lt;&lt; std::endl;  <span class="comment">// 输出1</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-optional/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-optional/" class="post-title-link" itemprop="url">optional</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:21:04" itemprop="dateCreated datePublished" datetime="2023-05-29T21:21:04+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><code>std::nullopt</code> 是没有值的 <code>std::optional</code> 的表达形式，等同于 <code>&#123; &#125;</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 空 optiolal</span></span><br><span class="line">std::optional&lt;<span class="type">int</span>&gt; oEmpty;</span><br><span class="line">std::optional&lt;<span class="type">float</span>&gt; oFloat = <span class="literal">nullopt</span>;</span><br><span class="line"></span><br><span class="line"><span class="function">std::optional&lt;<span class="type">int</span>&gt; <span class="title">oInt</span><span class="params">(<span class="number">10</span>)</span></span>;</span><br><span class="line"><span class="function">std::optional <span class="title">oIntDeduced</span><span class="params">(<span class="number">10</span>)</span></span>;  <span class="comment">// type deduction</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// make_optional</span></span><br><span class="line"><span class="keyword">auto</span> oDouble = std::<span class="built_in">make_optional</span>(<span class="number">3.0</span>);</span><br><span class="line"><span class="keyword">auto</span> oComplex = make_optional&lt;complex&lt;<span class="type">double</span>&gt;&gt;(<span class="number">3.0</span>, <span class="number">4.0</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// in_place</span></span><br><span class="line">std::optional&lt;complex&lt;<span class="type">double</span>&gt;&gt; o7&#123;in_place, <span class="number">3.0</span>, <span class="number">4.0</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// initializer list</span></span><br><span class="line">std::optional&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">oVec</span>(in_place, &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 拷贝赋值</span></span><br><span class="line"><span class="keyword">auto</span> oIntCopy = oInt;</span><br></pre></td></tr></table></figure>
+
+<p><code>has_value()</code> 和 <code>operator()</code> 返回是否有值，<code>value()</code> 返回这个值</p>
+<p>如果没有值并且还调用 <code>value()</code>，会抛出一个类型为 <code>std::bad_optional_access</code> 的异常</p>
+<p><code>value_or</code> 来设置没有值时的默认返回值</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +386,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -342,7 +533,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -481,7 +672,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -571,7 +762,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -681,7 +872,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -827,7 +1018,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -913,7 +1104,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1021,7 +1212,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1059,198 +1250,6 @@
 <p>当 <code>std::shared_ptr</code> 进行初始化时，如果 <code>T</code> 是公有继承 <code>std::enable_shared_from_this&lt;T&gt;</code>，则才能在编译时使用 <code>std::enable_if</code> 和 <code>std::is_convertible</code> 来初始化 <code>_M_weak_this</code></p>
 <h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><p>因为 <code>_M_weak_this</code> 的初始化依赖 <code>std::shared_ptr</code> 的初始化，因此不能对非 <code>std::shard_ptr</code> 的对象调用使用 <code>shared_from_this()</code> 的函数，所以 <code>shared_from_this()</code> 不能在构造函数中调用</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	B b;</span><br><span class="line">	<span class="keyword">auto</span> sp = b.<span class="built_in">GetSelf</span>();  <span class="comment">// 奔溃</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-condition-variable/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-condition-variable/" class="post-title-link" itemprop="url">condition_variable</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-29 21:18:57" itemprop="dateCreated datePublished" datetime="2023-05-29T21:18:57+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>条件变量 <code>std::condition_variable</code> 提供了两类操作：<code>wait</code> 和 <code>notify</code></p>
-<ul>
-<li><code>wait</code> 是线程的等待动作，直到其它线程将其唤醒后，才会继续往下执行，只接受锁  <code>std::unique_lock&lt;std::mutex&gt;</code></li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// std::condition_variable 提供了两种 wait() 函数</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">wait</span> <span class="params">(std::unique_lock&lt;std::mutex&gt;&amp; lck)</span></span>;</span><br><span class="line"><span class="comment">// 只有当 pred 条件为 false 时调用 wait() 才会阻塞当前线程</span></span><br><span class="line"><span class="comment">// 并且在收到其他线程的通知后只有当 pred 为 true 时才会被解除阻塞</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Predicate</span>&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">wait</span> <span class="params">(std::unique_lock&lt;std::mutex&gt;&amp; lck, Predicate pred)</span></span>;</span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line"><span class="keyword">while</span> (!<span class="built_in">pred</span>()) &#123;</span><br><span class="line">    <span class="built_in">wait</span>(lock);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 条件变量与临界区有关，用来获取和释放一个锁，因此通常会和 mutex 联用</span></span><br><span class="line">std::mutex mutex;</span><br><span class="line">std::condition_variable cv;</span><br><span class="line"><span class="function">std::unique_lock <span class="title">lock</span><span class="params">(mutex)</span></span>;  <span class="comment">// 获得锁</span></span><br><span class="line"><span class="comment">// 调用该函数前当前线程应该已经完成了加锁</span></span><br><span class="line"><span class="comment">// 当前线程调用 wait() 后将被阻塞</span></span><br><span class="line">cv.<span class="built_in">wait</span>(lock);  </span><br><span class="line"><span class="comment">// 线程阻塞后会释放 lock，然后在 cv 上等待，直到其它线程通过 cv.notify_xxx来唤醒当前线程</span></span><br><span class="line"><span class="comment">// 释放锁后使得其他被阻塞在锁竞争上的线程得以继续执行</span></span><br><span class="line"><span class="comment">// cv 被唤醒后会会再次对 lock 进行上锁，然后 wait 函数才会返回</span></span><br><span class="line"><span class="comment">// wait 返回后可以安全的使用 mutex 保护的临界区内的数据，此时 mutex 仍为上锁状态</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>notify</code> 唤醒 <code>wait</code> 在该条件变量上的线程，有 <code>notify_one</code> 唤醒一个等待的线程（多个线程阻塞时唤醒某个不确定的线程）和 <code>notify_all</code> 唤醒所有等待的线程</p>
-</li>
-<li><p><code>std::condition_variable_any</code> 的 <code>wait()</code> 函数可以接受任何 lockable 参数</p>
-</li>
-<li><p><code>std::notify_all_at_thread_exit</code> 当调用该函数的线程退出时，所有在 cond 条件变量上等待的线程都会收到通知</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-chrono/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-chrono/" class="post-title-link" itemprop="url">chrono</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-29 21:18:45" itemprop="dateCreated datePublished" datetime="2023-05-29T21:18:45+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="clock"><a href="#clock" class="headerlink" title="clock"></a>clock</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">std::chrono::system_clock <span class="comment">// 系统时钟</span></span><br><span class="line"><span class="comment">// 有静态函数 `now()`、`to_time_t()`、`from_time_t()`</span></span><br><span class="line"></span><br><span class="line">std::chrono::steady_clock <span class="comment">// 稳定时钟，完全根据物理是时间向前移动</span></span><br><span class="line"><span class="comment">// 有静态函数 `now()`</span></span><br><span class="line"></span><br><span class="line">std::chrono::high_resolution_clock <span class="comment">// 高精度时钟 </span></span><br><span class="line"><span class="comment">// 有静态函数 `now()`</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="time-point"><a href="#time-point" class="headerlink" title="time_point"></a>time_point</h2><p>表示具体的时间点</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">Clock</span>, <span class="keyword">class</span> <span class="title class_">Duration</span> = <span class="keyword">typename</span> Clock::duration&gt;</span><br><span class="line"><span class="keyword">class</span> time_point;</span><br></pre></td></tr></table></figure>
-
-<p><code>time_since_epoch()</code> 用来获得 1970-01-01 00:00:00 到 <code>time_point</code> 时间经过的 <code>duration</code></p>
-<h2 id="duration"><a href="#duration" class="headerlink" title="duration"></a>duration</h2><p>表示一段时间</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Rep</span>, <span class="keyword">class</span> <span class="title class_">Period</span> = ratio&lt;<span class="number">1</span>&gt;&gt;</span><br><span class="line"><span class="keyword">class</span> duration;</span><br><span class="line"><span class="comment">// Rep 数值类型</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="type">intmax_t</span> N, <span class="type">intmax_t</span> D = <span class="number">1</span>&gt;</span><br><span class="line"><span class="keyword">class</span> ratio;</span><br><span class="line"><span class="comment">// ratio 表示用秒表示的时间单位</span></span><br><span class="line">std::chrono::duration::hours</span><br><span class="line">std::chrono::duration::minutes</span><br><span class="line">std::chrono::duration::seconds</span><br><span class="line">std::chrono::duration::millseconds</span><br><span class="line">std::chrono::duration::microseconds</span><br><span class="line">std::chrono::duration::nanoseconds</span><br><span class="line"></span><br><span class="line"><span class="comment">// 各个 duration 之间的类型转换</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">ToDuration</span>, <span class="keyword">class</span> <span class="title class_">Rep</span>, <span class="keyword">class</span> <span class="title class_">Period</span>&gt;</span><br><span class="line"><span class="function">ToDuration <span class="title">duration_cast</span><span class="params">(<span class="type">const</span> duration&lt;Rep, Period&gt;)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>成员函数 <code>count()</code> 用来获得一个 <code>duration</code> 对象中包含多少个 <code>ratio</code> 对象</p>
-
       
     </div>
 

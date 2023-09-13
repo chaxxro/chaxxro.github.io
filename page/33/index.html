@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">413</span>
+          <span class="site-state-item-count">415</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,237 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/02/Spark-%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F/" class="post-title-link" itemprop="url">共享变量</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-02 15:31:01" itemprop="dateCreated datePublished" datetime="2023-04-02T15:31:01+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>按照创建与使用方式的不同，Spark 提供了两类共享变量，分别是广播变量和累加器</p>
+<h2 id="广播变量"><a href="#广播变量" class="headerlink" title="广播变量"></a>广播变量</h2><p>通过调用 SparkContext 下的 broadcast API 即可完成广播变量的创建</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> list: <span class="type">List</span>[<span class="type">String</span>] = <span class="type">List</span>(<span class="string">&quot;Apache&quot;</span>, <span class="string">&quot;Spark&quot;</span>)</span><br><span class="line"><span class="keyword">val</span> bc = sc.broadcast(list)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读取广播变量内容</span></span><br><span class="line">bc.value</span><br></pre></td></tr></table></figure>
+
+<p>如果变量在 Driver 端创建，且不是分布式数据集，则在分布式计算的过程中，Spark 需要把变量分发给每一个分布式任务</p>
+<p>如果 RDD 并行度较高、或是变量的尺寸较大，那么重复的内容分发就会引入大量的网络开销与存储开销，而这些开销会大幅削弱作业的执行性能</p>
+<p>Driver 端变量的分发是以 Task 为粒度的，系统中有多少个 Task，变量就需要在网络中分发多少次</p>
+<p>在同一个 Executor 内部，多个不同的 Task 多次重复地缓存了同样的内容拷贝，这对内存资源是一种巨大的浪费</p>
+<p>在使用广播变量之后，变量分发的粒度变成了以 Executors 为单位，同一个 Executor 内多个不同的 Tasks 只需访问同一份数据拷贝即可</p>
+<p>换句话说，变量在网络中分发与存储的次数，从 RDD 的分区数量，锐减到了集群中 Executors 的个数</p>
+<p>广播变量由 Driver 端定义并初始化，各个 Executors 以只读（Read only）的方式访问广播变量携带的数据内容</p>
+<h2 id="累加器"><a href="#累加器" class="headerlink" title="累加器"></a>累加器</h2><p>累加器的主要作用是全局计数</p>
+<p>累加器也是在 Driver 端定义的，但它的更新是通过在 RDD 算子中调用 add 函数完成的，在应用执行完毕之后，在 Driver 端调用累加器的 value 函数，就能获取全局计数结果</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义Long类型的累加器</span></span><br><span class="line"><span class="keyword">val</span> ac = sc.longAccumulator(<span class="string">&quot;Empty string&quot;</span>)</span><br><span class="line"></span><br><span class="line">ac.value</span><br></pre></td></tr></table></figure>
+
+<p>SparkContext 提供了 longAccumulator、doubleAccumulator 和 collectionAccumulator</p>
+<p>collectionAccumulator 允许定义集合类型的累加器，相比数值类型，集合类型可以为业务逻辑的实现，提供更多的灵活性和更大的自由度</p>
+<p>累加器也是由 Driver 定义的，但 Driver 并不会向累加器中写入任何数据内容，累加器的内容更新，完全是由各个 Executors 以只写（Write only）的方式来完成，而 Driver 仅以只读的方式对更新后的内容进行访问</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/02/Spark-%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F/" class="post-title-link" itemprop="url">调度系统</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-02 15:29:25" itemprop="dateCreated datePublished" datetime="2023-04-02T15:29:25+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>分布式计算的精髓，在于如何把抽象的计算图，转化为实实在在的分布式计算任务，然后以并行计算的方式交付执行</p>
+<p>Spark调度系统关键步骤与核心组件：</p>
+<img src="/2023/04/02/Spark-%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F/01.png" class="">
+
+<p>在 SparkContext &#x2F; SparkSession 的初始化中，TaskScheduler 和 SchedulerBackend 是最早、且同时被创建的调度系统组件</p>
+<p>SchedulerBackend 在构造方法中引用 TaskScheduler，而 TaskScheduler 在初始化时会引用 SchedulerBackend</p>
+<p>SchedulerBackend 组件的实例化，取决于开发者指定的 Spark MasterURL，即与资源管理器（Standalone、YARN、Mesos 等）强绑定，是资源管理器在 Spark 中的代理</p>
+<p>从全局视角来看，DAGScheduler 是任务调度的发起者，DAGScheduler 以 TaskSet 为粒度，向 TaskScheduler 提交任务调度请求</p>
+<p>TaskScheduler 在初始化的过程中，会创建任务调度队列，任务调度队列用于缓存 DAGScheduler 提交的 TaskSets</p>
+<p>TaskScheduler 结合 SchedulerBackend 提供的 WorkerOffer，按照预先设置的调度策略依次对队列中的任务进行调度</p>
+<h2 id="DAGScheduler"><a href="#DAGScheduler" class="headerlink" title="DAGScheduler"></a>DAGScheduler</h2><p>DAGScheduler 把计算图 DAG 拆分为执行阶段 Stages</p>
+<p>Stages 指的是不同的运行阶段，同时还要负责把 Stages 转化为任务集合 TaskSets</p>
+<p>从 DAG 到 Stages 的拆分过程，那就是以 Actions 算子为起点，从后向前回溯 DAG，以 Shuffle 操作为边界去划分 Stages</p>
+<p>Spark 在实际运行的过程中，会把它再细化为两个步骤。第一个步骤，就是以 Shuffle 为边界，从后向前以递归的方式，把逻辑上的计算图 DAG，转化成一个又一个 Stages</p>
+<p>Stages 创建完毕之后，就到了触发计算的第二个步骤：Spark从后向前，以递归的方式，依次提请执行所有的 Stages</p>
+<p>在提交 Stage 的时候，DAGScheduler 根据 Stage 是否有依赖的夫 Stage。如果依赖的夫 Stage 还没执行，则将该 Stage 的提交动作压栈，转而去请求执行夫 Stage，当夫 Stage 执行完毕的时候，DAGScheduler 通过出栈的动作，再次提请执行本 Stage</p>
+<p>对于提请执行的每一个 Stage，DAGScheduler 根据 Stage 内 RDD 的 partitions 属性创建分布式任务集合 TaskSet</p>
+<p>TaskSet 包含一个又一个分布式任务 Task，RDD 有多少数据分区，TaskSet 就包含多少个 Task，Task 与 RDD 的分区，是一一对应的</p>
+<img src="/2023/04/02/Spark-%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F/02.png" class="">
+
+<p>stageId、stageAttemptId 标记了 Task 与执行阶段 Stage 的所属关系；taskBinary 则封装了隶属于这个执行阶段的用户代码；partition 就是刚刚说的 RDD 数据分区；locs 属性以字符串的形式记录了该任务倾向的计算节点或是 Executor ID</p>
+<p>taskBinary、partition 和 locs 这三个属性，一起描述了这样一件事情：Task 应该在哪里（locs）为谁（partition）执行什么任务（taskBinary）</p>
+<h2 id="SchedulerBackend"><a href="#SchedulerBackend" class="headerlink" title="SchedulerBackend"></a>SchedulerBackend</h2><p>SchedulerBackend 的核心职责就是实时汇总并掌握集群的计算资源状况</p>
+<p>对于集群中可用的计算资源，SchedulerBackend 用一个叫做 ExecutorDataMap 的数据结构，来记录每一个计算节点中 Executors 的资源状态</p>
+<p>ExecutorDataMap 是一种 HashMap，它的 Key 是标记 Executor 的字符串，Value 是一种叫做 ExecutorData 的数据结构</p>
+<p>ExecutorData 用于封装 Executor 的资源状态，如 RPC 地址、主机地址、可用 CPU 核数和满配 CPU 核数等等，它相当于是对 Executor 做的资源画像</p>
+<img src="/2023/04/02/Spark-%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F/03.png" class="">
+
+<p>对外，SchedulerBackend 以 WorkerOffer 为粒度提供计算资源</p>
+<p>WorkerOffer 封装了 Executor ID、主机地址和 CPU 核数，它用来表示一份可用于调度任务的空闲资源</p>
+<p>SchedulerBackend 与集群内所有 Executors 中的 ExecutorBackend 保持周期性通信，双方通过 LaunchedExecutor、RemoveExecutor、StatusUpdate 等消息来互通有无、变更可用计算资源</p>
+<h2 id="TaskScheduler"><a href="#TaskScheduler" class="headerlink" title="TaskScheduler"></a>TaskScheduler</h2><p>对于给定的 WorkerOffer，TaskScheduler 是按照任务的本地倾向性，来遴选出 TaskSet 中适合调度的 Tasks</p>
+<p>Task 与 RDD 的 partitions 是一一对应的，在创建 Task 的过程中，DAGScheduler 会根据数据分区的物理地址，来为 Task 设置 locs 属性。locs 属性记录了数据分区所在的计算节点、甚至是 Executor 进程 ID</p>
+<p>每个任务都是自带本地倾向性的，即每个任务都有自己的调度意愿</p>
+<p>这种定向到计算节点粒度的本地性倾向，Spark 中的术语叫做 NODE_LOCAL，除了定向到节点，Task 还可以定向到进程（Executor）、机架、任意地址，它们对应的术语分别是 PROCESS_LOCAL、RACK_LOCAL 和 ANY</p>
+<p>对于倾向 PROCESS_LOCAL 的 Task 来说，它要求对应的数据分区在某个进程（Executor）中存有副本；而对于倾向 RACK_LOCAL 的 Task 来说，它仅要求相应的数据分区存在于同一机架即可。ANY 则等同于无定向，也就是 Task 对于分发的目的地没有倾向性，被调度到哪里都可以</p>
+<img src="/2023/04/02/Spark-%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F/04.png" class="">
+
+<p>从 PROCESS_LOCAL、NODE_LOCAL、到 RACK_LOCAL、再到 ANY，Task 的本地性倾向逐渐从严苛变得宽松。TaskScheduler 接收到 WorkerOffer 之后，也正是按照这个顺序来遍历 TaskSet 中的 Tasks，优先调度本地性倾向为 PROCESS_LOCAL 的 Task，而 NODE_LOCAL 次之，RACK_LOCAL 为再次，最后是 ANY</p>
+<p>Spark 调度系统的核心思想，是数据不动代码动，在任务调度的过程中，为了完成分布式计算，Spark 倾向于让数据待在原地、保持不动，而把计算任务（代码）调度、分发到数据所在的地方，从而消除数据分发引入的性能隐患。毕竟，相比分发数据，分发代码要轻量得多</p>
+<h2 id="ExecutorBackend"><a href="#ExecutorBackend" class="headerlink" title="ExecutorBackend"></a>ExecutorBackend</h2><p>ExecutorBackend 收到 Tasks 后，将 Tasks 分发给 Executors 线程池中一个又一个的 CPU 线程，每个线程负责处理一个 Task</p>
+<p>每当 Task 处理完毕，这些线程便会通过 ExecutorBackend，向 Driver 端的 SchedulerBackend 发送 StatusUpdate 事件，告知 Task 执行状态</p>
+<p>TaskScheduler 与 SchedulerBackend 通过接力的方式，最终把状态汇报给 DAGScheduler</p>
+<p>对于同一个 TaskSet 当中的 Tasks 来说，当它们分别完成了任务调度与任务执行这两个环节时，Spark 调度系统就完成了 DAG 中某一个 Stage 的任务调度</p>
+<p>一个 DAG 会包含多个 Stages，一个 Stage 的结束即宣告下一个 Stage 的开始，只有当所有的 Stages 全部调度、执行完毕，才表示一个完整的 Spark 作业宣告结束</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +426,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -364,7 +595,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -487,7 +718,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -592,7 +823,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -687,7 +918,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -799,7 +1030,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -966,7 +1197,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1062,7 +1293,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:27" itemprop="dateModified" datetime="2023-09-11T21:12:27+08:00">2023-09-11</time>
+      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1133,376 +1364,6 @@
 <h2 id="查看容器占用情况"><a href="#查看容器占用情况" class="headerlink" title="查看容器占用情况"></a>查看容器占用情况</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker stats [OPTIONS] [CONTAINER...]</span><br></pre></td></tr></table></figure>
 
 <h2 id="查看容器底层信息"><a href="#查看容器底层信息" class="headerlink" title="查看容器底层信息"></a>查看容器底层信息</h2><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker inspect CONTAINER</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F/" class="post-title-link" itemprop="url">编码格式</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 14:52:29" itemprop="dateCreated datePublished" datetime="2023-04-02T14:52:29+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:28" itemprop="dateModified" datetime="2023-09-11T21:12:28+08:00">2023-09-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">编码格式</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="ASCII"><a href="#ASCII" class="headerlink" title="ASCII"></a>ASCII</h2><p>码表中只有英文大小写字母、数字、美式标点符号等</p>
-<p>每个字符占用1个字节，所有字符映射的二进制都为正数，因此有128个字符映射关系</p>
-<h2 id="GB2312"><a href="#GB2312" class="headerlink" title="GB2312"></a>GB2312</h2><p>兼容 ASCII 码表，并加入了中文字符，码表中包含英文大小写字母、数字、美式标点符号占一个字节，中文占两个字节，中文映射的二进制都是负数，因此有 128× 128 &#x3D; 16384 个字符映射关系</p>
-<h2 id="GBK-x2F-GB18030："><a href="#GBK-x2F-GB18030：" class="headerlink" title="GBK&#x2F;GB18030："></a>GBK&#x2F;GB18030：</h2><p>兼容 GB2312 码表，英文大小写字母、数字、美式标点符号占一个字节，中文占两个字节，第一个字节为负数，第二个字节为正数和负数，因为有 128× 256 &#x3D; 32768 个字符映射关系</p>
-<h2 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h2><p>Unicode 仅仅只是一个字符集，规定了符合对应的二进制代码，至于这个二进制代码如何存储则没有任何规定</p>
-<p>Unicode 给每个字符提供了一个唯一的数字，唯一数字称为码点（code point），其范围介乎 <code>0x0</code> 至 <code>0x10FFFF</code> 之间</p>
-<p>码点有多种编码方式，称为 Unicode 转换格式，包括：</p>
-<ul>
-<li><p>UTF-8：8 位可变长度编码。它把一个码点映射至 1 至 4 个字节</p>
-</li>
-<li><p>UTF-16：16 位可变长度编码。它把一个码点映射至 1 至 2 个 16 位编码单元（即 2 至 4 个字节）</p>
-</li>
-<li><p>UTF-32：32 位固定长度编码。它直接把码点映射至单个 32 位编码单元（即 4 字节）</p>
-</li>
-</ul>
-<h3 id="UTF-8"><a href="#UTF-8" class="headerlink" title="UTF-8"></a>UTF-8</h3><p>使用 1 - 4 个字节表示一个字符，根据字符的不同变换长度，编码规则如下：</p>
-<ul>
-<li><p>对于单个字节的字符，第一位设为 0，后面的 7 位对应这个字符的 Unicode 码点。因此，对于英文中的 0 - 127 号字符，与 ASCII 码完全相同。这意味着 ASCII 码那个年代的文档用 UTF-8 编码打开完全没有问题</p>
-</li>
-<li><p>对于需要使用 N 个字节来表示的字符（N &gt; 1），第一个字节的前 N 位都设为 1，第 N + 1 位设为0，剩余的 N - 1 个字节的前两位都设位 10，剩下的二进制位则使用这个字符的 Unicode 码点来填充</p>
-</li>
-</ul>
-<p>UTF-8完全直接兼容ASCII码，而非不完全间接兼容</p>
-<h3 id="UTF-16"><a href="#UTF-16" class="headerlink" title="UTF-16"></a>UTF-16</h3><p>Unicode 的字符不是一次性定义的，而是分区定义</p>
-<p>目前，一共有 17 个平面，每个平面可以存放 65536 个字符</p>
-<p>UTF-16 编码规则：基本平面的字符占用 2 个字节，辅助平面的字符占用 4 个字节</p>
-<p>UTF-16 的编码长度要么是 2 个字节（<code>U+0000</code> 到 <code>U+FFFF</code>），要么是 4 个字节（<code>U+010000</code> 到 <code>U+10FFFF</code>）</p>
-<p>ASCII 字符经过 UTF-16 编码后得到的两个字节，高字节始终是 <code>0x00</code>，很多 C 语言的函数都将此字节视为字符串末尾从而导致无法正确解析文本</p>
-<h3 id="UTF-32"><a href="#UTF-32" class="headerlink" title="UTF-32"></a>UTF-32</h3><p>UTF-32 每个码点固定使用四个字节表示，字节内容一一对应码点</p>
-<h2 id="BOM"><a href="#BOM" class="headerlink" title="BOM"></a>BOM</h2><p>字节序就是字节之间的顺序，当传输或者存储时，如果数字超过 1 个字节，需要指定字节间的顺序</p>
-<p>字节序一般分为大端字节序或小端字节序</p>
-<p>UCS 规范建议在传输字节流前，先传输字符 <code>ZERO WIDTH NO-BREAK SPACE</code>，接收者收到 FEFF，就表明这个字节流是 Big-Endian 的，如果收到 FFFE ，就表明这个字节流是 Little-Endian 的</p>
-<p>字符 <code>ZERO WIDTH NO-BREAK SPACE</code> 就是 byte order mark，简称 BOM</p>
-<p>字节序问题仅存在于某种编码下计算机一次读取字符大小大于一个字节的时候</p>
-<p>因为 UTF-8 是单字节码元，所以是字节顺序无关的，它的字节顺序在所有系统中都是一样的，其码元序列与字节序列(字节流)相同，因此它实际上并不需要字节顺序标记 BOM</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/" class="post-title-link" itemprop="url">排序算法</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-01 16:35:40" itemprop="dateCreated datePublished" datetime="2023-04-01T16:35:40+08:00">2023-04-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-11 21:12:28" itemprop="dateModified" datetime="2023-09-11T21:12:28+08:00">2023-09-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/algorithm/" itemprop="url" rel="index"><span itemprop="name">algorithm</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="一些概念"><a href="#一些概念" class="headerlink" title="一些概念"></a>一些概念</h2><ul>
-<li><p>排序算法的内存消耗：针对排序算法的空间复杂度，引入原地排序概念，即空间复杂度 O(1) 的排序算法</p>
-</li>
-<li><p>排序算法的稳定性：待排序的序列中存在值相等的元素，经过排序之后，相等元素之间原有的先后顺序不变</p>
-</li>
-<li><p>有序度、逆序度：对于包含n个数据的数组，有 n! 种排列方式。有序度是数组中具有有序关系的元素对的个数</p>
-</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 有序元素对：a[i] &lt;= a[j]  i &lt; j</span><br><span class="line">// 完全有序的数组：有序度 n * (n - 1) / 2</span><br><span class="line">// 逆序元素对：a[i] &gt; a[j]  i &lt; j</span><br><span class="line">// 逆序度 = 满有序度 - 有序度</span><br></pre></td></tr></table></figure>
-<p>排序的过程就是增加有序度，减少逆序度的过程，最后达到满有序度</p>
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/10.png" class="">
-
-<h2 id="冒泡排序"><a href="#冒泡排序" class="headerlink" title="冒泡排序"></a>冒泡排序</h2><p>冒泡排序只会操作相邻的两个数据，每次冒泡操作都会对相邻的两个元素进行比较，看是否满足大小关系要求，如果不满足就让它们交换；</p>
-<p>一次冒泡会让至少一个元素移动到它应该在的位置，重复 n 次，就完成了 n 个数据的排序工作</p>
-<p>当某次冒泡操作没有进行数据交互时，说明已经排序完成了，可以不再继续冒泡操作了</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">bubblesort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v)</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> size = v.<span class="built_in">size</span>();</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt; size; ++i) &#123;</span><br><span class="line">		<span class="type">bool</span> flag = <span class="literal">false</span>;</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; size - i; ++j) &#123;</span><br><span class="line">			<span class="keyword">if</span> (v[j] &gt; v[j + <span class="number">1</span>]) &#123;</span><br><span class="line">				<span class="built_in">swap</span>(v[j], v[j + <span class="number">1</span>]);</span><br><span class="line">				flag = <span class="literal">true</span>;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> (!flag) <span class="keyword">break</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>冒泡排序只涉及相邻数据的交换操作，只需要常量级的临时空间，所以空间复杂度为 O(1)，故是原地排序</p>
-</li>
-<li><p>冒泡排序在相邻两个元素大小相等时不做交换，所以相同大小的数据在排序前后不会改变顺序，故冒泡排序是稳定的排序算法</p>
-</li>
-<li><p>时间复杂度：平均时间复杂度 O(n^2)，最坏复杂度 O(n^2)，最好复杂度 O(n)</p>
-</li>
-</ul>
-<h2 id="插入排序"><a href="#插入排序" class="headerlink" title="插入排序"></a>插入排序</h2><img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/01.jpg" class="">
-
-<p>将数组中的数据分为两个区间，已排序区间和未排序区间</p>
-<p>插入排序的核心思想是取未排序区间中的元素，在已排序区间中找到合适的插入位置将其插入，并保证已排序区间数据一直有序。重复这个过程，直到未排序区间中元素为空</p>
-<p>初始已排序区间只有一个元素</p>
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/02.jpg" class="">
-
-<p>插入排序包含两种操作，元素的比较和元素的移动；对于一个给定的初始序列，移动操作的次数总是固定的，即逆序度</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">insertsort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v)</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> size = v.<span class="built_in">size</span>();</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt; size; ++i) &#123;</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> j = i - <span class="number">1</span>; j &gt;= <span class="number">0</span>; --j) &#123;</span><br><span class="line">			<span class="keyword">if</span> (v[j + <span class="number">1</span>] &lt; v[j]) &#123;</span><br><span class="line">				<span class="built_in">swap</span>(v[j + <span class="number">1</span>], v[j]);</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> <span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>插入排序是原地排序</p>
-</li>
-<li><p>插入排序是稳定排序</p>
-</li>
-<li><p>复杂度：平均时间复杂度 O(n^2)，最坏复杂度 O(n^2)，最好复杂度 O(n)</p>
-</li>
-</ul>
-<h2 id="选择排序"><a href="#选择排序" class="headerlink" title="选择排序"></a>选择排序</h2><p>选择排序也分已排序区间和未排序区间，但选择排序每次会从未排序区间中找到最小的元素，将其放到已排序区间的末尾，每次操作确定一个元素的正确位置</p>
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/03.jpg" class="">
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">selectsort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v)</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> size = v.<span class="built_in">size</span>();</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; size; ++i) &#123;</span><br><span class="line">		<span class="type">int</span> pos = i;</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> j = i; j &lt; size; ++j) &#123;</span><br><span class="line">			<span class="keyword">if</span> (v[j] &lt; v[pos]) &#123;</span><br><span class="line">				pos = j;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">swap</span>(v[i], v[pos]);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>选择排序是原地排序</p>
-</li>
-<li><p>选择排序是稳定排序</p>
-</li>
-<li><p>复杂度：平均时间复杂度 O(n^2)，最好最坏复杂度都是 O(n^2)</p>
-</li>
-</ul>
-<h2 id="归并排序"><a href="#归并排序" class="headerlink" title="归并排序"></a>归并排序</h2><p>核心思想就是分治，将一个大问题分解成小的子问题；使用递归来实现</p>
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/04.jpg" class="">
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">merge</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v, <span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (end &lt;= start) <span class="keyword">return</span>;</span><br><span class="line">	<span class="type">int</span> mid = start + (end - start) / <span class="number">2</span>;</span><br><span class="line">	<span class="built_in">merge</span>(v, start, mid);</span><br><span class="line">	<span class="built_in">merge</span>(v, mid + <span class="number">1</span>, end);</span><br><span class="line">	<span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">tmp</span><span class="params">(end - start + <span class="number">1</span>)</span></span>;</span><br><span class="line">	<span class="type">int</span> i = start, j = mid + <span class="number">1</span>, k = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span> (k &lt; end - start + <span class="number">1</span>) &#123;</span><br><span class="line">		<span class="keyword">if</span>(i &lt; mid + <span class="number">1</span> &amp;&amp; j &lt; end + <span class="number">1</span>) &#123;</span><br><span class="line">			<span class="keyword">if</span> (v[i] &lt; v[j]) &#123;</span><br><span class="line">				tmp[k++] = v[i++];</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">else</span> &#123;</span><br><span class="line">				tmp[k++] = v[j++];</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (i &lt; mid + <span class="number">1</span>) &#123;</span><br><span class="line">			<span class="keyword">while</span> (i &lt; mid + <span class="number">1</span>) &#123;</span><br><span class="line">				tmp[k++] = v[i++];</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">else</span> <span class="keyword">if</span> (j &lt; end + <span class="number">1</span>) &#123;</span><br><span class="line">			<span class="keyword">while</span> (j &lt; end + <span class="number">1</span>) &#123;</span><br><span class="line">				tmp[k++] = v[j++];</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> p = start; p &lt;= end; ++p) &#123;</span><br><span class="line">		v[p] = tmp[p - start];</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">mergesort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v)</span> </span>&#123;</span><br><span class="line">	<span class="built_in">merge</span>(v, <span class="number">0</span>, v.<span class="built_in">size</span>() - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>归并排序是稳定排序</p>
-</li>
-<li><p>时间复杂度：归并排序最好、最坏和平均时间复杂度都是 O(nlogn)</p>
-</li>
-<li><p>空间复杂度：归并排序的合并函数需要借助额外的存储空间，空间复杂度为 O(n)</p>
-</li>
-</ul>
-<h2 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h2><p>如果要排序数组中下标从 p 到 r 之间的一组数据，选择中间任意一个数组作为分区点 pivot</p>
-<p>遍历 p 到 r 之间的数据，将小于 pivot 的放左边，大于 pivot 的放右边，将 pivot 放中间</p>
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/05.jpg" class="">
-
-<p>原地分区过程：</p>
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/06.jpg" class="">
-
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/07.jpg" class="">
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">partition</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v, <span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="type">int</span> pos = start;</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = start; i &lt; end; ++i) &#123;</span><br><span class="line">		<span class="keyword">if</span> (v[i] &lt; v[end]) &#123;</span><br><span class="line">			<span class="built_in">swap</span>(v[pos++], v[i]);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">swap</span>(v[pos], v[end]);</span><br><span class="line">	<span class="keyword">return</span> pos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">quicksort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v, <span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (end &lt;= start) <span class="keyword">return</span>;</span><br><span class="line">	<span class="type">int</span> p = <span class="built_in">partition</span>(v, start, end);</span><br><span class="line">	<span class="built_in">quicksort</span>(v, start, p - <span class="number">1</span>);</span><br><span class="line">	<span class="built_in">quicksort</span>(v, p + <span class="number">1</span>, end);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">quicksort</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; v)</span> </span>&#123;</span><br><span class="line">	<span class="built_in">quicksort</span>(v, <span class="number">0</span>, v.<span class="built_in">size</span>() - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>快排原地不稳定排序</p>
-</li>
-<li><p>空间复杂度 O(1)</p>
-</li>
-<li><p>当 pivot 选择合适，每次将区间分为大小相近的两个小区间，则快排最好时间复杂度是 O(nlogn)。当 pivot 选择不合适，每次分区得到的两个区间都不均等，需要进行 n 次分区操作，则最坏时间复杂度 O(n^2)，所以可以通过合理的选择 pivot 来避免这种情况。平均时间复杂度是 O(nlogn)</p>
-</li>
-</ul>
-<p>这种 O(n^2) 时间复杂度出现的主要原因还是因为分区点选得不够合理，最理想的分区点是：被分区点分开的两个分区中，数据的数量差不多。改进方法：</p>
-<ol>
-<li><p>从区间的首、尾、中间，分别取出一个数，然后对比大小，取这 3 个数的中间值作为分区点。但是，如果要排序的数组比较大，那三数取中可能就不够了，可能要五数取中或者十数取中</p>
-</li>
-<li><p>每次从要排序的区间中随机选择一个元素作为分区点。这种方法并不能保证每次分区点都选的比较好，但是从概率的角度来看，也不大可能会出现每次分区点都选得很差的情况，所以平均情况下，这样选的分区点是比较好的</p>
-</li>
-</ol>
-<h2 id="堆排序"><a href="#堆排序" class="headerlink" title="堆排序"></a>堆排序</h2><p>堆排序时间复杂度非常稳定，是 O(nlogn)，并且还是原地排序算法</p>
-<p>堆排序的过程大致分解成两个大的步骤，建堆和排序</p>
-<h3 id="建堆"><a href="#建堆" class="headerlink" title="建堆"></a>建堆</h3><p>将数组原地建成一个堆，不借助另一个数组，在原数组上操作</p>
-<ul>
-<li><p>从下往上堆化：借助堆插入思路，假设堆中只包含一个数据，就是下标为 0 的数据。通过调用插入操作，将下标从 1 到 n-1 的数据依次插入到堆中，每个数据插入堆中</p>
-</li>
-<li><p>从上往下堆化：因为叶子节点往下堆化只能跟自己比较，所以从第一个非叶子节点开始，即下标从 n&#x2F;2-1 开始到 1 的数据进行堆化，下标 n&#x2F;2 到 n-1 的节点都是叶子节点，不需要堆化</p>
-</li>
-</ul>
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/11.jpg" class="">
-
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/12.jpg" class="">
-
-<h3 id="排序"><a href="#排序" class="headerlink" title="排序"></a>排序</h3><p>建堆结束之后，数组中的数据已经按照大顶堆的特性组织的</p>
-<p>把数组中第一个元素跟最后一个元素交换，最大元素就放到了下标为 n 的位置，类似于删除堆顶元素操作。堆顶元素移除后把下标为 n 的元素放到堆顶，然后再堆化，以此类推完成排序</p>
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/13.jpg" class="">
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">当元素下标为 n，其父节点 (n - 1) / 2，子节点 2n + 1 + k，k 取 0 和 1</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">buildsort</span><span class="params">(vector&lt;<span class="type">int</span>&gt; &amp;v, <span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 从下往上，依次将下标 1～n-1 的数据插入堆中</span></span><br><span class="line">  <span class="comment">// for (int i = 1; i &lt; n; ++i) &#123;</span></span><br><span class="line">  <span class="comment">//    int j = i;</span></span><br><span class="line">  <span class="comment">//    while (j &gt; 0) &#123;</span></span><br><span class="line">  <span class="comment">//            int p = (j - 1) / 2;</span></span><br><span class="line">  <span class="comment">//            if (v[p] &lt; v[j]) &#123;</span></span><br><span class="line">  <span class="comment">//                    swap(v[p], v[j]);</span></span><br><span class="line">  <span class="comment">//                    j = p;</span></span><br><span class="line">  <span class="comment">//            &#125;</span></span><br><span class="line">  <span class="comment">//            else break;</span></span><br><span class="line">  <span class="comment">//    &#125;</span></span><br><span class="line">  <span class="comment">//&#125;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 从上往下，从第一个非叶子结点开始向下堆化</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = n / <span class="number">2</span> - <span class="number">1</span>; i &gt;= <span class="number">0</span>; --i) &#123;</span><br><span class="line">    <span class="type">int</span> j = i;</span><br><span class="line">    <span class="keyword">while</span> (j &lt; n / <span class="number">2</span>) &#123;</span><br><span class="line">      <span class="type">int</span> l = <span class="number">2</span> * j + <span class="number">1</span>, r = <span class="number">2</span> * j + <span class="number">2</span>;</span><br><span class="line">      <span class="keyword">if</span> (r &lt; n) &#123;</span><br><span class="line">        <span class="type">int</span> tmp;</span><br><span class="line">        <span class="keyword">if</span> (v[l] &lt; v[r])</span><br><span class="line">          tmp = r;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">          tmp = l;</span><br><span class="line">        <span class="keyword">if</span> (v[j] &lt; v[tmp]) &#123;</span><br><span class="line">          <span class="built_in">swap</span>(v[j], v[tmp]);</span><br><span class="line">          j = tmp;</span><br><span class="line">        &#125; <span class="keyword">else</span></span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">if</span> (l &lt; n) &#123;</span><br><span class="line">        <span class="keyword">if</span> (v[j] &lt; v[l]) &#123;</span><br><span class="line">          <span class="built_in">swap</span>(v[j], v[l]);</span><br><span class="line">          j = l;</span><br><span class="line">        &#125; <span class="keyword">else</span></span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">heapsort</span><span class="params">(vector&lt;<span class="type">int</span>&gt; &amp;v)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> size = v.<span class="built_in">size</span>();</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; size; ++i) &#123;</span><br><span class="line">    <span class="built_in">buildsort</span>(v, size - i);</span><br><span class="line">    <span class="built_in">swap</span>(v[size - <span class="number">1</span> - i], v[<span class="number">0</span>]);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="与快排比较"><a href="#与快排比较" class="headerlink" title="与快排比较"></a>与快排比较</h3><ol>
-<li><p>堆排序数据访问方式没有快排友好：堆排跳着访问数据，快排顺序访问数据，对 CPU 缓存不友好</p>
-</li>
-<li><p>对于同样的数据，在排序过程中，堆排数据交换次数多于快排</p>
-</li>
-</ol>
-<h3 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h3><ul>
-<li><p>优先级队列：将一个堆看做一个优先级队列，往优先级队列中插入元素相当于往堆中插入一个元素，从优先级队列中取出有优先级最高的元素相当于取出堆顶元素</p>
-</li>
-<li><p>求 TopK</p>
-</li>
-<li><p>求中位数</p>
-</li>
-</ul>
-<h2 id="希尔排序"><a href="#希尔排序" class="headerlink" title="希尔排序"></a>希尔排序</h2><p>希尔排序，是插入排序的一种更高效的改进版本，但希尔排序是非稳定排序算法</p>
-<p>希尔排序将全部元素分为几个区域来提升插入排序的性能，这样可以让一个元素可以一次性朝最终位置移动一大步。然后再取越来越小的步长进行排序，算法的最后一步就是普通的插入排序</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">shellsort</span><span class="params">(std::vector&lt;<span class="type">int</span>&gt;&amp; nums, <span class="type">int</span> start, <span class="type">int</span> step)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> size = nums.<span class="built_in">size</span>();</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = start; i &lt; size; i += step) &#123;</span><br><span class="line">    <span class="type">int</span> j = i;</span><br><span class="line">    <span class="keyword">for</span> (; j &gt;= <span class="number">0</span> &amp;&amp; j + step &lt; size; j += step) &#123;</span><br><span class="line">      <span class="keyword">if</span> (nums[j + step] &lt; nums[j]) &#123;</span><br><span class="line">        std::<span class="built_in">swap</span>(nums[j + step], nums[j]);</span><br><span class="line">      &#125; <span class="keyword">else</span> <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">shellsort</span><span class="params">(std::vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> step = nums.<span class="built_in">size</span>() / <span class="number">2</span>; step &gt; <span class="number">0</span>; --step) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; step; ++i) &#123;</span><br><span class="line">      <span class="built_in">shellsort</span>(nums, i, step);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="计数排序"><a href="#计数排序" class="headerlink" title="计数排序"></a>计数排序</h2><p>当要排序 n 个数据所处的范围并不大的时候，比如最大值为 k，就可以把数据划分 k 个桶，每个桶内的数据值都是相同的，省掉了桶内排序的时间</p>
-<p>因为只涉及扫描遍历操作，所有时间复杂度是 O(n+k)</p>
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/09.jpg" class="">
-<h2 id="桶排序"><a href="#桶排序" class="headerlink" title="桶排序"></a>桶排序</h2><p>核心思想是将要排序的数据分到几个有序的桶里，每个桶里的数据再单独进行排序</p>
-<p>桶内排完序之后再把每个桶里的数据按照顺序依次去除，组成的序列就是有序的了</p>
-<img src="/2023/04/01/%E7%AE%97%E6%B3%95-%E6%8E%92%E5%BA%8F/08.jpg" class="">
-
-<ul>
-<li><p>桶排序的时间复杂度接近 O(n)</p>
-</li>
-<li><p>桶排序对排序数据的要求非常苛刻：要排序的数据需要很容易地划分成 m 个桶，并且桶与桶之间有着天然的大小顺序，这样每个桶内的数据排序完后桶与桶之间的数据不需要再进行排序。数据在各个桶之间的分布是比较均匀的，在低端情况下会退化为 O(nlogn) 的排序</p>
-</li>
-<li><p>桶排序比较适合用于外部排序中，即数据存储在外部磁盘中，数据量比较大，内存有限，无法将数据全部加载到内存中</p>
-</li>
-</ul>
-<h2 id="基数排序"><a href="#基数排序" class="headerlink" title="基数排序"></a>基数排序</h2><p>基数排序对要排序的数据是有要求的，需要能分割出独立的位来比较，而且位之间有递进关系，如果高位的数据大则剩下地位则不需要比较。而且每位的数据范围不能大，能采用线性排序算法来排序</p>
-<h2 id="排序优化"><a href="#排序优化" class="headerlink" title="排序优化"></a>排序优化</h2><p>线性排序算法的时间复杂度底但适用场景比较特殊，不适合用于通用的排序算法；</p>
-<p>如果对小规模数据进行排序，可以选择时间复杂度是 O(n^2) 的算法；但如果对大规模数据进行排序，时间复杂度为 O(nlogn) 的算法更加高效；所以一般首选时间复杂度为 O(nlogn) 的排序算法来实现排序函数</p>
-<p>因为归并排序的控件复杂度为 O(n^2)，不是原地排序，所以一般采用快速排序算法</p>
-<h3 id="优化快速排序"><a href="#优化快速排序" class="headerlink" title="优化快速排序"></a>优化快速排序</h3><p>快速排序在最坏情况下的时间复杂度为 O(n^2)，这种情况的出现原因主要是因为分区点的选择不够合理</p>
-<p>最理想的分区点是：被区分点分开的两个分区中，数据的数据量差不多；为了提高地让每次分区都比较平均</p>
-<ol>
-<li><p>三数取中法，从区间的首、尾、中间分别取数，对比大小后取 3 个数的中间值作为分区点</p>
-</li>
-<li><p>随机法</p>
-</li>
-</ol>
-<p>每次从要排序的区间中，随机选择一个元素作为分区点；虽然不能保证每次分区点都选的比较好，但是从概率的角度，平均情况下分区点事比较好的</p>
-<h3 id="递归注意事项"><a href="#递归注意事项" class="headerlink" title="递归注意事项"></a>递归注意事项</h3><p>递归要警惕堆栈溢出，递归过深而堆栈过小，导致堆栈溢出</p>
-<ol>
-<li><p>限制递归深度</p>
-</li>
-<li><p>在堆上模拟实现一个函数调用栈，手动模拟递归压栈、出栈的过程</p>
-</li>
-</ol>
-
       
     </div>
 
