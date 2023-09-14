@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">415</span>
+          <span class="site-state-item-count">416</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,129 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/14/Bazel-WorkspaceRule/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/14/Bazel-WorkspaceRule/" class="post-title-link" itemprop="url">WorkspaceRule</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-14 14:39:09" itemprop="dateCreated datePublished" datetime="2023-06-14T14:39:09+08:00">2023-06-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-09-14 11:18:01" itemprop="dateModified" datetime="2023-09-14T11:18:01+08:00">2023-09-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Bazel/" itemprop="url" rel="index"><span itemprop="name">Bazel</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>WORKSPACE 文件中的 rule 主要是为了引入外部依赖，其主要分为原生 rule 和 Starlark rule</p>
+<h2 id="bind"><a href="#bind" class="headerlink" title="bind"></a>bind</h2><p>原生 rule</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bind(name, actual, compatible_with, deprecation, distribs, features, licenses, restricted_to, tags, testonly, visibility)</span><br></pre></td></tr></table></figure>
+
+<p><code>bind</code> 用于给 target 在 <code>//external</code> 包中创建一个别名</p>
+<p><code>//external</code> 不是常规的包，可以把它看成一个包含所有绑定目标的虚拟包</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">bind(</span><br><span class="line">    name = &quot;javacc-latest&quot;,</span><br><span class="line">    actual = &quot;//third_party/javacc-v2&quot;,</span><br><span class="line">)</span><br><span class="line"># 使用 bind 后可以用 //external:javacc-latest 来替代 //third_party/javacc-v2</span><br><span class="line"></span><br><span class="line"># 引入外部包</span><br><span class="line">bind(</span><br><span class="line">    name = &quot;openssl&quot;,</span><br><span class="line">    actual = &quot;@my-ssl//src:openssl-lib&quot;,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><code>bind</code> 是不推荐使用的</p>
+<h2 id="local-repository"><a href="#local-repository" class="headerlink" title="local_repository"></a>local_repository</h2><p>原生 rule</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">local_repository(name, path, repo_mapping)</span><br></pre></td></tr></table></figure>
+
+<p>引入一个本地目录中的 Bazel 仓库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">local_repository(</span><br><span class="line">    name = &quot;my-ssl&quot;,</span><br><span class="line">    path = &quot;/home/user/ssl&quot;,</span><br><span class="line">)</span><br><span class="line"># 之后使用 /home/user/ssl 中的 target 时可以用 @my-ssl//src:openssl-lib 表示</span><br></pre></td></tr></table></figure>
+
+<h2 id="new-local-repository"><a href="#new-local-repository" class="headerlink" title="new_local_repository"></a>new_local_repository</h2><p>原生 rule</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_local_repository(name, build_file, build_file_content, path, repo_mapping, workspace_file, workspace_file_content)</span><br></pre></td></tr></table></figure>
+
+<p>引入一个本地目录中的非 Bazel 仓库或文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"># WORKSPACE</span><br><span class="line">new_local_repository(</span><br><span class="line">    name = &quot;my-ssl&quot;,</span><br><span class="line">    path = &quot;/home/user/ssl&quot;,</span><br><span class="line">    build_file = &quot;BUILD.my-ssl&quot;,</span><br><span class="line">)</span><br><span class="line"># BUILD.my-ssl</span><br><span class="line">java_library(</span><br><span class="line">    name = &quot;openssl&quot;,</span><br><span class="line">    srcs = glob([&#x27;*.java&#x27;])</span><br><span class="line">    visibility = [&quot;//visibility:public&quot;],</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"># WORKSPACE</span><br><span class="line">new_local_repository(</span><br><span class="line">    name = &quot;piano&quot;,</span><br><span class="line">    path = &quot;/home/username/Downloads/piano.jar&quot;,</span><br><span class="line">    build_file = &quot;BUILD.piano&quot;,</span><br><span class="line">)</span><br><span class="line"># BUILD.plano</span><br><span class="line">java_import(</span><br><span class="line">    name = &quot;play-music&quot;,</span><br><span class="line">    jars = [&quot;piano.jar&quot;],</span><br><span class="line">    visibility = [&quot;//visibility:public&quot;],</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h2 id="git-repository"><a href="#git-repository" class="headerlink" title="git_repository"></a>git_repository</h2><p>Starlark rule，需要 <code>load(@bazel_tools//tools/build_defs/repo:git.bzl)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git_repository(name, branch, commit, init_submodules, patch_args, patch_cmds, patch_cmds_win,</span><br><span class="line">               patch_tool, patches, recursive_init_submodules, remote, shallow_since, strip_prefix,</span><br><span class="line">               tag, verbose)</span><br></pre></td></tr></table></figure>
+
+<p>克隆一个外部 Bazel 仓库</p>
+<h2 id="new-git-repository"><a href="#new-git-repository" class="headerlink" title="new_git_repository"></a>new_git_repository</h2><p>Starlark rule，需要 <code>load(@bazel_tools//tools/build_defs/repo:git.bzl)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">new_git_repository(name, branch, build_file, build_file_content, commit, init_submodules,</span><br><span class="line">                   patch_args, patch_cmds, patch_cmds_win, patch_tool, patches,</span><br><span class="line">                   recursive_init_submodules, remote, shallow_since, strip_prefix, tag, verbose,</span><br><span class="line">                   workspace_file, workspace_file_content)</span><br></pre></td></tr></table></figure>
+
+<p>克隆一个外部非 Bazel 仓库</p>
+<h2 id="http-archive"><a href="#http-archive" class="headerlink" title="http_archive"></a>http_archive</h2><p>Starlark rule，需要 <code>load(@bazel_tools//tools/build_defs/repo:http.bzl)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http_archive(name, auth_patterns, build_file, build_file_content, canonical_id, netrc, patch_args,</span><br><span class="line">             patch_cmds, patch_cmds_win, patch_tool, patches, sha256, strip_prefix, type, url, urls,</span><br><span class="line">             workspace_file, workspace_file_content)</span><br></pre></td></tr></table></figure>
+
+<p>下载一个压缩的 Bazel 仓库，对其解压后引入该仓库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># WORKSPACE</span><br><span class="line">load(&quot;@bazel_tools//tools/build_defs/repo:http.bzl&quot;, &quot;http_archive&quot;)</span><br><span class="line">http_archive(</span><br><span class="line">    name = &quot;my_ssl&quot;,</span><br><span class="line">    urls = [&quot;http://example.com/openssl.zip&quot;],</span><br><span class="line">    sha256 = &quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;,</span><br><span class="line">    build_file = &quot;@//:openssl.BUILD&quot;,</span><br><span class="line">)</span><br><span class="line">#openssl.BUILD</span><br><span class="line">cc_library(</span><br><span class="line">    name = &quot;openssl-lib&quot;,</span><br><span class="line">    srcs = [&quot;src/openssl.cc&quot;],</span><br><span class="line">    hdrs = [&quot;src/openssl.h&quot;],</span><br><span class="line">)</span><br><span class="line"># 使用 @my_ssl//:openssl-lib</span><br></pre></td></tr></table></figure>
+
+<h2 id="http-file"><a href="#http-file" class="headerlink" title="http_file"></a>http_file</h2><p>Starlark rule，需要 <code>load(@bazel_tools//tools/build_defs/repo:http.bzl)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http_file(name, auth_patterns, canonical_id, downloaded_file_path, executable, netrc, sha256, urls)</span><br></pre></td></tr></table></figure>
+
+<p>通过 URL 下载文件并引入仓库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># WORKSPACE</span><br><span class="line">load(&quot;@bazel_tools//tools/build_defs/repo:http.bzl&quot;, &quot;http_file&quot;)</span><br><span class="line"></span><br><span class="line">http_file(</span><br><span class="line">    name = &quot;my_deb&quot;,</span><br><span class="line">    urls = [&quot;http://example.com/package.deb&quot;],</span><br><span class="line">    sha256 = &quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;,</span><br><span class="line">)</span><br><span class="line"># 使用 @my_deb//file</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +318,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+      <time title="修改时间：2023-09-14 11:18:01" itemprop="dateModified" datetime="2023-09-14T11:18:01+08:00">2023-09-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -310,7 +433,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+      <time title="修改时间：2023-09-14 11:18:01" itemprop="dateModified" datetime="2023-09-14T11:18:01+08:00">2023-09-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -397,7 +520,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+      <time title="修改时间：2023-09-14 11:18:01" itemprop="dateModified" datetime="2023-09-14T11:18:01+08:00">2023-09-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -484,7 +607,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+      <time title="修改时间：2023-09-14 11:18:02" itemprop="dateModified" datetime="2023-09-14T11:18:02+08:00">2023-09-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -580,7 +703,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+      <time title="修改时间：2023-09-14 11:18:02" itemprop="dateModified" datetime="2023-09-14T11:18:02+08:00">2023-09-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -734,7 +857,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+      <time title="修改时间：2023-09-14 11:18:02" itemprop="dateModified" datetime="2023-09-14T11:18:02+08:00">2023-09-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -835,7 +958,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+      <time title="修改时间：2023-09-14 11:18:02" itemprop="dateModified" datetime="2023-09-14T11:18:02+08:00">2023-09-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1077,7 +1200,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+      <time title="修改时间：2023-09-14 11:18:01" itemprop="dateModified" datetime="2023-09-14T11:18:01+08:00">2023-09-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1173,7 +1296,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
+      <time title="修改时间：2023-09-14 11:18:02" itemprop="dateModified" datetime="2023-09-14T11:18:02+08:00">2023-09-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1251,167 +1374,6 @@
 <p>推送 Feed 流可以分段进行，但用户很难容忍打开页面时需要较长等候时间，因此拉模型读取效率低下的缺点使得它的应用受到了极大限制</p>
 <p>针对头部发布者，可以有选择地过滤掉一些粉丝来减少写入量</p>
 <p>结合以上分析，可以针对在线用户使用推模型，离线用户使用拉模型</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/" class="post-title-link" itemprop="url">JWT</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-05 14:53:21" itemprop="dateCreated datePublished" datetime="2023-06-05T14:53:21+08:00">2023-06-05</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-13 16:57:58" itemprop="dateModified" datetime="2023-09-13T16:57:58+08:00">2023-09-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5/" itemprop="url" rel="index"><span itemprop="name">常见概念</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>JWT 即 Json Web Token，是一种跨域认证解决方案</p>
-<h2 id="跨域认证"><a href="#跨域认证" class="headerlink" title="跨域认证"></a>跨域认证</h2><p>用户认证一般流程</p>
-<ol>
-<li><p>用户向服务器发送用户名和密码</p>
-</li>
-<li><p>服务器验证通过后，在当前 session 里面保存相关数据，比如用户角色、登录时间等等</p>
-</li>
-<li><p>服务器向用户返回一个 session_id，写入用户的 Cookie</p>
-</li>
-<li><p>用户随后的每一次请求，都会通过 Cookie 将 session_id 传回服务器</p>
-</li>
-<li><p>服务器收到 session_id，找到前期保存的数据，由此得知用户的身份</p>
-</li>
-</ol>
-<p>该方案存在扩展性不好的问题，当遇到服务器集群或者是跨域的服务架构，就需要做到 session 数据共享才能使每台服务器都能读到 session</p>
-<p>为了解决 session 共享问题，有两种方案</p>
-<ol>
-<li><p>将 session 持久化，这样服务收到请求向持久层请求数据</p>
-</li>
-<li><p>服务端不保存 session，将 session 保存在客户端，这样客户端每次请求到将 session 发回服务端</p>
-</li>
-</ol>
-<p>JWT 就是改良方案二的一个代表</p>
-<h2 id="JWT-原理"><a href="#JWT-原理" class="headerlink" title="JWT 原理"></a>JWT 原理</h2><p>JWT 是一个很长的字符串，由 Header 头部、Payload 负载和 Signature 签名组成，中间用点 . 分隔成三个部分</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Header.Payload.Signature</span><br></pre></td></tr></table></figure>
-
-<h3 id="Header"><a href="#Header" class="headerlink" title="Header"></a>Header</h3><p>Header 是一个 JSON 对象，描述 JWT 的元数据，包括以下字段</p>
-<ul>
-<li><p>alg：签名算法，默认 HS256</p>
-</li>
-<li><p>typ：token 类型，JWT 统一为 JWT</p>
-</li>
-</ul>
-<p>最后需要将 Header 的 JSON 对象使用 Base64URL 算法转成字符串</p>
-<h3 id="Payload"><a href="#Payload" class="headerlink" title="Payload"></a>Payload</h3><p>Payload 是一个 JSON 对象，描述需要传递的信息，包括以下字段</p>
-<ul>
-<li><p>iss：issuer 签发人</p>
-</li>
-<li><p>exp：expiration time 过期时间</p>
-</li>
-<li><p>sub：subject 主题</p>
-</li>
-<li><p>aud：audience 受众</p>
-</li>
-<li><p>nbf：not before 生效时间</p>
-</li>
-<li><p>iat：issued at 签发时间</p>
-</li>
-<li><p>jti：JWT id 编号</p>
-</li>
-</ul>
-<p>除了官方字段，还可以在这个部分定义私有字段</p>
-<p>最后需要将 Payload 的 JSON 对象使用 Base64URL 算法转成字符串</p>
-<h3 id="Signature"><a href="#Signature" class="headerlink" title="Signature"></a>Signature</h3><p>Signature 是对前两部分利用私钥的签名，防止数据篡改</p>
-<p>服务端根据 Header 中的算法，利用私钥、 Header 和 Payload 计算签名，再使用 Base64URL 转成字符串</p>
-<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><ul>
-<li><p>客户端每次与服务器通信都要带上这个 JWT，可以把它放在 Cookie 里面自动发送，但是这样不能跨域</p>
-</li>
-<li><p>将 JWT 放在 HTTP 请求的头信息 Authorization 字段里面，这样就解决了跨域的问题</p>
-</li>
-<li><p>JWT 放在 POST 请求的数据体里面，这样也能解决了跨域的问题</p>
-</li>
-</ul>
-<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
-<li><p>JWT 默认是不加密，但也可以生成原始 Token 以后用密钥再加密一次</p>
-</li>
-<li><p>JWT 不加密的情况下，不能将秘密数据写入 JWT</p>
-</li>
-<li><p>JWT 不仅可以用于认证，也可以用于交换信息</p>
-</li>
-<li><p>由于服务器不保存 session 状态，因此无法在使用过程中废止某个 token，或者更改 token 的权限，除非服务器部署额外的逻辑</p>
-</li>
-<li><p>JWT 本身包含了认证信息，一旦泄露任何人都可以获得该令牌的所有权限，所以 JWT 的有效期应该设置得比较短</p>
-</li>
-<li><p>为了减少盗用，JWT 不应该使用 HTTP 协议明码传输，要使用 HTTPS 协议传输</p>
-</li>
-</ul>
 
       
     </div>
