@@ -62,5 +62,7 @@ xargs [-0oprt] [-E eofstr] [-I replstr [-R replacements] [-S replsize]]
 
 ls *.jpg | xargs -n1 -I {} cp {} /data/images
 find . -type f -name "*.log" -print0 | xargs -0 rm -f
+# 搭配 cp 使用时需要 -i
+cat 1.txt | xargs -i cp {} ~/navtopologycalc/yunxi/
 ```
 
