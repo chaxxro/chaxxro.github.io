@@ -59,5 +59,8 @@ xargs [-0oprt] [-E eofstr] [-I replstr [-R replacements] [-S replsize]]
 
 -e 解释转义字符
 -P 并行处理
+
+ls *.jpg | xargs -n1 -I {} cp {} /data/images
+find . -type f -name "*.log" -print0 | xargs -0 rm -f
 ```
 
