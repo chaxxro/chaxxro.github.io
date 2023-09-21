@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">421</span>
+          <span class="site-state-item-count">422</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,174 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/" class="post-title-link" itemprop="url">暂时不知道放哪</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-12 20:38:03" itemprop="dateCreated datePublished" datetime="2023-04-12T20:38:03+08:00">2023-04-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-09-21 12:04:19" itemprop="dateModified" datetime="2023-09-21T12:04:19+08:00">2023-09-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="百万级别的数据删除"><a href="#百万级别的数据删除" class="headerlink" title="百万级别的数据删除"></a>百万级别的数据删除</h2><p>索引文件是单独存在的文件，所以当对数据的增加、修改、删除，都会产生额外的对索引文件的操作，这些操作需要消耗额外的 IO，会降低增改删的执行效率</p>
+<p>在删除数据库百万级别数据的时候，删除数据的速度和创建的索引数量是成正比的</p>
+<ol>
+<li><p>先删除索引</p>
+</li>
+<li><p>删除数据</p>
+</li>
+<li><p>重新创建索引</p>
+</li>
+</ol>
+<h2 id="InnoDB"><a href="#InnoDB" class="headerlink" title="InnoDB"></a>InnoDB</h2><ul>
+<li><p>InnoDB 是聚集索引，数据文件是和索引放在一起，因此必须要有主键</p>
+</li>
+<li><p>通过主键查询的效率很高，通过非主键索引查询因为需要先查询到主键，然后再通过主键查询数据，因此效率较低</p>
+</li>
+<li><p>主键不应该过大，否则其他索引也会很大</p>
+</li>
+<li><p>InnoDB 支持外键</p>
+</li>
+<li><p>InnoDB 锁粒度是行锁</p>
+</li>
+<li><p>InnoDB 支持事务，对于 InnoDB 每一条 SQL 语言都默认封装成事务，自动提交，所以最好把多条 SQL 语言放在 <code>begin</code> 和 <code>commit</code> 之间，组成一个事务</p>
+</li>
+<li><p>InnoDB 不保存表的具体行数</p>
+</li>
+<li><p>InnoDB 支持 MVCC</p>
+</li>
+<li><p>InnoDB 支持 B+ 树索引和自适应哈希索引</p>
+</li>
+<li><p>InnoDB 是原始数据存储，占用存储更大</p>
+</li>
+<li><p>InnoDB不支持全文索引，但可以通过插件实现</p>
+</li>
+</ul>
+<h3 id="InnoDB-加锁方式"><a href="#InnoDB-加锁方式" class="headerlink" title="InnoDB 加锁方式"></a>InnoDB 加锁方式</h3><p>对于普通 <code>select</code> 语句，InnoDB 不会加任何锁，事务可以通过显式方式加共享锁或排他锁</p>
+<p>对于 <code>update</code>、 <code>delete</code> 和 &#96;insert 语句， InnoDB 会自动加排他锁</p>
+<p>InnoDB 在事务执行过程中，使用两阶段锁协议：根据隔离级别在需要的时候自动加锁；在执行 <code>commit</code> 或者 <code>rollback</code> 的时候所有的锁在同一时刻被释放</p>
+<h2 id="MyISAM"><a href="#MyISAM" class="headerlink" title="MyISAM"></a>MyISAM</h2><ul>
+<li><p>MyISAM 是非聚集索引，数据文件是分离的，索引保存的是数据文件的指针，主键索引和辅助索引是独立的</p>
+</li>
+<li><p>MyISAM 不支持外键</p>
+</li>
+<li><p>MyISAM 是表锁</p>
+</li>
+<li><p>MyISAM 不支持事务，但可以在 service 层进行根据自己的业务需求进行相应的控制</p>
+</li>
+<li><p>MyISAM 用一个变量保存了整个表行数</p>
+</li>
+<li><p>MyISAM 不支持 MVCC</p>
+</li>
+<li><p>MyISAM 支持 B+ 树索引</p>
+</li>
+<li><p>MyISAM 实现了前缀压缩技术，占用存储空间更小，但会影响查找</p>
+</li>
+<li><p>MyISAM 支持全文索引</p>
+</li>
+</ul>
+<h3 id="加锁方法"><a href="#加锁方法" class="headerlink" title="加锁方法"></a>加锁方法</h3><p>在执行查询语句前，会自动给涉及的表加读锁，在执行更新操作前，会自动给涉及的表加写锁</p>
+<p>在自动加锁的情况下，MyISAM 总是一次获得 SQL 语句所需要的全部锁</p>
+<p>MyISAM 存储引擎支持并发插入，以减少的读和写操作之间的冲突：如果 MyISAM 表在数据文件中间没有空闲块，则行始终插入数据文件的末尾；可以在其他线程进行读操作的时候，同时将行插入到 MyISAM 表中；文件中间的空闲块可能是从表格中间删除或更新的行而产生的，如果文件中间有空闲块，则并发插入会被禁用，但是当所有空闲块都填充有新数据时，它又会自动重新启用</p>
+<h2 id="快照读和当前读"><a href="#快照读和当前读" class="headerlink" title="快照读和当前读"></a>快照读和当前读</h2><h3 id="快照读"><a href="#快照读" class="headerlink" title="快照读"></a>快照读</h3><p>在 READ COMMITTED 和 REPEATABLE READ 隔离级别下，普通的 SELECT 查询都是读取 MVCC 版本链中的一个版本，相当于读取一个快照，因此称为快照读；这种读取方式不会加锁，因此读操作时非阻塞的，因此也叫非阻塞读</p>
+<h3 id="当前读"><a href="#当前读" class="headerlink" title="当前读"></a>当前读</h3><p>读取的是当前最新版本，称为当前读；当前读不仅会对当前记录加行记录锁，还会对查询范围空间的数据加间隙锁</p>
+<h2 id="触发器"><a href="#触发器" class="headerlink" title="触发器"></a>触发器</h2><p>触发器是与表有关的数据库对象，在满足定义条件时触发，并执行触发器中定义的语句集合，使用触发器可以保证某些操作之间的一致性</p>
+<p>能决定触发器执行某个操作的事件有：insert、update 和 delete</p>
+<p>不能在同一张表上建立 2 种同类型的触发器，一张表最多创建 6 个触发器(6 种类型)：即 BEFORE INSERT、BEFORE UPDATE、BEFORE DELETE、AFTER INSERT、AFTER UPDATE、AFTER DELETE</p>
+<p>在 INSERT 型触发器中，NEW 用来表示将要（BEFORE）或已经（AFTER）插入的新数据</p>
+<p>在 UPDATE 型触发器中，OLD 用来表示将要或已经被修改的原数据，NEW 用来表示将要或已经修改为的新数据</p>
+<p>在 DELETE 型触发器中，OLD 用来表示将要或已经被删除的原数据</p>
+<p>OLD 是只读的，而 NEW 则可以在触发器中使用 SET 赋值，这样不会再次触发触发器，造成循环调用</p>
+<p>多个执行语句则用 BEGIN、END 包围</p>
+<p>触发器基于行触发，当对整个表进行操作时效果较差</p>
+<p>在基于锁的操作中，触发器可能会导致锁等待或死锁；触发器执行失败，原来执行的 SQL 语句也会执行失败</p>
+<h2 id="主从同步"><a href="#主从同步" class="headerlink" title="主从同步"></a>主从同步</h2><p>为了减轻数据库压力，需要对数据库做读写分离和主从同步，写操作走主库，读操作走从库，分散了数据库的访问压力，提升整个系统的性能和可用性</p>
+<img src="/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/01.png" class="">
+
+<h3 id="主从复制原理"><a href="#主从复制原理" class="headerlink" title="主从复制原理"></a>主从复制原理</h3><p>主从复制需要三个线程，master（binlog dump thread）、slave（I&#x2F;O thread 、SQL thread）</p>
+<ul>
+<li><p>master 库 binlog dump 线程：当主库中有数据更新时，会将此次更新的事件类型写入到主库的 binlog 文件中，此时主库会创建 log dump 线程通知 slave 有数据更新，当 I&#x2F;O 线程请求日志内容时，会将此时的 binlog 名称和当前更新的位置同时传给 slave 的 I&#x2F;O 线程</p>
+</li>
+<li><p>slave 库 I&#x2F;0 线程：该线程会连接到 master，向 log dump 线程请求一份指定 binlog 文件位置的副本，并将请求回来的 binlog 存到本地的 relay log 中</p>
+</li>
+<li><p>slave 库 SQL 线程：该线程检测到 relay log 有更新后，会读取并在本地做 redo 操作，将发生在主库的事件在本地重新执行一遍，来保证主从数据同步；如果一个 relay log 文件中的全部事件都执行完毕，那么 SQL 线程会自动将该 relay log 文件删除掉</p>
+</li>
+</ul>
+<img src="/2023/04/12/MySql-%E6%9A%82%E6%97%B6%E4%B8%8D%E7%9F%A5%E9%81%93%E6%94%BE%E5%93%AA/02.png" class="">
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +363,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-20 15:08:03" itemprop="dateModified" datetime="2023-09-20T15:08:03+08:00">2023-09-20</time>
+      <time title="修改时间：2023-09-21 12:04:20" itemprop="dateModified" datetime="2023-09-21T12:04:20+08:00">2023-09-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -292,7 +460,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-20 15:08:03" itemprop="dateModified" datetime="2023-09-20T15:08:03+08:00">2023-09-20</time>
+      <time title="修改时间：2023-09-21 12:04:19" itemprop="dateModified" datetime="2023-09-21T12:04:19+08:00">2023-09-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -384,7 +552,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-20 15:08:03" itemprop="dateModified" datetime="2023-09-20T15:08:03+08:00">2023-09-20</time>
+      <time title="修改时间：2023-09-21 12:04:20" itemprop="dateModified" datetime="2023-09-21T12:04:20+08:00">2023-09-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -731,7 +899,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-20 15:08:03" itemprop="dateModified" datetime="2023-09-20T15:08:03+08:00">2023-09-20</time>
+      <time title="修改时间：2023-09-21 12:04:19" itemprop="dateModified" datetime="2023-09-21T12:04:19+08:00">2023-09-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -843,7 +1011,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-20 15:08:03" itemprop="dateModified" datetime="2023-09-20T15:08:03+08:00">2023-09-20</time>
+      <time title="修改时间：2023-09-21 12:04:19" itemprop="dateModified" datetime="2023-09-21T12:04:19+08:00">2023-09-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -935,7 +1103,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-20 15:08:03" itemprop="dateModified" datetime="2023-09-20T15:08:03+08:00">2023-09-20</time>
+      <time title="修改时间：2023-09-21 12:04:19" itemprop="dateModified" datetime="2023-09-21T12:04:19+08:00">2023-09-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1124,7 +1292,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-20 15:08:03" itemprop="dateModified" datetime="2023-09-20T15:08:03+08:00">2023-09-20</time>
+      <time title="修改时间：2023-09-21 12:04:19" itemprop="dateModified" datetime="2023-09-21T12:04:19+08:00">2023-09-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1268,7 +1436,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-20 15:08:03" itemprop="dateModified" datetime="2023-09-20T15:08:03+08:00">2023-09-20</time>
+      <time title="修改时间：2023-09-21 12:04:19" itemprop="dateModified" datetime="2023-09-21T12:04:19+08:00">2023-09-21</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1469,7 +1637,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-20 15:08:03" itemprop="dateModified" datetime="2023-09-20T15:08:03+08:00">2023-09-20</time>
+      <time title="修改时间：2023-09-21 12:04:19" itemprop="dateModified" datetime="2023-09-21T12:04:19+08:00">2023-09-21</time>
     </span>
 
   
@@ -1520,185 +1688,6 @@
 <li><p>可串行化 SERIALIZABLE：通过对每个读的数据行加上共享锁，强制事务串行化执行，即一个事务一个事务挨个来执行，可以解决上述所有问题，隔离级别最高，牺牲了系统的并发性；可以解决并发事务的所有问题</p>
 </li>
 </ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/09/MySql-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/" class="post-title-link" itemprop="url">基础结构</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-09 15:08:22" itemprop="dateCreated datePublished" datetime="2023-04-09T15:08:22+08:00">2023-04-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-20 15:08:03" itemprop="dateModified" datetime="2023-09-20T15:08:03+08:00">2023-09-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <img src="/2023/04/09/MySql-%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84/01.png" class="">
-
-<p>MySQL 可以分为 Server 层和存储引擎层两部分</p>
-<p>Server 层包括连接器、查询缓存、分析器、优化器、执行器等，涵盖 MySQL 的大多数核心服务功能，以及所有的内置函数（如日期、时间、数学和加密函数等），所有跨存储引擎的功能都在这一层实现，比如存储过程、触发器、视图等</p>
-<p>存储引擎层负责数据的存储和提取，其架构模式是插件式的，支持 InnoDB、MyISAM、Memory 等多个存储引擎</p>
-<h2 id="连接器"><a href="#连接器" class="headerlink" title="连接器"></a>连接器</h2><p>连接器负责跟客户端建立连接、获取权限、维持和管理连接</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -h $ip -P $port -u $user -p</span><br></pre></td></tr></table></figure>
-
-<p>客户端跟服务端通过 TCP 建立连接</p>
-<p>如果用户名密码认证通过，连接器会到权限表里面查出客户端拥有的权限，之后这个连接里面的权限判断逻辑，都将依赖于此时读到的权限</p>
-<p>一个用户成功建立连接后，即使用管理员账号对这个用户的权限做了修改，也不会影响已经存在连接的权限；修改完成后，只有再新建的连接才会使用新的权限设置</p>
-<p>客户端如果太长时间没动静，连接器就会自动将它断开，这个时间是由参数 wait_timeout 控制的，默认值是 8 小时</p>
-<p>长连接是指连接成功后，如果客户端持续有请求，则一直使用同一个连接；短连接则是指每次执行完很少的几次查询就断开连接，下次查询再重新建立一个</p>
-<p>全部使用长连接后，有些时候 MySQL 占用内存涨得特别快，这是因为 MySQL 在执行过程中临时使用的内存是管理在连接对象里面的。这些资源会在连接断开的时候才释放。所以如果长连接累积下来，可能导致内存占用太大，被系统强行杀掉（OOM），从现象看就是 MySQL 异常重启了</p>
-<p>解决方案：</p>
-<ul>
-<li><p>定期断开长连接。使用一段时间，或者程序里面判断执行过一个占用内存的大查询后，断开连接，之后要查询再重连</p>
-</li>
-<li><p>在 MySQL 5.7 之后的版本，可以在每次执行一个比较大的操作后，通过执行 mysql_reset_connection 来重新初始化连接资源，这个过程不需要重连和重新做权限验证，但是会将连接恢复到刚刚创建完时的状态</p>
-</li>
-</ul>
-<h2 id="查询缓存"><a href="#查询缓存" class="headerlink" title="查询缓存"></a>查询缓存</h2><p>MySQL 查询缓存是用来缓存特定 Query 的整个结果集信息，且共享给所有客户端</p>
-<p>之前执行过的语句及其结果可能会以 key-value 对的形式，被直接缓存在内存中</p>
-<p>key 是查询的语句，value 是查询的结果，如果查询能够直接在这个缓存中找到 key，那么这个 value 通过权限验证后就可以直接返回给客户端</p>
-<p>如果语句不在查询缓存中，就会继续后面的执行阶段，执行完成后执行结果会被存入查询缓存中</p>
-<p>只要有对一个表的更新，这个表上所有的查询缓存都会被清空，对于频繁更新的表，查询缓存是不适合的，而对于一些不常改变数据且有大量相同 SQL 查询的表，查询缓存会节约很大的性能</p>
-<h3 id="命中条件"><a href="#命中条件" class="headerlink" title="命中条件"></a>命中条件</h3><ul>
-<li><p>两个 SQL 语句，只要相差哪怕一个字符，那么这两个 SQL 将使用不同的 Cache 地址</p>
-</li>
-<li><p>如果表中任何数据或是结构发生改变更改了，那么使用这个表的所有缓存查询将不再有效</p>
-</li>
-<li><p>当某个表正在写入数据，则这个表的缓存将会处于失效状态；在 Innodb 中，如果某个事务修改了这张表，则这个表的缓存在事务提交前都会处于失效状态，在这个事务提交前，这个表的相关查询都无法被缓存</p>
-</li>
-<li><p><code>where</code> 条件中如包含任何一个不确定的函数将永远不会被 cache, 比如 <code>current_date</code>, <code>now</code> 等</p>
-</li>
-<li><p>太大的 result set 不会被 cache</p>
-</li>
-</ul>
-<h3 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h3><p>MySQL Query Cache 使用内存池技术，自己管理内存释放和分配，而不是通过操作系统</p>
-<p>query_cache_limit：可以缓存的单条查询的最大结果集的大小，默认值为 1MB</p>
-<p>query_cache_min_res_unit：每次分配内存的最小空间大小，也就是用于缓存查询结果的最小内存空间的大小，默认值为 4KB</p>
-<p>query_cache_size：可以使用的最大内存空间的大小，必须是 1024 的整数倍</p>
-<ol>
-<li><p>数据库启动时需要初始化查询缓存需要的内存，这时内存池是一个完整的空闲块，而这个空闲块的大小是 query_cache_size 的值减去用于维护元数据的数据结构所消耗的空间（约 40KB）</p>
-</li>
-<li><p>当有查询结果需要缓存的时候，MySQL 先从大的空闲块中申请 query_cache_min_res_unit 大小的内存用于存储结果</p>
-</li>
-<li><p>MySQL 逐步向数据块写入数据，若数据块全部使用完成后仍然有剩余的数据需要存储，那么将再次向空闲空间申请一个数据块，直到数据全部存储完成</p>
-</li>
-<li><p>当存储完成后申请的数据块还有部分剩余空间，那么这部分将被释放，并入到空闲内存部分</p>
-</li>
-</ol>
-<p>并发插入和缓存失效都会导致内存碎片</p>
-<h3 id="额外消耗"><a href="#额外消耗" class="headerlink" title="额外消耗"></a>额外消耗</h3><ul>
-<li><p>读查询开始之前必须检查是否命中缓存</p>
-</li>
-<li><p>如果读查询可以缓存，那么执行完查询操作后，会把查询结果和查询语句写入缓存</p>
-</li>
-<li><p>当向某个表写入数据的时候，必须将这个表所有的缓存设置为失效，如果缓存空间很大，则消耗也会很大</p>
-</li>
-<li><p>对 InnoDB 表，当修改一个表时，设置了缓存失效，但是多版本特性会暂时将这修改对其他事务屏蔽，在这个事务提交之前，所有查询都无法使用缓存，直到这个事务被提交，所以长时间的事务，会大大降低查询缓存的命中</p>
-</li>
-</ul>
-<h2 id="分析器"><a href="#分析器" class="headerlink" title="分析器"></a>分析器</h2><p>对 SQL 语句做解析</p>
-<p>词法分析 —&gt; 语法分析</p>
-<p>词法分析：将 SQL 语句的字符串识别出来</p>
-<p>语法分析：根据语法规则判断 SQL 语句是否满足语法</p>
-<h2 id="优化器"><a href="#优化器" class="headerlink" title="优化器"></a>优化器</h2><p>优化器是在表里面有多个索引的时候，决定使用哪个索引；或者在一个语句有多表关联（join）的时候，决定各个表的连接顺序</p>
-<p>对于查询不在表里的字段，在优化器时就会报错，优化器在做优化时会拿到表的信息，从而不需要后续打开表</p>
-<p>优化器选择索引的目的，是找到一个最优的执行方案，并用最小的代价去执行语句；在数据库里面，扫描行数是影响执行代价的因素之一，扫描的行数越少，意味着访问磁盘数据的次数越少，消耗的 CPU 资源越少；扫描行数并不是唯一的判断标准，优化器还会结合是否使用临时表、是否排序等因素进行综合判断</p>
-<p>MySQL 在真正开始执行语句之前，并不能精确地知道满足这个条件的记录有多少条，而只能根据统计信息来估算记录数；这个统计信息就是索引的区分度，一个索引上不同的值越多，这个索引的区分度就越好，而一个索引上不同的值的个数，称之为基数；基数越大，索引的区分度越好</p>
-<p>MySQL 通过采样统计获得索引的基数；InnoDB 默认会选择 N 个数据页，统计这些页面上的不同值，得到一个平均值，然后乘以这个索引的页面数，就得到了这个索引的基数；当变更的数据行数超过 1&#x2F;M 的时候，会自动触发重新做一次索引统计</p>
-<p>对于由于索引统计信息不准确导致的慢查询问题，可以用 analyze table 来解决</p>
-<p>优化器还会考虑非主键索引的回表查询代价</p>
-<p>当使用排序时，选择排序字段可避免排序，因此优化器也会优先选择该字段</p>
-<h2 id="执行器"><a href="#执行器" class="headerlink" title="执行器"></a>执行器</h2><p>开始执行的时候，要先判断一下客户端对这个表 T 有没有执行查询的权限，如果没有，就会返回没有权限的错误</p>
-<p>如果查询没有命中索引：</p>
-<ol>
-<li><p>调用引擎接口取这个表的第一行，满足条件则放入结果集合中</p>
-</li>
-<li><p>调用引擎接口取下一行，重复相同逻辑，直到取到这个表的最后一行</p>
-</li>
-<li><p>执行器将上述遍历过程中所有满足条件的行组成的记录集作为结果集返回给客户端</p>
-</li>
-</ol>
-<p>如果查询命中索引：</p>
-<ol>
-<li><p>调用引擎满足条件第一行的接口</p>
-</li>
-<li><p>循环调用满足条件下一行的接口</p>
-</li>
-</ol>
-<h2 id="更新语句执行"><a href="#更新语句执行" class="headerlink" title="更新语句执行"></a>更新语句执行</h2><p>如果每一次的更新操作都需要写进磁盘，然后磁盘也要找到对应的那条记录，然后再更新，整个过程 IO 成本、查找成本都很高</p>
-<p>MySQL 使用 WAL 技术，其全称是 Write-Ahead Logging，它的关键点就是先写日志再写磁盘</p>
-<p>当有一条记录需要更新的时候，InnoDB 引擎就会先把记录写到 redo log 里面并更新内存，这个时候更新就算完成了；InnoDB 引擎会在适当的时候，将这个操作记录更新到磁盘里面，而这个更新往往是在系统比较空闲的时候做</p>
 
       
     </div>
