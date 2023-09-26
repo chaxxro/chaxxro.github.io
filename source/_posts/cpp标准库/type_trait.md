@@ -58,7 +58,7 @@ struct add_lavalue_reference;
 
 ## 类型转换
 
-- `std::decay` 将右值转换成左值，数组转换成指针，函数转换成指针
+- `std::decay` 用于类型退化，将右值转换成左值，数组转换成指针，函数转换成指针
 
 ```cpp
 template< class T >
@@ -80,11 +80,31 @@ int main()
               << decay_equiv<int(int), int(*)(int)>::value << '\n';
 ```
 
-- `std::enable_if`
+- `std::enable_if` 主要用于 SFINAE 场景中，通过对模板函数、模板类中的模板类型进行谓词判断，从而使程序能够选择合适的模板函数重载版本或模板类特化版本
 
 ```cpp
+/*
+接受两个模板参数，第一个参数为布尔条件，第二个参数为类型
+当条件为真时，有一个成员 typedef，且是第二个模板参数
+当条件为假时，不存在成员 typedef
+*/
 template< bool B, class T = void >
 struct enable_if;
+template<typename T>
+struct enable_if<true, T> { using type = T; };
+
+struct T {
+    enum { int_t, float_t } type;
+    template <typename Integer,
+              std::enable_if_t<std::is_integral<Integer>::value, bool> = true
+    >
+    T(Integer) : type(int_t) {}
+ 
+    template <typename Floating,
+              std::enable_if_t<std::is_floating_point<Floating>::value, bool> = true
+    >
+    T(Floating) : type(float_t) {} // OK
+};
 ```
 
 - `std::invoke_result` 和 `std::result_of` 获取可调用对象的返回值类型
