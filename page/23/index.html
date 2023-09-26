@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">423</span>
+          <span class="site-state-item-count">424</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,147 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/" class="post-title-link" itemprop="url">缓存异常</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-20 20:52:34" itemprop="dateCreated datePublished" datetime="2023-04-20T20:52:34+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-09-26 15:37:18" itemprop="dateModified" datetime="2023-09-26T15:37:18+08:00">2023-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/01.png" class="">
+
+<h2 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h2><p>大量的请求无法在 Redis 缓存中进行处理，从而应用将大量请求发送到数据库层，导致数据库层的压力激增</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/02.png" class="">
+
+<h3 id="缓存中有大量数据同时过期"><a href="#缓存中有大量数据同时过期" class="headerlink" title="缓存中有大量数据同时过期"></a>缓存中有大量数据同时过期</h3><ul>
+<li><p>给数据的过期时间增加一个较小的随机数，不同数据的过期时间有所差别，但差别又不会太大，既避免了大量数据同时过期，同时也保证了这些数据基本在相近的时间失效，仍然能满足业务需求</p>
+</li>
+<li><p>服务降级，发生缓存雪崩时，针对不同的数据采取不同的处理方式；访问非核心数据时，暂时停止从缓存中查询这些数据，而是直接返回预定义信息、空值或是错误信息；访问核心数据时，允许查询缓存，如果缓存缺失，也可以继续通过数据库读取</p>
+</li>
+</ul>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/03.png" class="">
+
+<h3 id="Redis-缓存实例发生故障宕机"><a href="#Redis-缓存实例发生故障宕机" class="headerlink" title="Redis 缓存实例发生故障宕机"></a>Redis 缓存实例发生故障宕机</h3><p>在业务系统中实现服务熔断或请求限流机制：在发生缓存雪崩时，为了防止引发连锁的数据库雪崩，甚至是整个系统的崩溃，这时可以暂停业务应用对缓存系统的接口访问</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/04.png" class="">
+
+<p>服务熔断虽然可以保证数据库的正常运行，但是暂停了整个缓存系统的访问，对业务应用的影响范围大</p>
+<p>为了尽可能减少这种影响，可以进行请求限流，在业务系统的请求入口前端控制每秒进入系统的请求数，避免过多的请求被发送到数据库</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/05.png" class="">
+
+<p>通过主从节点的方式构建 Redis 缓存高可靠集群，主节点故障宕机，从节点还可以切换成为主节点，继续提供缓存服务，避免了由于缓存实例宕机而导致的缓存雪崩问题</p>
+<h2 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h2><p>缓存击穿是指针对某个访问非常频繁的热点数据因为失效，无法在缓存中进行处理从而大量请求都发送到了后端数据库，导致影响数据库处理其他请求</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/06.png" class="">
+
+<h3 id="合理设置热点数据过期时间"><a href="#合理设置热点数据过期时间" class="headerlink" title="合理设置热点数据过期时间"></a>合理设置热点数据过期时间</h3><ul>
+<li><p>热点数据不设置过期时间，由后台异步更新缓存</p>
+</li>
+<li><p>热点数据过期前通知后台线程更新过期时间</p>
+</li>
+<li><p>缓存失效后先获取分布式锁，这样只会一个请求读取数据库</p>
+</li>
+</ul>
+<h2 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h2><p>缓存穿透是指要访问的数据不在 Redis 缓存中，然后访问数据库时发现数据库中也没有要访问的数据</p>
+<p>应用无法从数据库中读取数据写入缓存来服务后续请求，缓存失去了保护数据库的意义，还会同时给缓存和数据库带来巨大压力</p>
+<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/07.png" class="">
+
+<p>原因：</p>
+<ul>
+<li><p>业务层误操作：缓存中的数据和数据库中的数据被误删除了，所以缓存和数据库中都没有数据</p>
+</li>
+<li><p>恶意攻击：专门访问数据库中没有的数据</p>
+</li>
+</ul>
+<h3 id="缓存空值或缺省值"><a href="#缓存空值或缺省值" class="headerlink" title="缓存空值或缺省值"></a>缓存空值或缺省值</h3><p>一旦发生缓存穿透，可以针对查询的数据在 Redis 中缓存一个缺省值</p>
+<p>应用发送的后续请求再进行查询时，就可以直接从 Redis 中读取空值或缺省值，返回给业务应用了，避免了把大量请求发送给数据库处理，保持了数据库的正常运行</p>
+<p>但采用默认值的方式也有其弊端：</p>
+<ul>
+<li><p>缓存中存在很多数据库中没有的数据，导致存储空间增加，因此可以给这类数据设置一个过期时间</p>
+</li>
+<li><p>如果在默认值有效期间数据库写入了数据，会出现缓存与数据库数据不一致的情况，因此需要使用消息队列或其他异步的方式清理缓存</p>
+</li>
+</ul>
+<h3 id="业务逻辑前置判断"><a href="#业务逻辑前置判断" class="headerlink" title="业务逻辑前置判断"></a>业务逻辑前置判断</h3><p>针对业务逻辑特点，前置过滤判断，校验数据合法性</p>
+<h3 id="布隆过滤器"><a href="#布隆过滤器" class="headerlink" title="布隆过滤器"></a>布隆过滤器</h3><p>使用布隆过滤器快速判断数据是否存在，避免从数据库中查询数据是否存在，减轻数据库压力</p>
+<p>在把数据写入数据库时，使用布隆过滤器做个标记。当缓存缺失后需要查询数据库时，可以通过查询布隆过滤器快速判断数据是否存在</p>
+<p>这样即使发生缓存穿透了，大量请求只会查询 Redis 和布隆过滤器，而不会积压到数据库，也就不会影响数据库的正常运行</p>
+<p>布隆过滤器可以使用 Redis 实现，本身就能承担较大的并发访问压力</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +336,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-25 16:32:45" itemprop="dateModified" datetime="2023-09-25T16:32:45+08:00">2023-09-25</time>
+      <time title="修改时间：2023-09-26 15:37:19" itemprop="dateModified" datetime="2023-09-26T15:37:19+08:00">2023-09-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -289,7 +430,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-25 16:32:45" itemprop="dateModified" datetime="2023-09-25T16:32:45+08:00">2023-09-25</time>
+      <time title="修改时间：2023-09-26 15:37:18" itemprop="dateModified" datetime="2023-09-26T15:37:18+08:00">2023-09-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -417,7 +558,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-25 16:32:45" itemprop="dateModified" datetime="2023-09-25T16:32:45+08:00">2023-09-25</time>
+      <time title="修改时间：2023-09-26 15:37:18" itemprop="dateModified" datetime="2023-09-26T15:37:18+08:00">2023-09-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -544,7 +685,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-25 16:32:45" itemprop="dateModified" datetime="2023-09-25T16:32:45+08:00">2023-09-25</time>
+      <time title="修改时间：2023-09-26 15:37:18" itemprop="dateModified" datetime="2023-09-26T15:37:18+08:00">2023-09-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -660,7 +801,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-25 16:32:45" itemprop="dateModified" datetime="2023-09-25T16:32:45+08:00">2023-09-25</time>
+      <time title="修改时间：2023-09-26 15:37:18" itemprop="dateModified" datetime="2023-09-26T15:37:18+08:00">2023-09-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -790,7 +931,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-25 16:32:45" itemprop="dateModified" datetime="2023-09-25T16:32:45+08:00">2023-09-25</time>
+      <time title="修改时间：2023-09-26 15:37:18" itemprop="dateModified" datetime="2023-09-26T15:37:18+08:00">2023-09-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -900,7 +1041,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-25 16:32:45" itemprop="dateModified" datetime="2023-09-25T16:32:45+08:00">2023-09-25</time>
+      <time title="修改时间：2023-09-26 15:37:18" itemprop="dateModified" datetime="2023-09-26T15:37:18+08:00">2023-09-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1032,7 +1173,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-25 16:32:45" itemprop="dateModified" datetime="2023-09-25T16:32:45+08:00">2023-09-25</time>
+      <time title="修改时间：2023-09-26 15:37:18" itemprop="dateModified" datetime="2023-09-26T15:37:18+08:00">2023-09-26</time>
     </span>
 
   
@@ -1144,7 +1285,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-25 16:32:45" itemprop="dateModified" datetime="2023-09-25T16:32:45+08:00">2023-09-25</time>
+      <time title="修改时间：2023-09-26 15:37:18" itemprop="dateModified" datetime="2023-09-26T15:37:18+08:00">2023-09-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1195,110 +1336,6 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">// 获取字符串长度</span><br><span class="line">STRLEN key</span><br><span class="line"></span><br><span class="line">// 追加</span><br><span class="line">APPEND key value</span><br><span class="line">// 如果 key 存在则将 value 追加到末尾</span><br><span class="line">// 如果 key 不存在则将 key 设置为 value</span><br><span class="line"></span><br><span class="line">// 从偏移量开始， 用 value 覆写键 key 储存的字符串值</span><br><span class="line">// 不存在的键 key 当作空白字符串处理</span><br><span class="line">SETRANGE key offset value</span><br><span class="line">// 确保字符串足够长以便将 value 设置到指定的偏移量上</span><br><span class="line">// 如果键 key 原来储存的字符串长度比偏移量小</span><br><span class="line">// 原字符和偏移量之间的空白将用零字节填充</span><br><span class="line"></span><br><span class="line">// 字符串的索引范围由 start 和 end 两个偏移量决定</span><br><span class="line">GETRANGE start end</span><br><span class="line">// -1 表示最后一个字符</span><br><span class="line">// -2 表示倒数第二个字符</span><br></pre></td></tr></table></figure>
 
 <h2 id="hyperloglog"><a href="#hyperloglog" class="headerlink" title="hyperloglog"></a>hyperloglog</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// 添加</span><br><span class="line">PFADD key element1...</span><br><span class="line"></span><br><span class="line">// 获取近似基数</span><br><span class="line">PFCOUNT key1...</span><br><span class="line"></span><br><span class="line">// 合并</span><br><span class="line">PFMERGE dst key1...</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E7%B3%BB%E7%BB%9F%E5%8F%98%E9%87%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E5%8F%98%E9%87%8F-%E7%B3%BB%E7%BB%9F%E5%8F%98%E9%87%8F/" class="post-title-link" itemprop="url">系统信息</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 20:10:47" itemprop="dateCreated datePublished" datetime="2023-04-19T20:10:47+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-25 16:32:45" itemprop="dateModified" datetime="2023-09-25T16:32:45+08:00">2023-09-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <table>
-<thead>
-<tr>
-<th>变量名</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>CMAKE_SYSTEM</td>
-<td>系统的完整名称</td>
-</tr>
-<tr>
-<td>CMAKE_SYSTEM_NAME</td>
-<td>cmake 编译产物的目标操作系统</td>
-</tr>
-<tr>
-<td>CMAKE_HOST_SYSTEM_NAME</td>
-<td>当前操作系统名称，支持 Linux、Windows、Darwin</td>
-</tr>
-</tbody></table>
-
       
     </div>
 
