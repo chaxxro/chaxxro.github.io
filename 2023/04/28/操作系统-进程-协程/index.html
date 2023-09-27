@@ -20,15 +20,15 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="协程是一种由程序来管理的用户空间线程，具有对内核来说不可见的特性 线程的切换由操作系统负责调度，协程由用户自己进行调度，因此减少了上下文切换，提高了效率 协程由于在同一个线程上，因此可以避免竞争关系而使用锁 适用于被阻塞的，且需要大量并发的场景">
+    <meta name="description" content="为什么需要协程移动互联网时代的到来，服务端对高并发的要求越来越高，也就是需要高性能的网络服务器 C10K 需要单机同时支持 1 万个并发连接，C10M 单机要支持 1 千万并发连接 如果要满足单机 1 千万的并发连接，有几种方案选择：  多线程同步模型：预先创建出很多个处理线程，每个线程采用同步阻塞 IO 的方式串行处理请求，由操作系统通过线程切换来实现并发处理。这种方式编码简单，但由于线程堆栈占">
 <meta property="og:type" content="article">
 <meta property="og:title" content="协程">
 <meta property="og:url" content="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%8D%8F%E7%A8%8B/index.html">
 <meta property="og:site_name" content="也无风雨也无晴">
-<meta property="og:description" content="协程是一种由程序来管理的用户空间线程，具有对内核来说不可见的特性 线程的切换由操作系统负责调度，协程由用户自己进行调度，因此减少了上下文切换，提高了效率 协程由于在同一个线程上，因此可以避免竞争关系而使用锁 适用于被阻塞的，且需要大量并发的场景">
+<meta property="og:description" content="为什么需要协程移动互联网时代的到来，服务端对高并发的要求越来越高，也就是需要高性能的网络服务器 C10K 需要单机同时支持 1 万个并发连接，C10M 单机要支持 1 千万并发连接 如果要满足单机 1 千万的并发连接，有几种方案选择：  多线程同步模型：预先创建出很多个处理线程，每个线程采用同步阻塞 IO 的方式串行处理请求，由操作系统通过线程切换来实现并发处理。这种方式编码简单，但由于线程堆栈占">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-04-28T12:41:25.000Z">
-<meta property="article:modified_time" content="2023-09-27T07:10:20.059Z">
+<meta property="article:modified_time" content="2023-09-27T12:12:56.743Z">
 <meta property="article:author" content="chaxxro">
 <meta property="article:tag" content="操作系统">
 <meta name="twitter:card" content="summary">
@@ -100,7 +100,7 @@
   
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -113,6 +113,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%8D%8F%E7%A8%8B"><span class="nav-text">为什么需要协程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%8D%8F%E7%A8%8B"><span class="nav-text">什么是协程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%8F%E7%A8%8B%E7%89%B9%E7%82%B9"><span class="nav-text">协程特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%9D%E5%AD%98%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-text">保存上下文</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%8F%E7%A8%8B%E7%B1%BB%E5%88%AB"><span class="nav-text">协程类别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%88"><span class="nav-text">栈</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%83%E5%BA%A6%E6%96%B9%E5%BC%8F"><span class="nav-text">调度方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%85%B3%E7%B3%BB"><span class="nav-text">线程关系</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -199,7 +200,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 15:10:20" itemprop="dateModified" datetime="2023-09-27T15:10:20+08:00">2023-09-27</time>
+      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -221,10 +222,71 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <p>协程是一种由程序来管理的用户空间线程，具有对内核来说不可见的特性</p>
+        <h2 id="为什么需要协程"><a href="#为什么需要协程" class="headerlink" title="为什么需要协程"></a>为什么需要协程</h2><p>移动互联网时代的到来，服务端对高并发的要求越来越高，也就是需要高性能的网络服务器</p>
+<p>C10K 需要单机同时支持 1 万个并发连接，C10M 单机要支持 1 千万并发连接</p>
+<p>如果要满足单机 1 千万的并发连接，有几种方案选择：</p>
+<ol>
+<li><p>多线程同步模型：预先创建出很多个处理线程，每个线程采用同步阻塞 IO 的方式串行处理请求，由操作系统通过线程切换来实现并发处理。这种方式编码简单，但由于线程堆栈占用空间大，内存消耗太快，同时线程切换代价高，导致系统整体性能较差</p>
+</li>
+<li><p>基于事件驱动的异步网络模型：由应用框架来实现事件驱动和状态切换，该方案可以充分利用 CPU，性能较高，但因为逻辑处理都是基于回调，逻辑代码过于分散，导致代码开发效率不高，代码逻辑不易懂也容易出错</p>
+</li>
+</ol>
+<p>协程能够让开发人员很便捷地去开发业务逻辑代码，同时能够达到异步回调模型的性能</p>
+<h2 id="什么是协程"><a href="#什么是协程" class="headerlink" title="什么是协程"></a>什么是协程</h2><p>协程是一类程序组件，它是对子过程概念的泛化，并且是属于非抢占的多任务处理</p>
+<ul>
+<li><p>泛化的子过程是说协程是泛化的函数，可以暂停和恢复执行</p>
+</li>
+<li><p>非抢占的多任务处理说明协程是协作式多任务处理，需主动让出 CPU</p>
+</li>
+</ul>
+<p>协程就是一个函数，只是它支持多次的暂停和恢复执行，需要自己手动维护调用栈和其他的一些信息</p>
+<p>协作式多任务处理，协程主动让出 CPU，天然就支持协作式多任务</p>
 <p>线程的切换由操作系统负责调度，协程由用户自己进行调度，因此减少了上下文切换，提高了效率</p>
-<p>协程由于在同一个线程上，因此可以避免竞争关系而使用锁</p>
-<p>适用于被阻塞的，且需要大量并发的场景</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">A</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="number">1</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="number">2</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="number">3</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">B</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;x&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;y&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;z&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">A</span>();</span><br><span class="line">  <span class="built_in">B</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 1 2 3 x y z</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">A</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="number">1</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="number">2</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   <span class="built_in">co_yield_ct</span>();  <span class="comment">// 切出到主协程</span></span><br><span class="line">   cout &lt;&lt; <span class="number">3</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">B</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;x&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   <span class="built_in">co_yield_ct</span>();  <span class="comment">// 切出到主协程</span></span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;y&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;z&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 切出操作是由 co_yield_ct() 函数实现</span></span><br><span class="line"><span class="comment">// 启动和恢复是由 co_resume() 实现</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">  ...  <span class="comment">// 主协程</span></span><br><span class="line">  <span class="built_in">co_resume</span>(A);  <span class="comment">// 启动协程 A</span></span><br><span class="line">  <span class="built_in">co_resume</span>(B);  <span class="comment">// 启动协程 B</span></span><br><span class="line">  <span class="built_in">co_resume</span>(A);  <span class="comment">// 从协程 A 切出处继续执行</span></span><br><span class="line">  <span class="built_in">co_resume</span>(B);  <span class="comment">// 从协程 B 切出处继续执行</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 1 2 x 3 y z</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="协程特点"><a href="#协程特点" class="headerlink" title="协程特点"></a>协程特点</h2><ul>
+<li><p>协程可以主动让出 CPU 时间片，不是当前线程让出 CPU 时间片，而是线程内的某个协程让出时间片供同线程内其他协程运行</p>
+</li>
+<li><p>协程可以恢复 CPU 上下文，当另一个协程继续执行时，需要恢复 CPU 上下文环境</p>
+</li>
+<li><p>协程有个管理者，管理者可以选择一个协程来运行，其他协程要么阻塞，要么 ready，或者 died</p>
+</li>
+<li><p>运行中的协程将占有当前线程的所有计算资源</p>
+</li>
+<li><p>协程天生有栈属性，而且是 lock free</p>
+</li>
+</ul>
+<h2 id="保存上下文"><a href="#保存上下文" class="headerlink" title="保存上下文"></a>保存上下文</h2><p>上下文其实本质上就是寄存器，所以保存上下文实际上就是把寄存器的值保存下来</p>
+<ul>
+<li><p><code>setjmp</code> 和 <code>longjmp</code></p>
+</li>
+<li><p>汇编</p>
+</li>
+<li><p>第三方库，如 ucontext、Boost.Context</p>
+</li>
+</ul>
+<h2 id="协程类别"><a href="#协程类别" class="headerlink" title="协程类别"></a>协程类别</h2><h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><p>这里的栈指的是是否存在调用栈 callback stack</p>
+<ul>
+<li><p>stackful 有栈协程：实现类似于内核态线程的实现，不同协程间切换还是要切换对应的栈上下文，只是不用陷入内核，例如 goroutine、libco</p>
+</li>
+<li><p>stackless 无栈协程：上下文都会放到公共内存中，在协程切换时使用状态机来切换，而不用切换对应的上下文，因此相比有栈协程要轻量许多，例如：C++20、Rust、JavaScript</p>
+</li>
+</ul>
+<h3 id="调度方式"><a href="#调度方式" class="headerlink" title="调度方式"></a>调度方式</h3><p>根据调度方式的不同，协程可以分为对称协程和非对称协程</p>
+<ul>
+<li><p>非对称协程：协程之间有明显的调用关系。协程让出执行权的目标只能是它的调用者，即协程之间存在调用和被调用关系，比如 A 协程调用了 B 协程后，B 协程当需要让出执行权时一定是将执行权给了 A 协程</p>
+</li>
+<li><p>对称协程：协程之间无明显的调用关系。任何一个协程都是相互独立且平等的，执行权可以在任意协程之间转移，比如 A 协程调用了 B 协程后，A 协程与 B 协程之后就没有任何关系了，B 协程让出执行权时，该执行权最终花落谁家都有可能</p>
+</li>
+</ul>
+<p>协程 A 调用了协程 B：如果只有 B 完成之后才能切回 A，那么此时 AB 是非对称协程；如果 AB 被调用的概率相同，那么此时 AB 是对称协程</p>
+<h3 id="线程关系"><a href="#线程关系" class="headerlink" title="线程关系"></a>线程关系</h3><p>和线程绑定的协程只有在对应线程运行的时候才有被执行的可能，如果对应线程中的某一个协程完全占有了当前线程，那么当前线程中的其他所有协程都不会被执行</p>
+<ul>
+<li><p>N:1：所有的协程运行于一个系统线程中。由于不跨线程，协程之间的切换不需要系统调用，从而切换可以非常快，受 cache 一致性的影响也小。但代价是协程无法高效地利用多核，代码必须非阻塞，否则所有的协程都被卡住</p>
+</li>
+<li><p>N:M：N 个协程会映射至 M 个线程</p>
+</li>
+</ul>
 
     </div>
 
