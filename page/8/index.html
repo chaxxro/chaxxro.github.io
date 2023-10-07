@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">424</span>
+          <span class="site-state-item-count">427</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,428 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-static%E7%BB%86%E8%8A%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-static%E7%BB%86%E8%8A%82/" class="post-title-link" itemprop="url">static 细节</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-02 20:48:18" itemprop="dateCreated datePublished" datetime="2023-06-02T20:48:18+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="函数中的静态变量"><a href="#函数中的静态变量" class="headerlink" title="函数中的静态变量"></a>函数中的静态变量</h2><p>当函数局部变量声明为 <code>static</code> 时，空间将在程序的生命周期内分配，即使多次调用该函数也只分配一次</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">func</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> a = <span class="number">0</span>;</span><br><span class="line">    cout&lt;&lt;a++&lt;&lt;endl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; ++i) &#123;</span><br><span class="line">        <span class="built_in">func</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 0 1 2 3 4</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="全局静态变量"><a href="#全局静态变量" class="headerlink" title="全局静态变量"></a>全局静态变量</h2><p>在全局变量之前加上关键字 <code>static</code>，全局变量就被定义成为一个全局静态变量，全局静态变量在声明他的文件之外是不可见的，准确地讲从定义之处开始到文件结尾</p>
+<p><code>static</code> 修饰的全局变量声明与定义同时进行</p>
+<p>当在头文件定义全局静态变量时，多个文件 <code>include</code> 了该头文件后，预编译阶段都会将头文件的定义拷贝至各个引用该头文件处，导致定义多个互相独立的静态变量，造成内存浪费</p>
+<p>非 <code>static</code> 的全局变量默认是全局可见性的，而 <code>static</code> 的全局变量时局部文件可见，因此非 <code>static</code> 的同名全局变量会有链接错误，而 <code>static</code> 变量不会发生链接错误</p>
+<h2 id="类中的静态变量"><a href="#类中的静态变量" class="headerlink" title="类中的静态变量"></a>类中的静态变量</h2><p>由于声明为 <code>static</code> 的变量只被初始化一次，因为它们在单独的静态存储中分配了空间，因此类中的静态变量由对象共享，静态变量不能使用构造函数初始化</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Apple</span> </span><br><span class="line">&#123; </span><br><span class="line"><span class="keyword">public</span>: </span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> i; </span><br><span class="line"></span><br><span class="line">    <span class="built_in">Apple</span>() </span><br><span class="line">    &#123; </span><br><span class="line">        <span class="comment">// Do nothing </span></span><br><span class="line">    &#125;; </span><br><span class="line">&#125;; </span><br><span class="line"></span><br><span class="line"><span class="type">int</span> Apple::i = <span class="number">1</span>; </span><br></pre></td></tr></table></figure>
+
+<p>静态数据成员初始化的格式如下：<code>&lt;数据类型&gt; &lt;类名&gt;::&lt;静态数据成员名&gt; = &lt;值&gt;</code></p>
+<h2 id="普通静态函数"><a href="#普通静态函数" class="headerlink" title="普通静态函数"></a>普通静态函数</h2><p>在函数的返回类型前加上关键字 <code>static</code>，函数就被定义成为普通静态函数</p>
+<p>函数的定义和声明默认情况下是 <code>extern</code> 的，但普通静态函数只是在声明他的文件当中可见，不能被其他文件所用</p>
+<h2 id="静态成员函数"><a href="#静态成员函数" class="headerlink" title="静态成员函数"></a>静态成员函数</h2><p>静态成员函数不能声明为 <code>const</code> 或 <code>volatile</code>，使用类名和范围解析运算符调用静态成员</p>
+<h2 id="静态变量初始化"><a href="#静态变量初始化" class="headerlink" title="静态变量初始化"></a>静态变量初始化</h2><p>C++ 标准规定：全局或静态对象当且仅当对象首次用到时才进行构造</p>
+<p>全局变量、文件域的静态变量和类的静态成员变量在 <code>main</code> 执行之前的静态初始化过程中分配内存并初始化，局部静态变量（一般为函数内的静态变量）在第一次使用时分配内存并初始化</p>
+<p>对于出现在同一个编译单元内的全局变量来说，它们初始化的顺序与他们声明的顺序是一致的，销毁的顺序则反过来</p>
+<p>静态变量的初始化分为两个过程，一个是静态初始化，一个是动态初始化</p>
+<h3 id="静态初始化过程"><a href="#静态初始化过程" class="headerlink" title="静态初始化过程"></a>静态初始化过程</h3><p>静态初始化在系统加载后执行第一条语句之前就已经完成，静态数据有两种：已初始化数据和未初始化数据，分别放入 data 段和 bss 段</p>
+<p>只有 data 段的已初始化的数据才会真正被放入映像文件</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> a = <span class="number">5</span>;  <span class="comment">// data 段 </span></span><br><span class="line"><span class="type">int</span> b;      <span class="comment">// bss 段</span></span><br></pre></td></tr></table></figure>
+
+<p>对于有初始值的 data 中的数据，程序加载器会根据其大小在内存中分配空间，并根据映像文件里存储的初始值对变量做初始化</p>
+<p>对于未初始化的 bss 中的数据，程序加载器会根据其大小在内存中分配空间，根据类型将变量初始化成默认初值</p>
+<h3 id="动态初始化过程"><a href="#动态初始化过程" class="headerlink" title="动态初始化过程"></a>动态初始化过程</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Foo a;         <span class="comment">// bss 段</span></span><br><span class="line">Foo b = <span class="built_in">Foo</span>(); <span class="comment">// bss 段</span></span><br></pre></td></tr></table></figure>
+
+<p>静态对象被放在 bss 段，加载时首先被清零，然后程序在进入 <code>main</code> 函数之前，静态对象的构造函数会被调用，但跨编译单元的静态变量的初始化顺序是未定义的</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-sizeof%E5%92%8C%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-sizeof%E5%92%8C%E5%86%85%E5%AD%98%E5%AF%B9%E9%BD%90/" class="post-title-link" itemprop="url">sizeof 和内存对齐</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-02 20:42:46" itemprop="dateCreated datePublished" datetime="2023-06-02T20:42:46+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><code>sizeof</code> 是一个操作符，返回一个对象或类型所占的内存字节数</p>
+<h2 id="结构体的内存对齐"><a href="#结构体的内存对齐" class="headerlink" title="结构体的内存对齐"></a>结构体的内存对齐</h2><p>结构体在内存组织上是按顺序排列的</p>
+<p>结构体的 <code>sizeof</code> 涉及到字节对齐问题，字节对齐有利于加快计算机的取值速度</p>
+<p>字节对齐：</p>
+<ul>
+<li><p>结构体变量的首地址能够被其最宽基本类型成员的大小所整除</p>
+</li>
+<li><p>结构体的每个成员相对于结构体首地址的偏移量（offset）都是成员大小的整数倍，如有需要，编译器会在成员之间加上填充字节</p>
+</li>
+<li><p>结构体的总大小为结构体最宽基本类型成员大小的整数倍，如有需要，编译器会在最末一个成员后加上填充字节</p>
+</li>
+<li><p>类中有虚函数，则添加虚指针，排在类的内存布局的最开始</p>
+</li>
+<li><p>继承时，基类的成员排在基类内存布局的最开始</p>
+</li>
+<li><p>空结构体（不含数据成员）的 <code>sizeof</code> 值为 1</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">S1</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">    <span class="type">int</span> b;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">S2</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> b;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8</span></span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">S3</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> b;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">    <span class="type">char</span> c;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">S4</span></span><br><span class="line">&#123;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 1</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="结构体中位域对齐"><a href="#结构体中位域对齐" class="headerlink" title="结构体中位域对齐"></a>结构体中位域对齐</h3><ol>
+<li><p>如果相邻位域字段的类型相同，且其位宽之和小于类型的 <code>sizeof</code> 大小，则后面的字段将紧邻前一个字段存储，直到不能容纳为止</p>
+</li>
+<li><p>如果相邻位域字段的类型相同，但其位宽之和大于类型的 <code>sizeof</code> 大小，则后面的字段将从新的存储单元开始，其偏移量为其类型大小的整数倍</p>
+</li>
+<li><p>当相邻成员的类型不同时，不同的编译器有不同的实现方案，gcc 会压缩存储</p>
+</li>
+<li><p>如果成员之间穿插着非位域成员，那么不会进行压缩</p>
+</li>
+</ol>
+<h2 id="联合体的内存对齐"><a href="#联合体的内存对齐" class="headerlink" title="联合体的内存对齐"></a>联合体的内存对齐</h2><p>联合体在内存组织上是重叠式，各成员共享一段内存，整个联合体的 <code>sizeof</code> 也就是每个成员 <code>sizeof</code> 的最大值</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">union</span> <span class="title class_">u</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line">    <span class="type">float</span> b;</span><br><span class="line">    <span class="type">double</span> c;</span><br><span class="line">    <span class="type">char</span> d;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 值为8</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h2><p>数组的 <code>sizeof</code> 值等于数组所占用的内存字节数</p>
+<ul>
+<li><p>当字符数组表示字符串时，其 <code>sizeof</code> 值将 <code>/0</code> 计算进去</p>
+</li>
+<li><p>当数组为形参时，其 <code>sizeof</code> 值相当于指针的 <code>sizeof</code> 值</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> a[<span class="number">10</span>];  <span class="comment">// 10</span></span><br><span class="line"><span class="type">char</span> n[] = <span class="string">&quot;abc&quot;</span>;  <span class="comment">// 4</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">funcN</span><span class="params">(<span class="type">char</span> b[])</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> cN = <span class="built_in">sizeof</span>(b); <span class="comment">// 8</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="普通指针"><a href="#普通指针" class="headerlink" title="普通指针"></a>普通指针</h2><p>指针的内存大小当然就等于计算机内部地址总线的宽度</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">char</span> *b = <span class="string">&quot;helloworld&quot;</span>;</span><br><span class="line"><span class="type">char</span> *c[<span class="number">10</span>];</span><br><span class="line"><span class="type">double</span> *d;</span><br><span class="line"><span class="type">int</span> **e;</span><br><span class="line"><span class="built_in">void</span> (*pf)();  </span><br><span class="line"></span><br><span class="line"><span class="comment">// sizeof(b) 8</span></span><br><span class="line"><span class="comment">// sizeof(*b) 为1</span></span><br><span class="line"><span class="comment">// sizeof(d) 8</span></span><br><span class="line"><span class="comment">// sizeof(*d) 8</span></span><br><span class="line"><span class="comment">// sizeof(e) 8</span></span><br><span class="line"><span class="comment">// sizeof(c) 80</span></span><br><span class="line"><span class="comment">// sizeof(pf) 8</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="类的指针和引用"><a href="#类的指针和引用" class="headerlink" title="类的指针和引用"></a>类的指针和引用</h2><p>指针的解应用和引用都是数据类型大小，而不是指向所以大小</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">h</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;  <span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span>  <span class="title class_">B</span>: <span class="keyword">public</span> A</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="type">int</span> i;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">h</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;  <span class="comment">// 16</span></span><br><span class="line"></span><br><span class="line">B b;</span><br><span class="line">A&amp; a = b;</span><br><span class="line">B&amp; bb = b;</span><br><span class="line">A* ap = &amp;b;</span><br><span class="line">B* bp = &amp;b;</span><br><span class="line"><span class="built_in">sizeof</span>(a);   <span class="comment">// 8</span></span><br><span class="line"><span class="built_in">sizeof</span>(bb);  <span class="comment">// 16</span></span><br><span class="line"><span class="built_in">sizeof</span>(*ap); <span class="comment">// 8</span></span><br><span class="line"><span class="built_in">sizeof</span>(*bp); <span class="comment">// 16</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h2><p><code>sizeof</code> 也可对一个函数调用求值，其结果是函数返回值类型的大小，需要传入实参但函数并不会被调用，但不可以对返回值类型为空的函数求值</p>
+<h2 id="类"><a href="#类" class="headerlink" title="类"></a>类</h2><ul>
+<li>空类的大小为 1 字节</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span>&#123;&#125;;</span><br><span class="line"><span class="comment">// 1</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>一个类中，虚函数本身、成员函数（静态和非静态）和静态数据都不占用类对象的存储空间</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">char</span> b;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fun</span><span class="params">()</span> </span>&#123;&#125;;</span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> c;</span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> d;</span><br><span class="line">    <span class="type">static</span> <span class="type">int</span> f;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8 + 8 = 16</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>对于包含虚函数的类，不管有多少个虚函数，只有一个虚指针</p>
+</li>
+<li><p>普通继承，派生类继承了所有基类的函数与成员，要按照字节对齐来计算大小</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">char</span> a;  <span class="comment">// 1</span></span><br><span class="line">    <span class="type">int</span> b;   <span class="comment">// 4</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 4 + 4 = 8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> : A</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">short</span> a;  <span class="comment">// 2</span></span><br><span class="line">    <span class="type">long</span> b;   <span class="comment">// 8</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// A(4 + 4) + 8 + 8 = 24</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">C</span> &#123;</span><br><span class="line">    A a;</span><br><span class="line">    <span class="type">char</span> c;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// A(4 + 4) + 4 = 12</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>虚函数继承，不管是单继承还是多继承，都是继承了基类的 vptr</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A1</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fun</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">A2</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> a;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fun</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 16</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">D</span>:<span class="keyword">public</span> A1</span><br><span class="line">&#123;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">E</span>:<span class="keyword">public</span> A1</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> c;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 16</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">F</span>:<span class="keyword">public</span> A2</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> c;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 16</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>虚继承，继承基类的 vbptr，并添加一个指向基类的虚基类指针 vfptr</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">vptr    虚函数指针</span></span><br><span class="line"><span class="comment">vtptr   虚基类指针</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">A</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fun</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fun2</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">C</span> : <span class="keyword">virtual</span> <span class="keyword">public</span> A, <span class="keyword">virtual</span> <span class="keyword">public</span> B</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fun3</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 16</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">C1</span> : <span class="keyword">public</span> A, <span class="keyword">public</span> B</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fun3</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 16</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">D</span> : <span class="keyword">virtual</span> <span class="keyword">public</span> A &#123;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fun</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">D1</span> : A &#123;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fun</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">E</span> : <span class="keyword">virtual</span> <span class="keyword">public</span> A &#123;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fun</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8 </span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">F</span> : <span class="keyword">public</span> D, <span class="keyword">public</span> E &#123;</span><br><span class="line">	<span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">fun</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">SuperBase</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="type">int</span> m_nValue;</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">Fun</span><span class="params">()</span> </span>&#123; cout &lt;&lt; <span class="string">&quot;SuperBase1&quot;</span> &lt;&lt; endl; &#125;</span><br><span class="line">	<span class="keyword">virtual</span> ~<span class="built_in">SuperBase</span>() &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 16</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Base1</span> : <span class="keyword">virtual</span> <span class="keyword">public</span> SuperBase &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="keyword">virtual</span> ~<span class="built_in">Base1</span>() &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 24</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Base2</span> : <span class="keyword">virtual</span> <span class="keyword">public</span> SuperBase</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="keyword">virtual</span> ~<span class="built_in">Base2</span>() &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 24</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Der</span> :<span class="keyword">public</span> Base1, <span class="keyword">public</span> Base2 &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="keyword">virtual</span> ~<span class="built_in">Der</span>() &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 32</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-new%E7%9A%84%E5%90%84%E7%A7%8D%E5%A7%BF%E5%8A%BF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-new%E7%9A%84%E5%90%84%E7%A7%8D%E5%A7%BF%E5%8A%BF/" class="post-title-link" itemprop="url">new 的各种姿势</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-02 20:37:52" itemprop="dateCreated datePublished" datetime="2023-06-02T20:37:52+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <table>
+<thead>
+<tr>
+<th>分配</th>
+<th>释放</th>
+<th>类型</th>
+<th>能否重载</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>malloc()</code></td>
+<td><code>free()</code></td>
+<td>C 函数</td>
+<td>不能</td>
+</tr>
+<tr>
+<td><code>new</code></td>
+<td><code>delete</code></td>
+<td>C++ 关键字</td>
+<td>不能</td>
+</tr>
+<tr>
+<td><code>operator new()</code></td>
+<td><code>operator delete()</code></td>
+<td>C++ 函数</td>
+<td>能</td>
+</tr>
+<tr>
+<td><code>std::allocator&lt;T&gt;::allocate()</code></td>
+<td><code>std::allocator&lt;T&gt;::deallocate()</code></td>
+<td>C++ 标准库</td>
+<td>能</td>
+</tr>
+</tbody></table>
+<h2 id="new-和-delete"><a href="#new-和-delete" class="headerlink" title="new 和 delete"></a>new 和 delete</h2><p>C++ 则提供了两个关键字 <code>new</code> 和 <code>delete</code></p>
+<p>使用 <code>new</code> 操作符申请内存分配时无须指定内存块的大小，编译器会根据类型信息自行计算</p>
+<p><code>new</code> 会调用 <code>operator new</code> 分配内存并调用相应的构造函数</p>
+<p><code>delete</code> 会调用相应的析构函数并调用 <code>operaotr delete</code> 释放内存</p>
+<p><code>new</code> 操作符内存分配成功时，返回的是对象类型的指针，类型严格与对象匹配，无须进行类型转换，故 <code>new</code> 是符合类型安全性的操作符</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> ( type ) <span class="built_in">initializer</span>(optional)</span><br><span class="line"><span class="keyword">new</span> <span class="keyword">new</span>-type <span class="built_in">initializer</span>(optional) <span class="comment">// new-type 不能有括号</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> <span class="built_in">int</span>(*[<span class="number">10</span>])();    <span class="comment">// error: parsed as (new int) (*[10]) ()</span></span><br><span class="line"><span class="keyword">new</span> (<span class="built_in">int</span> (*[<span class="number">10</span>])()); <span class="comment">// okay: allocates an array of 10 pointers to functions</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// placement new</span></span><br><span class="line"><span class="keyword">new</span> (placement-params) ( type ) <span class="built_in">initializer</span>(optional)</span><br><span class="line"><span class="built_in">new</span> (placement-params) <span class="keyword">new</span>-type <span class="built_in">initializer</span>(optional)	</span><br><span class="line"></span><br><span class="line"><span class="comment">// 开辟单地址空间</span></span><br><span class="line"><span class="type">int</span> *p = <span class="keyword">new</span> <span class="type">int</span>;  <span class="comment">// 开辟大小为 sizeof(int) 空间</span></span><br><span class="line"><span class="type">int</span> *q = <span class="keyword">new</span> <span class="built_in">int</span>(<span class="number">5</span>);  <span class="comment">// 开辟大小为 sizeof(int) 的空间，并初始化为 5</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 开辟数组空间</span></span><br><span class="line"><span class="comment">// 一维</span></span><br><span class="line"><span class="type">int</span> *a = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">100</span>]&#123;<span class="number">0</span>&#125;;  <span class="comment">// 开辟大小为 100 的整型数组空间，并初始化为 0</span></span><br><span class="line"><span class="comment">// 二维</span></span><br><span class="line"><span class="built_in">int</span> (*a)[<span class="number">6</span>] = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">5</span>][<span class="number">6</span>];</span><br><span class="line"><span class="comment">// 三维</span></span><br><span class="line"><span class="built_in">int</span> (*a)[<span class="number">5</span>][<span class="number">6</span>] = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">3</span>][<span class="number">5</span>][<span class="number">6</span>];</span><br><span class="line"><span class="comment">// 四维及以上以此类推</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="operator-new-和-operator-delete"><a href="#operator-new-和-operator-delete" class="headerlink" title="operator new 和 operator delete"></a>operator new 和 operator delete</h2><p><code>operator new</code> 和 <code>operator delete</code> 是函数，底层是 <code>malloc()</code> 和 <code>free()</code></p>
+<p>只分配所要求的空间，不调用相关对象的构造函数</p>
+<p>当无法满足所要求分配的空间时，如果有 <code>new_handler</code> 则调用 <code>new_handler</code>，否则如果使用 <code>nothrow</code> 没要求不抛出异常，则执行 bad_alloc 异常，否则返回 0</p>
+<p><code>operator new</code> 和 <code>operator delete</code> 可以被重载：</p>
+<ul>
+<li><p>重载时，返回类型必须声明为 <code>void*</code></p>
+</li>
+<li><p>重载时，第一个参数类型必须为表达要求分配空间的大小，类型为 <code>size_t</code></p>
+</li>
+<li><p>重载时，可以带其它参数</p>
+</li>
+</ul>
+<p>使用 <code>operator new</code> 分配的空间必须使用 <code>operator delete</code> 来释放</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span>  <span class="params">( std::<span class="type">size_t</span> count )</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span>  <span class="params">( std::<span class="type">size_t</span> count, <span class="type">void</span>* ptr )</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span>* T::<span class="keyword">operator</span> <span class="title">new</span>  <span class="params">( std::<span class="type">size_t</span> count )</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span>* T::<span class="keyword">operator</span> <span class="title">new</span>  <span class="params">( std::<span class="type">size_t</span> count, user-defined-args... )</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(std::<span class="type">size_t</span> sz)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::<span class="built_in">printf</span>(<span class="string">&quot;1) new(size_t), size = %zu\n&quot;</span>, sz);</span><br><span class="line">    <span class="keyword">if</span> (sz == <span class="number">0</span>)</span><br><span class="line">        ++sz;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (<span class="type">void</span> *ptr = std::<span class="built_in">malloc</span>(sz))</span><br><span class="line">        <span class="keyword">return</span> ptr;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">throw</span> std::bad_alloc&#123;&#125;;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="type">void</span>* <span class="keyword">operator</span> <span class="keyword">new</span>[](std::<span class="type">size_t</span> sz)</span><br><span class="line">&#123;</span><br><span class="line">    std::<span class="built_in">printf</span>(<span class="string">&quot;2) new[](size_t), size = %zu\n&quot;</span>, sz);</span><br><span class="line">    <span class="keyword">if</span> (sz == <span class="number">0</span>)</span><br><span class="line">        ++sz;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (<span class="type">void</span> *ptr = std::<span class="built_in">malloc</span>(sz))</span><br><span class="line">        <span class="keyword">return</span> ptr;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">throw</span> std::bad_alloc&#123;&#125;;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">void</span> <span class="keyword">operator</span> <span class="title">delete</span><span class="params">(<span class="type">void</span>* ptr)</span> <span class="keyword">noexcept</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::<span class="built_in">puts</span>(<span class="string">&quot;3) delete(void*)&quot;</span>);</span><br><span class="line">    std::<span class="built_in">free</span>(ptr);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">void</span> <span class="keyword">operator</span> <span class="title">delete</span><span class="params">(<span class="type">void</span>* ptr, std::<span class="type">size_t</span> size)</span> <span class="keyword">noexcept</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::<span class="built_in">printf</span>(<span class="string">&quot;4) delete(void*, size_t), size = %zu\n&quot;</span>, size);</span><br><span class="line">    std::<span class="built_in">free</span>(ptr);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="type">void</span> <span class="keyword">operator</span> <span class="keyword">delete</span>[](<span class="type">void</span>* ptr) <span class="keyword">noexcept</span></span><br><span class="line">&#123;</span><br><span class="line">    std::<span class="built_in">puts</span>(<span class="string">&quot;5) delete[](void* ptr)&quot;</span>);</span><br><span class="line">    std::<span class="built_in">free</span>(ptr);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="type">void</span> <span class="keyword">operator</span> <span class="keyword">delete</span>[](<span class="type">void</span>* ptr, std::<span class="type">size_t</span> size) <span class="keyword">noexcept</span></span><br><span class="line">&#123;</span><br><span class="line">    std::<span class="built_in">printf</span>(<span class="string">&quot;6) delete[](void*, size_t), size = %zu\n&quot;</span>, size);</span><br><span class="line">    std::<span class="built_in">free</span>(ptr);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span>* p1 = <span class="keyword">new</span> <span class="type">int</span>;</span><br><span class="line">    <span class="keyword">delete</span> p1;</span><br><span class="line"> </span><br><span class="line">    <span class="type">int</span>* p2 = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">10</span>];</span><br><span class="line">    <span class="keyword">delete</span>[] p2;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">int</span> a;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">// 重载 ::operator new</span></span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="type">void</span>* <span class="keyword">operator</span> <span class="title">new</span><span class="params">(<span class="type">size_t</span> size)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 重载 ::operator new[]</span></span><br><span class="line">    <span class="type">static</span> <span class="type">void</span>* <span class="keyword">operator</span> <span class="keyword">new</span>[](<span class="type">size_t</span> size) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 重载 ::operator delete</span></span><br><span class="line">    <span class="type">static</span> <span class="type">void</span> <span class="keyword">operator</span> <span class="built_in">delete</span>(<span class="type">void</span> * pt) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 重载 ::operator delete[]</span></span><br><span class="line">    <span class="type">static</span> <span class="type">void</span> <span class="keyword">operator</span> <span class="keyword">delete</span>[](<span class="type">void</span> * pt) &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="placement-new"><a href="#placement-new" class="headerlink" title="placement new"></a>placement new</h2><p>placement new 是重载 <code>operator new</code> 的一个标准、全局的版本</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> *<span class="keyword">operator</span> <span class="title">new</span><span class="params">( <span class="type">size_t</span>, <span class="type">void</span> * p )</span> <span class="title">throw</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> p; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>允许用户把一个对象放到一个特定的地方，达到调用构造函数的效果</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">X</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">X</span>() &#123; std::cout &lt;&lt; <span class="string">&quot;constructor of X&quot;</span> &lt;&lt; std::endl; &#125;</span><br><span class="line">    ~<span class="built_in">X</span>() &#123; std::cout &lt;&lt; <span class="string">&quot;destructor of X&quot;</span> &lt;&lt; std::endl;&#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">SetNum</span><span class="params">(<span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">        num = n;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">GetNum</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> num;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">int</span> num;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">char</span>* buf = <span class="keyword">new</span> <span class="type">char</span>[<span class="built_in">sizeof</span>(X)];</span><br><span class="line">    X *px = <span class="built_in">new</span>(buf) X;</span><br><span class="line">    px-&gt;<span class="built_in">SetNum</span>(<span class="number">10</span>);</span><br><span class="line">    std::cout &lt;&lt; px-&gt;<span class="built_in">GetNum</span>() &lt;&lt; std::endl;</span><br><span class="line">    px-&gt;~<span class="built_in">X</span>();</span><br><span class="line">    <span class="keyword">delete</span> []buf;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="malloc-和-free"><a href="#malloc-和-free" class="headerlink" title="malloc 和 free"></a>malloc 和 free</h2><p>C 语言提供了 <code>malloc()</code> 和 <code>free()</code> 两个系统函数，完成对堆内存的申请和释放，<code>malloc()/free()</code> 是库函数，需要头文件支持</p>
+<p><code>malloc()</code> 需要显式地指出所需内存的尺寸</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">int</span> (*p)[<span class="number">3</span>] = (<span class="built_in">int</span>(*)[<span class="number">3</span>])<span class="built_in">malloc</span>(<span class="built_in">sizeof</span>(<span class="type">int</span>) * <span class="number">5</span> * <span class="number">3</span>);</span><br></pre></td></tr></table></figure>
+
+<p><code>malloc</code> 和 <code>free</code> 只是分配和释放内存</p>
+<p><code>malloc</code> 内存分配成功则是返回 <code>void*</code>，需要通过强制类型转换将 <code>void*</code> 指针转换成需要的类型</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +617,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -401,7 +823,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -512,7 +934,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -629,7 +1051,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -789,7 +1211,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -888,7 +1310,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -991,7 +1413,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1101,307 +1523,6 @@
 </tr>
 </tbody></table>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/01/LinuxApi-get-current-dir-name/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/01/LinuxApi-get-current-dir-name/" class="post-title-link" itemprop="url">get_current_dir_name</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-01 15:49:18" itemprop="dateCreated datePublished" datetime="2023-06-01T15:49:18+08:00">2023-06-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 当 buf 是空时，getcwd 会调用 malloc</span></span><br><span class="line"><span class="function"><span class="type">char</span> *<span class="title">getcwd</span><span class="params">(<span class="type">char</span> *buf, <span class="type">size_t</span> size)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 该函数不会使用 malloc 函数动态的分配内存</span></span><br><span class="line"><span class="comment">// 但是返回值参数 buf 的大小至少是 PATH_MAX</span></span><br><span class="line"><span class="function"><span class="type">char</span> *<span class="title">getwd</span><span class="params">(<span class="type">char</span> *buf)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 函数内部调用 malloc</span></span><br><span class="line"><span class="function"><span class="type">char</span> *<span class="title">get_current_dir_name</span><span class="params">(<span class="type">void</span>)</span></span>;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/31/LinuxApi-time/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/31/LinuxApi-time/" class="post-title-link" itemprop="url">time</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-31 21:26:23" itemprop="dateCreated datePublished" datetime="2023-05-31T21:26:23+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="time-t"><a href="#time-t" class="headerlink" title="time_t"></a>time_t</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;time.h&gt;</span></span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">long</span> <span class="type">time_t</span>  </span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">tm</span>&#123;    </span><br><span class="line">    <span class="type">int</span> tm_sec;</span><br><span class="line">    <span class="type">int</span> tm_min;</span><br><span class="line">    <span class="type">int</span> tm_hour;</span><br><span class="line">    <span class="type">int</span> tm_mday;</span><br><span class="line">    <span class="type">int</span> tm_mon;</span><br><span class="line">    <span class="type">int</span> tm_year;</span><br><span class="line">    <span class="type">int</span> tm_wday;</span><br><span class="line">    <span class="type">int</span> tm_yday;</span><br><span class="line">    <span class="type">int</span> tm_isdst;</span><br><span class="line">    <span class="type">long</span> <span class="type">int</span> tm_gmtoff;   </span><br><span class="line">    <span class="type">const</span> <span class="type">char</span>* tm_zone;  </span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果 t 并非空指针的话，此函数也会将返回值存到 t 指针所指的内存</span></span><br><span class="line"><span class="function"><span class="type">time_t</span> <span class="title">time</span><span class="params">(<span class="type">time_t</span> *t)</span></span>;</span><br><span class="line"><span class="comment">// 求差值</span></span><br><span class="line"><span class="function"><span class="type">double</span> <span class="title">difftime</span><span class="params">(<span class="type">time_t</span> time1, <span class="type">time_t</span> time0)</span></span>;</span><br><span class="line"><span class="comment">// 获取本地时间 tm</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">tm</span> *<span class="built_in">localtime</span>(<span class="type">const</span> <span class="type">time_t</span> *timer);</span><br><span class="line"><span class="comment">// 获取国际时间 tm</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">tm</span>* <span class="built_in">gmtime</span>( <span class="type">const</span> <span class="type">time_t</span>* p_time );</span><br><span class="line"><span class="function"><span class="type">time_t</span> <span class="title">mktime</span><span class="params">(<span class="keyword">struct</span> tm * timeptr)</span></span>;</span><br><span class="line"><span class="comment">// 时区信息使用 timeptr 中的信息</span></span><br><span class="line"><span class="function"><span class="type">char</span> * <span class="title">asctime</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> tm * timeptr)</span></span>;</span><br><span class="line"><span class="comment">// 一律使用本地时区</span></span><br><span class="line"><span class="function"><span class="type">char</span> * <span class="title">ctime</span><span class="params">(<span class="type">const</span> <span class="type">time_t</span> *timer)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">%a : 本第几天名称，缩写</span></span><br><span class="line"><span class="comment">%A : 本第几天名称，全称</span></span><br><span class="line"><span class="comment">%b : 月份名称，缩写</span></span><br><span class="line"><span class="comment">%B : 月份名称，全称</span></span><br><span class="line"><span class="comment">%c : 与ctime/asctime格式相同</span></span><br><span class="line"><span class="comment">%d : 本月第几日名称，由零算起</span></span><br><span class="line"><span class="comment">%H : 当天第几个小时，24小时制，由零算起</span></span><br><span class="line"><span class="comment">%I : 当天第几个小时，12小时制，由零算起</span></span><br><span class="line"><span class="comment">%j : 当年第几天，由零算起</span></span><br><span class="line"><span class="comment">%m : 当年第几月，由零算起</span></span><br><span class="line"><span class="comment">%M : 该小时的第几分，由零算起</span></span><br><span class="line"><span class="comment">%p : AM或PM</span></span><br><span class="line"><span class="comment">%S : 该分钟的第几秒，由零算起</span></span><br><span class="line"><span class="comment">%U : 当年第几，由第一个日开始计算</span></span><br><span class="line"><span class="comment">%W : 当年第几，由第一个一开始计算</span></span><br><span class="line"><span class="comment">%w : 当第几日，由零算起</span></span><br><span class="line"><span class="comment">%x : 当地日期</span></span><br><span class="line"><span class="comment">%X : 当地时间</span></span><br><span class="line"><span class="comment">%y : 两位数的年份</span></span><br><span class="line"><span class="comment">%Y : 四位数的年份</span></span><br><span class="line"><span class="comment">%Z : 时区名称的缩写</span></span><br><span class="line"><span class="comment">%% : %符号</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="type">size_t</span> <span class="title">strftime</span><span class="params">(<span class="type">char</span> *str,<span class="type">size_t</span> max,<span class="type">char</span> *fmt,<span class="keyword">struct</span> tm *tp)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<h2 id="timeval"><a href="#timeval" class="headerlink" title="timeval"></a>timeval</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;sys/time.h&quot;</span></span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">timeval</span>  </span><br><span class="line">&#123;  </span><br><span class="line">    <span class="type">__time_t</span> tv_sec;        <span class="comment">// 秒</span></span><br><span class="line">    <span class="type">__suseconds_t</span> tv_usec;  <span class="comment">// 微秒</span></span><br><span class="line">&#125;; </span><br><span class="line"></span><br><span class="line"><span class="comment">// 把时间信息存入 tv，当地时区信息则放到 tz</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">gettimeofday</span><span class="params">(<span class="keyword">struct</span> timeval*tv, <span class="keyword">struct</span> timezone *tz)</span></span>;  </span><br><span class="line"><span class="comment">/*判断tvp是否填充*/</span>  </span><br><span class="line"><span class="meta">#<span class="keyword">define</span>       timerisset(tvp)  ((tvp)-&gt;tv_sec || (tvp)-&gt;tv_usec)   </span></span><br><span class="line"><span class="comment">/*tvp设置为0*/</span>  </span><br><span class="line"><span class="meta">#<span class="keyword">define</span>       timerclear(tvp) ((tvp)-&gt;tv_sec = (tvp)-&gt;tv_usec = 0)    </span></span><br><span class="line"><span class="comment">/*tvp比较，cmp不可为&gt;=, &lt;=*/</span>  </span><br><span class="line"><span class="meta">#<span class="keyword">define</span>       timercmp(tvp, uvp, cmp)   </span></span><br><span class="line">              ((tvp)-&gt;tv_sec <span class="built_in">cmp</span> (uvp)-&gt;tv_sec ||\   </span><br><span class="line">               (tvp)-&gt;tv_sec == (uvp)-&gt;tv_sec &amp;&amp;\   </span><br><span class="line">               (tvp)-&gt;tv_usec <span class="built_in">cmp</span> (uvp)-&gt;tv_usec)   </span><br><span class="line"><span class="comment">/*result = a+b*/</span>  </span><br><span class="line"><span class="meta">#<span class="keyword">define</span>     timeradd(a, b, result)  </span></span><br><span class="line"><span class="comment">/*result = a-b*/</span>  </span><br><span class="line"><span class="meta">#<span class="keyword">define</span>     timersub(a, b, result) </span></span><br></pre></td></tr></table></figure>
-
-<h2 id="timespec"><a href="#timespec" class="headerlink" title="timespec"></a>timespec</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">timespec</span>  </span><br><span class="line">&#123;  </span><br><span class="line">    <span class="type">long</span> <span class="type">int</span> tv_sec;    <span class="comment">//秒</span></span><br><span class="line">    <span class="type">long</span> <span class="type">int</span> tv_nsec;   <span class="comment">//纳秒</span></span><br><span class="line">&#125;; </span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">long</span> <span class="title">clock_gettime</span><span class="params">(<span class="type">clockid_t</span> which_clock_id, <span class="keyword">struct</span> timespec *tp)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">which_clock_id</span></span><br><span class="line"><span class="comment">CLOCK_REALTIME 系统实时时间</span></span><br><span class="line"><span class="comment">CLOCK_MONOTONIC 从系统启动这一刻起开始计时,</span></span><br><span class="line"><span class="comment">CLOCK_PROCESS_CPUTIME_ID 本进程到当前代码系统CPU花费的时间</span></span><br><span class="line"><span class="comment">CLOCK_THREAD_CPUTIME_ID 本线程到当前代码系统CPU花费的时间</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">timespec_get</span><span class="params">( <span class="keyword">struct</span> timespec *ts, <span class="type">int</span> base )</span></span>;</span><br><span class="line"><span class="comment">// base</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TIME_UTC <span class="comment">/* implementation-defined */</span></span></span><br></pre></td></tr></table></figure>
-
-<h2 id="clock-t"><a href="#clock-t" class="headerlink" title="clock_t"></a>clock_t</h2><p>从进程开始到现在的时间</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">clock_t</span> <span class="title">clock</span><span class="params">()</span>；</span></span><br><span class="line"><span class="function"><span class="meta">#<span class="keyword">define</span> CLOCKS_PER_SEC</span></span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/31/LinuxApi-pthread-xx/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/31/LinuxApi-pthread-xx/" class="post-title-link" itemprop="url">pthread_xx</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-31 21:25:04" itemprop="dateCreated datePublished" datetime="2023-05-31T21:25:04+08:00">2023-05-31</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="创建线程"><a href="#创建线程" class="headerlink" title="创建线程"></a>创建线程</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span>  <span class="title">pthread_create</span><span class="params">(<span class="type">pthread_t</span>* thread,</span></span></span><br><span class="line"><span class="params"><span class="function">                    <span class="type">const</span> <span class="type">pthread_attr_t</span>* attr,</span></span></span><br><span class="line"><span class="params"><span class="function">                    <span class="type">void</span> *(*start_routine) (<span class="type">void</span>*),</span></span></span><br><span class="line"><span class="params"><span class="function">                    <span class="type">void</span>* arg)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>thread</code> 参数是一个输出参数，如果线程创建成功，则可以通过该参数获取线程 ID</p>
-</li>
-<li><p><code>attr</code> 指定该线程的属性，默认使用 <code>nullptr</code></p>
-</li>
-<li><p><code>start_routine</code> 指定线程函数，该函数的顶用方式必须是 <code>__cdecl</code>，<code>__cdecl</code> 是 C&#x2F;C++ 全局函数的默认调用方式，函数签名为 <code>void* func(void*)</code></p>
-</li>
-<li><p><code>arg</code> 用于创建线程时传入线程函数，<code>void*</code> 方便将任意信息传入线程函数</p>
-</li>
-</ul>
-<h2 id="获取线程-ID"><a href="#获取线程-ID" class="headerlink" title="获取线程 ID"></a>获取线程 ID</h2><p>线程 ID 在整个操作系统中唯一的，可以在当前线程调用 <code>pthread_self()</code> 获取当前线程的线程 ID</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方法一</span></span><br><span class="line"><span class="function"><span class="type">pthread_t</span> <span class="title">pthread_self</span><span class="params">(<span class="type">void</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方法二</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/syscall.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> tid = <span class="built_in">syscall</span>(SYS_gettid);</span><br></pre></td></tr></table></figure>
-
-<p><code>pthread_t</code> 是一块内存的空间地址，由于不同进程可能有同样地址的内存快，因此 <code>pthread_t</code> 可能不是全局唯一的，一般是个很大的数字</p>
-<p>通过方法二获取的线程 ID 是系统范围的全局唯一</p>
-<h2 id="join"><a href="#join" class="headerlink" title="join"></a>join</h2><p>系统提供了 <code>pthread_join</code> 用来等待某个线程的退出并接受返回值</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_join</span><span class="params">(<span class="type">pthread_t</span>* thread, <span class="type">void</span>** retval)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>thread</code> 为需要等待的线程 ID</p>
-</li>
-<li><p><code>retval</code> 为输出参数，用于接收等待退出的线程的推出码，可以调用 <code>pthread_exit</code> 指定线程退出时退出码，也可以 <code>return</code> 返回线程推出码</p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">pthread_exit</span><span class="params">(<span class="type">void</span>* value_ptr)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p><code>pthread_join</code> 在等待目标线程退出期间会挂起当前线程，被挂起的线程处于等待状态，不消耗 CPU 时间片</p>
-<p>目标线程退出后，调用 <code>pthread_join</code> 线程才会被唤醒</p>
-<h2 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h2><p><code>pthread_attr_t</code> 需使用 <code>pthread_attr_init</code> 初始化</p>
-<p><code>pthread_attr_t</code> 需使用 <code>pthread_attr_destroy</code> 销毁</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> &#123;</span><br><span class="line">    <span class="type">int</span>                       detachstate;   <span class="comment">// 线程的分离状态</span></span><br><span class="line">    <span class="type">int</span>                       schedpolicy;   <span class="comment">// 线程调度策略</span></span><br><span class="line">    structsched_param         schedparam;    <span class="comment">// 线程的调度参数</span></span><br><span class="line">    <span class="type">int</span>                       inheritsched;  <span class="comment">// 线程的继承性</span></span><br><span class="line">    <span class="type">int</span>                       scope;         <span class="comment">// 线程的作用域</span></span><br><span class="line">    <span class="type">size_t</span>                    guardsize;     <span class="comment">// 线程栈末尾的警戒缓冲区大小</span></span><br><span class="line">    <span class="type">int</span>                       stackaddr_set; <span class="comment">// 线程的栈设置</span></span><br><span class="line">    <span class="type">void</span>*                     stackaddr;     <span class="comment">// 线程栈的位置</span></span><br><span class="line">    <span class="type">size_t</span>                    stacksize;     <span class="comment">// 线程栈的大小</span></span><br><span class="line">&#125; <span class="type">pthread_attr_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置方法</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_getdetachstate</span><span class="params">(<span class="type">const</span> <span class="type">pthread_attr_t</span>* attr, </span></span></span><br><span class="line"><span class="params"><span class="function">                                <span class="type">int</span>* detachstate)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_setdetachstate</span><span class="params">(<span class="type">pthread_attr_t</span>* attr,</span></span></span><br><span class="line"><span class="params"><span class="function">                                <span class="type">int</span> detachstate)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_getinheritsched</span><span class="params">(<span class="type">const</span> <span class="type">pthread_attr_t</span>* attr,</span></span></span><br><span class="line"><span class="params"><span class="function">                                 <span class="type">int</span>* inheritsched)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_setinheritsched</span><span class="params">(<span class="type">pthread_attr_t</span>* attr,</span></span></span><br><span class="line"><span class="params"><span class="function">                                 <span class="type">int</span> inheritsched)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_getschedpolicy</span><span class="params">(<span class="type">const</span> <span class="type">pthread_attr_t</span> *, </span></span></span><br><span class="line"><span class="params"><span class="function">                                <span class="type">int</span> * policy)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_setschedpolicy</span><span class="params">(pthread_attr_*, <span class="type">int</span> policy)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_getschedparam</span><span class="params">(<span class="type">const</span> <span class="type">pthread_attr_t</span>*,</span></span></span><br><span class="line"><span class="params"><span class="function">                               <span class="keyword">struct</span> sched_param*)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_setschedparam</span><span class="params">(<span class="type">pthread_attr_t</span>*,</span></span></span><br><span class="line"><span class="params"><span class="function">                               <span class="type">const</span> <span class="keyword">struct</span> sched_param*)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_getscope</span><span class="params">(<span class="type">const</span> <span class="type">pthread_attr_t</span>* attr, </span></span></span><br><span class="line"><span class="params"><span class="function">                          <span class="type">int</span>* scope)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_setscope</span><span class="params">(<span class="type">pthread_attr_t</span>*, <span class="type">int</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_getstacksize</span><span class="params">(<span class="type">const</span> <span class="type">pthread_attr_t</span>*,</span></span></span><br><span class="line"><span class="params"><span class="function">                              <span class="type">size_t</span> * stacksize)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_setstacksize</span><span class="params">(<span class="type">pthread_attr_t</span>*,</span></span></span><br><span class="line"><span class="params"><span class="function">                              <span class="type">size_t</span>* stacksize)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_getstackaddr</span><span class="params">(<span class="type">const</span> <span class="type">pthread_attr_t</span>* attr,</span></span></span><br><span class="line"><span class="params"><span class="function">                              <span class="type">void</span> **stackaddf)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_attr_setstackaddr</span><span class="params">(<span class="type">pthread_attr_t</span>* attr,</span></span></span><br><span class="line"><span class="params"><span class="function">                              <span class="type">void</span>* stackaddr)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>detachstate</code> 表示新线程是否与进程中其他线程脱离同步，如果设置为 <code>PTHREAD_CREATE_DETACHED</code> 则新线程不能用 <code>pthread_join()</code> 来同步，且在退出时自行释放所占用的资源，缺省为 <code>PTHREAD_CREATE_JOINABLE</code> 状态，该属性可以通过线程创建并运行以后用 <code>pthread_detach()</code> 来设置</p>
-</li>
-<li><p><code>schedpolicy</code> 表示新线程的调度策略，主要包括 <code>SCHED_OTHER</code>（正常、非实时）、<code>SCHED_RR</code>（实时、轮转法）和 <code>SCHED_FIFO</code>（实时、先入先出）三种，缺省为 <code>SCHED_OTHER</code>，运行时可以用过 <code>pthread_setschedparam()</code> 来改变</p>
-</li>
-<li><p><code>schedparam</code> 线程调度参数，目前仅有一个 <code>sched_priority</code> 整型变量表示线程的运行优先级，仅当调度策略为 <code>SCHED_RR</code> 或 <code>SCHED_FIFO</code> 时才有效，并可以在运行时通过 <code>pthread_setschedparam()</code> 函数来改变，缺省为 0</p>
-</li>
-<li><p><code>inheritsched</code> 表示可继承性，有 <code>PTHREAD_EXPLICIT_SCHED</code> 和 <code>PTHREAD_INHERIT_SCHED</code> 两种，前者表示新线程使用显式指定调度策略和调度参数，而后者表示继承调用者线程的值，缺省为 <code>PTHREAD_EXPLICIT_SCHED</code></p>
-</li>
-<li><p><code>scope</code> 表示线程间竞争 CPU 的范围，目前仅实现了 <code>PTHREAD_SCOPE_SYSTEM</code>，表示与系统中所有线程一起竞争 CPU 时间</p>
-</li>
-</ul>
-<h2 id="惯用法"><a href="#惯用法" class="headerlink" title="惯用法"></a>惯用法</h2><p>线程函数的签名必须是指定格式，如果使用 C++ 面向对象的方式对线程函数进行封装，线程函数就不能是类的成员方法，只能是静态方法</p>
-<p>编译器在编译成员方法时，会将成员方法编译成全局方法，然后在形参列表中添加类的实例对象指针，因此不再符合线程函数的函数签名需求</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Thread</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span>* <span class="title">threadFunc</span><span class="params">(<span class="type">void</span>* arg)</span></span></span><br><span class="line"><span class="function">&#125;</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// 编译翻译成</span></span></span><br><span class="line"><span class="function"><span class="type">void</span>* <span class="title">threadFunc</span><span class="params">(Thread* <span class="keyword">this</span>, <span class="type">void</span>* arg)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>因此在实际应用中，在创建线程时将当前对象的地址传递给线程函数，然后在线程函数中将该指针转换为原来的类实例，再通过这个类实例访问类的所有方法</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">CThread</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">CThread</span>();</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">CThread</span>();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">bool</span> <span class="title">Create</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">pthread_t</span> <span class="title">GetHandle</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">bool</span> <span class="title">InitInstance</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">ExitInstance</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">Run</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">static</span> <span class="type">void</span>* _ThreadEntry(<span class="type">void</span>* arg);</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">pthread_t</span> m_thread;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span>* CThread::_ThreadEntry(<span class="type">void</span>* arg) &#123;</span><br><span class="line">    CThread* pThread = (CThread*)arg;</span><br><span class="line">    <span class="keyword">if</span> (pThread-&gt;<span class="built_in">InitInstance</span>()) pThread-&gt;<span class="built_in">Run</span>();</span><br><span class="line">    pThread-&gt;<span class="built_in">ExitInstance</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">CThread::<span class="built_in">CThread</span>() &#123;</span><br><span class="line">    m_thread = (<span class="type">pthread_t</span>)<span class="number">0</span>;</span><br><span class="line">    m_id = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">CThread::~<span class="built_in">CThread</span>() &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">CThread::Create</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (m_thread != (<span class="type">pthread_t</span>)<span class="number">0</span>) <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    <span class="type">bool</span> res = <span class="literal">true</span>;</span><br><span class="line">    res = <span class="built_in">pthread_create</span>(&amp;m_thread, <span class="literal">nullptr</span>, &amp;_ThreadEntry, <span class="keyword">this</span>) == <span class="number">0</span>;</span><br><span class="line">    retrun res;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">CThread::InitInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">CThread::ExitInstance</span><span class="params">()</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
 

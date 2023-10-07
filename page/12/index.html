@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">424</span>
+          <span class="site-state-item-count">427</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,348 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-lambda/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-lambda/" class="post-title-link" itemprop="url">lambda</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:20:14" itemprop="dateCreated datePublished" datetime="2023-05-29T21:20:14+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[capture](parameters)-&gt;<span class="keyword">return</span>-type &#123;body&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>lambda 表达式使得可以使用匿名函数</p>
+<p>使用 <code>auto</code> 关键字保存 lambda 表达式，之后就可以当做正常的函数使用</p>
+<p>lambda 表达式是 inline 函数</p>
+<ul>
+<li><code>[...]</code>：标识一个 lambda 表达式的开始，不能省略；表达式可以引用在它之外声明的变量，但只能使用定义 lambda 为止时所在作用范围内可见的变量，这些变量的集合成为闭包，被定义在 <code>[]</code> 内</li>
+</ul>
+<ol>
+<li><code>[]</code>：没有任何参数</li>
+<li><code>[=]</code>：所在范围内所有可见的局部变量按值传递</li>
+<li><code>[&amp;]</code>：所在范围内所有可见的局部变量按引用传递</li>
+<li><code>[this]</code>：所在类中的成员变量</li>
+<li><code>[a]</code>：将 a 按值进行传递</li>
+<li><code>[&amp;a]</code>：将 a 按引用进行传递</li>
+</ol>
+<ul>
+<li><p><code>()</code>：标识重载 <code>()</code> 操作符参数，接受参数可以按值和按引用传递</p>
+</li>
+<li><p><code>-&gt;</code>：标识返回值类型；当只有一个返回语句或返回类型为 void 时可以自动推导返回类型，故可以省略</p>
+</li>
+<li><p><code>&#123;&#125;</code>：函数体</p>
+</li>
+</ul>
+<p>lambda 表达式在编译时被翻译成一个未命名的未命名对象，产生的类中含有一个重载的函数调用运算符 <code>operator()</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> lambda = [&amp;os, str](<span class="type">const</span> string &amp;s) &#123;</span><br><span class="line">    os &lt;&lt; s &lt;&lt; str;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LambdaImpl</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">// [] 引用/值捕获</span></span><br><span class="line">    <span class="built_in">LambdaImpl</span>(ostream &amp;os, string str) : <span class="built_in">os_</span>(os), <span class="built_in">str_</span>(str) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// () 调用参数</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="type">const</span> string&amp; s)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">        cout &lt;&lt; s &lt;&lt; str_;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    ostream &amp;os_;</span><br><span class="line">    string str_;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-future%E7%9B%B8%E5%85%B3%E5%BC%82%E6%AD%A5%E6%93%8D%E4%BD%9C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-future%E7%9B%B8%E5%85%B3%E5%BC%82%E6%AD%A5%E6%93%8D%E4%BD%9C/" class="post-title-link" itemprop="url">future 相关异步操作</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:19:53" itemprop="dateCreated datePublished" datetime="2023-05-29T21:19:53+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><code>std::future</code> 作为异步结果的传输通道，通过 <code>get()</code> 可以很方便的获取线程函数的返回值</p>
+<p><code>std::promise</code> 用来包装一个值，将数据和 <code>std::future</code> 绑定起来</p>
+<p><code>std::packaged_task</code> 则用来包装一个调用对象，将函数和 <code>std::future</code> 绑定起来，方便异步调用</p>
+<h2 id="std-future"><a href="#std-future" class="headerlink" title="std::future"></a>std::future</h2><p><code>std::future</code> 主要是作为消费方用来获取异步任务的结果</p>
+<p><code>std::future</code> 允许移动操作，但是不允许拷贝操作</p>
+<h3 id="get"><a href="#get" class="headerlink" title="get"></a>get</h3><p><code>get()</code> 会一直阻塞直到获取到结果或异步任务抛出异常</p>
+<h3 id="valid"><a href="#valid" class="headerlink" title="valid"></a>valid</h3><p><code>std::future</code> 表示一个共享状态，可以通过 <code>valid()</code> 函数查询其共享状态是否有效</p>
+<p>一般来说，只有当 <code>valid()</code> 返回 <code>true</code> 的时候才调用 <code>get()</code> 去获取结果，获取完结果后 <code>valid()</code> 将返回 <code>false</code></p>
+<p>一个有效的 <code>std::future</code> 对象只能通过 <code>std::async()</code>, <code>std::promise::get_future</code> 或者 <code>std::packaged_task::get_future</code> 来初始化，由 <code>std::future</code> 默认构造函数创建的 <code>std::future</code> 对象是无效的</p>
+<h3 id="share"><a href="#share" class="headerlink" title="share"></a>share</h3><p><code>get()</code> 会改变其共享状态，也就是说 <code>get()</code> 只能被调用一次，多次调用会触发异常。如果想要在多个线程中多次获取产出值需要使用 <code>std::shared_future</code></p>
+<p><code>std::share()</code> 返回 <code>std::shared_future</code>,<code>std::shared_future</code> 允许 <code>move</code>，允许拷贝，并且具有和 <code>std::future</code> 同样的成员函数</p>
+<p>当调用 <code>share</code> 后，<code>std::future</code> 对象就不再和共享状态关联，其 <code>valid</code> 函数也会变为 <code>false</code></p>
+<h3 id="wait"><a href="#wait" class="headerlink" title="wait"></a>wait</h3><p>等待直到数据就绪。数据就绪时，通过 <code>get</code> 函数，无等待即可获得数据</p>
+<p><code>wait_for</code> 、<code>wait_until</code> 主要是用来进行超时等待的，返回值有 3 种状态：</p>
+<ol>
+<li><p><code>std::future_status::ready</code> 数据已就绪，可以通过 <code>get</code> 获取</p>
+</li>
+<li><p><code>std::future_status::timeout</code> 超时，数据还未准备好</p>
+</li>
+<li><p><code>std::future_status::deferred</code> 和 <code>std::async</code> 相关，表明无需 <code>wait</code>，异步函数将在 <code>get</code> 时执行</p>
+</li>
+</ol>
+<h2 id="std-promise"><a href="#std-promise" class="headerlink" title="std::promise"></a>std::promise</h2><p><code>std::promise</code> 是一个模板类 <code>template&lt;typename R&gt; class promise</code>，其泛型参数 R 为 <code>std::promise</code> 对象保存的值的类型，R 可以是 <code>void</code> 类型</p>
+<p>作用是在一个线程 t1 中保存一个类型 <code>typename R</code> 的值，可供相绑定的<code>std::future</code> 对象在另一线程 t2 中获取</p>
+<p><code>std::promise</code> 允许移动，但不允许拷贝</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">accumulate</span><span class="params">(std::vector&lt;<span class="type">int</span>&gt;::iterator first,</span></span></span><br><span class="line"><span class="params"><span class="function">                std::vector&lt;<span class="type">int</span>&gt;::iterator last,</span></span></span><br><span class="line"><span class="params"><span class="function">                std::promise&lt;<span class="type">int</span>&gt; accumulate_promise)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> sum = std::<span class="built_in">accumulate</span>(first, last, <span class="number">0</span>);</span><br><span class="line">  accumulate_promise.<span class="built_in">set_value</span>(sum); <span class="comment">// Notify future</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">do_work</span><span class="params">(std::promise&lt;<span class="type">void</span>&gt; barrier)</span> </span>&#123;</span><br><span class="line">  std::this_thread::<span class="built_in">sleep_for</span>(std::chrono::<span class="built_in">seconds</span>(<span class="number">1</span>));</span><br><span class="line">  barrier.<span class="built_in">set_value</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  std::vector&lt;<span class="type">int</span>&gt; numbers = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>&#125;;</span><br><span class="line">  std::promise&lt;<span class="type">int</span>&gt; accumulate_promise;</span><br><span class="line">  std::future&lt;<span class="type">int</span>&gt; accumulate_future = accumulate_promise.<span class="built_in">get_future</span>();</span><br><span class="line">  <span class="function">std::thread <span class="title">work_thread</span><span class="params">(accumulate, numbers.begin(), numbers.end(),</span></span></span><br><span class="line"><span class="params"><span class="function">                          std::move(accumulate_promise))</span></span>;</span><br><span class="line"></span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;result=&quot;</span> &lt;&lt; accumulate_future.<span class="built_in">get</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  work_thread.<span class="built_in">join</span>();</span><br><span class="line"></span><br><span class="line">  std::promise&lt;<span class="type">void</span>&gt; barrier;</span><br><span class="line">  std::future&lt;<span class="type">void</span>&gt; barrier_future = barrier.<span class="built_in">get_future</span>();</span><br><span class="line">  <span class="function">std::thread <span class="title">new_work_thread</span><span class="params">(do_work, std::move(barrier))</span></span>;</span><br><span class="line">  barrier_future.<span class="built_in">wait</span>();</span><br><span class="line">  new_work_thread.<span class="built_in">join</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="get-future"><a href="#get-future" class="headerlink" title="get_future"></a>get_future</h3><p>通过 <code>get_future</code> 获取与 <code>std::promise</code> 关联的 <code>std::future</code></p>
+<p>一个 <code>std::promise</code> 实例只能与一个 <code>std::future</code> 关联共享状态，当在同一个 <code>std::promise</code> 上反复调用 <code>get_future</code> 会抛出 <code>future_error</code> 异常</p>
+<h3 id="set-value"><a href="#set-value" class="headerlink" title="set_value"></a>set_value</h3><p><code>set_value</code> 可以设置 <code>std::promise</code> 中保存的值，该值通过 <code>std::future</code> 读取</p>
+<p><code>set_value</code> 只能被调用一次，多次调用会抛出 <code>std::future_error</code> 异常</p>
+<p>事实上 <code>std::promise::set_xxx</code> 函数会改变 <code>std::promise</code> 的状态为 ready，再次调用时发现状态已要是 ready 了，则抛出异常</p>
+<p>如果 <code>std::promise</code> 直到销毁时都未设置过任何值，则 <code>std::promise</code> 会在析构时自动设置为 <code>std::future_error</code>，这会造成 <code>std::future.get</code> 抛出 <code>std::future_error</code> 异常</p>
+<p><code>set_value_at_thread_exit</code> 会在当前线程销毁时设置 <code>std::promise</code> 的值</p>
+<h3 id="set-exception"><a href="#set-exception" class="headerlink" title="set_exception"></a>set_exception</h3><p><code>std::promise::set_exception</code> 可以设置自定义异常，该异常最终会被传递到 <code>std::future</code>，并在其 <code>get</code> 函数中被抛出</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">catch_error</span><span class="params">(std::future&lt;<span class="type">void</span>&gt; &amp;future)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    future.<span class="built_in">get</span>();</span><br><span class="line">  &#125; <span class="built_in">catch</span> (std::logic_error &amp;e) &#123;</span><br><span class="line">    std::cerr &lt;&lt; <span class="string">&quot;logic_error: &quot;</span> &lt;&lt; e.<span class="built_in">what</span>() &lt;&lt; std::endl;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  std::promise&lt;<span class="type">void</span>&gt; promise;</span><br><span class="line">  std::future&lt;<span class="type">void</span>&gt; future = promise.<span class="built_in">get_future</span>();</span><br><span class="line"></span><br><span class="line">  <span class="function">std::thread <span class="title">thread</span><span class="params">(catch_error, std::ref(future))</span></span>;</span><br><span class="line">  <span class="comment">// 自定义异常需要使用make_exception_ptr转换一下</span></span><br><span class="line">  promise.<span class="built_in">set_exception</span>(std::<span class="built_in">make_exception_ptr</span>(std::<span class="built_in">logic_error</span>(<span class="string">&quot;caught&quot;</span>)));</span><br><span class="line"></span><br><span class="line">  thread.<span class="built_in">join</span>();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 输出：logic_error: caught</span></span><br></pre></td></tr></table></figure>
+
+<p><code>std::promise</code> 虽然支持自定义异常，但它并不直接接受异常对象，自定义异常可以通过 <code>std::make_exception_ptr</code> 函数转化为 <code>std::exception_ptr</code></p>
+<p><code>set_exception_at_thread_exit</code> 等同于 <code>set_value_at_thread_exit</code></p>
+<h3 id="std-promise-1"><a href="#std-promise-1" class="headerlink" title="std::promise"></a>std::promise<void></h3><p><code>std::promise&lt;void&gt;</code> 是合法的，此时 <code>std::promise.set_value</code> 不接受任何参数，仅用于通知关联的 <code>std::future.get()</code> 解除阻塞</p>
+<h2 id="std-packaged-task"><a href="#std-packaged-task" class="headerlink" title="std::packaged_task"></a>std::packaged_task</h2><p><code>std::packaged_task</code> 允许传入一个函数，并将函数计算的结果传递给与之关联的 <code>std::future</code>，包括函数运行时产生的异常</p>
+<p><code>std::packaged_task</code> 支持移动操作，但不支持拷贝操作</p>
+<p><code>std::package_task</code> 除了可以通过可调用对象构造外，还支持缺省构造(无参构造)</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">R</span>, <span class="keyword">class</span>... ArgTypes&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">packaged_task</span>&lt;<span class="built_in">R</span>(ArgTypes...)&gt;</span><br><span class="line"><span class="comment">// R 是一个函数或可调用对象</span></span><br><span class="line"><span class="comment">// ArgTypes 是 R 的形参</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span> </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;future&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">sum</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> </span>&#123; <span class="keyword">return</span> a + b; &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="function">std::packaged_task&lt;<span class="title">int</span><span class="params">(<span class="type">int</span>, <span class="type">int</span>)</span>&gt; <span class="title">task</span><span class="params">(sum)</span></span>;</span><br><span class="line">  std::future&lt;<span class="type">int</span>&gt; future = task.<span class="built_in">get_future</span>();</span><br><span class="line"></span><br><span class="line">  <span class="function">std::thread <span class="title">t</span><span class="params">(std::move(task), <span class="number">1</span>, <span class="number">2</span>)</span></span>;</span><br><span class="line">  <span class="comment">// 等待异步计算结果</span></span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;1 + 2 =&gt; &quot;</span> &lt;&lt; future.<span class="built_in">get</span>() &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">  t.<span class="built_in">join</span>();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/// 输出: 1 + 2 =&gt; 3</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="get-future-1"><a href="#get-future-1" class="headerlink" title="get_future"></a>get_future</h3><p>通过 <code>get_future</code> 获取与 <code>std::packaged_task</code> 关联的 <code>std::future</code></p>
+<p>一个 <code>std::packaged_task</code> 实例只能与一个 <code>std::future</code> 关联共享状态，当在同一个 <code>std::packaged_task</code> 上反复调用 <code>get_future</code> 会抛出 <code>future_error</code> 异常</p>
+<h3 id="valid-1"><a href="#valid-1" class="headerlink" title="valid"></a>valid</h3><p>通过其成员函数 <code>valid</code> 来判断 <code>std::packaged_task</code> 是否可用</p>
+<p>当通过缺省构造初始化时，由于其未设置任何可调用对象或函数，<code>valid</code> 会返回 <code>false</code></p>
+<p>只有当 <code>std::packaged_task</code> 设置了有效的函数或可调用对象，<code>valid</code> 才返回 <code>true</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  std::packaged_task&lt;<span class="built_in">void</span>()&gt; task;</span><br><span class="line">  std::cout &lt;&lt; std::boolalpha &lt;&lt; task.<span class="built_in">valid</span>() &lt;&lt; std::endl;  <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line">  <span class="function">std::packaged_task&lt;<span class="title">void</span><span class="params">()</span>&gt; <span class="title">task2</span><span class="params">(std::move(task))</span></span>;</span><br><span class="line">  std::cout &lt;&lt; std::boolalpha &lt;&lt; task.<span class="built_in">valid</span>() &lt;&lt; std::endl;  <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line">  task = std::<span class="built_in">packaged_task</span>&lt;<span class="built_in">void</span>()&gt;([]() &#123;&#125;);</span><br><span class="line">  std::cout &lt;&lt; std::boolalpha &lt;&lt; task.<span class="built_in">valid</span>() &lt;&lt; std::endl; <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="operator"><a href="#operator" class="headerlink" title="operator()"></a>operator()</h3><p>调用 <code>std::packaged_task</code> 对象所封装可调用对象 R，但其函数原型与 R 稍有不同</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">operator</span><span class="params">()</span><span class="params">(ArgTypes... )</span></span></span><br></pre></td></tr></table></figure>
+
+<p><code>operator()</code> 的返回值是 <code>void</code> 无返回值，因为 <code>std::packaged_task</code> 的设计主要是用来进行异步调用，因此 <code>R(ArgTypes...)</code> 的计算结果是通过 <code>std::future::get</code> 来获取的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="function">std::packaged_task&lt;<span class="title">void</span><span class="params">()</span>&gt; <span class="title">convert</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">      []() &#123; <span class="keyword">throw</span> std::logic_error(<span class="string">&quot;will catch in future&quot;</span>); &#125;)</span></span>;</span><br><span class="line">  std::future&lt;<span class="type">void</span>&gt; future = convert.<span class="built_in">get_future</span>();</span><br><span class="line"></span><br><span class="line">  <span class="built_in">convert</span>(); <span class="comment">// 异常不会在此处抛出</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    future.<span class="built_in">get</span>();</span><br><span class="line">  &#125; <span class="built_in">catch</span> (std::logic_error &amp;e) &#123;</span><br><span class="line">    std::cerr &lt;&lt; <span class="built_in">typeid</span>(e).<span class="built_in">name</span>() &lt;&lt; <span class="string">&quot;: &quot;</span> &lt;&lt; e.<span class="built_in">what</span>() &lt;&lt; std::endl;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// St11logic_error: will catch in future</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="make-ready-at-thread-exit"><a href="#make-ready-at-thread-exit" class="headerlink" title="make_ready_at_thread_exit"></a>make_ready_at_thread_exit</h3><p><code>std::packaged_task::make_ready_at_thread_exit</code> 和 <code>operator()</code> 行为一样，但不会将计算结果立刻反馈给 <code>std::future</code>，而是在其执行时所在的线程结束后</p>
+<h3 id="reset"><a href="#reset" class="headerlink" title="reset"></a>reset</h3><p><code>std::promise</code> 仅可以执行一次 <code>set_value</code> 或 <code>set_exception</code> 函数，但 <code>std::packagged_task</code> 可以执行多次，其奥秘就是 <code>reset</code> 函数</p>
+<p>调用 <code>reset</code> 后，需要重新 <code>get_future</code> ，以便获取下次 <code>operator()</code> 执行的结果</p>
+<p>由于是重新构造了 <code>promise</code> ，因此 <code>reset</code> 操作并不会影响之前调用的 <code>make_ready_at_thread_exit</code> 结果，也即之前的定制的行为在线程退出时仍会发生</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-function/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-function/" class="post-title-link" itemprop="url">function</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:19:46" itemprop="dateCreated datePublished" datetime="2023-05-29T21:19:46+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>类模板 <code>std::function</code> 是一个通用的多态函数包装器，<code>std::function</code> 的实例可以存储、复制和调用任何可调用的目标，包括：lamdba 表达式，bind 表达式或其他函数对象，以及指向成员函数和指定数据成员的指针</p>
+<p><code>std::function</code> 可以取代函数指针的作用，因为它可以延迟函数的执行，特别适合作为回调函数使用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;functional&gt;</span></span></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">R</span>, <span class="keyword">class</span>... Args &gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">function</span>&lt;<span class="built_in">R</span>(Args...)&gt;;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">R: 被调用函数的返回类型</span></span><br><span class="line"><span class="comment">Args…：被调用函数的形参</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 1. 普通函数</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">f</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    function&lt;<span class="type">int</span>(<span class="type">int</span>, <span class="type">int</span>)&gt;func = f;</span><br><span class="line">    cout&lt;&lt;<span class="built_in">f</span>(<span class="number">1</span>, <span class="number">2</span>)&lt;&lt;endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 函数对象</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">functor</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">operator</span><span class="params">()</span> <span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a + b;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   functor ft;</span><br><span class="line">   function&lt;<span class="type">int</span>(<span class="type">int</span>,<span class="type">int</span>)&gt; func = <span class="built_in">ft</span>();</span><br><span class="line">   cout&lt;&lt;<span class="built_in">func</span>(<span class="number">1</span>,<span class="number">2</span>)&lt;&lt;endl;   </span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 模板函数对象</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">functor</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">T <span class="title">operator</span><span class="params">()</span> <span class="params">(T a, T b)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a + b;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   functor ft;</span><br><span class="line">   function&lt;<span class="type">int</span>(<span class="type">int</span>,<span class="type">int</span>)&gt; func = <span class="built_in">ft</span>&lt;<span class="type">int</span>&gt;();</span><br><span class="line">   cout&lt;&lt;<span class="built_in">func</span>(<span class="number">1</span>,<span class="number">2</span>)&lt;&lt;endl;    </span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. lambda表达式</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">auto</span> f = [](<span class="type">const</span> <span class="type">int</span> a, <span class="type">const</span> <span class="type">int</span> b) &#123;<span class="keyword">return</span> a + b; &#125;;</span><br><span class="line">	std::function&lt;<span class="type">int</span>(<span class="type">int</span>, <span class="type">int</span>)&gt;func = f;</span><br><span class="line">	cout &lt;&lt; <span class="built_in">func</span>(<span class="number">1</span>, <span class="number">2</span>) &lt;&lt; endl;   </span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 5. 类静态成员函数</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Plus</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">static</span> <span class="type">int</span> <span class="title">plus</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a + b;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    function&lt;<span class="type">int</span>(<span class="type">int</span>, <span class="type">int</span>)&gt; f = &amp;Plus::plus;</span><br><span class="line">    cout &lt;&lt; <span class="built_in">f</span>(<span class="number">1</span>, <span class="number">2</span>) &lt;&lt; endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 6. 类成员函数</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Plus</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">plus</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a + b;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Plus p;</span><br><span class="line">    function&lt;<span class="type">int</span>(Plus&amp;,<span class="type">int</span>, <span class="type">int</span>)&gt; f = &amp;Plus::plus;</span><br><span class="line">    <span class="comment">//function&lt;int(const Plus,int, int)&gt; f = &amp;Plus::plus;</span></span><br><span class="line">    cout &lt;&lt; <span class="built_in">f</span>(p,<span class="number">1</span>, <span class="number">2</span>) &lt;&lt; endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 7. 类共有数据</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Plus</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="built_in">Plus</span>(<span class="type">int</span> num_):<span class="built_in">num</span>(num_)&#123;&#125;</span><br><span class="line">	<span class="keyword">public</span>:</span><br><span class="line">	    <span class="function"><span class="type">int</span> <span class="title">plus</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span></span><br><span class="line"><span class="function">	    </span>&#123;</span><br><span class="line">	        <span class="keyword">return</span> a + b;</span><br><span class="line">	    &#125;</span><br><span class="line">	   <span class="type">int</span>  num;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="function"><span class="type">const</span> Plus <span class="title">p</span><span class="params">(<span class="number">2</span>)</span></span>;</span><br><span class="line">    function&lt;<span class="type">int</span>(<span class="type">const</span> Plus&amp;)&gt; f = &amp;Plus::num;</span><br><span class="line">    <span class="comment">//function&lt;int(const Plus)&gt; f = &amp;Plus::num;</span></span><br><span class="line">    cout &lt;&lt; <span class="built_in">f</span>(p) &lt;&lt; endl;                       </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 8. 通过bind函数调用类成员函数</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Plus</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">plus</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> a + b;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   Plus p;</span><br><span class="line">   <span class="comment">// 指针形式调用成员函数</span></span><br><span class="line">   function&lt;<span class="type">int</span>(<span class="type">int</span>, <span class="type">int</span>)&gt; f = <span class="built_in">bind</span>(&amp;Plus::plus, &amp;p, placeholders::_1, placeholders::_2);<span class="comment">// placeholders::_1是占位符</span></span><br><span class="line">   <span class="comment">// 对象形式调用成员函数</span></span><br><span class="line">   function&lt;<span class="type">int</span>(<span class="type">int</span>, <span class="type">int</span>)&gt; f1 = <span class="built_in">bind</span>(&amp;Plus::plus, p, placeholders::_1, placeholders::_2);<span class="comment">// placeholders::_1是占位符</span></span><br><span class="line">   cout &lt;&lt; <span class="built_in">f</span>(<span class="number">1</span>, <span class="number">2</span>) &lt;&lt; endl;  </span><br><span class="line">   cout &lt;&lt; <span class="built_in">f1</span>(<span class="number">1</span>, <span class="number">2</span>) &lt;&lt; endl;                              </span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +537,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -303,7 +645,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -402,7 +744,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -500,7 +842,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -594,7 +936,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -680,7 +1022,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -837,7 +1179,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
+      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -864,344 +1206,6 @@
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 用来推断函数 F 的返回值类型</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> FR typename result_of<span class="string">&lt;typename decay&lt;F&gt;</span>::type(typename decay<span class="string">&lt;Args&gt;</span>::type...)&gt;::type</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 不含执行策略</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">F</span>, <span class="keyword">class</span>... Args&gt;</span><br><span class="line"><span class="function">future&lt;FR&gt; <span class="title">async</span><span class="params">(F&amp;&amp; f, Args&amp;&amp;... args)</span></span>;</span><br><span class="line"><span class="comment">// 含执行策略</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">F</span>, <span class="keyword">class</span>... Args&gt;</span><br><span class="line"><span class="function">future&lt;FR&gt; <span class="title">async</span><span class="params">(launch policy, F&amp;&amp; f, Args&amp;&amp;... args)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行策略定义了 async 执行 F 的方式，是一个枚举值</span></span><br><span class="line"><span class="keyword">enum class</span> <span class="title class_">launch</span> </span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 启动一个新线程执行任务</span></span><br><span class="line">    async,</span><br><span class="line">    <span class="comment">// 延迟执行任务，调用 get 或者 wait 时才会执行，不会创建线程，惰性执行在当前线程</span></span><br><span class="line">    deferred,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不含加载策略的版本，使用的是 std::launch::async|std::launch::deferred</span></span><br><span class="line"><span class="comment">// 即可能是 std::lauch::async 也可能是 std::lauch::deferred</span></span><br></pre></td></tr></table></figure>
 
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">auto</span> print = [](<span class="type">char</span> c) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">      std::cout &lt;&lt; c;</span><br><span class="line">      std::cout.<span class="built_in">flush</span>();</span><br><span class="line">      std::this_thread::<span class="built_in">sleep_for</span>(std::chrono::<span class="built_in">milliseconds</span>(<span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 不同launch策略的效果</span></span><br><span class="line">  std::launch policies[] = &#123;std::launch::async, std::launch::deferred&#125;;</span><br><span class="line">  <span class="type">const</span> <span class="type">char</span> *names[] = &#123;<span class="string">&quot;async   &quot;</span>, <span class="string">&quot;deferred&quot;</span>&#125;;</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="built_in">sizeof</span>(policies) / <span class="built_in">sizeof</span>(policies[<span class="number">0</span>]); i++) &#123;</span><br><span class="line">    std::cout &lt;&lt; names[i] &lt;&lt; <span class="string">&quot;: &quot;</span>;</span><br><span class="line">    std::cout.<span class="built_in">flush</span>();</span><br><span class="line">    std::future&lt;<span class="type">void</span>&gt; f1 = std::<span class="built_in">async</span>(policies[i], print, <span class="string">&#x27;+&#x27;</span>);</span><br><span class="line">    std::future&lt;<span class="type">void</span>&gt; f2 = std::<span class="built_in">async</span>(policies[i], print, <span class="string">&#x27;-&#x27;</span>);</span><br><span class="line">    f1.<span class="built_in">get</span>();</span><br><span class="line">    f2.<span class="built_in">get</span>();</span><br><span class="line">    std::cout &lt;&lt; std::endl;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// async   : +-+-+-+--+-++-+--+-+</span></span><br><span class="line"><span class="comment">// deferred: ++++++++++----------</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/26/cpp%E6%A0%87%E5%87%86%E5%BA%93-type-trait/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/26/cpp%E6%A0%87%E5%87%86%E5%BA%93-type-trait/" class="post-title-link" itemprop="url">type_trait</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-26 19:46:35" itemprop="dateCreated datePublished" datetime="2023-05-26T19:46:35+08:00">2023-05-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><code>type_trait</code> 头文件定义了一系列基于编译时模板的接口，用于查询或修改类型的属性</p>
-<h2 id="获取类型属性"><a href="#获取类型属性" class="headerlink" title="获取类型属性"></a>获取类型属性</h2><p>模板类中都提供了一个静态成员变量 <code>bool value</code> 标识结果</p>
-<p>从 cpp17 起直接使用 <code>std::is_xxx_v&lt;T&gt;</code> 来获取 <code>std::is_xxx&lt;T&gt;::value</code></p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在考虑 cv 的情况下，判断是否是同一类型</span></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">U</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">is_same</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">Base</span>, <span class="keyword">class</span> <span class="title class_">Derived</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">is_base_of</span>;</span><br></pre></td></tr></table></figure>
-
-<h2 id="调整类型属性"><a href="#调整类型属性" class="headerlink" title="调整类型属性"></a>调整类型属性</h2><p>模板类中定义了一个类型别名 <code>type</code> 表示目标类型</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">remove_cv</span>;</span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">add_cv</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">remove_const</span>;</span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">add_const</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">remove_volatile</span>;</span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">add_volatile</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">remove_reference</span>;</span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">add_rvalue_reference</span>;</span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">add_lavalue_reference</span>;</span><br></pre></td></tr></table></figure>
-
-<p>如果 <code>T</code> 是函数、引用和 cv 属性是，<code>std::add_const</code> 会失效</p>
-<h2 id="类型转换"><a href="#类型转换" class="headerlink" title="类型转换"></a>类型转换</h2><ul>
-<li><code>std::decay</code> 用于类型退化，将右值转换成左值，数组转换成指针，函数转换成指针</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">decay</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> U&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">decay_equiv</span> : </span><br><span class="line">    std::is_same&lt;<span class="keyword">typename</span> std::decay&lt;T&gt;::type, U&gt;::type </span><br><span class="line">&#123;&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::cout &lt;&lt; std::boolalpha</span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="type">int</span>, <span class="type">int</span>&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="type">int</span>&amp;, <span class="type">int</span>&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="type">int</span>&amp;&amp;, <span class="type">int</span>&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="type">const</span> <span class="type">int</span>&amp;, <span class="type">int</span>&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="type">int</span>[<span class="number">2</span>], <span class="type">int</span>*&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="built_in">int</span>(<span class="type">int</span>), <span class="built_in">int</span>(*)(<span class="type">int</span>)&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>std::enable_if</code> 主要用于 SFINAE 场景中，通过对模板函数、模板类中的模板类型进行谓词判断，从而使程序能够选择合适的模板函数重载版本或模板类特化版本</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">接受两个模板参数，第一个参数为布尔条件，第二个参数为类型</span></span><br><span class="line"><span class="comment">当条件为真时，有一个成员 typedef，且是第二个模板参数</span></span><br><span class="line"><span class="comment">当条件为假时，不存在成员 typedef</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="type">bool</span> B, <span class="keyword">class</span> <span class="title class_">T</span> = <span class="type">void</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> enable_if;</span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">enable_if</span>&lt;<span class="literal">true</span>, T&gt; &#123; <span class="keyword">using</span> type = T; &#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">T</span> &#123;</span><br><span class="line">    <span class="keyword">enum</span> &#123; <span class="type">int_t</span>, <span class="type">float_t</span> &#125; type;</span><br><span class="line">    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> Integer,</span><br><span class="line">              std::<span class="type">enable_if_t</span>&lt;std::is_integral&lt;Integer&gt;::value, <span class="type">bool</span>&gt; = <span class="literal">true</span></span><br><span class="line">    &gt;</span><br><span class="line">    <span class="built_in">T</span>(Integer) : <span class="built_in">type</span>(<span class="type">int_t</span>) &#123;&#125;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> Floating,</span><br><span class="line">              std::<span class="type">enable_if_t</span>&lt;std::is_floating_point&lt;Floating&gt;::value, <span class="type">bool</span>&gt; = <span class="literal">true</span></span><br><span class="line">    &gt;</span><br><span class="line">    <span class="built_in">T</span>(Floating) : <span class="built_in">type</span>(<span class="type">float_t</span>) &#123;&#125; <span class="comment">// OK</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>std::invoke_result</code> 和 <code>std::result_of</code> 获取可调用对象的返回值类型</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">F</span>, <span class="keyword">class</span>... ArgTypes &gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">result_of</span>&lt;<span class="built_in">F</span>(ArgTypes...)&gt;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">F</span>, <span class="keyword">class</span>... ArgTypes&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">invoke_result</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">S</span> &#123;</span><br><span class="line">    <span class="function"><span class="type">double</span> <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="type">char</span>, <span class="type">int</span>&amp;)</span></span>;</span><br><span class="line">    <span class="function"><span class="type">float</span> <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="type">int</span>)</span> </span>&#123; <span class="keyword">return</span> <span class="number">1.0</span>;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;</span><br><span class="line"><span class="keyword">typename</span> std::result_of&lt;<span class="built_in">T</span>(<span class="type">int</span>)&gt;::<span class="function">type <span class="title">f</span><span class="params">(T&amp; t)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;overload of f for callable T\n&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">t</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T, <span class="keyword">class</span> U&gt;</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">f</span><span class="params">(U u)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;overload of f for non-callable T\n&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> u;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::result_of&lt;<span class="built_in">S</span>(<span class="type">char</span>, <span class="type">int</span>&amp;)&gt;::type d = <span class="number">3.14</span>; <span class="comment">// d has type double</span></span><br><span class="line">    <span class="built_in">static_assert</span>(std::is_same&lt;<span class="keyword">decltype</span>(d), <span class="type">double</span>&gt;::value, <span class="string">&quot;&quot;</span>);</span><br><span class="line"> </span><br><span class="line">    std::invoke_result&lt;S,<span class="type">char</span>,<span class="type">int</span>&amp;&gt;::type b = <span class="number">3.14</span>;</span><br><span class="line">    <span class="built_in">static_assert</span>(std::is_same&lt;<span class="keyword">decltype</span>(b), <span class="type">double</span>&gt;::value, <span class="string">&quot;&quot;</span>);</span><br><span class="line"> </span><br><span class="line">    std::result_of&lt;<span class="built_in">S</span>(<span class="type">int</span>)&gt;::type x = <span class="number">3.14</span>; <span class="comment">// x has type float</span></span><br><span class="line">    <span class="built_in">static_assert</span>(std::is_same&lt;<span class="keyword">decltype</span>(x), <span class="type">float</span>&gt;::value, <span class="string">&quot;&quot;</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">C</span> &#123; <span class="function"><span class="type">double</span> <span class="title">Func</span><span class="params">(<span class="type">char</span>, <span class="type">int</span>&amp;)</span></span>; &#125;;</span><br><span class="line">    std::result_of&lt;<span class="keyword">decltype</span>(&amp;C::Func)(C, <span class="type">char</span>, <span class="type">int</span>&amp;)&gt;::type g = <span class="number">3.14</span>;</span><br><span class="line">    <span class="built_in">static_assert</span>(std::is_same&lt;<span class="keyword">decltype</span>(g), <span class="type">double</span>&gt;::value, <span class="string">&quot;&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>std::conditional</code> 编译时进行类型选择</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt; <span class="type">bool</span> B, <span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">F</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">conditional</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">typedef</span> std::conditional&lt;<span class="literal">true</span>, <span class="type">int</span>, <span class="type">double</span>&gt;::type Type1;</span><br><span class="line">    <span class="keyword">typedef</span> std::conditional&lt;<span class="literal">false</span>, <span class="type">int</span>, <span class="type">double</span>&gt;::type Type2;</span><br><span class="line">    <span class="keyword">typedef</span> std::conditional&lt;<span class="built_in">sizeof</span>(<span class="type">int</span>) &gt;= <span class="built_in">sizeof</span>(<span class="type">double</span>), <span class="type">int</span>, <span class="type">double</span>&gt;::type Type3;</span><br><span class="line"> </span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">typeid</span>(Type1).<span class="built_in">name</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">typeid</span>(Type2).<span class="built_in">name</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">typeid</span>(Type3).<span class="built_in">name</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/26/cpp%E6%A0%87%E5%87%86%E5%BA%93-typeinfo/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/26/cpp%E6%A0%87%E5%87%86%E5%BA%93-typeinfo/" class="post-title-link" itemprop="url">typeinfo</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-26 19:45:09" itemprop="dateCreated datePublished" datetime="2023-05-26T19:45:09+08:00">2023-05-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>引入头文件 <code>#include &lt;typeinfo&gt;</code></p>
-<p>主要包括三个类 <code>std::type_info</code>、<code>std::bad_typeid</code>、<code>std::bad_cast</code></p>
-<h2 id="std-type-info"><a href="#std-type-info" class="headerlink" title="std::type_info"></a>std::type_info</h2><p><code>std::type_info</code> 类保存了类型中编译器特定实现的信息，包括类型的名称以及比较两个类型是否相等或排序顺序的方法</p>
-<p>获取 <code>std::type_info</code> 对象需要通过 <code>typeid</code> 操作符</p>
-<p><code>std::type_info</code> 是禁止拷贝构造和拷贝赋值的</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">typeid</span> ( type )</span><br><span class="line"><span class="built_in">typeid</span> ( expression )</span><br><span class="line"><span class="comment">// 顶层的 cv 限制符是会被忽略的 typeid(const T) == typeid(T)</span></span><br><span class="line"><span class="comment">// 当作用于非多态类型时，计算结果发生在编译时</span></span><br><span class="line"><span class="comment">// 当作用于多态类型时，计算结果发生在运行时</span></span><br></pre></td></tr></table></figure>
-
-<p><code>std::type_info</code> 提供成员函数 <code>std::size_t hash_code()</code>、<code>const char* name()</code>、<code>bool before(const type_info&amp; rhs)</code>、<code>operator==</code></p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Base</span> &#123; <span class="keyword">virtual</span> ~<span class="built_in">Base</span>() = <span class="keyword">default</span>; &#125;;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Derived</span> : Base &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">func</span><span class="params">(<span class="type">const</span> Base* pb)</span> </span>&#123;</span><br><span class="line">  <span class="type">const</span> <span class="keyword">auto</span> type = <span class="built_in">typeid</span>(*pb);</span><br><span class="line">	std::cout &lt;&lt; <span class="string">&quot;name: &quot;</span> &lt;&lt; type.<span class="built_in">name</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;  <span class="comment">// 4Base</span></span><br><span class="line">	std::cout &lt;&lt; <span class="string">&quot;hash_code: &quot;</span> &lt;&lt; type.<span class="built_in">hash_code</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;  <span class="comment">// 4Base</span></span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	Base b1;</span><br><span class="line">	Derived d1;</span><br><span class="line">	<span class="type">const</span> Base *pb = &amp;b1;</span><br><span class="line">  <span class="comment">// name: 4Base</span></span><br><span class="line">  <span class="comment">// hash_code: 1646098473708828226</span></span><br><span class="line">  <span class="built_in">func</span>(pb);</span><br><span class="line">	pb = &amp;d1;</span><br><span class="line">  <span class="comment">// name: 7Derived</span></span><br><span class="line">  <span class="comment">// hash_code: 6509159466577508456</span></span><br><span class="line">  <span class="built_in">func</span>(pb);</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">A</span> &#123;</span><br><span class="line">    <span class="keyword">virtual</span> ~<span class="built_in">A</span>() &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">B</span> : A &#123;&#125;;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">C</span> : A &#123;&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">using</span> TypeInfoRef = std::reference_wrapper&lt;<span class="type">const</span> std::type_info&gt;;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Hasher</span> &#123;</span><br><span class="line">  <span class="function">std::<span class="type">size_t</span> <span class="title">operator</span><span class="params">()</span><span class="params">(TypeInfoRef code)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> code.<span class="built_in">get</span>().<span class="built_in">hash_code</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">EqualTo</span> &#123;</span><br><span class="line">  <span class="function"><span class="type">bool</span> <span class="title">operator</span><span class="params">()</span><span class="params">(TypeInfoRef lhs, TypeInfoRef rhs)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> lhs.<span class="built_in">get</span>() == rhs.<span class="built_in">get</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  std::unordered_map&lt;TypeInfoRef, std::string, Hasher, EqualTo&gt; type_names;</span><br><span class="line"></span><br><span class="line">  type_names[<span class="built_in">typeid</span>(<span class="type">int</span>)] = <span class="string">&quot;int&quot;</span>;</span><br><span class="line">  type_names[<span class="built_in">typeid</span>(<span class="type">double</span>)] = <span class="string">&quot;double&quot;</span>;</span><br><span class="line">  type_names[<span class="built_in">typeid</span>(A)] = <span class="string">&quot;A&quot;</span>;</span><br><span class="line">  type_names[<span class="built_in">typeid</span>(B)] = <span class="string">&quot;B&quot;</span>;</span><br><span class="line">  type_names[<span class="built_in">typeid</span>(C)] = <span class="string">&quot;C&quot;</span>;</span><br><span class="line"></span><br><span class="line">  <span class="type">int</span> i;</span><br><span class="line">  <span class="type">double</span> d;</span><br><span class="line">  A a;</span><br><span class="line"></span><br><span class="line">  <span class="function">std::unique_ptr&lt;A&gt; <span class="title">b</span><span class="params">(<span class="keyword">new</span> B)</span></span>;</span><br><span class="line">  <span class="function">std::unique_ptr&lt;A&gt; <span class="title">c</span><span class="params">(<span class="keyword">new</span> C)</span></span>;</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;i is &quot;</span> &lt;&lt; type_names[<span class="built_in">typeid</span>(i)] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;d is &quot;</span> &lt;&lt; type_names[<span class="built_in">typeid</span>(d)] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;a is &quot;</span> &lt;&lt; type_names[<span class="built_in">typeid</span>(a)] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;b is &quot;</span> &lt;&lt; type_names[<span class="built_in">typeid</span>(*b)] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;c is &quot;</span> &lt;&lt; type_names[<span class="built_in">typeid</span>(*c)] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  <span class="comment">// i is int</span></span><br><span class="line">  <span class="comment">// d is double</span></span><br><span class="line">  <span class="comment">// a is A</span></span><br><span class="line">  <span class="comment">// b is B</span></span><br><span class="line">  <span class="comment">// c is C</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="std-bad-typeid"><a href="#std-bad-typeid" class="headerlink" title="std::bad_typeid"></a>std::bad_typeid</h2><p>当 <code>typeid</code> 应用于多态类型的解引用空指针值时，将引发此类型的异常</p>
-<h2 id="std-bad-cast"><a href="#std-bad-cast" class="headerlink" title="std::bad_cast"></a>std::bad_cast</h2><p>当 <code>dynamic_cast</code> 的运行时检查失败会抛出此类型的异常</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/26/cpp%E7%BB%86%E8%8A%82-POD%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/26/cpp%E7%BB%86%E8%8A%82-POD%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" class="post-title-link" itemprop="url">POD 数据类型</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-26 19:35:48" itemprop="dateCreated datePublished" datetime="2023-05-26T19:35:48+08:00">2023-05-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-09-27 20:12:56" itemprop="dateModified" datetime="2023-09-27T20:12:56+08:00">2023-09-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>POD(Plain Old Data) 的引入主要是为了与 c 兼容，或者说 POD 就是与 c 兼容的那部分数据类型</p>
-<p>POD 类型同时是平凡（trivial）类型和标准布局（standard-layout）类型</p>
-<p>一个 POD 类型的类，其非静态成员变量也必须是 POD 的，对静态成员变量和成员函数则没有这个要求</p>
-<h2 id="平凡类型"><a href="#平凡类型" class="headerlink" title="平凡类型"></a>平凡类型</h2><p>平凡类型需要同时满足：</p>
-<ol>
-<li><p>没有虚函数或虚基类</p>
-</li>
-<li><p>由编译器生成默认的默认构造函数、拷贝构造函数、移动构造函数、赋值运算符、移动赋值运算符和析构函数</p>
-</li>
-<li><p>成员同样需要满足条件 1 和 2</p>
-</li>
-</ol>
-<p>平凡类型具有如下属性：</p>
-<ol>
-<li><p>占据一块连续的内存区域</p>
-</li>
-<li><p>由于对齐要求，成员变量之间可以填充对齐字节</p>
-</li>
-<li><p>可以使用 <code>memcpy</code> 进行对象拷贝</p>
-</li>
-<li><p>可以将一个平凡的类型通过 <code>memcpy</code> 放入 <code>char</code> 或者 <code>unsigned char</code> 数组，然后可以把数组内的内容重新组装成一个该类型对象</p>
-</li>
-<li><p>允许有多个不同的访问控制符，但是在这种情况下编译器有可能对其进行重排，导致非平凡</p>
-</li>
-</ol>
-<h2 id="标准布局类型"><a href="#标准布局类型" class="headerlink" title="标准布局类型"></a>标准布局类型</h2><p>标准布局类型指不使用 c 中不存在的而在 cpp 中存在的某些功能或者特性</p>
-<p>如果某个类是标准布局，那么可以通过 <code>memcpy</code> 进行复制，而且可以与 c 语言中定义的同种类型进行交互</p>
-<p>平凡类型类型需要同时满足：</p>
-<ol>
-<li><p>没有虚函数或者虚基类</p>
-</li>
-<li><p>没有引用类型的非静态成员变量</p>
-</li>
-<li><p>所有的非静态成员变量具有相同的访问控制权限</p>
-</li>
-<li><p>所有的非静态成员变量和基类都是标准布局</p>
-</li>
-<li><p>没有多重继承导致的菱形问题</p>
-</li>
-<li><p>子类中的第一个非静态成员的类型与其基类不同</p>
-</li>
-<li><p>在 <code>class</code> 或者 <code>struct</code> 继承时，要么子类有非静态成员变量，要么父类有非静态成员变量</p>
-</li>
-</ol>
-<h2 id="弃用-POD"><a href="#弃用-POD" class="headerlink" title="弃用 POD"></a>弃用 POD</h2><p>自 cpp20 起，标准弃用了 POD 以及相应的 <code>std::is_pod</code> 和 <code>std::is_pod_v</code></p>
-
       
     </div>
 
