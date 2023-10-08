@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">427</span>
+          <span class="site-state-item-count">418</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,528 +150,6 @@
     </div>
 
     <div class="main-inner index posts-expand">
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-dict/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/Redis-dict/" class="post-title-link" itemprop="url">哈希表</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:24:30" itemprop="dateCreated datePublished" datetime="2023-04-28T21:24:30+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">dictEntry</span> &#123;</span><br><span class="line">    <span class="type">void</span> *key;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        <span class="type">void</span> *val;</span><br><span class="line">        <span class="type">uint64_t</span> u64;</span><br><span class="line">        <span class="type">int64_t</span> s64;</span><br><span class="line">        <span class="type">double</span> d;</span><br><span class="line">    &#125; v;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">dictEntry</span> *next;  <span class="comment">// 多个哈希值相同的 key 组成链表</span></span><br><span class="line">&#125; dictEntry;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 一些哈希表要用到的函数</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">dictType</span> &#123;</span><br><span class="line">    <span class="comment">// 哈希函数</span></span><br><span class="line">    <span class="built_in">uint64_t</span> (*hashFunction)(<span class="type">const</span> <span class="type">void</span> *key);</span><br><span class="line">    <span class="comment">// 复制键函数</span></span><br><span class="line">    <span class="type">void</span> *(*keyDup)(<span class="type">void</span> *privdata, <span class="type">const</span> <span class="type">void</span> *key);</span><br><span class="line">    <span class="comment">// 复制值函数</span></span><br><span class="line">    <span class="type">void</span> *(*valDup)(<span class="type">void</span> *privdata, <span class="type">const</span> <span class="type">void</span> *obj);</span><br><span class="line">    <span class="comment">// 对比键函数</span></span><br><span class="line">    <span class="built_in">int</span> (*keyCompare)(<span class="type">void</span> *privdata, <span class="type">const</span> <span class="type">void</span> *key1, <span class="type">const</span> <span class="type">void</span> *key2);</span><br><span class="line">    <span class="comment">// 销毁键函数</span></span><br><span class="line">    <span class="built_in">void</span> (*keyDestructor)(<span class="type">void</span> *privdata, <span class="type">void</span> *key);</span><br><span class="line">    <span class="comment">// 销毁值函数</span></span><br><span class="line">    <span class="built_in">void</span> (*valDestructor)(<span class="type">void</span> *privdata, <span class="type">void</span> *obj);</span><br><span class="line">    <span class="comment">// 判断是否需要 rehash</span></span><br><span class="line">    <span class="built_in">int</span> (*expandAllowed)(<span class="type">size_t</span> moreMem, <span class="type">double</span> usedRatio);</span><br><span class="line">&#125; dictType;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 实际的哈希表</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">dictht</span> &#123;</span><br><span class="line">    dictEntry **table;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> size;  <span class="comment">// 默认值 0</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> sizemask;  <span class="comment">// 哈希表大小掩码，用于计算索引，默认值 0</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> used;  <span class="comment">// 已有节点数，包括 bucket 中的节点，默认值 0</span></span><br><span class="line">&#125; dictht;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 暴露的结构</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">dict</span> &#123;</span><br><span class="line">    dictType *type;</span><br><span class="line">    <span class="type">void</span> *privdata;  <span class="comment">// 私有数据</span></span><br><span class="line">    dictht ht[<span class="number">2</span>];  <span class="comment">// 两个哈希表用于渐进 rehash</span></span><br><span class="line">    <span class="type">long</span> rehashidx; <span class="comment">// -1 表示没有在进行 rehash，默认值 -1</span></span><br><span class="line">                    <span class="comment">// &gt;= 0 时表示 dictht.table 中的下标</span></span><br><span class="line">    <span class="type">int16_t</span> pauserehash; <span class="comment">// &gt;0 表示 rehash 暂停中，&lt;0 表示错误，默认值 0</span></span><br><span class="line">&#125; dict;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Add"><a href="#Add" class="headerlink" title="Add"></a>Add</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">dictAdd</span><span class="params">(dict *d, <span class="type">void</span> *key, <span class="type">void</span> *val)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    dictEntry *entry = <span class="built_in">dictAddRaw</span>(d,key,<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!entry) <span class="keyword">return</span> DICT_ERR;</span><br><span class="line">    <span class="built_in">dictSetVal</span>(d, entry, val);</span><br><span class="line">    <span class="keyword">return</span> DICT_OK;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * dictAddRaw 插入 entry 但并不设置值，而是将 dictEntry 返回给调用方由调用方设置值</span></span><br><span class="line"><span class="comment"> * 返回 dictEntry 而不设置值，主要是因为不想在存储 value 的指针</span></span><br><span class="line"><span class="comment"> * 返回值：</span></span><br><span class="line"><span class="comment"> * 当 key 已存在时，返回 null，并且如果 *existing 非空的话则用 *existing 覆盖</span></span><br><span class="line"><span class="comment"> * 当 key 不存在时，返回插入的 entry</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function">dictEntry *<span class="title">dictAddRaw</span><span class="params">(dict *d, <span class="type">void</span> *key, dictEntry **existing)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">long</span> index;</span><br><span class="line">    dictEntry *entry;</span><br><span class="line">    dictht *ht;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 顺带 rehash 一个 bucket</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">dictIsRehashing</span>(d)) _dictRehashStep(d);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get the index of the new element, or -1 if</span></span><br><span class="line"><span class="comment">     * the element already exists. */</span></span><br><span class="line">    <span class="keyword">if</span> ((index = _dictKeyIndex(d, key, <span class="built_in">dictHashKey</span>(d,key), existing)) == <span class="number">-1</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Allocate the memory and store the new entry.</span></span><br><span class="line"><span class="comment">     * Insert the element in top, with the assumption that in a database</span></span><br><span class="line"><span class="comment">     * system it is more likely that recently added entries are accessed</span></span><br><span class="line"><span class="comment">     * more frequently. */</span></span><br><span class="line">    ht = <span class="built_in">dictIsRehashing</span>(d) ? &amp;d-&gt;ht[<span class="number">1</span>] : &amp;d-&gt;ht[<span class="number">0</span>];</span><br><span class="line">    entry = <span class="built_in">zmalloc</span>(<span class="built_in">sizeof</span>(*entry));</span><br><span class="line">    entry-&gt;next = ht-&gt;table[index];</span><br><span class="line">    ht-&gt;table[index] = entry;</span><br><span class="line">    ht-&gt;used++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Set the hash entry fields. */</span></span><br><span class="line">    <span class="built_in">dictSetKey</span>(d, entry, key);</span><br><span class="line">    <span class="keyword">return</span> entry;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 返回 key 对应的 dict.dictht.dictEntry 下标</span></span><br><span class="line"><span class="comment"> * 如果 key 对应下标已存在，即哈希冲突，返回 -1</span></span><br><span class="line"><span class="comment"> * and the optional output parameter may be filled.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 如果正在进行 rehash，则计算 key 在新 dictht 中的下标</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="type">long</span> _dictKeyIndex(dict *d, <span class="type">const</span> <span class="type">void</span> *key, <span class="type">uint64_t</span> hash, dictEntry **existing)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> idx, table;</span><br><span class="line">    dictEntry *he;</span><br><span class="line">    <span class="keyword">if</span> (existing) *existing = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Expand the hash table if needed */</span></span><br><span class="line">    <span class="keyword">if</span> (_dictExpandIfNeeded(d) == DICT_ERR)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">for</span> (table = <span class="number">0</span>; table &lt;= <span class="number">1</span>; table++) &#123;</span><br><span class="line">        idx = hash &amp; d-&gt;ht[table].sizemask;</span><br><span class="line">        <span class="comment">/* Search if this slot does not already contain the given key */</span></span><br><span class="line">        he = d-&gt;ht[table].table[idx];</span><br><span class="line">        <span class="keyword">while</span>(he) &#123;</span><br><span class="line">            <span class="keyword">if</span> (key==he-&gt;key || <span class="built_in">dictCompareKeys</span>(d, key, he-&gt;key)) &#123;</span><br><span class="line">                <span class="keyword">if</span> (existing) *existing = he;</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            he = he-&gt;next;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">dictIsRehashing</span>(d)) <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> idx;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="rehash"><a href="#rehash" class="headerlink" title="rehash"></a>rehash</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 通过 dict.rehashidx 判断是否在 rehash</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> dictIsRehashing(d) ((d)-&gt;rehashidx != -1)</span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> _dictRehashStep(dict* d) &#123;</span><br><span class="line">    <span class="keyword">if</span> (d-&gt;pauserehash == <span class="number">0</span>) <span class="built_in">dictRehash</span>(d, <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 执行渐进式 rehash 迁移 n 个元素</span></span><br><span class="line"><span class="comment"> * 当仍有 key 需要迁移时返回 1，否则返回 0</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * 考虑到不要阻塞太长时间，所以该步骤只会最多访问 N*10 个空 bucket</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">dictRehash</span><span class="params">(dict *d, <span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> empty_visits = n*<span class="number">10</span>;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">dictIsRehashing</span>(d)) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(n-- &amp;&amp; d-&gt;ht[<span class="number">0</span>].used != <span class="number">0</span>) &#123;</span><br><span class="line">        dictEntry *de, *nextde;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">assert</span>(d-&gt;ht[<span class="number">0</span>].size &gt; (<span class="type">unsigned</span> <span class="type">long</span>)d-&gt;rehashidx);</span><br><span class="line">        <span class="keyword">while</span>(d-&gt;ht[<span class="number">0</span>].table[d-&gt;rehashidx] == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            d-&gt;rehashidx++;</span><br><span class="line">            <span class="comment">// 最多访问 10*n 个空 bucket</span></span><br><span class="line">            <span class="keyword">if</span> (--empty_visits == <span class="number">0</span>) <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        de = d-&gt;ht[<span class="number">0</span>].table[d-&gt;rehashidx];</span><br><span class="line">        <span class="keyword">while</span>(de) &#123;</span><br><span class="line">            <span class="type">uint64_t</span> h;</span><br><span class="line"></span><br><span class="line">            nextde = de-&gt;next;</span><br><span class="line">            <span class="comment">// 计算 rehash 后的 key</span></span><br><span class="line">            h = <span class="built_in">dictHashKey</span>(d, de-&gt;key) &amp; d-&gt;ht[<span class="number">1</span>].sizemask;</span><br><span class="line">            <span class="comment">// 将 ht[0] 的数据放入 ht[1] 中</span></span><br><span class="line">            de-&gt;next = d-&gt;ht[<span class="number">1</span>].table[h];</span><br><span class="line">            d-&gt;ht[<span class="number">1</span>].table[h] = de;</span><br><span class="line">            d-&gt;ht[<span class="number">0</span>].used--;</span><br><span class="line">            d-&gt;ht[<span class="number">1</span>].used++;</span><br><span class="line">            de = nextde;</span><br><span class="line">        &#125;</span><br><span class="line">        d-&gt;ht[<span class="number">0</span>].table[d-&gt;rehashidx] = <span class="literal">NULL</span>;</span><br><span class="line">        d-&gt;rehashidx++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 当 ht[0] 全部迁移完成，交换 ht[0] 和 ht[1]</span></span><br><span class="line">    <span class="keyword">if</span> (d-&gt;ht[<span class="number">0</span>].used == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">zfree</span>(d-&gt;ht[<span class="number">0</span>].table);</span><br><span class="line">        d-&gt;ht[<span class="number">0</span>] = d-&gt;ht[<span class="number">1</span>];</span><br><span class="line">        _dictReset(&amp;d-&gt;ht[<span class="number">1</span>]);</span><br><span class="line">        d-&gt;rehashidx = <span class="number">-1</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* More to rehash... */</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/Redis-%E5%AD%97%E8%8A%82%E5%BA%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/Redis-%E5%AD%97%E8%8A%82%E5%BA%8F/" class="post-title-link" itemprop="url">字节序</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:22:49" itemprop="dateCreated datePublished" datetime="2023-04-28T21:22:49+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>redis 试图用小端存储所有内容，但由于需要向后兼容，因此仍有一部分使用的大端序</p>
-<p>ziplist、intset 和 zipmap 中有许多转换操作，因为它们需要被序列化后通过 RDB 写入文件</p>
-<ul>
-<li><p>本机序调用函数，将本机序转成小端</p>
-</li>
-<li><p>小端调用函数，将小端转成本机序</p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 只有本机是大端时才执行实际的转换</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (BYTE_ORDER == LITTLE_ENDIAN)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev16ifbe(p) ((void)(0))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev32ifbe(p) ((void)(0))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev64ifbe(p) ((void)(0))</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev16ifbe(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev32ifbe(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev64ifbe(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev16ifbe(p) memrev16(p)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev32ifbe(p) memrev32(p)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> memrev64ifbe(p) memrev64(p)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev16ifbe(v) intrev16(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev32ifbe(v) intrev32(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> intrev64ifbe(v) intrev64(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* The functions htonu64() and ntohu64() convert the specified value to</span></span><br><span class="line"><span class="comment"> * network byte ordering and back. In big endian systems they are no-ops. */</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> (BYTE_ORDER == BIG_ENDIAN)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> htonu64(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ntohu64(v) (v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> htonu64(v) intrev64(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> ntohu64(v) intrev64(v)</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
-
-<h2 id="memrev16"><a href="#memrev16" class="headerlink" title="memrev16"></a>memrev16</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">memrev16</span><span class="params">(<span class="type">void</span> *p)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *x = p, t;</span><br><span class="line"></span><br><span class="line">    t = x[<span class="number">0</span>];</span><br><span class="line">    x[<span class="number">0</span>] = x[<span class="number">1</span>];</span><br><span class="line">    x[<span class="number">1</span>] = t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="memrev32"><a href="#memrev32" class="headerlink" title="memrev32"></a>memrev32</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">memrev32</span><span class="params">(<span class="type">void</span> *p)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *x = p, t;</span><br><span class="line"></span><br><span class="line">    t = x[<span class="number">0</span>];</span><br><span class="line">    x[<span class="number">0</span>] = x[<span class="number">3</span>];</span><br><span class="line">    x[<span class="number">3</span>] = t;</span><br><span class="line">    t = x[<span class="number">1</span>];</span><br><span class="line">    x[<span class="number">1</span>] = x[<span class="number">2</span>];</span><br><span class="line">    x[<span class="number">2</span>] = t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="memrev64"><a href="#memrev64" class="headerlink" title="memrev64"></a>memrev64</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">memrev64</span><span class="params">(<span class="type">void</span> *p)</span> </span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">char</span> *x = p, t;</span><br><span class="line"></span><br><span class="line">    t = x[<span class="number">0</span>];</span><br><span class="line">    x[<span class="number">0</span>] = x[<span class="number">7</span>];</span><br><span class="line">    x[<span class="number">7</span>] = t;</span><br><span class="line">    t = x[<span class="number">1</span>];</span><br><span class="line">    x[<span class="number">1</span>] = x[<span class="number">6</span>];</span><br><span class="line">    x[<span class="number">6</span>] = t;</span><br><span class="line">    t = x[<span class="number">2</span>];</span><br><span class="line">    x[<span class="number">2</span>] = x[<span class="number">5</span>];</span><br><span class="line">    x[<span class="number">5</span>] = t;</span><br><span class="line">    t = x[<span class="number">3</span>];</span><br><span class="line">    x[<span class="number">3</span>] = x[<span class="number">4</span>];</span><br><span class="line">    x[<span class="number">4</span>] = t;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="intrev16"><a href="#intrev16" class="headerlink" title="intrev16"></a>intrev16</h2><p>直接调用 <code>memrev16</code></p>
-<h2 id="intrev32"><a href="#intrev32" class="headerlink" title="intrev32"></a>intrev32</h2><p>直接调用 <code>memrev32</code></p>
-<h2 id="intrev64"><a href="#intrev64" class="headerlink" title="intrev64"></a>intrev64</h2><p>直接调用 <code>memrev64</code></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6/" class="post-title-link" itemprop="url">文件描述符</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:07:09" itemprop="dateCreated datePublished" datetime="2023-04-28T21:07:09+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">文件系统</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Linux 系统中把一切都看做是文件。当进程打开现有文件或创建新文件时，内核向进程返回一个文件描述符，文件描述符就是内核为了高效管理已被打开的文件所创建的索引，用来指向被打开的文件，所有执行 IO 操作的系统调用都会通过文件描述符</p>
-<p>每个文件描述符会与一个打开的文件相对应，不同的文件描述符也可能指向同一个文件，相同的文件可以被不同的进程打开，也可以在同一个进程被多次打开</p>
-<p>常见的文件描述符是 0、1、2，分别表示标准输入、标准输出和错误输出。一个进程创建时，这个三个文件就也被它打开了</p>
-<p>系统为维护文件描述符，建立了三个表：进程级的文件描述符表、系统级的文件描述符表和文件系统的 inode 表</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6/01.png" class="">
-
-<ul>
-<li><p>进程级文件描述表底层是一个数组，索引从 0 开始，索引即为文件描述符</p>
-</li>
-<li><p>系统级文件描述符表存储每个打开文件的信息，包括文件偏移量、状态标志以及 inode 指针</p>
-</li>
-<li><p>inode 表中的每个数据项都对应一个具体的磁盘文件</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" class="post-title-link" itemprop="url">文件系统</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:05:09" itemprop="dateCreated datePublished" datetime="2023-04-28T21:05:09+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">文件系统</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>文件系统本身是对存储设备上的文件进行组织管理的机制。组织方式不同，就会形成不同的文件系统。比如常见的 ext、xfs、zfs 以及网络文件系统 nfs 等等</p>
-<h2 id="文件存放"><a href="#文件存放" class="headerlink" title="文件存放"></a>文件存放</h2><p>数据在磁盘上的存放方式有两种，连续空间存放方式和非连续空间存放方式</p>
-<h3 id="连续空间存放方式"><a href="#连续空间存放方式" class="headerlink" title="连续空间存放方式"></a>连续空间存放方式</h3><ul>
-<li><p>文件存放在磁盘连续的物理空间中，并且因为文件的数据都是紧密相连所以读写效率很高，一次磁盘寻道就可以读出整个文件</p>
-</li>
-<li><p>必须先知道一个文件的大小，这样文件系统才会根据文件的大小在磁盘上找到一块连续的空间分配给文件</p>
-</li>
-<li><p>有磁盘空间碎片和文件长度扩展的缺陷</p>
-</li>
-</ul>
-<h3 id="非连续空间存放方式"><a href="#非连续空间存放方式" class="headerlink" title="非连续空间存放方式"></a>非连续空间存放方式</h3><p>非连续空间存放方式分为链表方式和索引方式</p>
-<p>链表的方式存放是离散的，不用连续的，从而可以消除磁盘碎片，大大提高磁盘空间的利用率，同时文件的长度可以动态扩展</p>
-<h4 id="隐式链表方式"><a href="#隐式链表方式" class="headerlink" title="隐式链表方式"></a>隐式链表方式</h4><p>隐式链表的实现方式是在文件头保存第一块和最后一块的位置，并且每个数据块里面留出一个指针空间用来存放下一个数据块的位置，从链头开始就可以顺着指针找到所有的数据块</p>
-<p>隐式链表的存放方式的缺点在于无法直接访问数据块，只能通过指针顺序访问文件，以及数据块指针消耗了一定的存储空间</p>
-<p>隐式链接分配的稳定性较差，系统在运行过程中由于软件或者硬件错误导致链表中的指针丢失或损坏，会导致文件数据的丢失</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/01.png" class="">
-
-<h4 id="显式链表方式"><a href="#显式链表方式" class="headerlink" title="显式链表方式"></a>显式链表方式</h4><p>显式链表把用于链接文件各数据块的指针显式地存放在内存的文件分配表 FAT 中，每个表项中存放磁盘块地址和下个表项指针</p>
-<p>一个磁盘对应一个 FAT</p>
-<p>由于查找记录的过程是在内存中进行的，因而不仅显著地提高了检索速度，而且大大减少了访问磁盘的次数，但也正是整个表都存放在内存中的关系，其不适用于大磁盘</p>
-<h4 id="索引方式"><a href="#索引方式" class="headerlink" title="索引方式"></a>索引方式</h4><p>索引方式通过在磁盘中为每个文件创建一个索引数据块，里面存放的是指向文件数据块的指针列表，并且文件头有索引数据块的指针，这样就可以通过文件头知道索引数据块的位置，再通过索引数据块里的索引信息找到对应的数据块</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/02.png" class="">
-
-<p>由于索引数据也是存放在磁盘块的，如果文件很小只需一块磁盘块，但还是需要额外分配一块来存放索引数据，所以缺陷之一就是存储索引带来的开销</p>
-<p>如果文件很大，大到一个索引数据块放不下索引信息，可以通过将链表和索引组合的方式来处理大文件的存放</p>
-<p>在索引数据块留出一个存放下一个索引数据块的指针，于是当一个索引数据块的索引信息用完了，就可以通过指针的方式，找到下一个索引数据块的信息。这种方式同时会有链表方式存在的问题，万一某个指针损坏了，后面的数据也就会无法读取了</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/03.png" class="">
-
-<p>也可以使用多级索引，通过一个索引块来存放多个索引数据块，一层套一层索引</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/04.png" class="">
-
-<h2 id="空闲空间管理"><a href="#空闲空间管理" class="headerlink" title="空闲空间管理"></a>空闲空间管理</h2><h3 id="空闲表"><a href="#空闲表" class="headerlink" title="空闲表"></a>空闲表</h3><p>为所有空闲空间建立一张表，表内容包括空闲区的第一个块号和该空闲区的块个数</p>
-<p>当请求分配磁盘空间时，系统依次扫描空闲表里的内容，直到找到一个合适的空闲区域为止</p>
-<p>当用户撤销一个文件时，系统回收文件空间需顺序扫描空闲表，寻找一个空闲表条目并将释放空间的第一个物理块号及它占用的块数填到这个条目中</p>
-<p>如果存储空间中有着大量的小的空闲区，则空闲表变得很大，这样查询效率会很低</p>
-<h3 id="空闲链表"><a href="#空闲链表" class="headerlink" title="空闲链表"></a>空闲链表</h3><p>每一个空闲块里有一个指针指向下一个空闲块，这样也能很方便地找到空闲块并管理起来</p>
-<p>当创建文件时，就从链头上依次取下一块或几块。当回收空间时，把这些空闲块依次接到链头上</p>
-<p>每当在链上增加或移动空闲块时需要做很多 IO 操作，所以工作效率低，并且数据块的指针消耗了一定的存储空间</p>
-<h3 id="位图"><a href="#位图" class="headerlink" title="位图"></a>位图</h3><p>利用二进制的一位来表示磁盘中一个盘块的使用情况，磁盘上所有的盘块都有一个二进制位与之对应</p>
-<p>Linux 文件系统不仅用位图来管理数据空闲块，还用于 inode 空闲块的管理，因为 inode 也是存储在磁盘的，自然也要对其管理</p>
-<h2 id="目录存储"><a href="#目录存储" class="headerlink" title="目录存储"></a>目录存储</h2><p>和普通文件不同的是，普通文件的块里面保存的是文件数据，而目录文件的块里面保存的是目录里面一项一项的文件信息</p>
-<p>在目录文件的块中，最简单的保存格式就是列表，就是一项一项地将目录下的文件信息列在表里。列表中每一项就代表该目录下的文件的文件名和对应的 inode，通过这个 inode，就可以找到真正的文件</p>
-<p>如果一个目录有超级多的文件，要想在这个目录下找文件，如果按照列表一项一项地找，效率就不高了。于是，保存目录的格式改成哈希表，对文件名进行哈希计算，把哈希值保存起来，如果要查找一个目录下面的文件名，可以通过名称取哈希。如果哈希能够匹配上，就说明这个文件的信息在相应的块里面</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/05.png" class="">
-
-<h2 id="虚拟文件系统"><a href="#虚拟文件系统" class="headerlink" title="虚拟文件系统"></a>虚拟文件系统</h2><p>文件系统的种类众多，而操作系统希望对用户提供一个统一的接口，于是在用户层与文件系统层引入了中间层，这个中间层就称为虚拟文件系统 VFS</p>
-<p>VFS 定义了一组所有文件系统都支持的数据结构和标准接口</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/06.png" class="">
-
-<p>Linux 支持的文件系统根据存储位置的不同，可以把文件系统分为三类：</p>
-<ul>
-<li><p>磁盘的文件系统，它是直接把数据存储在磁盘中，比如 Ext 2&#x2F;3&#x2F;4、XFS 等都是这类文件系统</p>
-</li>
-<li><p>内存的文件系统，这类文件系统的数据不是存储在硬盘的，而是占用内存空间，如经常用到的 &#x2F;proc 和 &#x2F;sys 文件系统都属于这一类，读写这类文件，实际上是读写内核中相关的数据</p>
-</li>
-<li><p>网络的文件系统，用来访问其他计算机主机数据的文件系统，比如 NFS、SMB</p>
-</li>
-</ul>
-<p>VFS 背后的思想就是建立一个通用的文件模型，使得它能兼容所有的文件系统</p>
-<p>这个通用的文件模型是以 ext 为模版构建，每个特定的文件系统都需要将它物理结构转换为通用文件模型。例如，通用文件模型中所有的目录都是文件，它包含文件和目录。而在其他的文件类型中，比如 FAT 它的目录就不属于文件。这时内核就会在内存中生成这样的目录文件，以满足通用文件模型的要求</p>
-<h3 id="组成"><a href="#组成" class="headerlink" title="组成"></a>组成</h3><p>Linux 文件系统会为每个文件分配两个数据结构：索引节点 inode 和目录项 dentry，它们主要用来记录文件的元信息和目录层次结构</p>
-<ul>
-<li><p>inode 用来记录文件的元信息，比如 inode 编号、文件大小、访问权限、创建时间、修改时间、数据在磁盘的位置等</p>
-</li>
-<li><p>dentry 用来记录文件的名字、inode 指针以及与其他 dentry 的层级关联关系。多个目录项关联起来，就会形成目录结构</p>
-</li>
-</ul>
-<p>由于 inode 唯一标识一个文件，而 dentry 记录着文件的名，所以 dentry 和 inode 的关系是多对一，也就是说一个文件可以有多个别名，例如硬链接的实现就是多个 dentry 中的 inode 指向同一个文件</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/07.png" class="">
-
-<p>vfs 把所有的 dentry 都放到 dentry_hashtable 这个哈希表中，key 就是由目录项对象和文件名哈希产生。同时，为了避免缓存过大，dentry 缓存会清理缓存链表尾部没有用过的 dentry 缓存项</p>
-<p>目录也是文件，也是用 inode 唯一标识，和普通文件不同的是普通文件在磁盘里面保存的是文件数据，而目录文件在磁盘里面保存子目录或文件</p>
-<h3 id="磁盘划分"><a href="#磁盘划分" class="headerlink" title="磁盘划分"></a>磁盘划分</h3><p>将磁盘划分为若干个块组，每个块组的长度都相同</p>
-<p>一个文件占用的存储空间是块组长度的整数倍，一个块组不能用来存储两个文件</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/08.png" class="">
-
-<p>每个块组都由超级块、块组描述符表、块位图、 inode 位图、inode 表、数据块六个部分组成</p>
-<ul>
-<li><p>第一个块是引导块，在系统启动时用于启用引导，接着后面就是一个一个连续的块组</p>
-</li>
-<li><p>超级块包含的是文件系统的重要信息，比如 inode 总个数、块总个数、每个块组的 inode 个数、每个块组的块个数、块长度等</p>
-</li>
-</ul>
-<p>每个块组中存储的超级块内容都是相同的，这样做是为了在系统崩溃损坏超级块的情况下，有其他副本可以用来恢复数据</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">ext2_super_block</span>&#123;</span><br><span class="line">    __le32 s_inodes_count;         <span class="comment">/*inode数据*/</span></span><br><span class="line">    __le32 s_blocks_count;         <span class="comment">/*块数目*/</span></span><br><span class="line">    __le32 s_r_blocks_count;       <span class="comment">/* 已分配块的数目*/</span></span><br><span class="line">    __le32 s_free_blocks_count;    <span class="comment">/*空闲块数目*/</span></span><br><span class="line">    __le32 s_free_inodes_count;    <span class="comment">/*空闲inode数目*/</span></span><br><span class="line">    __le32 s_first_data_block;     <span class="comment">/*第一个数据块*/</span></span><br><span class="line">    __le32 s_log_block_size;       <span class="comment">/*块长度*/</span></span><br><span class="line">    __le32 s_log_frag_size;        <span class="comment">/*碎片长度*/</span></span><br><span class="line">    __le32 s_blocks_per_group;     <span class="comment">/*每个块组包含的块数*/</span></span><br><span class="line">    __le32 s_frags_per_group;      <span class="comment">/*每个块组包含的碎片*/</span></span><br><span class="line">    __le32 s_inodes_per_group;     <span class="comment">/*每个块组的inode数目*/</span></span><br><span class="line">    __le32 s_mtime;                <span class="comment">/*装载时间*/</span></span><br><span class="line">    __le32 s_wtime;                <span class="comment">/*写入时间*/</span></span><br><span class="line">    __le16 s_mnt_count;            <span class="comment">/*装载计数*/</span></span><br><span class="line">    __le16 s_max_mnt_count;        <span class="comment">/*最大装载计数*/</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>块组描述符表中存放着块组描述符，每个块组描述符存储一个块组的描述信息</li>
-</ul>
-<p>组描述符包含文件系统中各个块组的状态，比如块组中空闲块和 inode 的数目等</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">ext2_group_desc</span>&#123;</span><br><span class="line">    __le32 bg_block_bitmap;         <span class="comment">/*块位图块*/</span></span><br><span class="line">    __le32 bg_inode_bitmap;         <span class="comment">/*inode位图块*/</span></span><br><span class="line">    __le32 bg_inode_table;          <span class="comment">/*inode表块*/</span></span><br><span class="line">    __le16 bg_free_blocks_count;    <span class="comment">/*空闲块数目*/</span></span><br><span class="line">    __le16 bg_free_inodes_count;    <span class="comment">/*空闲inode数目*/</span></span><br><span class="line">    __le16 bg_used_dirs_count;      <span class="comment">/*目录数目*/</span></span><br><span class="line">    __le16 bg_pad;</span><br><span class="line">    __le32 bg_reserved[<span class="number">3</span>];</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>数据位图和 inode 位图是比特位串，该结构中每个比特位都对应于一个数据块或 inode，用来标识对应的数据块或 inode 是空闲还是被使用</p>
-</li>
-<li><p>inode 列表包含了块组中所有的 inode，inode 用于保存文件系统中与各个文件和目录相关的所有元数据</p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">ext2_inode</span>&#123;</span><br><span class="line">    __le16 i_mode;                     <span class="comment">/*访问权限*/</span></span><br><span class="line">    __le16 i_uid;                      <span class="comment">/*所有者UID的低16位*/</span></span><br><span class="line">    __le32 i_size;                     <span class="comment">/*长度，按字节计算*/</span></span><br><span class="line">    __le32 i_atime;                    <span class="comment">/*访问时间*/</span></span><br><span class="line">    __le32 i_ctime;                    <span class="comment">/*创建时间*/</span></span><br><span class="line">    __le32 i_mtime;                    <span class="comment">/*修改时间*/</span></span><br><span class="line">    __le32 i_dtime;                    <span class="comment">/*删除时间*/</span></span><br><span class="line">    __le16 i_gid;                      <span class="comment">/*组ID的低16位*/</span></span><br><span class="line">    __le16 i_links_count;              <span class="comment">/*链接计数*/</span></span><br><span class="line">    __le32 i_blocks;                   <span class="comment">/*块数目*/</span></span><br><span class="line">    __le32 i_flags;                    <span class="comment">/*文件标志*/</span></span><br><span class="line">    __le32 i_blocks[EXT2_N_BLOCKS];    <span class="comment">/*块指针*/</span></span><br><span class="line">    __le32 i_generation;               <span class="comment">/*文件版本，用于NFS*/</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>数据块保存文件的有用数据</li>
-</ul>
-<p>每个块组里有很多重复的信息，比如超级块和块组描述符表，这两个都是全局信息，这么做是有两个原因：</p>
-<ul>
-<li><p>如果系统崩溃破坏了超级块或块组描述符，有关文件系统结构和内容的所有信息都会丢失。如果有冗余的副本，该信息是可能恢复</p>
-</li>
-<li><p>通过使文件和管理数据尽可能接近，减少了磁头寻道和旋转，这可以提高文件系统的性能</p>
-</li>
-</ul>
-<h3 id="数据存放"><a href="#数据存放" class="headerlink" title="数据存放"></a>数据存放</h3><p>根据文件的大小，存放的方式会有所变化：</p>
-<ul>
-<li><p>如果存放文件所需的数据块小于 10 块，则直接存放数据块指针</p>
-</li>
-<li><p>如果存放文件所需的数据块超过 10 块，则采用一级索引方式</p>
-</li>
-<li><p>如果前面两种方式都不够存放大文件，则采用二级索引方式</p>
-</li>
-<li><p>如果二级间接索引也不够存放大文件，则采用三级索引方式</p>
-</li>
-</ul>
-<p>从而 inode 就需要包含 13 个指针，10 个指向数据块的指针，第 11 个指向索引块的指针，第 12 个指向二级索引块的指针，第 13 个指向三级索引块的指针</p>
-<p>这个方案虽然解决大文件的存储，但是对于大文件的访问仍需要大量的查询，效率比较低</p>
-<h3 id="读取操作流程"><a href="#读取操作流程" class="headerlink" title="读取操作流程"></a>读取操作流程</h3><p>假设打开一个 &#x2F;foo&#x2F;bar 的文件，将发起三次读请求</p>
-<ol>
-<li><p>读取根目录的 inode 并从中找到 foo 的 inode</p>
-</li>
-<li><p>读取 foo 的 inode 并从中找到 bar 的 inode</p>
-</li>
-<li><p>根据 inode 打开 bar 文件</p>
-</li>
-</ol>
-<h3 id="写入操作流程"><a href="#写入操作流程" class="headerlink" title="写入操作流程"></a>写入操作流程</h3><p>假设创建 &#x2F;foo&#x2F;bar，将发起三次写请求</p>
-<ol>
-<li><p>读取根目录 inode 并从中找到 foo 的 inode</p>
-</li>
-<li><p>读取 foo 的 inode，读取相应块组</p>
-</li>
-<li><p>写 inode bitmap、inode table 和 data table</p>
-</li>
-</ol>
-<h2 id="Journaling"><a href="#Journaling" class="headerlink" title="Journaling"></a>Journaling</h2><p>在文件系统新写入一个数据块需要发起多次 IO，如果在这个过程中因为断电、内核 bug 等各种原因导致这些数据没有完整的写入，会导致文件系统的数据不一致</p>
-<p>一种解决方案叫做日志 Journaling，在数据库技术中叫做 Write Ahead Logging，其基本思路是，在实际往磁盘写入数据之前，一次性把所有要写入的内容（即日志包括 bitmap，inode，数据块）先写到磁盘的某个地方，然后再实际写入data bitmap，inode 和数据块</p>
-<h2 id="硬链接和软链接"><a href="#硬链接和软链接" class="headerlink" title="硬链接和软链接"></a>硬链接和软链接</h2><p>硬链接是多个 dentry 指向同一个 inode，但是 inode 是不可以跨越文件系统的，每个文件系统都有各自的 inode 数据结构和列表，所以硬链接是不可用于跨文件系统的</p>
-<p>由于多个 dentry 都是指向一个 inode，那么只有删除文件的所有硬链接以及源文件时，系统才会彻底删除该文件</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/09.png" class="">
-
-<p>软链接相当于重新创建一个文件，这个文件有独立的 inode，但是这个文件的内容是另外一个文件的路径，所以访问软链接的时候，实际上相当于访问到了另外一个文件</p>
-<p>软链接是可以跨文件系统的，甚至目标文件被删除了，链接文件还是在的，只不过指向的文件找不到了而已</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/10.png" class="">
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
 
     
 
@@ -717,7 +195,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+      <time title="修改时间：2023-10-08 17:55:39" itemprop="dateModified" datetime="2023-10-08T17:55:39+08:00">2023-10-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -930,7 +408,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+      <time title="修改时间：2023-10-08 17:55:39" itemprop="dateModified" datetime="2023-10-08T17:55:39+08:00">2023-10-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1045,7 +523,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+      <time title="修改时间：2023-10-08 17:55:39" itemprop="dateModified" datetime="2023-10-08T17:55:39+08:00">2023-10-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1157,7 +635,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+      <time title="修改时间：2023-10-08 17:55:39" itemprop="dateModified" datetime="2023-10-08T17:55:39+08:00">2023-10-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1274,7 +752,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+      <time title="修改时间：2023-10-08 17:55:39" itemprop="dateModified" datetime="2023-10-08T17:55:39+08:00">2023-10-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1409,7 +887,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-07 15:02:08" itemprop="dateModified" datetime="2023-10-07T15:02:08+08:00">2023-10-07</time>
+      <time title="修改时间：2023-10-08 17:55:39" itemprop="dateModified" datetime="2023-10-08T17:55:39+08:00">2023-10-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1507,8 +985,675 @@
 
 
 
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B/" class="post-title-link" itemprop="url">线程</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 20:48:52" itemprop="dateCreated datePublished" datetime="2023-04-28T20:48:52+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-08 17:55:39" itemprop="dateModified" datetime="2023-10-08T17:55:39+08:00">2023-10-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>线程是进程的子任务，是 CPU 调度和分派的基本单位，实现进程内部的并发</p>
+<p>进程内每个线程完成不同的任务，但是共享同一地址空间（也就是同样的动态内存，映射文件，目标代码等等），打开的文件队列和其他内核资源</p>
+<h2 id="线程实现"><a href="#线程实现" class="headerlink" title="线程实现"></a>线程实现</h2><ul>
+<li><p>用户线程：在用户空间实现的线程，不是由内核管理的线程，是由用户态的线程库来完成线程的管理</p>
+</li>
+<li><p>内核线程：在内核中实现的线程，是由内核管理的线程</p>
+</li>
+<li><p>轻量级进程：在内核中来支持用户线程</p>
+</li>
+</ul>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B/01.png" class="">
+
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B/02.png" class="">
+
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B/03.png" class="">
+
+<h2 id="用户线程"><a href="#用户线程" class="headerlink" title="用户线程"></a>用户线程</h2><p>用户线程是基于用户态的线程管理库来实现的，那么线程控制块（Thread Control Block, TCB）<br>也是在库里面来实现的，对于操作系统而言是看不到这个 TCB 的，它只能看到整个进程的 PCB</p>
+<p>用户线程的整个线程管理和调度，操作系统是不直接参与的，而是由用户级线程库函数来完成线程的管理，<br>包括线程的创建、终止、同步和调度等</p>
+<p>优点：</p>
+<ul>
+<li><p>每个进程都需要有它私有的线程控制块（TCB）列表，用来跟踪记录它各个线程状态信息（PC、栈指针、寄存器），<br>TCB 由用户级线程库函数来维护，可用于不支持线程技术的操作系统</p>
+</li>
+<li><p>用户线程的切换也是由线程库函数来完成的，无需用户态与内核态的切换，所以速度特别快</p>
+</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li><p>由于操作系统不参与线程的调度，如果一个线程发起了系统调用而阻塞，那进程所包含的用户线程都不能执行了</p>
+</li>
+<li><p>当一个线程开始运行后，除非它主动地交出 CPU 的使用权，否则它所在的进程当中的其他线程无法运行，因为用户态的线程没法打断当前运行中的线程，它没有这个特权，只有操作系统才有，但是用户线程不是由操作系统管理的</p>
+</li>
+<li><p>由于时间片分配给进程，在多线程执行时，每个线程得到的时间片较少，执行会比较慢</p>
+</li>
+</ul>
+<h2 id="内核线程"><a href="#内核线程" class="headerlink" title="内核线程"></a>内核线程</h2><p>内核线程是由操作系统管理的，线程对应的 TCB 自然是放在操作系统里的，这样线程的创建、终止和管理都是由操作系统负责</p>
+<p>优点：</p>
+<ul>
+<li><p>在一个进程当中，如果某个内核线程发起系统调用而被阻塞，并不会影响其他内核线程的运行</p>
+</li>
+<li><p>多线程的进程获得更多的 CPU 运行时间</p>
+</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li><p>在支持内核线程的操作系统中，由内核来维护进程和线程的上下文信息，如 PCB 和 TCB</p>
+</li>
+<li><p>线程的创建、终止和切换都是通过系统调用的方式来进行，因此对于系统来说，系统开销比较大</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/" class="post-title-link" itemprop="url">进程</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 20:47:10" itemprop="dateCreated datePublished" datetime="2023-04-28T20:47:10+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-08 17:55:39" itemprop="dateModified" datetime="2023-10-08T17:55:39+08:00">2023-10-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>进程是对运行时程序的封装，是系统进行资源调度和分配的的基本单位，实现了操作系统的并发</p>
+<ul>
+<li><p>一个线程只能属于一个进程，而一个进程可以有多个线程，但至少有一个线程，线程依赖于进程而存在</p>
+</li>
+<li><p>进程在执行过程中拥有独立的内存单元，而多个线程共享进程的内存；资源分配给进程，同一进程的所有线程共享该进程的所有资源，共享代码段（代码和常量），数据段（全局变量和静态变量），扩展段（堆存储）；每个线程拥有自己的栈段，栈段又叫运行时段，用来存放所有局部变量和临时变量</p>
+</li>
+<li><p>进程是资源分配的最小单位，线程是 CPU 调度的最小单位</p>
+</li>
+<li><p>进程切换的开销远大于线程切换的开销；在创建或撤消进程时，系统都要为之分配或回收资源，因此系统开销远大于创建或撤销线程的开销</p>
+</li>
+<li><p>由于同一进程中的多个线程具有相同的地址空间，致使它们之间的同步和通信可以使用直接读写进程数据段（如全局变量）；进程通信需要使用进程同步和互斥手段来保证数据的一致性</p>
+</li>
+<li><p>进程编程调试简单可靠性高，线程编程调试相对复杂</p>
+</li>
+<li><p>进程间不会相互影响；一个线程挂掉将导致整个进程挂掉</p>
+</li>
+<li><p>进程适应于多核、多机分布，线程适用于多核</p>
+</li>
+</ul>
+<h2 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h2><p>在一个进程的基本状态，即创建状态、运行状态、就绪状态、阻塞状态、挂起状态、结束状态</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/01.png" class="">
+
+<ul>
+<li><p>创建状态：进程正在被创建时的状态</p>
+</li>
+<li><p>运行状态：该时刻进程占用 CPU</p>
+</li>
+<li><p>就绪状态：可运行，但因为其他进程正在运行而暂停停止</p>
+</li>
+<li><p>阻塞状态：该进程正在等待某一事件发生而暂时停止运行，即使给它 CPU 控制权，它也无法运行</p>
+</li>
+<li><p>结束状态：进程正在从系统中消失时的状态</p>
+</li>
+</ul>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/02.png" class="">
+
+<p>挂起状态表示进程没有占有物理内存空间（由于虚拟内存管理原因，进程所使用的空间可能并没有映射到物理内存，而是在硬盘上）</p>
+<ul>
+<li><p>阻塞挂起状态：进程在外存（硬盘）并等待某个事件的出现</p>
+</li>
+<li><p>就绪挂起状态：进程在外存（硬盘），但只要进入内存，即刻立刻运行</p>
+</li>
+</ul>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B/03.png" class="">
+
+<h2 id="进程控制结构"><a href="#进程控制结构" class="headerlink" title="进程控制结构"></a>进程控制结构</h2><p>在操作系统中，是用进程控制块（process control block，PCB）数据结构来描述进程，PCB 是进程存在的唯一标识</p>
+<p>一个进程的存在，必然会有一个 PCB，如果进程消失了，那么 PCB 也会随之消失</p>
+<h3 id="PCB-结构体"><a href="#PCB-结构体" class="headerlink" title="PCB 结构体"></a>PCB 结构体</h3><h4 id="进程描述信息"><a href="#进程描述信息" class="headerlink" title="进程描述信息"></a>进程描述信息</h4><ul>
+<li><p>进程标识符：标识各个进程，每个进程都有一个并且唯一的标识符</p>
+</li>
+<li><p>用户标识符：进程归属的用户，用户标识符主要为共享和保护服务</p>
+</li>
+</ul>
+<h4 id="进程控制和管理信息"><a href="#进程控制和管理信息" class="headerlink" title="进程控制和管理信息"></a>进程控制和管理信息</h4><ul>
+<li><p>进程当前状态，如 new、ready、running、waiting 或 blocked 等</p>
+</li>
+<li><p>进程优先级：进程抢占 CPU 时的优先级</p>
+</li>
+</ul>
+<h4 id="资源分配清单"><a href="#资源分配清单" class="headerlink" title="资源分配清单"></a>资源分配清单</h4><ul>
+<li><p>内存信息</p>
+</li>
+<li><p>进程打开所有文件的文件描述符表</p>
+</li>
+<li><p>进程的信号处理函数</p>
+</li>
+<li><p>I&#x2F;O 设备</p>
+</li>
+</ul>
+<h4 id="CPU-信息"><a href="#CPU-信息" class="headerlink" title="CPU 信息"></a>CPU 信息</h4><ul>
+<li>CPU 中各个寄存器的值，当进程被切换时，CPU 的状态信息都会被保存在相应的 PCB 中，以便进程重新执行时，能从断点处继续执行</li>
+</ul>
+<h3 id="PCB-组织方式"><a href="#PCB-组织方式" class="headerlink" title="PCB 组织方式"></a>PCB 组织方式</h3><p>通过链表的方式进行组织，把具有相同状态的进程链在一起，组成各种队列</p>
+<ul>
+<li><p>将所有处于就绪状态的进程链在一起，称为就绪队列</p>
+</li>
+<li><p>把所有因等待某事件而处于等待状态的进程链在一起就组成各种阻塞队列</p>
+</li>
+<li><p>对于运行队列，在单核 CPU 系统中则只有一个运行指针了，因为单核 CPU 在某个时间，只能运行一个程序</p>
+</li>
+</ul>
+<p>因为面临进程创建，销毁等调度导致进程状态发生变化，所以使用链表，以便能够更加灵活的插入和删除</p>
+<h2 id="进程控制"><a href="#进程控制" class="headerlink" title="进程控制"></a>进程控制</h2><h3 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h3><p>操作系统允许一个进程创建另一个进程，而且允许子进程继承父进程所拥有的资源，当子进程被终止时，其在父进程处继承的资源应当还给父进程，终止父进程时同时也会终止其所有的子进程</p>
+<ol>
+<li><p>为新进程分配一个唯一的进程标识号，并申请一个空白的 PCB，PCB 是有限的，若申请失败则创建失败</p>
+</li>
+<li><p>为进程分配资源，此处如果资源不足，进程就会进入等待状态，以等待资源</p>
+</li>
+<li><p>初始化 PCB</p>
+</li>
+<li><p>如果进程的调度队列能够接纳新进程，那就将进程插入到就绪队列，等待被调度运行</p>
+</li>
+</ol>
+<h3 id="终止"><a href="#终止" class="headerlink" title="终止"></a>终止</h3><p>进程可以有 3 种终止方式：正常结束、异常结束以及外界干预（信号 kill 掉）</p>
+<ol>
+<li><p>查找需要终止的进程的 PCB</p>
+</li>
+<li><p>如果处于执行状态，则立即终止该进程的执行，然后将 CPU 资源分配给其他进程</p>
+</li>
+<li><p>如果其还有子进程，则应将其所有子进程终止</p>
+</li>
+<li><p>将该进程所拥有的全部资源都归还给父进程或操作系统</p>
+</li>
+<li><p>将其从 PCB 所在队列中删除</p>
+</li>
+</ol>
+<h3 id="阻塞"><a href="#阻塞" class="headerlink" title="阻塞"></a>阻塞</h3><p>当进程需要等待某一事件完成时，它可以调用阻塞语句把自己阻塞等待；一旦被阻塞等待，它只能由另一个进程唤醒</p>
+<ol>
+<li><p>找到将要被阻塞进程标识号对应的 PCB</p>
+</li>
+<li><p>如果该进程为运行状态，则保护其现场，将其状态转为阻塞状态，停止运行</p>
+</li>
+<li><p>将该 PCB 插入的阻塞队列中去</p>
+</li>
+</ol>
+<h3 id="唤醒"><a href="#唤醒" class="headerlink" title="唤醒"></a>唤醒</h3><p>只有当该进程所期待的事件出现时，才由发现者进程用唤醒语句叫醒它</p>
+<ol>
+<li><p>在该事件的阻塞队列中找到相应进程的 PCB</p>
+</li>
+<li><p>将其从阻塞队列中移出，并置其状态为就绪状态</p>
+</li>
+<li><p>把该 PCB 插入到就绪队列中，等待调度程序调度</p>
+</li>
+</ol>
+<h2 id="多进程管理"><a href="#多进程管理" class="headerlink" title="多进程管理"></a>多进程管理</h2><h3 id="多进程并行"><a href="#多进程并行" class="headerlink" title="多进程并行"></a>多进程并行</h3><p>对于一个单核 CPU 来讲，从宏观上是并行的，而从微观上是串行的，它使用时间片划分周期调用来实现；每个任务在一段时间内会分到一段时间片(占 cpu 的时间)，在这段时间内该任务只能运行时间片长度从而达到同时的效果</p>
+<h3 id="父子进程"><a href="#父子进程" class="headerlink" title="父子进程"></a>父子进程</h3><p>Linux 中的进程都是由其它进程启动</p>
+<p>Linux 启动时，0 进程启动 1 号进程 (init) 和 2 号进程(内核线程)，0 号进程退出，其它进程是由 1、2 直接或间接产生</p>
+<ul>
+<li><p>1号进程 (init) 是所有用户进程的祖先</p>
+</li>
+<li><p>2号进程(内核线程)是内核进程的祖先</p>
+</li>
+</ul>
+<h3 id="进程退出"><a href="#进程退出" class="headerlink" title="进程退出"></a>进程退出</h3><ul>
+<li><p>正常退出：<code>main()</code> 中 <code>return</code> 进程的所有线程结束；<code>exit()</code> 代表整个进程的结束，是库函数；<code>_exit()</code> 或者 <code>_Exit()</code> 是系统调用函数；<code>exit()</code> 通过调用 <code>_exit()</code> 来实现退出的，但 <code>exit()</code> 多干了两件事情: 清空缓冲区、调用退出处理函数；退出处理函数可以做一些清理工作，需要先登记才生效，退出处理函数保存在退出处理函数栈中(先进后出的原则)</p>
+</li>
+<li><p>异常退出：被信号打断（ctrl + c、段错误、kill -9）；主线程被取消</p>
+</li>
+</ul>
+<h3 id="资源回收"><a href="#资源回收" class="headerlink" title="资源回收"></a>资源回收</h3><p>子进程退出时, 不管是正常还是异常, 父进程会收到信号；子进程退出后，内核会释放掉该进程资源（打开的文件、占用的内存等），但仍会保留一部分信息由父进程负责回收（进程号、退出状态、<br>运行时间），系统所能使用的进程号是有限的，如果大量的产生僵死进程，将因为没有可用的进程号而导致系统不能产生新的进程</p>
+<ul>
+<li><p>僵尸进程：子进程先结束，会通知父进程(通过信号)，让父进程回收资源，如果父进程不处理信号，子进程则变成僵尸进程；僵尸进程是一个进程必然会经过的过程，这是每个子进程在结束时都要经过的阶段</p>
+</li>
+<li><p>孤儿进程：父进程先结束，子进程就会变成孤儿进程，就会由 1 号进程（ init ）负责回收，但在实际编程中要避免这种情况</p>
+</li>
+</ul>
+<p>僵尸进程是一个早已死亡的进程，但在进程表中仍占了一个位置。由于进程表的容量是有限的，所以僵尸进程不仅占用系统的内存资源，影响系统的性能，而且如果其数目太多，还会导致系统瘫痪</p>
+<p>当子进程结束的时候，它并没有真正的被销毁，而是留下一个称为僵尸进程的数据结构，这些数据会一直保留到系统将它传递给它的父进程为止。此时，该僵尸子进程已经放弃了几乎所有的内存空间，没有任何可执行代码，也不能被调度，仅仅在进程列表中保留一个位置，记载该进程的退出状态信息供其他进程收集</p>
+<p>如果父进程没有捕获 SIGCHLD 信号处理函数调用 <code>wait()</code> 或 <code>waitpid()</code> 等待子进程结束，也没有显式忽略该信号，那么它就一直保持僵尸状态。如果父进程结束时子进程仍为僵尸进程，那么 init 进程会自动接手这个子进程，将它清除掉的。但是如果父进程是一个循环，不会结束，那么子进程就会一直保持僵尸状态</p>
+<p>僵尸进程是不能直接使用 kill -9 命令杀掉的，重启电脑或杀掉父进程可解决僵尸进程</p>
+<p>预防僵尸进程措施：</p>
+<ul>
+<li><p>在父进程创建子进程之前，就向系统申明自己不会对这个子进程的 exit 动作进行任何关注行为，这样子进程退出后，系统不会去等待父进程的操作，而是直接将该子进程的资源回收掉，也就不会出现僵尸进程了</p>
+</li>
+<li><p>在创建完子进程后，用 <code>waitpid()</code> 等待子进程返回</p>
+</li>
+</ul>
+<h3 id="父子进程共享的文件描述符"><a href="#父子进程共享的文件描述符" class="headerlink" title="父子进程共享的文件描述符"></a>父子进程共享的文件描述符</h3><p>PCB 里有个数组专门用于记录打开的文件，数组元素为指向所打开的文件所创建的文件表项，文件表项是用于描述文件当前被某个进程打开后的状态信息，包括文件状态标志，记录当前文件读取的位移量，以及文件的 i 节点指针</p>
+<p>不同进程打开同一个文件后，进程表和文件表的关系；<code>fork()</code> 之后打开文件，与不同进程打开同一文件情况相同</p>
+
+
+<p><code>fork()</code> 之前打开文件，子进程是共享父进程的文件表项</p>
+
+
+<p>进程调用 <code>fork()</code> 后，子进程和父进程的文件描述符所对应的文件表项是共享的，这意味着子进程对文件的读写直接影响父进程的文件位移量(反之同理)</p>
+<h2 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h2><p>自从多任务操作系统诞生以来，进程执行占用 cpu 的能力就是一个必须要可以人为控制的事情</p>
+<p>进程优先级起作用的方式，无论是只有一个 cpu 的时代，还是多核 cpu 时代，都是通过控制进程占用 cpu 时间的长短来实现的</p>
+<p>在同一个调度周期中，优先级高的进程占用的时间长些，而优先级低的进程占用的短些</p>
+<p>cgroup 相较于优先级，更能直观的反馈出资源分配的比例，但实际上从内核目前的进程调度器 cfs 的角度看，同时实现 cpushare 方式的 cgroup 和优先级这两个机制完全是相同的概念</p>
+<h3 id="nice"><a href="#nice" class="headerlink" title="nice"></a>nice</h3><p>nice 值是反应一个进程静态优先级状态的值，其取值范围是 -20 至 19，一共 40 个级别</p>
+<p>nice 越小，表示进程优先级越高，而值越大优先级越低</p>
+<p>可以通过 <code>nice</code> 命令来对一个将要执行的命令进行 <code>nice</code>值设置</p>
+<p>使用 <code>renice</code> 命令可以对一个正在运行的进程进行 nice 值的调整</p>
+<h3 id="priority"><a href="#priority" class="headerlink" title="priority"></a>priority</h3><p>priority 值表示 PRI 和 PR 值，动态优先级</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/" class="post-title-link" itemprop="url">进程通信</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 20:42:15" itemprop="dateCreated datePublished" datetime="2023-04-28T20:42:15+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-08 17:55:39" itemprop="dateModified" datetime="2023-10-08T17:55:39+08:00">2023-10-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>每个进程的用户地址空间都是独立的，一般而言是不能互相访问的，但内核空间是每个进程都共享的，<br>所以进程之间要通信必须通过内核</p>
+<p>进程间通信主要包括管道、消息队列、信号量、信号、共享内存、以及套接字 socket 等</p>
+<h2 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h2><p>主要包括匿名管道和命名管道，匿名管道用于具有亲缘关系的父子进程通信，命名管道还可允许无亲缘关系进程通信</p>
+<p>管道的实质是一个内核缓冲区，进程以先进先出的方式从缓冲区存取数据，管道一端的进程顺序的将数据写入缓冲区，另一端的进程则顺序的读出数据</p>
+<ul>
+<li><p>匿名管道：半双工的，数据只能在一个方向上流动，具有固定的读端和写端；只能用于具有亲缘关系的进程之间的通信（父子进程或者兄弟进程之间）；可以看成是一种特殊的文件，对于它的读写也可以使用普通的 <code>read</code>、<code>write</code> 等函数，但不是普通的文件，并不属于其他任何文件系统，并且只存在于内存中；缓冲区是有限，所传送的是无格式字节流，这就要求管道的读出方和写入方必须事先约定好数据的格式</p>
+</li>
+<li><p>命名管道：可以在无关的进程之间交换数据；有路径名与之相关联，它以一种特殊设备文件形式存在于文件系统中；</p>
+</li>
+</ul>
+<p>命名管道严格遵循先进先出</p>
+<p>管道的效率低，不适合进程间频繁地交换数据</p>
+<h3 id="匿名管道创建"><a href="#匿名管道创建" class="headerlink" title="匿名管道创建"></a>匿名管道创建</h3><p>通过系统调用 <code>int pipe(int fd[2])</code> 创建匿名管道， 并返回了两个描述符，一个是管道的读取端描述符 fd[0]，另一个是管道的写入端描述符 fd[1]</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/01.png" class="">
+
+<p>使用 <code>fork</code> 创建子进程，创建的子进程会复制父进程的文件描述符，这样就做到了两个进程各有两个 <code>fd[0]</code> 与 <code>fd[1]</code>，两个进程就可以通过各自的 <code>fd</code> 写入和读取同一个管道文件实现跨<br>进程通信了</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/02.png" class="">
+
+<p>如果需要双向通信，则应该创建两个管道</p>
+<h3 id="命名管道创建"><a href="#命名管道创建" class="headerlink" title="命名管道创建"></a>命名管道创建</h3><p>通过系统调用 <code>int mkfifo(const char * filename, mode_t mode)</code>，创建成功则返回 0，否则返回 -1，使用 <code>open()</code> 打开命名管道</p>
+<p>当前进程以写方式（且设置了阻塞标识）打开命名管道时，如果已有别的进程以读打开该命名管道时，则当前的打开操作成功返回，否则一直阻塞直到有进程为读打开该命名管道</p>
+<p>当前进程以读方式（且设置了阻塞标识）打开命名管道时，如果已有别的进程为写打开该命名管道时，则当前的打开操作成功返回，否则一直阻塞直到有进程为写打开该管道</p>
+<h2 id="共享内存"><a href="#共享内存" class="headerlink" title="共享内存"></a>共享内存</h2><p>系统加载一个进程的时候，分配给进程的内存并不是实际物理内存，而是虚拟内存空间；让两个进程各自拿出一块虚拟地址空间来，然后映射到相同的物理内存中，两个进程虽然有着独立的虚拟内存空间，但有一部分却是映射到相同的物理内存，解决了由用户态向内核态拷贝所消耗的时间；需要依靠某种进程同步操作，如互斥锁和信号量等</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/03.png" class="">
+
+<h2 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h2><p>消息队列存放在内核中，具有写权限的进程可以按照一定得规则向消息队列中添加新信息，有读权限的进程则可以从消息队列中读取信息；消息队列是面向记录的，其中的消息具有特定的格式以及特定的优先级；消息队列独立于发送与接收进程，进程终止时，消息队列及其内容并不会被删除；消息队列可以实现消息的随机查询，消息不一定要以先进先出的次序读取，也可以按消息的类型读取；消息队列存放在内核中，只有在内核重启或者显示地删除一个消息队列时，该消息队列才会被真正的删除；消息队列克服了信号承载信息量少，管道只能承载无格式字节流以及缓冲区大小受限等缺点</p>
+<p>消息队列不适合比较大数据的传输，因为在内核中每个消息体都有一个最大长度的限制，同时所有队列所包含的全部消息体的总长度也是有上限</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/04.png" class="">
+
+<h2 id="socket"><a href="#socket" class="headerlink" title="socket"></a>socket</h2><p>特性由 3 个属性确定，它们分别是：域、端口号、协议类型；域指定套接字通信中使用的网络介质（网络或 UNIX 文件系统）</p>
+<p>同一主机不同进程使用 socket 通信时，可以使用 UNIX Domain Socket，其优势：</p>
+<ul>
+<li><p>传输不需要经过网络协议栈，不需要打包拆包等操作，只是数据的拷贝过程</p>
+</li>
+<li><p>分为 SOCK_STREAM 和 SOCK_DGRAM，由于是在本机通过内核通信，不会丢包也不会出现发送包的次序和接收包的次序不一致的问题</p>
+</li>
+</ul>
+<h2 id="信号"><a href="#信号" class="headerlink" title="信号"></a>信号</h2><p>信号是进程间通信机制中唯一的异步通信机制，因为可以在任何时候发送信号给某一进程</p>
+<h2 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h2><p>信号量是是一个计数器，可以用来控制多个进程对共享资源的访问，用于实现进程间的互斥与同步，<br>而不是用于存储进程间通信数据</p>
+<p>若要在进程间传递数据需要结合共享内存</p>
+<p>程序对信号量的操作都是原子操作</p>
+<p>通过对信号量进行 PV 操作，获取共享资源；P 操作将信号量减一，若减一后大于等于 0，则继续执行，否者进入等待队列；S 操作将信号量加一，若加一后大于 0，则继续执行，否则释放等待队列中第一个进程</p>
+<p>互斥信号量的初值一般为 1，P、V 操作必须成对出现，先做 P 操作，进临界区，后做 V 操作，出临界区</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%8D%8F%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%8D%8F%E7%A8%8B/" class="post-title-link" itemprop="url">协程</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 20:41:25" itemprop="dateCreated datePublished" datetime="2023-04-28T20:41:25+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-08 17:55:39" itemprop="dateModified" datetime="2023-10-08T17:55:39+08:00">2023-10-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="为什么需要协程"><a href="#为什么需要协程" class="headerlink" title="为什么需要协程"></a>为什么需要协程</h2><p>移动互联网时代的到来，服务端对高并发的要求越来越高，也就是需要高性能的网络服务器</p>
+<p>C10K 需要单机同时支持 1 万个并发连接，C10M 单机要支持 1 千万并发连接</p>
+<p>如果要满足单机 1 千万的并发连接，有几种方案选择：</p>
+<ol>
+<li><p>多线程同步模型：预先创建出很多个处理线程，每个线程采用同步阻塞 IO 的方式串行处理请求，由操作系统通过线程切换来实现并发处理。这种方式编码简单，但由于线程堆栈占用空间大，内存消耗太快，同时线程切换代价高，导致系统整体性能较差</p>
+</li>
+<li><p>基于事件驱动的异步网络模型：由应用框架来实现事件驱动和状态切换，该方案可以充分利用 CPU，性能较高，但因为逻辑处理都是基于回调，逻辑代码过于分散，导致代码开发效率不高，代码逻辑不易懂也容易出错</p>
+</li>
+</ol>
+<p>协程能够让开发人员很便捷地去开发业务逻辑代码，同时能够达到异步回调模型的性能</p>
+<h2 id="什么是协程"><a href="#什么是协程" class="headerlink" title="什么是协程"></a>什么是协程</h2><p>协程是一类程序组件，它是对子过程概念的泛化，并且是属于非抢占的多任务处理</p>
+<ul>
+<li><p>泛化的子过程是说协程是泛化的函数，可以暂停和恢复执行</p>
+</li>
+<li><p>非抢占的多任务处理说明协程是协作式多任务处理，需主动让出 CPU</p>
+</li>
+</ul>
+<p>协程就是一个函数，只是它支持多次的暂停和恢复执行，需要自己手动维护调用栈和其他的一些信息</p>
+<p>协作式多任务处理，协程主动让出 CPU，天然就支持协作式多任务</p>
+<p>线程的切换由操作系统负责调度，协程由用户自己进行调度，因此减少了上下文切换，提高了效率</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">A</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="number">1</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="number">2</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="number">3</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">B</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;x&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;y&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;z&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">A</span>();</span><br><span class="line">  <span class="built_in">B</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 1 2 3 x y z</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">A</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="number">1</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="number">2</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   <span class="built_in">co_yield_ct</span>();  <span class="comment">// 切出到主协程</span></span><br><span class="line">   cout &lt;&lt; <span class="number">3</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">B</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;x&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   <span class="built_in">co_yield_ct</span>();  <span class="comment">// 切出到主协程</span></span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;y&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;z&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 切出操作是由 co_yield_ct() 函数实现</span></span><br><span class="line"><span class="comment">// 启动和恢复是由 co_resume() 实现</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">  ...  <span class="comment">// 主协程</span></span><br><span class="line">  <span class="built_in">co_resume</span>(A);  <span class="comment">// 启动协程 A</span></span><br><span class="line">  <span class="built_in">co_resume</span>(B);  <span class="comment">// 启动协程 B</span></span><br><span class="line">  <span class="built_in">co_resume</span>(A);  <span class="comment">// 从协程 A 切出处继续执行</span></span><br><span class="line">  <span class="built_in">co_resume</span>(B);  <span class="comment">// 从协程 B 切出处继续执行</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 1 2 x 3 y z</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="协程特点"><a href="#协程特点" class="headerlink" title="协程特点"></a>协程特点</h2><ul>
+<li><p>协程可以主动让出 CPU 时间片，不是当前线程让出 CPU 时间片，而是线程内的某个协程让出时间片供同线程内其他协程运行</p>
+</li>
+<li><p>协程可以恢复 CPU 上下文，当另一个协程继续执行时，需要恢复 CPU 上下文环境</p>
+</li>
+<li><p>协程有个管理者，管理者可以选择一个协程来运行，其他协程要么阻塞，要么 ready，或者 died</p>
+</li>
+<li><p>运行中的协程将占有当前线程的所有计算资源</p>
+</li>
+<li><p>协程天生有栈属性，而且是 lock free</p>
+</li>
+</ul>
+<h2 id="保存上下文"><a href="#保存上下文" class="headerlink" title="保存上下文"></a>保存上下文</h2><p>上下文其实本质上就是寄存器，所以保存上下文实际上就是把寄存器的值保存下来</p>
+<ul>
+<li><p><code>setjmp</code> 和 <code>longjmp</code></p>
+</li>
+<li><p>汇编</p>
+</li>
+<li><p>第三方库，如 ucontext、Boost.Context</p>
+</li>
+</ul>
+<h2 id="协程类别"><a href="#协程类别" class="headerlink" title="协程类别"></a>协程类别</h2><h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><p>这里的栈指的是是否存在调用栈 callback stack</p>
+<ul>
+<li><p>stackful 有栈协程：实现类似于内核态线程的实现，不同协程间切换还是要切换对应的栈上下文，只是不用陷入内核，例如 goroutine、libco</p>
+</li>
+<li><p>stackless 无栈协程：上下文都会放到公共内存中，在协程切换时使用状态机来切换，而不用切换对应的上下文，因此相比有栈协程要轻量许多，例如：C++20、Rust、JavaScript</p>
+</li>
+</ul>
+<h3 id="调度方式"><a href="#调度方式" class="headerlink" title="调度方式"></a>调度方式</h3><p>根据调度方式的不同，协程可以分为对称协程和非对称协程</p>
+<ul>
+<li><p>非对称协程：协程之间有明显的调用关系。协程让出执行权的目标只能是它的调用者，即协程之间存在调用和被调用关系，比如 A 协程调用了 B 协程后，B 协程当需要让出执行权时一定是将执行权给了 A 协程</p>
+</li>
+<li><p>对称协程：协程之间无明显的调用关系。任何一个协程都是相互独立且平等的，执行权可以在任意协程之间转移，比如 A 协程调用了 B 协程后，A 协程与 B 协程之后就没有任何关系了，B 协程让出执行权时，该执行权最终花落谁家都有可能</p>
+</li>
+</ul>
+<p>协程 A 调用了协程 B：如果只有 B 完成之后才能切回 A，那么此时 AB 是非对称协程；如果 AB 被调用的概率相同，那么此时 AB 是对称协程</p>
+<h3 id="线程关系"><a href="#线程关系" class="headerlink" title="线程关系"></a>线程关系</h3><p>和线程绑定的协程只有在对应线程运行的时候才有被执行的可能，如果对应线程中的某一个协程完全占有了当前线程，那么当前线程中的其他所有协程都不会被执行</p>
+<ul>
+<li><p>N:1：所有的协程运行于一个系统线程中。由于不跨线程，协程之间的切换不需要系统调用，从而切换可以非常快，受 cache 一致性的影响也小。但代价是协程无法高效地利用多核，代码必须非阻塞，否则所有的协程都被卡住</p>
+</li>
+<li><p>N:M：N 个协程会映射至 M 个线程</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/14/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><span class="space">&hellip;</span><a class="page-number" href="/page/43/">43</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/16/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/14/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/16/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
