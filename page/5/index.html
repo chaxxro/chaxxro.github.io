@@ -159,6 +159,96 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/07/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E8%A1%8C%E4%B8%BA%E5%9E%8B-%E8%BF%AD%E4%BB%A3%E5%99%A8%E6%A8%A1%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/07/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E8%A1%8C%E4%B8%BA%E5%9E%8B-%E8%BF%AD%E4%BB%A3%E5%99%A8%E6%A8%A1%E5%BC%8F/" class="post-title-link" itemprop="url">迭代器模式</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-07-04 11:53:10" itemprop="dateCreated datePublished" datetime="2023-07-04T11:53:10+08:00">2023-07-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-11 21:34:24" itemprop="dateModified" datetime="2023-10-11T21:34:24+08:00">2023-10-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">设计模式</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>迭代器模式也叫作游标模式，它用来遍历集合对象，比如数组、链表、树、图、跳表</p>
+<p>迭代器模式将集合对象的遍历操作从集合类中拆分出来，放到迭代器类中，让两者的职责更加单一</p>
+<img src="/2023/07/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E8%A1%8C%E4%B8%BA%E5%9E%8B-%E8%BF%AD%E4%BB%A3%E5%99%A8%E6%A8%A1%E5%BC%8F/01.png" class="">
+
+<p>一个完整的迭代器模式一般会涉及容器和容器迭代器两部分内容。为了达到基于接口而非实现编程的目的，容器又包含容器接口、容器实现类，迭代器又包含迭代器接口、迭代器实现类</p>
+<p>将游标指向的当前位置等信息，存储在迭代器类中，每个迭代器独享游标信息。这样就可以创建多个不同的迭代器，同时对同一个容器进行遍历而互不影响</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">IntList</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Iterator</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="comment">// 待遍历的容器对象通过依赖注入传递到迭代器类中</span></span><br><span class="line">  IntList* list;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="built_in">Iterator</span>(IntList* l) &#123; list = l; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">IntArrayIterator</span> : <span class="keyword">public</span> Iterator &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="built_in">IntArrayIterator</span>(IntList* l) : <span class="built_in">Iterator</span>(l) &#123;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">IntList</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> Iterator* <span class="title">getIterator</span><span class="params">()</span> </span>= <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">IntArrayList</span> : IntList &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> Iterator* <span class="title">getIterator</span><span class="params">()</span> <span class="keyword">override</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">IntArrayIterator</span>(<span class="keyword">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/07/04/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E8%A1%8C%E4%B8%BA%E5%9E%8B-%E7%8A%B6%E6%80%81%E6%A8%A1%E5%BC%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -195,7 +285,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-10 17:07:08" itemprop="dateModified" datetime="2023-10-10T17:07:08+08:00">2023-10-10</time>
+      <time title="修改时间：2023-10-11 21:34:24" itemprop="dateModified" datetime="2023-10-11T21:34:24+08:00">2023-10-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -294,7 +384,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-10 17:07:08" itemprop="dateModified" datetime="2023-10-10T17:07:08+08:00">2023-10-10</time>
+      <time title="修改时间：2023-10-11 21:34:24" itemprop="dateModified" datetime="2023-10-11T21:34:24+08:00">2023-10-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -387,7 +477,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-10 17:07:08" itemprop="dateModified" datetime="2023-10-10T17:07:08+08:00">2023-10-10</time>
+      <time title="修改时间：2023-10-11 21:34:24" itemprop="dateModified" datetime="2023-10-11T21:34:24+08:00">2023-10-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -482,7 +572,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-10 17:07:08" itemprop="dateModified" datetime="2023-10-10T17:07:08+08:00">2023-10-10</time>
+      <time title="修改时间：2023-10-11 21:34:24" itemprop="dateModified" datetime="2023-10-11T21:34:24+08:00">2023-10-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -573,7 +663,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-10 17:07:08" itemprop="dateModified" datetime="2023-10-10T17:07:08+08:00">2023-10-10</time>
+      <time title="修改时间：2023-10-11 21:34:24" itemprop="dateModified" datetime="2023-10-11T21:34:24+08:00">2023-10-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -671,7 +761,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-10 17:07:08" itemprop="dateModified" datetime="2023-10-10T17:07:08+08:00">2023-10-10</time>
+      <time title="修改时间：2023-10-11 21:34:24" itemprop="dateModified" datetime="2023-10-11T21:34:24+08:00">2023-10-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -783,7 +873,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-10 17:07:08" itemprop="dateModified" datetime="2023-10-10T17:07:08+08:00">2023-10-10</time>
+      <time title="修改时间：2023-10-11 21:34:24" itemprop="dateModified" datetime="2023-10-11T21:34:24+08:00">2023-10-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -895,7 +985,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-10 17:07:08" itemprop="dateModified" datetime="2023-10-10T17:07:08+08:00">2023-10-10</time>
+      <time title="修改时间：2023-10-11 21:34:24" itemprop="dateModified" datetime="2023-10-11T21:34:24+08:00">2023-10-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1070,7 +1160,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-10 17:07:08" itemprop="dateModified" datetime="2023-10-10T17:07:08+08:00">2023-10-10</time>
+      <time title="修改时间：2023-10-11 21:34:24" itemprop="dateModified" datetime="2023-10-11T21:34:24+08:00">2023-10-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1104,141 +1194,6 @@
 </li>
 </ol>
 <p>应用场景：大数据量且对计数的准确性要求不高</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/19/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-perf/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/19/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-perf/" class="post-title-link" itemprop="url">perf</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-19 11:16:41" itemprop="dateCreated datePublished" datetime="2023-06-19T11:16:41+08:00">2023-06-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-10-10 17:07:08" itemprop="dateModified" datetime="2023-10-10T17:07:08+08:00">2023-10-10</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>perf 是 performance 的缩写，是一个事件驱动的可观测性工具</p>
-<h2 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h2><p><code>perf list</code> 查看支持事件，一般来说分为六类</p>
-<ul>
-<li><p>硬件事件，来自于 CPU 硬件监控计数器</p>
-</li>
-<li><p>软件事件，来自于内核计数器</p>
-</li>
-<li><p>内核追踪点事件，来自于内核中硬编码的静态指令点</p>
-</li>
-<li><p>USDT 事件，来自于用户程序的静态追踪点</p>
-</li>
-<li><p>动态追踪事件，来自于软件动态插桩</p>
-</li>
-<li><p>时许剖析，来自于通过 <code>perf record</code> 收集到的数据</p>
-</li>
-</ul>
-<h3 id="软件事件"><a href="#软件事件" class="headerlink" title="软件事件"></a>软件事件</h3><ul>
-<li><p>cpu-clock，cpu 执行的计数器</p>
-</li>
-<li><p>task-clock，某个任务在 cpu 上运行时的 clock 数</p>
-</li>
-<li><p>page-faults，缺页中断数</p>
-</li>
-<li><p>alignment-faults，对齐错误</p>
-</li>
-<li><p>context-switches，上下文切换数</p>
-</li>
-<li><p>cpu-migrations，任务在 cpu 间迁移数</p>
-</li>
-<li><p>minor-faults，缺页中断一部分，指的是访问在内存中但是没有映射到程序地址空间的页发生的错误</p>
-</li>
-<li><p>major-faults，缺页中断一部分，指的是访问不在内存中的页，需要磁盘参与进行换页的中断</p>
-</li>
-</ul>
-<h3 id="硬件事件"><a href="#硬件事件" class="headerlink" title="硬件事件"></a>硬件事件</h3><ul>
-<li><p>cache-misses，缓存不命中</p>
-</li>
-<li><p>branch-misses，分支预测失败</p>
-</li>
-<li><p>cpu-cycles，cpu 时钟情况</p>
-</li>
-<li><p>stalled_cycles_frontend，cpu 前端的停滞周期数</p>
-</li>
-<li><p>stalled_cycles_backend，cpu 后端的停滞周期数</p>
-</li>
-</ul>
-<h2 id="计数"><a href="#计数" class="headerlink" title="计数"></a>计数</h2><p><code>perf stat</code> 来收集一些计数信息</p>
-<h2 id="采样剖析"><a href="#采样剖析" class="headerlink" title="采样剖析"></a>采样剖析</h2><p><code>perf record</code> 和 <code>perf top</code> 对系统进行剖析</p>
-<p>执行 <code>perf top</code> 可以看到目前的 CPU 执行占比情况，该情况会随着时间刷新，这可以帮助快速的发现热点</p>
-<p><code>perf record</code> 则像是把多个时间的 <code>perf top</code> 结果作为切片保存到一个文件里，从而得到一段时间里的执行情况</p>
-<p><code>perf record</code> 得到的结果数据是无法直接读取的，可以用 <code>perf script</code> 将其转换成可读文件，或者直接用 <code>perf report</code> 进行图形化展示</p>
 
       
     </div>
