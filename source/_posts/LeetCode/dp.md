@@ -87,3 +87,19 @@ dp[i][j] =
 [题目](https://leetcode.com/problems/edit-distance/)
 
 [分析](https://www.youtube.com/watch?v=Q4i_rqON2-E)
+
+## lc95、lc96
+
+```cpp
+/*
+将区间  [1, n] 当作一个整体，然后需要将其中的每个数字都当作根结点，其划分的左右两个子区间作为子节点
+G(n) 表示 1~n 有多少种 BST，F(i, n) 表示以 i 为根结点有多少 BST
+G(n) = F(1, n) + F(2, n) + ... + F(n, n)
+F(i, n) = G(i - 1) * G(n - i)
+G(n) = G(0) * G(n-1) + G(1) * G(n-2) + ... + G(n-1) * G(0) 
+*/
+```
+
+[题目](https://leetcode.com/problems/unique-binary-search-trees/description/)
+
+[题目](https://leetcode.com/problems/unique-binary-search-trees-ii/)
