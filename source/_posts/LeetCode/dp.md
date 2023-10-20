@@ -103,3 +103,30 @@ G(n) = G(0) * G(n-1) + G(1) * G(n-2) + ... + G(n-1) * G(0)
 [题目](https://leetcode.com/problems/unique-binary-search-trees/description/)
 
 [题目](https://leetcode.com/problems/unique-binary-search-trees-ii/)
+
+## lc97
+
+```cpp
+/*
+dp[i][j] 表示 s1 i 长，s2 j 长可以组成 s3 i+j 长
+dp[0][0] = true
+dp[0][i] = dp[0][i - 1] && s2[i - 1] == s3[i - 1]
+dp[i][0] = dp[i - 1][0] && s1[i - 1] == s3[i - 1]
+dp[i][j] = (dp[i - 1][j] && s1[i + j - 1] == s3[i - 1]) || (dp[i][j - 1] && s2[j - 1] == s3[i + j - 1])
+*/
+```
+
+[题目](https://leetcode.com/problems/interleaving-string/description/)
+
+## lc139
+
+```cpp
+/*
+1. 记忆化递归
+2. dp
+l 表示字符串长度
+dp[l] = dp[j] && dict.count(s.substr(j, l - j)) != 0
+*/
+```
+
+[题目](https://leetcode.com/problems/word-break/description/)

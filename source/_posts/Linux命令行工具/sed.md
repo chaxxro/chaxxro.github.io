@@ -68,7 +68,6 @@ sed '[address]op[/pattern][/replacement][/flags]' fileName
 # 字符替换脚本
 sed 's/test/trial/2' data4.txt
 sed 's/test/trial/w test.txt' data5.txt
-sed 's/\/bin\/bash/\/bin\/csh/' /etc/passwd
 
 # 替换行脚本
 sed '[address]c\用于替换的新文本' fileName

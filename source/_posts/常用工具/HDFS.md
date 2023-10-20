@@ -20,4 +20,6 @@ hadoop fs -put hello.txt /hello/
 hadoop fs -get /hello/hello.txt
 # 输出文件内容
 hadoop fs -cat /hello/hello.txt
+# 输出文件内容
+hadoop fs -rm /hello/hello.txt
 ```
