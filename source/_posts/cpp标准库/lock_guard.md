@@ -9,19 +9,24 @@ tags: cpp
 categories: cpp
 ---
 
-`lock_guard` 利用了 C++ RAII 的特性，在构造函数中上锁，析构函数中解锁，从而保证了一个已锁的互斥量总是会被正确的解锁
+## lock_guard
+
+`std::lock_guard` 利用了 C++ RAII 的特性，在构造函数中上锁，析构函数中解锁，从而保证了一个已锁的互斥量总是会被正确的解锁
+
+`std::lock_guard` 没有任何成员函数
 
 ```cpp
-template <class Mutex> class lock_guard
+template <class Mutex> class lock_guard {
+private:
+  lock_guard(lock_guard const&) = delete;
+  lock_guard& operator=(lock_guard const&) = delete;
+}
 
 /*
 Mutex 代表互斥量，可以是 std::mutex、std::timed_mutex、std::recursive_mutex、std::recursive_timed_mutex 中的任何一个，也可以是 std::unique_lock，都提供了 lock 和 unlock 的能力
 
 lock_guard 仅用于上锁、解锁，不对 mutex 承担供任何生周期的管理，因此在使用的时候，请确保 lock_guard 管理的 mutex 一直有效
 */
-
-lock_guard(lock_guard const&) = delete;
-lock_guard& operator=(lock_guard const&) = delete;
 ```
 
 ```cpp
@@ -54,4 +59,6 @@ int main() {
 }
 ```
 
-`std::unique_lock` 相比于 `std::lock_gurad` 适用范围更广，`std::unique_lock` 有更多成员函数函数，可以手动释放锁，所以一般配合条件变量使用
+## unique_lock
+
+`std::unique_lock` 有更多成员函数函数，可以手动释放锁，一般配合条件变量使用
