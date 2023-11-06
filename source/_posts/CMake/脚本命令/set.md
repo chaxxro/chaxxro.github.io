@@ -43,6 +43,7 @@ set(<variable> <value>... CACHE <type> <docstring> [FORCE])
 
 set(CACHE_VAL "666" CACHE STRING INTERNAL)
 ```
+
 默认情况下，不能覆盖已存在的缓存变量，除非使用 `FORCE`
 
 `type` 包括：

@@ -20,12 +20,12 @@ categories: cpp
 ```cpp
 // std::condition_variable 提供了两种 wait() 函数
 void wait (std::unique_lock<std::mutex>& lck);
-// 只有当 pred 条件为 false 时调用 wait() 才会阻塞当前线程
-// 并且在收到其他线程的通知后只有当 pred 为 true 时才会被解除阻塞
 template <class Predicate>
-void wait (std::unique_lock<std::mutex>& lck, Predicate pred);
+void wait (std::unique_lock<std::mutex>& lck, Predicate stop_waiting);
+// 只有当 stop_waiting 条件为 false 时调用 wait() 才会阻塞当前线程
+// 并且在收到其他线程的通知后只有当 stop_waiting 为 true 时才会被解除阻塞
 // 等价于
-while (!pred()) {
+while (!stop_waiting()) {
     wait(lock);
 }
 

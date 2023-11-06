@@ -34,7 +34,7 @@ message Student {
 	
 	message PhoneNumber { 
 		string number = 1;
-	    PhoneType type = 2;
+	  PhoneType type = 2;
 	}
 	repeated PhoneNumber phone = 4;
 }
