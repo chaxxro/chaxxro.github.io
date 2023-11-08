@@ -130,3 +130,33 @@ dp[l] = dp[j] && dict.count(s.substr(j, l - j)) != 0
 ```
 
 [题目](https://leetcode.com/problems/word-break/description/)
+
+## lc121、lc122、lc123、lc188
+
+```cpp
+/*
+121
+只有一次买入卖出机会
+找到与之前价格的最大差值即可
+
+122
+任意买入卖出，但不能同时拥有多只股票
+将所有差值累加即可
+
+123 最多两次交易，且不能同时拥有多只股票
+188 最多 k 次交易，且不能同时拥有多只股票
+dp[i][j] 表示第 i 天经过至少 j 次操作的最大利润
+当第 i 天不操作时，dp[i][j] = dp[i - 1][j]
+当第 i 天卖出股票时，dp[i][j] = dp[m][j - 1] + prices[i - 1] - prices[m] = prices[i - 1] - (prices[m] - dp[m][j- 1])
+可以缓存 prices[m] - dp[m][j - 1] 来避免重复计算
+
+*/
+```
+
+[题目](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/)
+
+[题目](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/description/)
+
+[题目](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/)
+
+[题目](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/)

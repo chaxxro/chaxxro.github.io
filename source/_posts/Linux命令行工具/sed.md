@@ -26,7 +26,7 @@ categories: Linux 命令行
 ```sh
 sed [option]... [-e '<script>']... [-f '<script 文件>'] [文本文件]
 # 选项
-# -i['suffix'] sed 通过创建一个临时文件并将输出写入到临时文件然后重命名为源文件来实现的对源文件的覆盖的，指定 suffix 后会将源文件备份
+# -i['suffix'] sed 通过创建一个临时文件并将输出写入到临时文件，然后重命名为源文件来实现的对源文件的覆盖的，指定 suffix 后会将源文件备份
 # -n 关闭默认输出，即不在屏幕上自动打印
 # -r 使用扩展正则
 # -e 指定脚本，可指定多个脚本
@@ -55,7 +55,6 @@ sed '[address]op[/pattern][/replacement][/flags]' fileName
 # w：把行写入文件
 # q：退出
 # =: 输出行号
-# y: 字符替换
 # n: 读取下一行
 
 # flags
@@ -87,12 +86,4 @@ sed '3,$d' data6.txt
 sed '[address]a（或 i）\新文本内容' fileName
 sed '3a\This is an appended line.' data6.txt
 # 将一个多行数据添加到数据流中，只需对要插入或附加的文本中的每一行末尾（除最后一行）添加反斜线即可
-
-# 转换脚本
-sed '[address]y/inchars/outchars/' fileName
-# 对 inchars 和 outchars 值进行一对一的映射
-# inchars 中的第一个字符会被转换为 outchars 中的第一个字符
-# 第二个字符会被转换成 outchars 中的第二个字符...
-# 转换命令是一个全局命令
-sed 'y/123/789/' data8.txt
 ```
