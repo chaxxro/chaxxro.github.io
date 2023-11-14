@@ -118,19 +118,6 @@ dp[i][j] = (dp[i - 1][j] && s1[i + j - 1] == s3[i - 1]) || (dp[i][j - 1] && s2[j
 
 [题目](https://leetcode.com/problems/interleaving-string/description/)
 
-## lc139
-
-```cpp
-/*
-1. 记忆化递归
-2. dp
-l 表示字符串长度
-dp[l] = dp[j] && dict.count(s.substr(j, l - j)) != 0
-*/
-```
-
-[题目](https://leetcode.com/problems/word-break/description/)
-
 ## lc121、lc122、lc123、lc188
 
 ```cpp
@@ -160,3 +147,16 @@ dp[i][j] 表示第 i 天经过至少 j 次操作的最大利润
 [题目](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/)
 
 [题目](https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/)
+
+## lc139
+
+```cpp
+/*
+1. 记忆化递归
+2. dp
+l 表示字符串长度
+dp[l] = dp[j] && dict.count(s.substr(j, l - j)) != 0
+*/
+```
+
+[题目](https://leetcode.com/problems/word-break/description/)

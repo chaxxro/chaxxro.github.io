@@ -119,6 +119,14 @@ condition bnum exp
 
 简写 `bt`，打印当前栈
 
+### thread
+
+切换线程
+
+```
+set scheduler-locking on 锁定线程
+```
+
 ### print
 
 按表达式打印值，可简写 `p`
@@ -206,6 +214,10 @@ enable bpnum
 # bp num 可从 info 得到
 delete bpnum
 ```
+
+### clear
+
+删除所有断点
 
 ### quit
 
