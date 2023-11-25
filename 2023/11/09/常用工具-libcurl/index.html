@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="在基于 libcurl 的程序里，主要采用回调函数的形式完成传输任务，用户在启动传输前设置好各类参数和回调函数，当满足条件时 libcurl 将调用用户的回调函数实现特定功能 基本函数CURLcode curl_global_init(long flags)函数只能用一次，但在调用 curl_global_cleanup 后仍然可再用 curl_global_init 是不保证线程安全的 1234">
+<meta property="og:type" content="article">
+<meta property="og:title" content="libcurl">
+<meta property="og:url" content="https://chaxxro.github.io/2023/11/09/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-libcurl/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="在基于 libcurl 的程序里，主要采用回调函数的形式完成传输任务，用户在启动传输前设置好各类参数和回调函数，当满足条件时 libcurl 将调用用户的回调函数实现特定功能 基本函数CURLcode curl_global_init(long flags)函数只能用一次，但在调用 curl_global_cleanup 后仍然可再用 curl_global_init 是不保证线程安全的 1234">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-11-09T03:59:59.000Z">
+<meta property="article:modified_time" content="2023-11-25T06:18:23.088Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="benchmark">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/11/09/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-libcurl/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/11/09/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-libcurl/","path":"2023/11/09/常用工具-libcurl/","title":"libcurl"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>libcurl | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E5%87%BD%E6%95%B0"><span class="nav-text">基本函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CURLcode-curl-global-init-long-flags"><span class="nav-text">CURLcode curl_global_init(long flags)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#void-curl-global-cleanup-void"><span class="nav-text">void curl_global_cleanup(void)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CURL-curl-easy-init"><span class="nav-text">CURL *curl_easy_init( )</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#void-curl-easy-cleanup-CURL-handle"><span class="nav-text">void curl_easy_cleanup(CURL *handle)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CURLcode-curl-easy-setopt-CURL-handle-CURLoption-option-parameter"><span class="nav-text">CURLcode curl_easy_setopt(CURL *handle, CURLoption option, parameter)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CURLcode-curl-easy-perform-CURL-handle"><span class="nav-text">CURLcode curl_easy_perform(CURL *handle)</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">417</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/11/09/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-libcurl/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="libcurl | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          libcurl
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-11-09 11:59:59" itemprop="dateCreated datePublished" datetime="2023-11-09T11:59:59+08:00">2023-11-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-11-25 14:18:23" itemprop="dateModified" datetime="2023-11-25T14:18:23+08:00">2023-11-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%B7%A5%E5%85%B7%E8%87%AA%E6%9F%A5/" itemprop="url" rel="index"><span itemprop="name">工具自查</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>在基于 libcurl 的程序里，主要采用回调函数的形式完成传输任务，用户在启动传输前设置好各类参数和回调函数，当满足条件时 libcurl 将调用用户的回调函数实现特定功能</p>
+<h2 id="基本函数"><a href="#基本函数" class="headerlink" title="基本函数"></a>基本函数</h2><h3 id="CURLcode-curl-global-init-long-flags"><a href="#CURLcode-curl-global-init-long-flags" class="headerlink" title="CURLcode curl_global_init(long flags)"></a>CURLcode curl_global_init(long flags)</h3><p>函数只能用一次，但在调用 <code>curl_global_cleanup</code> 后仍然可再用</p>
+<p><code>curl_global_init</code> 是不保证线程安全的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CURL_GLOBAL_ALL         <span class="comment">// 初始化所有的可能的调用。</span></span><br><span class="line">CURL_GLOBAL_SSL         <span class="comment">// 初始化支持安全套接字层。</span></span><br><span class="line">CURL_GLOBAL_WIN32       <span class="comment">// 初始化 win32 套接字库。</span></span><br><span class="line">CURL_GLOBAL_NOTHING     <span class="comment">// 没有额外的初始化</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="void-curl-global-cleanup-void"><a href="#void-curl-global-cleanup-void" class="headerlink" title="void curl_global_cleanup(void)"></a>void curl_global_cleanup(void)</h3><p>在结束libcurl使用的时候，用来对curl_global_init做的工作清理</p>
+<h3 id="CURL-curl-easy-init"><a href="#CURL-curl-easy-init" class="headerlink" title="CURL *curl_easy_init( )"></a>CURL *curl_easy_init( )</h3><p>用来初始化一个 <code>CURL</code> 指针，相应的在调用结束时要用 <code>curl_easy_cleanup</code> 清理</p>
+<p>一般 <code>curl_easy_init</code> 意味着一个会话的开始. 它会返回一个 <code>CURL*</code> 一般都用在 easy 系列的函数中</p>
+<h3 id="void-curl-easy-cleanup-CURL-handle"><a href="#void-curl-easy-cleanup-CURL-handle" class="headerlink" title="void curl_easy_cleanup(CURL *handle)"></a>void curl_easy_cleanup(CURL *handle)</h3><p>结束一个会话</p>
+<h3 id="CURLcode-curl-easy-setopt-CURL-handle-CURLoption-option-parameter"><a href="#CURLcode-curl-easy-setopt-CURL-handle-CURLoption-option-parameter" class="headerlink" title="CURLcode curl_easy_setopt(CURL *handle, CURLoption option, parameter)"></a>CURLcode curl_easy_setopt(CURL *handle, CURLoption option, parameter)</h3><p>告诉 libcurl 程序将有如何的行为</p>
+<p><code>parameter</code> 既可以是个函数的指针，也可以是某个对象的指针，也可以是个 <code>long</code> 变量，其它取决于 <code>option</code></p>
+<ul>
+<li><p><code>CURLOPT_URL</code>：访问的 URL</p>
+</li>
+<li><p><code>CURLOPT_WRITEFUNCTION</code>：回调函数原型为 <code>size_t function( void *ptr, size_t size, size_t nmemb, void *stream)</code>，函数将在接收到数据后被调用。libcurl 提供一个默认的回调函数，它只是简单的将接收到的数据打印到标准输出</p>
+</li>
+<li><p><code>CURLOPT_WRITEDATA</code>：用于表明 <code>CURLOPT_WRITEFUNCTION</code> 函数中的 <code>stream</code> 指针的来源</p>
+</li>
+<li><p><code>CURLOPT_HEADERFUNCTION</code>：回调函数原型为 <code>size_t function( void *ptr, size_t size,size_t nmemb, void *stream)</code>，一旦接收到 http 头部数据后将调用该函数</p>
+</li>
+<li><p><code>CURLOPT_HEADERDATA</code>：用于表明 <code>CURLOPT_HEADERFUNCTION</code> 函数中的 <code>stream</code> 指针的来源</p>
+</li>
+<li><p><code>CURLOPT_READFUNCTION</code>：读取数据传递给远程时的回调函数，函数原型是 <code>size_t function(void *ptr, size_t size, size_t nmemb,void *stream)</code></p>
+</li>
+<li><p><code>CURLOPT_READDATA</code>：表明 <code>CURLOPT_READFUNCTION</code> 的 <code>stream</code> 指针来源</p>
+</li>
+<li><p><code>CURLOPT_TIMEOUT</code>：传输时间</p>
+</li>
+<li><p><code>CURLOPT_CONNECTIONTIMEOUT</code>：连接等待时间</p>
+</li>
+<li><p><code>CURLOPT_FOLLOWLOCATION</code>：重定位URL</p>
+</li>
+<li><p><code>CURLOPT_RANGE</code>：指定 <code>char*</code> 参数用于指明 http 域的 RANGE 头域</p>
+</li>
+<li><p><code>CURLOPT_RESUME_FROM</code>：传递一个 <code>long</code> 参数指定希望开始传递的偏移量</p>
+</li>
+</ul>
+<h3 id="CURLcode-curl-easy-perform-CURL-handle"><a href="#CURLcode-curl-easy-perform-CURL-handle" class="headerlink" title="CURLcode curl_easy_perform(CURL *handle)"></a>CURLcode curl_easy_perform(CURL *handle)</h3><p>在 <code>curl_easy_setopt</code> 完成后调用，让设置的 <code>option</code> 运作起来</p>
+<ul>
+<li><p><code>CURLE_OK</code> 任务完成</p>
+</li>
+<li><p><code>CURLE_UNSUPPORTED_PROTOCOL</code> 不支持的协议</p>
+</li>
+<li><p><code>CURLE_COULDNT_CONNECT</code> 不能连接到远程主机或者代理</p>
+</li>
+<li><p><code>CURLE_REMOTE_ACCESS_DENIED</code> 访问被拒绝</p>
+</li>
+<li><p><code>CURLE_HTTP_RETURNED_ERROR</code> Http 返回错误</p>
+</li>
+<li><p><code>CURLE_READ_ERROR</code> 读本地文件错误</p>
+</li>
+</ul>
+<p>可以通过 <code>const char *curl_easy_strerror(CURLcode errornum)</code> 获取详细的错误描述字符串</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/benchmark/" rel="tag"># benchmark</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/11/01/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-benchmark/" rel="prev" title="benchmark">
+                  <i class="fa fa-chevron-left"></i> benchmark
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/11/14/cpp%E7%BB%86%E8%8A%82-%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/" rel="next" title="内存布局">
+                  内存布局 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
