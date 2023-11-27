@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="有虚函数的类，编译器会隐式添加一个 vptr 并 vptr 指向 vtable，vptr 被放在了对象的布局最顶端 1234567891011121314151617181920212223class A &amp;#123;public:  A() &#x3D; default;  int a;  virtual void f()&amp;#123;&amp;#125;;&amp;#125;;&#x2F;*gcc的虚表里，前两项是固定的一个是 o">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚函数表">
+<meta property="og:url" content="https://chaxxro.github.io/2023/08/09/cpp%E7%BB%86%E8%8A%82-%E8%99%9A%E5%87%BD%E6%95%B0%E8%A1%A8/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="有虚函数的类，编译器会隐式添加一个 vptr 并 vptr 指向 vtable，vptr 被放在了对象的布局最顶端 1234567891011121314151617181920212223class A &amp;#123;public:  A() &#x3D; default;  int a;  virtual void f()&amp;#123;&amp;#125;;&amp;#125;;&#x2F;*gcc的虚表里，前两项是固定的一个是 o">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-08-09T08:30:17.000Z">
+<meta property="article:modified_time" content="2023-11-27T12:05:13.893Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="cpp">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/08/09/cpp%E7%BB%86%E8%8A%82-%E8%99%9A%E5%87%BD%E6%95%B0%E8%A1%A8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/08/09/cpp%E7%BB%86%E8%8A%82-%E8%99%9A%E5%87%BD%E6%95%B0%E8%A1%A8/","path":"2023/08/09/cpp细节-虚函数表/","title":"虚函数表"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>虚函数表 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#RTTI"><span class="nav-text">RTTI</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#type-info-%E5%AF%B9%E8%B1%A1"><span class="nav-text">type_info 对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dynamic-cast-%E8%BD%AC%E6%8D%A2"><span class="nav-text">dynamic_cast 转换</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E9%87%8D%E7%BB%A7%E6%89%BF%E7%9A%84%E8%99%9A%E5%87%BD%E6%95%B0%E8%A1%A8"><span class="nav-text">多重继承的虚函数表</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">415</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/08/09/cpp%E7%BB%86%E8%8A%82-%E8%99%9A%E5%87%BD%E6%95%B0%E8%A1%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="虚函数表 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          虚函数表
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-08-09 16:30:17" itemprop="dateCreated datePublished" datetime="2023-08-09T16:30:17+08:00">2023-08-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-11-27 20:05:13" itemprop="dateModified" datetime="2023-11-27T20:05:13+08:00">2023-11-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>有虚函数的类，编译器会隐式添加一个 vptr 并 vptr 指向 vtable，vptr 被放在了对象的布局最顶端</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">A</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="built_in">A</span>() = <span class="keyword">default</span>;</span><br><span class="line">  <span class="type">int</span> a;</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">f</span><span class="params">()</span></span>&#123;&#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">gcc的虚表里，前两项是固定的</span></span><br><span class="line"><span class="comment">一个是 offset_to_top，服务于 dynamic_cast，表示将对象从当前这个类型转换为该对象的实际类型的地址偏移量</span></span><br><span class="line"><span class="comment">一个是 typeinfo，服务于 RTTI</span></span><br><span class="line"><span class="comment">Vtable for A</span></span><br><span class="line"><span class="comment">A::_ZTV1A: 3 entries</span></span><br><span class="line"><span class="comment">0     (int (*)(...))0</span></span><br><span class="line"><span class="comment">8     (int (*)(...))(&amp; _ZTI1A)  // 指向 _ZTI1A 结构体</span></span><br><span class="line"><span class="comment">16    (int (*)(...))A::f</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Class A</span></span><br><span class="line"><span class="comment">   size=16 align=8</span></span><br><span class="line"><span class="comment">   base size=12 base align=8</span></span><br><span class="line"><span class="comment">A (0x0x7f498e80c960) 0</span></span><br><span class="line"><span class="comment">    vptr=((&amp; A::_ZTV1A) + 16)  // 指向 A::f，而非虚函数表的开头</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="RTTI"><a href="#RTTI" class="headerlink" title="RTTI"></a>RTTI</h2><p>RTTI（Runtime Type Identification）运行时类型识别，指的是程序在运行的时候才确定需要用到的对象是什么类型的，用于在运行时而不是编译时获取有关对象的信息</p>
+<p>RTTI 可以通过特有的方式来告诉调用方其所调用的对象具体信息，一般有 <code>typeid</code> 操作符、<code>type_info</code> 类和 <code>dynamic_cast</code> 操作符</p>
+<h3 id="type-info-对象"><a href="#type-info-对象" class="headerlink" title="type_info 对象"></a>type_info 对象</h3><p><code>typeid</code> 操作符的结果是 <code>type_info</code> 对象的引用，或者说 <code>typeid</code> 表达式的类型是 <code>const std::type_info&amp;</code></p>
+<p><code>std::type_info</code> 存储了对象的基本信息。如果对象至少包含一个虚函数，那么 <code>typeid</code> 是运行时的事情，否则在编译期就能获取其具体类型</p>
+<p>对于存在虚函数的类来说，其对象的 <code>type_info</code> 存储在该类的虚函数表中。在运行时刻，根据虚函数指针的实际指向，获取其 <code>type_info</code> 信息从而进行相关操作</p>
+<p>C++ 标准没有对 <code>type_info</code> 有明确的要求，仅仅要求必须有几个成员函数</p>
+<ul>
+<li><p><code>t1 == t2</code> 如果两个对象类型相同，则返回 <code>true</code>，否则返回 <code>false</code></p>
+</li>
+<li><p><code>t1 != t2</code> 如果两个对象类型不同，则返回 <code>true</code>，否则返回 <code>false</code></p>
+</li>
+<li><p><code>t.name()</code> 返回类型的 C-style 字符串</p>
+</li>
+<li><p><code>t1.before(t2)</code></p>
+</li>
+</ul>
+<h3 id="dynamic-cast-转换"><a href="#dynamic-cast-转换" class="headerlink" title="dynamic_cast 转换"></a>dynamic_cast 转换</h3><p><code>dynamic_cast</code> 是 C++ 中几个常用的类型转换符之一，其通过类型信息 <code>type_info</code> 进行相对安全的类型转换</p>
+<p>在转换时，会检查转换的 src 对象是否真的可以转换成 dst 类型。对于指针类型转换，如果失败则返回 <code>nullptr</code>，而对于引用转换失败就抛出 <code>bad_cast</code></p>
+<p><code>dynamic_cast</code> 转换符只能用于含有虚函数的类，因此其常常用于运行期，对于不包括虚函数的类，完全可以使用其它几个转换符在编译期进行转换</p>
+<p><code>dynamic_cast</code> 向上转换是静态操作，在编译阶段完成</p>
+<h2 id="多重继承的虚函数表"><a href="#多重继承的虚函数表" class="headerlink" title="多重继承的虚函数表"></a>多重继承的虚函数表</h2><p>在具备多重继承时，情况与单级继承时基本类似，但需要注意这种情况下的两个隐式地址加减机制</p>
+<p>Derived 多重继承了 Base1 和 Base2，其中 Base1 为其主要基类（primary base class），Base2 为非主要基类（non-primary base class），则 Derived 的对象布局中，会存在 Base1、Base2 类对象的 subobject</p>
+<p>因为 Derived、Base1、Base2 中都存在 virtual functions，首先 Derived 中有一个 vptr 指向 Derived 类的 vtable，这个 vtable 又称为 primary vtable，其构成原理与单级继承时一样，在 Derived 类对象被当作 Base1 类指针、引用时，使用这个 vtable</p>
+<p>与单级继承不同的是，此时 Derived 对象中还包含一个 vptr，指向一个 non-primary vtable，这个 vtable 的作用是处理当 Derived 类对象被当作 Base2 类时的 virtual function 调用</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base1</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f0</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">f1</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">  <span class="type">int</span> a;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Base2</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">f2</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">  <span class="type">int</span> b;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Derived</span> : <span class="keyword">public</span> Base1, <span class="keyword">public</span> Base2 &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">d</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">f2</span><span class="params">()</span> <span class="keyword">override</span> </span>&#123;&#125;</span><br><span class="line">  <span class="type">int</span> c;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">Vtable for Base1</span></span><br><span class="line"><span class="comment">Base1::_ZTV5Base1: 3 entries</span></span><br><span class="line"><span class="comment">0     (int (*)(...))0</span></span><br><span class="line"><span class="comment">8     (int (*)(...))(&amp; _ZTI5Base1)</span></span><br><span class="line"><span class="comment">16    (int (*)(...))Base1::f1</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Class Base1</span></span><br><span class="line"><span class="comment">   size=16 align=8</span></span><br><span class="line"><span class="comment">   base size=12 base align=8</span></span><br><span class="line"><span class="comment">Base1 (0x0x7ff92845c960) 0</span></span><br><span class="line"><span class="comment">    vptr=((&amp; Base1::_ZTV5Base1) + 16)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Vtable for Base2</span></span><br><span class="line"><span class="comment">Base2::_ZTV5Base2: 3 entries</span></span><br><span class="line"><span class="comment">0     (int (*)(...))0</span></span><br><span class="line"><span class="comment">8     (int (*)(...))(&amp; _ZTI5Base2)</span></span><br><span class="line"><span class="comment">16    (int (*)(...))Base2::f2</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Class Base2</span></span><br><span class="line"><span class="comment">   size=16 align=8</span></span><br><span class="line"><span class="comment">   base size=12 base align=8</span></span><br><span class="line"><span class="comment">Base2 (0x0x7ff92845ca80) 0</span></span><br><span class="line"><span class="comment">    vptr=((&amp; Base2::_ZTV5Base2) + 16)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Vtable for Derived</span></span><br><span class="line"><span class="comment">Derived::_ZTV7Derived: 7 entries</span></span><br><span class="line"><span class="comment">0     (int (*)(...))0</span></span><br><span class="line"><span class="comment">8     (int (*)(...))(&amp; _ZTI7Derived) // 指向 type_info</span></span><br><span class="line"><span class="comment">16    (int (*)(...))Base1::f1</span></span><br><span class="line"><span class="comment">24    (int (*)(...))Derived::f2</span></span><br><span class="line"><span class="comment">32    (int (*)(...))-16</span></span><br><span class="line"><span class="comment">40    (int (*)(...))(&amp; _ZTI7Derived) // 指向 type_info</span></span><br><span class="line"><span class="comment">48    (int (*)(...))Derived::_ZThn16_N7Derived2f2Ev</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">Class Derived</span></span><br><span class="line"><span class="comment">   size=32 align=8</span></span><br><span class="line"><span class="comment">   base size=32 base align=8</span></span><br><span class="line"><span class="comment">Derived (0x0x7ff928472000) 0</span></span><br><span class="line"><span class="comment">    vptr=((&amp; Derived::_ZTV7Deriv+ 16)</span></span><br><span class="line"><span class="comment">  Base1 (0x0x7ff92845cb40) 0</span></span><br><span class="line"><span class="comment">      primary-for Derived (0x0x7ff928472000)</span></span><br><span class="line"><span class="comment">  Base2 (0x0x7ff92845cba0) 16</span></span><br><span class="line"><span class="comment">      vptr=((&amp; Derived::_ZTV7Derived) + 48) // 指向 _ZThn16_N7Derived2f2Ev</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  Derived d;</span><br><span class="line">  Base1* p1 = &amp;d;</span><br><span class="line">  Base2* p2 = &amp;d;  <span class="comment">// 转换时对指针进行了偏移</span></span><br><span class="line">  std::cout &lt;&lt; &amp;d &lt;&lt; std::endl;</span><br><span class="line">  std::cout &lt;&lt; p1 &lt;&lt; std::endl;</span><br><span class="line">  std::cout &lt;&lt; p2 &lt;&lt; std::endl;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 0x7ffea91b1ca0</span></span><br><span class="line"><span class="comment">// 0x7ffea91b1ca0</span></span><br><span class="line"><span class="comment">// 0x7ffea91b1cb0 进行了偏移</span></span><br></pre></td></tr></table></figure>
+
+<p>由上可以看出，Derived 有两个 vptr</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cpp/" rel="tag"># cpp</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/08/09/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="prev" title="内存管理">
+                  <i class="fa fa-chevron-left"></i> 内存管理
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/08/09/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E5%8D%95%E6%9C%BA%E9%AB%98%E5%B9%B6%E5%8F%91%E8%AE%BE%E8%AE%A1/" rel="next" title="单机高并发设计">
+                  单机高并发设计 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
