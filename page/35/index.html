@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">414</span>
+          <span class="site-state-item-count">415</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -133,7 +133,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-count">31</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -150,6 +150,175 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/Spark-Rdd/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/02/Spark-Rdd/" class="post-title-link" itemprop="url">Rdd</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-02 15:27:27" itemprop="dateCreated datePublished" datetime="2023-04-02T15:27:27+08:00">2023-04-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-11-30 15:43:18" itemprop="dateModified" datetime="2023-11-30T15:43:18+08:00">2023-11-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Spark/" itemprop="url" rel="index"><span itemprop="name">Spark</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>RDD 是构建 Spark 分布式内存计算引擎的基石，很多 Spark 核心概念与核心组件，如 DAG 和调度系统都衍生自 RDD</p>
+<img src="/2023/04/02/Spark-Rdd/01.png" class="">
+
+<p>RDD 是一种抽象，它所囊括的是分布式计算环境中的分布式数据集</p>
+<p>RDD 代表的数据集是跨进程、跨节点的，它的活动范围是整个集群</p>
+<p>RDD 中承载数据的基本单元是数据分片</p>
+<p>在分布式计算环境中，一份完整的数据集，会按照某种规则切割成多份数据分片。这些数据分片被均匀地分发给集群内不同的计算节点和执行进程，从而实现分布式并行计算</p>
+<p>RDD 的四个重要属性：</p>
+<ul>
+<li><p>partitions：数据分片</p>
+</li>
+<li><p>partitioner：分片切割规则</p>
+</li>
+<li><p>dependencies：RDD 依赖</p>
+</li>
+<li><p>compute：转换函数</p>
+</li>
+</ul>
+<p>数据分片的分布，是由 RDD 的 partitioner 决定的，两者是强相关的</p>
+<p>在数据形态的转换过程中，每个 RDD 都会通过 dependencies 属性来记录它所依赖的前一个、或是多个 RDD</p>
+<p>RDD 使用 compute 属性，来记录从父 RDD 到当前 RDD 的转换操作</p>
+<h2 id="创建-RDD"><a href="#创建-RDD" class="headerlink" title="创建 RDD"></a>创建 RDD</h2><h3 id="内部数据创建"><a href="#内部数据创建" class="headerlink" title="内部数据创建"></a>内部数据创建</h3><p>在 Spark 应用中自定义的各类数据结构，如数组、列表、映射等，都属于内部数据</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.spark.rdd.<span class="type">RDD</span></span><br><span class="line"><span class="keyword">val</span> words: <span class="type">Array</span>[<span class="type">String</span>] = <span class="type">Array</span>(<span class="string">&quot;Spark&quot;</span>, <span class="string">&quot;is&quot;</span>, <span class="string">&quot;cool&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>用 <code>parallelize</code> 函数来封装内部数据即可 RDD</p>
+<p>在 Spark 应用内定义体量超大的数据集，其实都是不太合适的，因为数据集完全由 Driver 端创建，且创建完成后，还要在全网范围内跨节点、跨进程地分发到其他 Executors，所以往往会带来性能问题</p>
+<h3 id="外部数据创建"><a href="#外部数据创建" class="headerlink" title="外部数据创建"></a>外部数据创建</h3><p>Spark 系统之外的所有数据形式，如本地文件系统或是分布式文件系统中的数据，再比如来自其他大数据组件（Hive、Hbase、RDBMS 等）的数据，都是外部数据</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> lineRDD: <span class="type">RDD</span>[<span class="type">String</span>] = spark.sparkContext.textFile(file)</span><br></pre></td></tr></table></figure>
+
+<h2 id="RDD-算子"><a href="#RDD-算子" class="headerlink" title="RDD 算子"></a>RDD 算子</h2><p>RDD 代表的是分布式数据形态，RDD 到 RDD 之间的转换，本质上是数据形态上的转换；在 RDD 的编程模型中，一共有两种算子，Transformations 类算子和 Actions 类算子；使用 Transformations 类算子，定义并描述数据形态的转换过程，然后调用 Actions 类算子，将计算结果收集起来、或是物化到磁盘</p>
+<p>调用的各类 Transformations 算子，并不立即执行计算，当且仅当开发者调用 Actions 算子时，之前调用的转换算子才会付诸执行</p>
+<img src="/2023/04/02/Spark-Rdd/02.png" class="">
+
+<h2 id="内部数据转换"><a href="#内部数据转换" class="headerlink" title="内部数据转换"></a>内部数据转换</h2><ul>
+<li><p><code>map</code> 算子：给定映射函数 <code>f</code>，<code>map(f)</code> 以元素为粒度对 RDD 做数据转换；由于以元素为粒度，在某些计算场景下，这个特点会严重影响执行效率</p>
+</li>
+<li><p><code>mapPartitions</code> 算子：以数据分区为粒度的数据转换，使用映射函数 <code>f</code> 对 RDD 进行数据转换；凡是可以共享的操作，都可以用 <code>mapPartitions</code> 算子进行优化，如创建用于连接远端数据库的 Connections 对象等</p>
+</li>
+<li><p><code>mapPartitionsWithIndex</code> 算子：相比 <code>mapPartitions</code>，<code>mapPartitionsWithIndex</code> 仅仅多出了一个数据分区索引，这个数据分区索引可以为获取分区编号</p>
+</li>
+<li><p><code>flatMap</code>：以元素为粒度，对 RDD 进行数据转换，但接受的 <code>f</code> 是元素到集合（如数组、列表等）；在逻辑上分为以元素为单位创建集合和提取集合元素</p>
+</li>
+<li><p><code>filter</code> 算子：对 RDD 进行过滤</p>
+</li>
+</ul>
+<h2 id="Shuffle-计算"><a href="#Shuffle-计算" class="headerlink" title="Shuffle 计算"></a>Shuffle 计算</h2><ul>
+<li><p><code>groupByKey</code>：按照 Key 做分组，包含分组和收集两步；对于元素类型为（Key，Value）键值对的 Paired RDD，groupByKey 的功能就是对 Key 值相同的元素做分组，然后把相应的 Value 值，以集合的形式收集到一起；Shuffle 时以全量原始数据记录的方式消耗磁盘与网络</p>
+</li>
+<li><p><code>reduceByKey</code>：根据聚合函数 f 给出的算法，把 Key 值相同的多个元素，聚合成一个元素；对于 <code>RDD[(Key，Value)]</code>，函数 f 的形参，必须是两个数值，且数值的类型必须与 Value 的类型相同，而 f 的返回值，也必须是 Value 类型的数值；Shuffle 时会在落盘与分发之前的 Map 阶段做初步的聚合计算，称之为 Map 端聚合；局限性在于其 Map 阶段与 Reduce 阶段的计算逻辑必须保持一致，这个计算逻辑统一由聚合函数 f 定义</p>
+</li>
+<li><p><code>aggregateByKey</code>：需要提供一个初始值，一个 Map 端聚合函数 f1，以及一个 Reduce 端聚合函数 f2，初始值类型必须与 f2 的结果类型保持一致，f1 的形参类型，必须与 Paired RDD 的 Value 类型保持一致，f2 的形参类型，必须与 f1 的结果类型保持一致</p>
+</li>
+</ul>
+<img src="/2023/04/02/Spark-Rdd/03.png" class="">
+
+<ul>
+<li><code>sortByKey</code>：以 Key 为准对 RDD 做排序，默认升序排序</li>
+</ul>
+<h3 id="数据准备"><a href="#数据准备" class="headerlink" title="数据准备"></a>数据准备</h3><p>在数据准备阶段，<code>union</code> 与 <code>sample</code> 用于对不同来源的数据进行合并与拆分</p>
+<ul>
+<li><p><code>union</code> 用于把两个类型一致、但来源不同的 RDD 进行合并，从而构成一个统一的、更大的分布式数据集；<code>union</code> 操作能够成立的前提，就是参与合并的两个 RDD 的类型必须完全一致</p>
+</li>
+<li><p><code>sample(withReplacement, fraction, seed)</code> 用于对 RDD 做随机采样，从而把一个较大的数据集变为一份小数据；<code>withReplacement</code> 的类型是 <code>Boolean</code>，表示采样是否有放回；<code>fraction</code> 类型是 <code>Double</code>，值域为 0 到 1，其含义是采样比例；<code>seed</code> 参数是可选的，它的类型是 <code>Long</code></p>
+</li>
+</ul>
+<h2 id="数据预处理"><a href="#数据预处理" class="headerlink" title="数据预处理"></a>数据预处理</h2><p>较为均衡的数据分布，对后面数据处理阶段提升 CPU 利用率更有帮助，可以整体提升执行效率</p>
+<p><code>coalesce</code> 与 <code>repartition</code> 的作用就是重新调整 RDD 数据分布</p>
+<p><code>repartition</code> 算子随意调整（提升或降低）RDD 的并行度，而 <code>coalesce</code> 算子则只能用于降低 RDD 并行度</p>
+<p>每个 RDD 的数据分区，都对应着一个分布式 Task，而每个 Task 都需要一个 CPU 线程去执行</p>
+<p>RDD 的并行度，很大程度上决定了分布式系统中 CPU 的使用效率，进而还会影响分布式系统并行计算的执行效率</p>
+<p>使用 <code>repartition</code> 调整 RDD 并行度会引入 Shuffle，而 <code>coalesce</code> 则不会</p>
+<p>给定 RDD，如果用 <code>repartition</code> 来调整其并行度，不论增加还是降低，对于 RDD 中的每一条数据记录，<code>repartition</code> 对它们的影响都是无差别的数据分发</p>
+<p><code>coalesce</code> 在降低并行度的计算中，它采取的思路是把同一个 Executor 内的不同数据分区进行合并，这样数据并不需要跨 Executors、跨节点进行分发，因而自然不会引入 Shuffle</p>
+<h2 id="数据收集"><a href="#数据收集" class="headerlink" title="数据收集"></a>数据收集</h2><p><code>take</code>、<code>first</code>、<code>collect</code> 把结果直接收集到 Driver 端</p>
+<p><code>saveAsTextFile</code> 将计算结果持久化到（分布式）文件系统</p>
+<ul>
+<li><p><code>first</code> 用于收集 RDD 数据集中的任意一条数据记录</p>
+</li>
+<li><p><code>take</code> 用于收集多条记录</p>
+</li>
+<li><p><code>collect</code> 收集全部数据到 Driver，但有两处性能隐患，一个是拉取数据过程中引入的网络开销，另一个 Driver 的 OOM</p>
+</li>
+<li><p><code>saveAsTextFile</code> 直接通过 Executors 将 RDD 数据分区物化到文件系统，这个过程并不涉及与 Driver 端的任何交互</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +364,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-11-29 17:52:39" itemprop="dateModified" datetime="2023-11-29T17:52:39+08:00">2023-11-29</time>
+      <time title="修改时间：2023-11-30 15:43:18" itemprop="dateModified" datetime="2023-11-30T15:43:18+08:00">2023-11-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -318,7 +487,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-11-29 17:52:39" itemprop="dateModified" datetime="2023-11-29T17:52:39+08:00">2023-11-29</time>
+      <time title="修改时间：2023-11-30 15:43:18" itemprop="dateModified" datetime="2023-11-30T15:43:18+08:00">2023-11-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -423,7 +592,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-11-29 17:52:39" itemprop="dateModified" datetime="2023-11-29T17:52:39+08:00">2023-11-29</time>
+      <time title="修改时间：2023-11-30 15:43:18" itemprop="dateModified" datetime="2023-11-30T15:43:18+08:00">2023-11-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -518,7 +687,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-11-29 17:52:39" itemprop="dateModified" datetime="2023-11-29T17:52:39+08:00">2023-11-29</time>
+      <time title="修改时间：2023-11-30 15:43:18" itemprop="dateModified" datetime="2023-11-30T15:43:18+08:00">2023-11-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -630,7 +799,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-11-29 17:52:39" itemprop="dateModified" datetime="2023-11-29T17:52:39+08:00">2023-11-29</time>
+      <time title="修改时间：2023-11-30 15:43:18" itemprop="dateModified" datetime="2023-11-30T15:43:18+08:00">2023-11-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -797,7 +966,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-11-29 17:52:39" itemprop="dateModified" datetime="2023-11-29T17:52:39+08:00">2023-11-29</time>
+      <time title="修改时间：2023-11-30 15:43:18" itemprop="dateModified" datetime="2023-11-30T15:43:18+08:00">2023-11-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -893,7 +1062,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-11-29 17:52:39" itemprop="dateModified" datetime="2023-11-29T17:52:39+08:00">2023-11-29</time>
+      <time title="修改时间：2023-11-30 15:43:18" itemprop="dateModified" datetime="2023-11-30T15:43:18+08:00">2023-11-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1025,7 +1194,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-11-29 17:52:39" itemprop="dateModified" datetime="2023-11-29T17:52:39+08:00">2023-11-29</time>
+      <time title="修改时间：2023-11-30 15:43:18" itemprop="dateModified" datetime="2023-11-30T15:43:18+08:00">2023-11-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1157,7 +1326,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-11-29 17:52:39" itemprop="dateModified" datetime="2023-11-29T17:52:39+08:00">2023-11-29</time>
+      <time title="修改时间：2023-11-30 15:43:18" itemprop="dateModified" datetime="2023-11-30T15:43:18+08:00">2023-11-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1346,105 +1515,6 @@
 <li><p>在堆上模拟实现一个函数调用栈，手动模拟递归压栈、出栈的过程</p>
 </li>
 </ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/01/%E7%AE%97%E6%B3%95-%E8%B4%AA%E5%BF%83/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/01/%E7%AE%97%E6%B3%95-%E8%B4%AA%E5%BF%83/" class="post-title-link" itemprop="url">贪心算法</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-01 16:34:39" itemprop="dateCreated datePublished" datetime="2023-04-01T16:34:39+08:00">2023-04-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-11-29 17:52:39" itemprop="dateModified" datetime="2023-11-29T17:52:39+08:00">2023-11-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/algorithm/" itemprop="url" rel="index"><span itemprop="name">algorithm</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p>针对一组数据，定义了限制值和期望值，希望从中选出几个数据，在满足限制值的情况下期望值最大。这类问题首先联想到贪心算法</p>
-<p>大部分情况下，能用贪心解决的问题，得出结果的正确性是显而易见的。但实际上，贪心并不总能给出全局最优解</p>
-<h2 id="实例分析"><a href="#实例分析" class="headerlink" title="实例分析"></a>实例分析</h2><h3 id="分糖果："><a href="#分糖果：" class="headerlink" title="分糖果："></a>分糖果：</h3><p>m 个糖果和 n 个孩子，m &lt; n，把糖果分给这些孩子吃，所以糖果只能分配给一部分孩子</p>
-<p>每个糖果的大小不等，这 m 个糖果的大小分别是 s1，s2，s3，……，sm</p>
-<p>每个孩子对糖果大小的需求也是不一样的，只有糖果的大小大于等于孩子的对糖果大小的需求的时候，孩子才得到满足，小孩需求分别是 g1，g2，g3，……，gn</p>
-<p>如何分配糖果，能尽可能满足最多数量的孩子？可以把这个问题抽象成，从 n 个孩子中，抽取一部分孩子分配糖果，让满足的孩子的个数（期望值）是最大的</p>
-<p>这个问题的限制值就是糖果个数 m，对于一个孩子来说，如果小的糖果可以满足，就没必要用更大的糖果，这样更大的就可以留给其他对糖果大小需求更大的孩子</p>
-<p>所以可以从需求小的孩子开始分配糖果，满足一个需求大的孩子跟满足一个需求小的孩子，对期望值的贡献是一样的。每次从剩下的孩子中，找出对糖果大小需求最小的，然后发给他剩下的糖果中能满足他的最小的糖果，这样得到的分配方案，也就是满足的孩子个数最多的方案。</p>
-<h3 id="钱币找零"><a href="#钱币找零" class="headerlink" title="钱币找零"></a>钱币找零</h3><p>假设有 1 元、2 元、5 元、10 元、20 元、50 元、100 元这些面额的纸币，它们的张数分别是 c1、c2、c5、c10、c20、c50、c100。用这些钱来支付 K 元，最少要用多少张纸币呢？</p>
-<p>肯定是先用面值最大的来支付，如果不够，就继续用更小一点面值的，以此类推，最后剩下的用 1 元来补齐</p>
-<p>在贡献相同期望值（纸币数目）的情况下，希望多贡献点金额，这样就可以让纸币数更少，这就是一种贪心算法的解决思路</p>
-<h3 id="区间覆盖"><a href="#区间覆盖" class="headerlink" title="区间覆盖"></a>区间覆盖</h3><p>假设有 n 个区间，区间的起始端点和结束端点分别是[l1, r1]，[l2, r2]，[l3, r3]，……，[ln, rn]</p>
-<p>从这 n 个区间中选出一部分区间，这部分区间满足两两不相交（端点相交的情况不算相交），最多能选出多少个区间呢？     </p>
-<p>这个问题的解决思路是这样的：假设这 n 个区间中最左端点是 lmin，最右端点是 rmax。选择几个不相交的区间，从左到右将[lmin, rmax]覆盖上</p>
-<p>按照起始端点从小到大的顺序对这 n 个区间排序。每次选择的时候，左端点跟前面的已经覆盖的区间不重合的，右端点又尽量小的，这样可以让剩下的未覆盖区间尽可能的大，就可以放置更多的区间</p>
 
       
     </div>
