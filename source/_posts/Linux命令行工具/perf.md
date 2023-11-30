@@ -61,12 +61,69 @@ perf 是 performance 的缩写，是一个事件驱动的可观测性工具
 
 `perf stat` 来收集一些计数信息
 
-## 采样剖析
+```sh
+perf stat [-e <EVENT> | --event=EVENT] [-a] <command>
+perf stat [-e <EVENT> | --event=EVENT] [-a] — <command> [<options>]
+
+-e, --event <event> 指定事件
+--filter <filter> 过滤事件
+-i 不统计子进程
+-a 对全部 CPU 进行计数
+-p 指定进程
+-t 指定线程
+-v 详细信息
+-I 指定事件间隔，单位毫秒，最小 100ms
+-r 重复运行，并显示平均信息
+```
+
+## 采样
 
 `perf record` 和 `perf top` 对系统进行剖析
 
-执行 `perf top` 可以看到目前的 CPU 执行占比情况，该情况会随着时间刷新，这可以帮助快速的发现热点
+### perf top
 
-`perf record` 则像是把多个时间的 `perf top` 结果作为切片保存到一个文件里，从而得到一段时间里的执行情况
+`perf top` 可以看到目前的 CPU 执行占比情况，该情况会随着时间刷新，这可以帮助快速的发现热点
+
+```sh
+perf top [-e <EVENT> | --event=EVENT] [<options>]
+
+-a 全系统采样
+-c 每采样 n 个事件记录一次
+-d 刷新间隔时间
+-e, --event <event> 指定事件
+-p 指定进程
+-t 指定线程
+```
+
+{% asset_img 01.png %}
+
+- Overhead 该符号的性能事件在所有采样事件中的比例
+
+- Shared 该函数或指令所在的动态共享对象，如内核、进程名、动态链接库
+
+- Object 动态共享对象类型，`.` 表示用户空间的可执行程序，`k` 内核空间
+
+- Symbol 符号名、函数名，函数名未知时用十六进制表示
+
+### perf record
+
+`perf record` 是把多个时间的 `perf top` 结果作为切片保存到一个文件里，从而得到一段时间里的执行情况，默认在当前目录下生成数据文件 perf.data
+
+```sh
+perf record [-e <EVENT> | --event=EVENT] [-l] [-a] <command>
+perf record [-e <EVENT> | --event=EVENT] [-l] [-a] — <command> [<options>]
+
+-e, --event <event> 指定事件
+--filter <filter> 过滤事件
+-a 对全部 CPU 进行计数
+-p 指定进程
+-t 指定线程
+-f 覆盖已存在的数据文件
+-c 每采样 n 个事件记录一次
+-o 输出文件名
+-g 保存调用栈
+-s 每个线程都统计
+-F, --freq <n> 采样频率
+```
 
 `perf record` 得到的结果数据是无法直接读取的，可以用 `perf script` 将其转换成可读文件，或者直接用 `perf report` 进行图形化展示
