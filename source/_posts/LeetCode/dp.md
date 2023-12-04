@@ -160,3 +160,23 @@ dp[l] = dp[j] && dict.count(s.substr(j, l - j)) != 0
 ```
 
 [题目](https://leetcode.com/problems/word-break/description/)
+
+## lc300
+
+```cpp
+/*
+方法一：
+dp[i]：下标为 i 元素的最长递增子序列
+
+方法二：
+dp[i]：长度为 i 的最长递增子序列最大元素
+当不同递增序列长度相同时，序列最大值中的最小值更佳，所以保存最大值中的最小值
+
+方法三：
+在方法二中，dp 数组是单调递增的，所以可以使用二分的方法
+*/ 
+```
+
+[题目](https://leetcode.com/problems/longest-increasing-subsequence/)
+
+[分析](https://www.bilibili.com/video/BV1Wf4y1y7ou)
