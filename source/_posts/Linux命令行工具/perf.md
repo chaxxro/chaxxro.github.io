@@ -111,7 +111,7 @@ perf top [-e <EVENT> | --event=EVENT] [<options>]
 
 ```sh
 perf record [-e <EVENT> | --event=EVENT] [-l] [-a] <command>
-perf record [-e <EVENT> | --event=EVENT] [-l] [-a] — <command> [<options>]
+perf record [-e <EVENT> | --event=EVENT] [-l] [-a] —- <command> [<options>]
 
 -e, --event <event> 指定事件
 --filter <filter> 过滤事件
@@ -124,7 +124,6 @@ perf record [-e <EVENT> | --event=EVENT] [-l] [-a] — <command> [<options>]
 -g 保存调用栈
 -s 每个线程都统计
 -F, --freq <n> 采样频率
--g 就相当于 --call-graph fp，除了 fp 还支持 dwarf, lbr
 ```
 
 `perf record` 得到的结果数据是无法直接读取的，可以用 `perf script` 将其转换成可读文件，或者直接用 `perf report` 进行图形化展示

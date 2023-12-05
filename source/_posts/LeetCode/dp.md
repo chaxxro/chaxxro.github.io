@@ -180,3 +180,17 @@ dp[i]：长度为 i 的最长递增子序列最大元素
 [题目](https://leetcode.com/problems/longest-increasing-subsequence/)
 
 [分析](https://www.bilibili.com/video/BV1Wf4y1y7ou)
+
+## lc312
+
+```cpp
+/*
+dp[i][j] = maxCoins(nums[i] ~ nums[j])
+// 在 i ~ j 中，最后打 k 处的气球
+dp[i][j] = max(dp[i][k - 1] + nums[i - 1] * nums[k] * nums[j + 1] + dp[k + 1][j]), i <= k <= j 
+*/
+```
+
+[题目](https://leetcode.com/problems/burst-balloons/)
+
+[分析](https://www.youtube.com/watch?v=z3hu2Be92UA&t=700s)
