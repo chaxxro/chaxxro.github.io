@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">410</span>
+          <span class="site-state-item-count">411</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,180 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/" class="post-title-link" itemprop="url">虚拟内存</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 21:30:08" itemprop="dateCreated datePublished" datetime="2023-04-26T21:30:08+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-06 20:31:51" itemprop="dateModified" datetime="2023-12-06T20:31:51+08:00">2023-12-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">内存管理</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="虚拟地址空间"><a href="#虚拟地址空间" class="headerlink" title="虚拟地址空间"></a>虚拟地址空间</h2><p>为了防止不同进程同一时刻在物理内存中运行而对物理内存的争夺和践踏，以及让程序获得更多可用内存，操作系统采用了虚拟内存技术</p>
+<p>虚拟内存技术使得不同进程在运行过程中，它所看到的是自己独自占有了当前系统的内存。所有进程共享同一物理内存，每个进程只把自己目前需要的虚拟内存空间映射并存储到物理内存上</p>
+<p>进程持有的虚拟地址会通过 CPU 芯片中的内存管理单元 MMU 的映射关系，来转换变成物理地址，然后再通过物理地址访问内存</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/01.png" class="">
+
+<p>在每个进程创建加载时，内核只是为进程创建了虚拟内存的布局，具体就是初始化进程控制表中内存相关的链表，实际上并不立即就把虚拟内存对应位置的程序数据和代码拷贝到物理内存中，只是建立好虚拟内存和磁盘文件之间的映射，等到运行到对应的程序时，才会通过缺页异常，来拷贝数据。进程运行过程中，要动态分配内存，比如 <code>malloc</code> 也只是分配了虚拟内存，即为这块虚拟内存对应的页表项做相应设置，当进程真正访问到此数据时，才引发缺页异常</p>
+<p>优点：</p>
+<ul>
+<li><p>扩大地址空间</p>
+</li>
+<li><p>内存保护：每个进程运行在各自的虚拟内存地址空间，互相不能干扰对方；对特定的内存地址提供写保护，可以防止代码或数据被恶意篡改</p>
+</li>
+<li><p>公平内存分配</p>
+</li>
+<li><p>当不同的进程使用同样的代码时，比如库文件中的代码，物理内存中可以只存储一份这样的代码，不同的进程只需要把自己的虚拟内存映射过去就可以了，节省内存</p>
+</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li><p>虚拟地址到物理地址的转换，增加了指令的执行时间</p>
+</li>
+<li><p>页面的换入换出需要磁盘 IO，非常耗时</p>
+</li>
+</ul>
+<h2 id="虚拟内存大小"><a href="#虚拟内存大小" class="headerlink" title="虚拟内存大小"></a>虚拟内存大小</h2><p>操作系统分配虚拟地址空间时，这个虚拟内存的大小是取决于系统支持的虚拟地址范围，而不是物理内存的大小</p>
+<p>这种机制使得进程可以感觉到它拥有大量的内存，而不必考虑实际物理内存的大小。操作系统会根据需要将虚拟内存映射到物理内存或者其他存储设备上，以实现数据的读写和访问</p>
+<h2 id="程序分段"><a href="#程序分段" class="headerlink" title="程序分段"></a>程序分段</h2><p>程序是由若干个逻辑分段组成的，如可由代码段、数据段、栈段、堆段组成，不同的段是有不同的属性的，所以就用分段的形式把这些段分离出来</p>
+<p>进程空间中以段为单位进行内存分配，每个段在内存中占据连续空间，但各段之间可以不相邻</p>
+<p>编译程序时会把段名转化为相应的段号，在执行的时候 cpu 是根据段号和段内偏移量去寻找地址的</p>
+<p>为了保证程序能正常运行，必须从物理内存中找到各个逻辑段的存放位置，为此需要为每个进程建立一张段映射表，简称段表</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/02.jpg" class="">
+
+<p>段表里面保存的是这个段的基地址、段的界限和特权等级等，段内偏移量应该位于 0 和段界限之间，如果段内偏移量是合法的，就将段基地址加上段内偏移量得到物理内存地址</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/03.jpg" class="">
+
+<p>程序分段会存在内存碎片和内存交换效率低的问题</p>
+<p>对于多进程的系统来说，用分段的方式，内存碎片是很容易产生的，产生了内存碎片，那不得不重新 Swap 内存区域，这个过程会产生性能瓶颈</p>
+<p>为了解决内存分段的内存碎片和内存交换效率低的问题，就出现了内存分页</p>
+<h2 id="内存分页"><a href="#内存分页" class="headerlink" title="内存分页"></a>内存分页</h2><p>分页是把整个虚拟和内存物理内存空间切成一段段固定尺寸的大小，在 Linux 下，每一页的大小为 4KB</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/04.png" class="">
+
+<p>页表实际上存储在 CPU 的内存管理单元 MMU 中，于是 CPU 可以直接通过 MMU 找出要实际要访问的物理内存地址</p>
+<p>当进程访问的虚拟地址在页表中查不到时，系统会产生一个缺页异常，进入系统内核空间分配物理内存、更新进程页表，最后再返回用户空间，恢复进程的运行</p>
+<p>采用了分页，那么释放的内存都是以页为单位释放的，也就不会产生无法给进程使用的小内存</p>
+<p>如果内存空间不够，操作系统会把其他正在运行的进程中的最近没被使用的内存页面给释放掉，也就是暂时写在硬盘上，称为换出 swap out。一旦需要的时候，再加载进来，称为换入 swap in。所以，一次性写入磁盘的也只有少数的一个页或者几个页，不会花太多时间，内存交换的效率就相对比较高</p>
+<p>分页的方式使得在加载程序的时候，不再需要一次性都把程序加载到物理内存中。完全可以在进行虚拟内存和物理内存的页之间的映射之后，并不真的把页加载到物理内存里，而是只有在程序运行中，需要用到对应虚拟内存页里面的指令和数据时，再加载到物理内存里面去</p>
+<p>在分页机制下，虚拟地址分为两部分，页号和页内偏移。页号作为页表的索引，页表包含物理页每页所在物理内存的基地址，这个基地址与页内偏移的组合就形成了物理内存地址</p>
+<p>一个进程对应一张页表</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/05.png" class="">
+
+<p>内存地址转换步骤：</p>
+<ul>
+<li><p>把虚拟内存地址，切分成页号和偏移量</p>
+</li>
+<li><p>根据页号，从页表里面，查询对应的物理页号</p>
+</li>
+<li><p>直接拿物理页号，加上前面的偏移量，就得到了物理内存地址</p>
+</li>
+</ul>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/06.png" class="">
+
+<p>单级分页会导致页表占用内存过大，后采用多级页表，64 位系统需要四级页表</p>
+<p>多级页表虽然解决了空间上的问题，但是虚拟地址到物理地址的转换就多了几道转换的工序，这显然就降低了这俩地址转换的速度，也就是带来了时间上的开销</p>
+<p>CPU 中加入了一个专门存放程序最常访问的页表项的 Cache，这个 Cache 就是 TLB，通常称为页表缓存、转址旁路缓存、快表等</p>
+<p>有了 TLB 后，那么 CPU 在寻址时，会先查 TLB，如果没找到，才会继续查常规的页表</p>
+<h2 id="段页式内存管理"><a href="#段页式内存管理" class="headerlink" title="段页式内存管理"></a>段页式内存管理</h2><p>内存分段和内存分页组合起来后，通常称为段页式内存管理</p>
+<p>段页式内存管理实现的方式：</p>
+<ul>
+<li><p>先将程序划分为多个有逻辑意义的段，也就是前面提到的分段机制</p>
+</li>
+<li><p>接着再把每个段划分为多个页，也就是对分段划分出来的连续空间，再划分固定大小的页</p>
+</li>
+</ul>
+<p>地址结构就由段号、段内页号和页内位移三部分组成</p>
+<p>用于段页式地址变换的数据结构是每一个程序一张段表，每个段又建立一张页表，段表中的地址是页表的起始地址，而页表中的地址则为某页的物理页号</p>
+<img src="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/07.jpg" class="">
+
+<p>段页式地址变换中要得到物理地址须经过三次内存访问：</p>
+<ul>
+<li><p>第一次访问段表，得到页表起始地址</p>
+</li>
+<li><p>第二次访问页表，得到物理页号</p>
+</li>
+<li><p>第三次将物理页号与页内位移组合，得到物理地址</p>
+</li>
+</ul>
+<h2 id="页面设置"><a href="#页面设置" class="headerlink" title="页面设置"></a>页面设置</h2><p>如果页太小，就会产生大量的页表条目，降低了查询速度的同时还浪费了存放页面的主存空间</p>
+<p>如果页太大，又会容易造成浪费</p>
+<p>在某些对性能要求非常苛刻的场景中，页面会被设置得非常的大，这些页被称之为大页 Huge Page，可以减少页表条目，加快检索速度，提升 TLB 快表的命中率</p>
+<p>使用大页的同时一般会禁止页面交换，大容量交换会让磁盘读写成为 CPU 处理的瓶颈</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +369,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-06 16:43:32" itemprop="dateModified" datetime="2023-12-06T16:43:32+08:00">2023-12-06</time>
+      <time title="修改时间：2023-12-06 20:31:51" itemprop="dateModified" datetime="2023-12-06T20:31:51+08:00">2023-12-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -298,7 +472,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-06 16:43:33" itemprop="dateModified" datetime="2023-12-06T16:43:33+08:00">2023-12-06</time>
+      <time title="修改时间：2023-12-06 20:31:51" itemprop="dateModified" datetime="2023-12-06T20:31:51+08:00">2023-12-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -422,7 +596,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-06 16:43:32" itemprop="dateModified" datetime="2023-12-06T16:43:32+08:00">2023-12-06</time>
+      <time title="修改时间：2023-12-06 20:31:51" itemprop="dateModified" datetime="2023-12-06T20:31:51+08:00">2023-12-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -522,7 +696,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-06 16:43:32" itemprop="dateModified" datetime="2023-12-06T16:43:32+08:00">2023-12-06</time>
+      <time title="修改时间：2023-12-06 20:31:51" itemprop="dateModified" datetime="2023-12-06T20:31:51+08:00">2023-12-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -606,7 +780,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-06 16:43:32" itemprop="dateModified" datetime="2023-12-06T16:43:32+08:00">2023-12-06</time>
+      <time title="修改时间：2023-12-06 20:31:51" itemprop="dateModified" datetime="2023-12-06T20:31:51+08:00">2023-12-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -694,7 +868,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-06 16:43:32" itemprop="dateModified" datetime="2023-12-06T16:43:32+08:00">2023-12-06</time>
+      <time title="修改时间：2023-12-06 20:31:51" itemprop="dateModified" datetime="2023-12-06T20:31:51+08:00">2023-12-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -779,7 +953,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-06 16:43:32" itemprop="dateModified" datetime="2023-12-06T16:43:32+08:00">2023-12-06</time>
+      <time title="修改时间：2023-12-06 20:31:51" itemprop="dateModified" datetime="2023-12-06T20:31:51+08:00">2023-12-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -948,7 +1122,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-06 16:43:32" itemprop="dateModified" datetime="2023-12-06T16:43:32+08:00">2023-12-06</time>
+      <time title="修改时间：2023-12-06 20:31:51" itemprop="dateModified" datetime="2023-12-06T20:31:51+08:00">2023-12-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1040,7 +1214,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-06 16:43:32" itemprop="dateModified" datetime="2023-12-06T16:43:32+08:00">2023-12-06</time>
+      <time title="修改时间：2023-12-06 20:31:51" itemprop="dateModified" datetime="2023-12-06T20:31:51+08:00">2023-12-06</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1130,112 +1304,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-poll/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/LinuxApi-poll/" class="post-title-link" itemprop="url">poll</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 20:52:10" itemprop="dateCreated datePublished" datetime="2023-04-26T20:52:10+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-06 16:43:32" itemprop="dateModified" datetime="2023-12-06T16:43:32+08:00">2023-12-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><code>poll</code> 的功能与 <code>select</code> 类似，也是等待一组描述符中的一个成为就绪状态，但通过底层使用链表解决了 <code>select</code> 连接数限制的问题</p>
-<p><code>poll</code> 中的描述符只有一个 <code>pollfd</code> 数组，数组中的每个元素都表示一个需要监听 IO 操作事件的文件描述符</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;poll.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">poll</span><span class="params">(<span class="keyword">struct</span> pollfd *fds, <span class="type">unsigned</span> <span class="type">int</span> nfds, <span class="type">int</span> timeout)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">pollfd</span> &#123;</span><br><span class="line">    <span class="type">int</span> fd;         <span class="comment">/* file descriptor */</span></span><br><span class="line">    <span class="type">short</span> events;     <span class="comment">/* requested events */</span></span><br><span class="line">    <span class="type">short</span> revents;    <span class="comment">/* returned events */</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">合法事件：</span></span><br><span class="line"><span class="comment">POLLIN              有数据可读</span></span><br><span class="line"><span class="comment">POLLRDNORM          有普通数据可读</span></span><br><span class="line"><span class="comment">POLLRDBAND          有优先数据可读</span></span><br><span class="line"><span class="comment">POLLPRI             有紧迫数据可读</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">POLLOUT             写数据不会导致阻塞</span></span><br><span class="line"><span class="comment">POLLWRNORM          写普通数据不会导致阻塞</span></span><br><span class="line"><span class="comment">POLLWRBAND          写优先数据不会导致阻塞</span></span><br><span class="line"><span class="comment">POLLRDHUB           TCP 连接被对端关闭，或关闭写操作</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">POLLER              指定的文件描述符发生错误</span></span><br><span class="line"><span class="comment">POLLHUP             指定的文件描述符挂起事件</span></span><br><span class="line"><span class="comment">POLLNVAL            指定的文件描述符非法</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">POLLIN | POLLPRI 等价于 select() 的读事件</span></span><br><span class="line"><span class="comment">POLLOUT |POLLWRBAND 等价于 select() 的写事件</span></span><br><span class="line"><span class="comment">POLLIN 等价于 POLLRDNORM |POLLRDBAND</span></span><br><span class="line"><span class="comment">POLLOUT 则等价于 POLLWRNORM</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> svr_fd = <span class="built_in">get_svr_fd</span>(<span class="number">10000</span>);</span><br><span class="line"></span><br><span class="line">std::vector&lt;pollfd&gt; fds&#123;<span class="built_in">pollfd</span>()&#125;;</span><br><span class="line">fds.<span class="built_in">back</span>().fd = svr_fd;</span><br><span class="line">fds.<span class="built_in">back</span>().events = POLLIN;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">  <span class="type">int</span> ret = <span class="built_in">poll</span>(fds.<span class="built_in">data</span>(), fds.<span class="built_in">size</span>(), <span class="number">10000</span>);</span><br><span class="line">  <span class="keyword">if</span> (ret == <span class="number">-1</span>) &#123;</span><br><span class="line">    <span class="comment">// 错误</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ret == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// 超时</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> &amp;fd : fds) &#123;</span><br><span class="line">      <span class="keyword">if</span> (fd.revents &amp; POLLIN) &#123;</span><br><span class="line">        fd.revents = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">if</span> (fd.fd == svr_fd) &#123;</span><br><span class="line">          <span class="type">int</span> cli = <span class="built_in">accept_cli</span>(svr_fd);</span><br><span class="line">          <span class="built_in">send_msg</span>(cli);</span><br><span class="line">          fds.<span class="built_in">push_back</span>(<span class="built_in">pollfd</span>());</span><br><span class="line">          fds.<span class="built_in">back</span>().fd = cli;</span><br><span class="line">          fds.<span class="built_in">back</span>().events = POLLIN;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="built_in">recv_msg</span>(fd.fd);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="select-和-poll-比较"><a href="#select-和-poll-比较" class="headerlink" title="select 和 poll 比较"></a>select 和 poll 比较</h2><ul>
-<li><p><code>select()</code> 会修改描述符，而 <code>poll()</code> 不会，<code>select()</code> 之前需要使用 <code>FD_ZERO()</code>、<code>FD_SET()</code>、<code>FD_CLR()</code>、<code>FD_ISSET()</code>）</p>
-</li>
-<li><p><code>select()</code> 默认只能监听少于 1024 个描述符，如果要监听更多描述符的话，需要修改 <code>FD_SETSIZE</code> 之后重新编译，而 <code>poll()</code> 没有描述符数量的限制</p>
-</li>
-<li><p><code>poll()</code> 提供了更多的事件类型，并且对描述符的重复利用上比 <code>select()</code> 高</p>
-</li>
-<li><p>如果一个线程对某个描述符调用了 <code>select()</code> 或者 <code>poll()</code>，另一个线程关闭了该描述符，会导致调用结果不确定</p>
-</li>
-<li><p><code>select()</code> 和 <code>poll()</code> 速度都比较慢，每次调用都需要将全部描述符从应用进程缓冲区复制到内核缓冲区，且都需要遍历 fd 来获取就绪的 socket</p>
-</li>
-<li><p>几乎所有的系统都支持 <code>select()</code>，但是只有比较新的系统支持 <code>poll()</code></p>
-</li>
-<li><p><code>select</code> 的 <code>timeout</code> 参数精度为微秒，而 <code>poll</code> 和 <code>epoll</code> 为毫秒，因此 <code>select</code> 更加适用于实时性要求比较高的场景</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/16/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><span class="page-number current">17</span><a class="page-number" href="/page/18/">18</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/18/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/16/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><span class="page-number current">17</span><a class="page-number" href="/page/18/">18</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/18/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
