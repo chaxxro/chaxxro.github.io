@@ -23,7 +23,8 @@ std::cout << valueRef.get() << std::endl;  // 输出100
 
 ```cpp
 int value = 0;
-std::vector<std::reference_wrapper<int>> valueRefs{};  // 无法使用std::vector<int&>
+std::vector<std::reference_wrapper<int>> valueRefs{};
+// 无法使用std::vector<int&>
 
 valueRefs.push_back(std::ref(value));
 
@@ -43,7 +44,7 @@ std::cout << std::get<0>(myTuple) << std::endl;  // 输出0
 std::cout << std::get<0>(myTupleRef) << std::endl;  // 输出99
 ```
 
-- 函数式编程，如 `std::bind`，在绑定参数时，使用的是拷贝，而不是引用
+- 函数式编程，如 `std::bind` 在绑定参数时，使用的是拷贝而不是引用
 
 ```cpp
 void MyFunc(int& value0, int& value1) {

@@ -93,3 +93,5 @@ int main() {
   return 0;
 }
 ```
+
+`std::bind()` 底层保存入参时使用 `std::tuple`，而 `std::tuple` 会丢弃引用所以传递参数会引发值拷贝，需要传递引用是需要使用 `std::ref`

@@ -194,3 +194,15 @@ dp[i][j] = max(dp[i][k - 1] + nums[i - 1] * nums[k] * nums[j + 1] + dp[k + 1][j]
 [题目](https://leetcode.com/problems/burst-balloons/)
 
 [分析](https://www.youtube.com/watch?v=z3hu2Be92UA&t=700s)
+
+## lc375
+
+```cpp
+/*
+dp[i][j] 表示在 i~j 中猜中一个数的最小花费
+从 i~j 中挑选 k，每次都考虑最差的情况来保证最小花费 k + max(dp[i][k - 1], dp[k + 1][j])
+dp[i][j] = min(k + max(dp[i][k - 1], dp[k + 1][j])), k = i~j
+*/
+```
+
+[题目](https://leetcode.com/problems/guess-number-higher-or-lower-ii/description/)

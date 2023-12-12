@@ -25,6 +25,41 @@ constexpr int value = 0;
 constexpr int func() {
     return 0;
 }
+
+template<class F, class... Args>
+constexpr std::invoke_result_t<F, Args...> invoke(F&& f, Args&&... args) 
+    noexcept(std::is_nothrow_invocable_v<F, Args...>)
+{
+    if constexpr (std::is_member_pointer_v<std::decay_t<F>>)
+        return detail::invoke_memptr(f, std::forward<Args>(args)...);
+    else
+        return std::forward<F>(f)(std::forward<Args>(args)...);
+}
+
+// 没有 constexpr 之前需要使用 enable_if
+struct T {
+  enum { int_t, float_t } type;
+  template <typename Integer,
+            std::enable_if_t<std::is_integral<Integer>::value, bool> = true>
+  T(Integer) : type(int_t) {}
+
+  template <
+      typename Floating,
+      std::enable_if_t<std::is_floating_point<Floating>::value, bool> = true>
+  T(Floating) : type(float_t) {} // OK
+};
+
+struct TT {
+  enum { int_t, float_t } type;
+  template<typename P>
+  TT(P p) {
+    if constexpr (std::is_integral_v<P>)
+      type = int_t;
+    else if constexpr (std::is_floating_point_v<P>)
+      type = float_t;
+  }
+};
+
 ```
 
 - 用于静态数据

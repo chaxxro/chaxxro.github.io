@@ -47,7 +47,7 @@ C++11 定义了一些基础类型的原子变量，如 `std::atomic_bool`、`std
 
 ### 构造函数
 
-```
+```cpp
 // 将原子对象放在未初始化的状态中，后续可用 std::atomic_init 初始化
 atomic() noexcept = default;
 // 用 desired 初始化对象，初始化不是原子性的
