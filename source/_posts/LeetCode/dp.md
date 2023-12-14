@@ -206,3 +206,32 @@ dp[i][j] = min(k + max(dp[i][k - 1], dp[k + 1][j])), k = i~j
 ```
 
 [题目](https://leetcode.com/problems/guess-number-higher-or-lower-ii/description/)
+
+## lc410
+
+```cpp
+/*
+dp[i][j] : nums[0] ~ nums[j] split i groups
+
+dp[1][j] = sum(nums[0] ~ nums[j])
+dp[i][j] = min(max(dp[i - 1][k], sum(nums[j] ~ nums[k + 1])))
+*/
+```
+
+[题目](https://leetcode.com/problems/split-array-largest-sum/)
+
+[分析](https://www.youtube.com/watch?v=_k-Jb4b7b_0&t=668s)
+
+## lc416
+
+```cpp
+/*
+背包问题一般都可以进行状态压缩，压缩后需要反向更新状态
+
+dp[i] : sum(subset(...)) == i
+*/
+```
+
+[题目](https://leetcode.com/problems/partition-equal-subset-sum/)
+
+[分析](https://www.youtube.com/watch?v=r6I-ikllNDM&t=382s)

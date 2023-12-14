@@ -45,6 +45,13 @@ Linux 系统上的 /proc 目录是一种虚拟文件系统，存储的是当前�
 
 - vmstat：系统虚拟内存的多种统计数据
 
+- interrupts：中断使用情况
+
+```sh
+# CPU 核数
+grep 'model name' /proc/cpuinfo | wc -l
+```
+
 ## 以数字命名的目录
 
 数字表示系统当前正在运行进程的进程号，里面包含对应进程相关的多个信息文件
