@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">409</span>
+          <span class="site-state-item-count">410</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -133,7 +133,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -150,6 +150,402 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/06/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-Feed%E6%B5%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/06/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-Feed%E6%B5%81/" class="post-title-link" itemprop="url">Feed 流设计</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-06 16:32:41" itemprop="dateCreated datePublished" datetime="2023-06-06T16:32:41+08:00">2023-06-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">后端设计</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Feed 流是将用户主动订阅的若干消息源组合在一起形成内容聚合器，帮助用户持续地获取最新的订阅源内容</p>
+<p>简而言之，Feed 流就是持续更新并呈现给用户内容的信息流</p>
+<h2 id="展现形式"><a href="#展现形式" class="headerlink" title="展现形式"></a>展现形式</h2><ul>
+<li><p>timeline 是最典型的 Feed 流展示方式，它按照内容更新的时间先后顺序将内容展示给用户</p>
+</li>
+<li><p>rank 即按照某些因素计算内容的权重，从而决定内容展示的先后顺序</p>
+</li>
+<li><p>aggregate 聚合类型，比如几个朋友看了一部电影，这就可以聚合为一条 Feed</p>
+</li>
+<li><p>notice 通知类型，一般用于各种通知、私信等场景</p>
+</li>
+</ul>
+<h2 id="timeline-设计"><a href="#timeline-设计" class="headerlink" title="timeline 设计"></a>timeline 设计</h2><h3 id="拉模型"><a href="#拉模型" class="headerlink" title="拉模型"></a>拉模型</h3><p>用户刷新时，服务先查询用户所有关注的 uid，根据 uid 查询发布的内容，再按照发布时间进行排序</p>
+<p>因为拉模型每次都需要读取所有关注的内容，因此拉模型也称为读扩散</p>
+<ul>
+<li><p>拉模型不需要额外的存储，每次发布只需写入一条数据</p>
+</li>
+<li><p>用户增删关注只需操作关注列表，没有额外操作</p>
+</li>
+<li><p>头部发布者不需要特殊处理</p>
+</li>
+<li><p>因为每次拉取都需要大量读取数据和排序，关注数较多时耗时增加明显</p>
+</li>
+</ul>
+<h3 id="推模型"><a href="#推模型" class="headerlink" title="推模型"></a>推模型</h3><p>内容发布者发布新内容时，对粉丝的 timeline 进行写入，因此也被称为写扩散</p>
+<ul>
+<li><p>推模型的拉取操作简单高效</p>
+</li>
+<li><p>推模型的发布操作逻辑复杂，不仅需要更新内容，在新增、取消关注的时候也需要额外逻辑处理</p>
+</li>
+<li><p>头部发布者的写入量巨大</p>
+</li>
+</ul>
+<h3 id="模型对比"><a href="#模型对比" class="headerlink" title="模型对比"></a>模型对比</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>拉模型</td>
+<td>逻辑简单，节约存储空间</td>
+<td>读取效率低下</td>
+</tr>
+<tr>
+<td>推模型</td>
+<td>读取操作快</td>
+<td>逻辑复杂，消耗大量存储空间</td>
+</tr>
+</tbody></table>
+<p>Feed 流是一个极度读写不平衡的场景，这使得拉模型消耗的 CPU 等资源反而更高</p>
+<p>推送 Feed 流可以分段进行，但用户很难容忍打开页面时需要较长等候时间，因此拉模型读取效率低下的缺点使得它的应用受到了极大限制</p>
+<p>针对头部发布者，可以有选择地过滤掉一些粉丝来减少写入量</p>
+<p>结合以上分析，可以针对在线用户使用推模型，离线用户使用拉模型</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/" class="post-title-link" itemprop="url">JWT</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-05 14:53:21" itemprop="dateCreated datePublished" datetime="2023-06-05T14:53:21+08:00">2023-06-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5/" itemprop="url" rel="index"><span itemprop="name">常见概念</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>JWT 即 Json Web Token，是一种跨域认证解决方案</p>
+<h2 id="跨域认证"><a href="#跨域认证" class="headerlink" title="跨域认证"></a>跨域认证</h2><p>用户认证一般流程</p>
+<ol>
+<li><p>用户向服务器发送用户名和密码</p>
+</li>
+<li><p>服务器验证通过后，在当前 session 里面保存相关数据，比如用户角色、登录时间等等</p>
+</li>
+<li><p>服务器向用户返回一个 session_id，写入用户的 Cookie</p>
+</li>
+<li><p>用户随后的每一次请求，都会通过 Cookie 将 session_id 传回服务器</p>
+</li>
+<li><p>服务器收到 session_id，找到前期保存的数据，由此得知用户的身份</p>
+</li>
+</ol>
+<p>该方案存在扩展性不好的问题，当遇到服务器集群或者是跨域的服务架构，就需要做到 session 数据共享才能使每台服务器都能读到 session</p>
+<p>为了解决 session 共享问题，有两种方案</p>
+<ol>
+<li><p>将 session 持久化，这样服务收到请求向持久层请求数据</p>
+</li>
+<li><p>服务端不保存 session，将 session 保存在客户端，这样客户端每次请求到将 session 发回服务端</p>
+</li>
+</ol>
+<p>JWT 就是改良方案二的一个代表</p>
+<h2 id="JWT-原理"><a href="#JWT-原理" class="headerlink" title="JWT 原理"></a>JWT 原理</h2><p>JWT 是一个很长的字符串，由 Header 头部、Payload 负载和 Signature 签名组成，中间用点 . 分隔成三个部分</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Header.Payload.Signature</span><br></pre></td></tr></table></figure>
+
+<h3 id="Header"><a href="#Header" class="headerlink" title="Header"></a>Header</h3><p>Header 是一个 JSON 对象，描述 JWT 的元数据，包括以下字段</p>
+<ul>
+<li><p>alg：签名算法，默认 HS256</p>
+</li>
+<li><p>typ：token 类型，JWT 统一为 JWT</p>
+</li>
+</ul>
+<p>最后需要将 Header 的 JSON 对象使用 Base64URL 算法转成字符串</p>
+<h3 id="Payload"><a href="#Payload" class="headerlink" title="Payload"></a>Payload</h3><p>Payload 是一个 JSON 对象，描述需要传递的信息，包括以下字段</p>
+<ul>
+<li><p>iss：issuer 签发人</p>
+</li>
+<li><p>exp：expiration time 过期时间</p>
+</li>
+<li><p>sub：subject 主题</p>
+</li>
+<li><p>aud：audience 受众</p>
+</li>
+<li><p>nbf：not before 生效时间</p>
+</li>
+<li><p>iat：issued at 签发时间</p>
+</li>
+<li><p>jti：JWT id 编号</p>
+</li>
+</ul>
+<p>除了官方字段，还可以在这个部分定义私有字段</p>
+<p>最后需要将 Payload 的 JSON 对象使用 Base64URL 算法转成字符串</p>
+<h3 id="Signature"><a href="#Signature" class="headerlink" title="Signature"></a>Signature</h3><p>Signature 是对前两部分利用私钥的签名，防止数据篡改</p>
+<p>服务端根据 Header 中的算法，利用私钥、 Header 和 Payload 计算签名，再使用 Base64URL 转成字符串</p>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><ul>
+<li><p>客户端每次与服务器通信都要带上这个 JWT，可以把它放在 Cookie 里面自动发送，但是这样不能跨域</p>
+</li>
+<li><p>将 JWT 放在 HTTP 请求的头信息 Authorization 字段里面，这样就解决了跨域的问题</p>
+</li>
+<li><p>JWT 放在 POST 请求的数据体里面，这样也能解决了跨域的问题</p>
+</li>
+</ul>
+<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
+<li><p>JWT 默认是不加密，但也可以生成原始 Token 以后用密钥再加密一次</p>
+</li>
+<li><p>JWT 不加密的情况下，不能将秘密数据写入 JWT</p>
+</li>
+<li><p>JWT 不仅可以用于认证，也可以用于交换信息</p>
+</li>
+<li><p>由于服务器不保存 session 状态，因此无法在使用过程中废止某个 token，或者更改 token 的权限，除非服务器部署额外的逻辑</p>
+</li>
+<li><p>JWT 本身包含了认证信息，一旦泄露任何人都可以获得该令牌的所有权限，所以 JWT 的有效期应该设置得比较短</p>
+</li>
+<li><p>为了减少盗用，JWT 不应该使用 HTTP 协议明码传输，要使用 HTTPS 协议传输</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-Base64/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-Base64/" class="post-title-link" itemprop="url">Base64</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-05 11:39:32" itemprop="dateCreated datePublished" datetime="2023-06-05T11:39:32+08:00">2023-06-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">编码格式</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Base64 是一种用 64 个可打印字符来表示二进制数据的表示方法，其中的可打印字符包括 A-Z、a-z、0-9、+、\</p>
+<p>它将 6 个 bit （2^6&#x3D;64）映射到一个可打印字符，这样 3 个字节的二进制数据就变成了 4 个可打印字符</p>
+<p>Base64 编码并不是为了减小内容体积，相反它反而增大了内容的大小，因为用 4 个字符替代 3 个字节，整体大小增加了三分之一</p>
+<p>如果要编码的字节数不能被 3 整除，则会多出 1 个或 2 个字节，那么可以先使用 0 字节值在末尾补足，使其能够被 3 整除，然后再进行 Base64 的编码，在编码后的 Base64 文本后加上一个或两个 &#x3D; 号，代表补足的字节数</p>
+<h2 id="为什么需要-Base64"><a href="#为什么需要-Base64" class="headerlink" title="为什么需要 Base64"></a>为什么需要 Base64</h2><ol>
+<li><p>一个传输协议如果是基于 ASCII 文本的，那么它就不能传输二进制流，如果要传输二进制流就得编码。常见的诸如 http 协议的 url 就是纯文本的，不能直接放二进制流</p>
+</li>
+<li><p>在一些硬件或软件上，某些二进制值表示的意义不一样，做的处理也不一样，这就导致那些不兼容的二进制值被错误处理，所以就先把传输数据做一个 Base64 编码，统统变成可见字符，这样出错的可能性就大大降低了</p>
+</li>
+</ol>
+<h2 id="Base64URL"><a href="#Base64URL" class="headerlink" title="Base64URL"></a>Base64URL</h2><p>Base64 有三个字符 +、&#x2F; 和 &#x3D; 在 URL 里面有特殊含义，所以在 Base64URL 中被替换掉，其中 &#x3D; 被省略、+ 替换成 -，&#x2F; 替换成 _</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +591,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -295,7 +691,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -429,7 +825,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -522,7 +918,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -610,7 +1006,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -721,7 +1117,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -879,7 +1275,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -969,440 +1365,6 @@
 
 <p><code>malloc</code> 和 <code>free</code> 只是分配和释放内存</p>
 <p><code>malloc</code> 内存分配成功则是返回 <code>void*</code>，需要通过强制类型转换将 <code>void*</code> 指针转换成需要的类型</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/" class="post-title-link" itemprop="url">函数调用细节</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-02 20:32:44" itemprop="dateCreated datePublished" datetime="2023-06-02T20:32:44+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="栈帧"><a href="#栈帧" class="headerlink" title="栈帧"></a>栈帧</h2><p>栈帧专门用于保存函数调用过程中的各种信息，如参数、返回地址本地变量等</p>
-<p>栈顶的地址最低，栈底的地址最高，栈指针 esp 指向栈顶的，基址指针 ebp 指向栈底，ebp 在调用过程中不变</p>
-<p>程序执行时，esp 减小将分配空间，esp 增大将释放空间</p>
-<img src="/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/01.png" class="">
-
-<h2 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h2><p>esp 存放于堆栈指针寄存器中，ebp 存放于基址指针寄存器</p>
-<p>指令寄存器 eip 存放下一条执行指令的所在地址</p>
-<p>eax 用于存放函数返回值</p>
-<h2 id="push、pop、call"><a href="#push、pop、call" class="headerlink" title="push、pop、call"></a>push、pop、call</h2><p><code>push</code>、<code>pop</code> 和 <code>call</code> 都属于汇编指令</p>
-<p>push 分为两步：</p>
-<ol>
-<li><p>栈顶指针自减以扩大栈帧空间</p>
-</li>
-<li><p>将某个寄存器的值保存新开辟的位置上</p>
-</li>
-</ol>
-<p>pop 只有一步：</p>
-<ol>
-<li>栈顶指针自增以缩小栈帧空间，将原先最靠近栈顶的值赋予某个寄存器</li>
-</ol>
-<img src="/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%BB%86%E8%8A%82/02.png" class="">
-
-<p>call 分为两步：</p>
-<ol>
-<li><p>让当前指令寄存器 eip 的值入栈，作为返回地址</p>
-</li>
-<li><p>将指令寄存器 eip 的值修改为接下来即将调用的函数第一条机器指令的所在地址，从而实现跳转</p>
-</li>
-</ol>
-<h2 id="函数调用基本过程"><a href="#函数调用基本过程" class="headerlink" title="函数调用基本过程"></a>函数调用基本过程</h2><p>在函数调用过程中，调用者需要知道在哪里获取被调用者返回的值，被调用者需要知道传入的参数在哪里以及返回的地址在哪里，同时还需要保证在被调用者返回后，ebp、esp 等寄存器的值应该和调用前一致</p>
-<h3 id="函数调用者栈帧操作"><a href="#函数调用者栈帧操作" class="headerlink" title="函数调用者栈帧操作"></a>函数调用者栈帧操作</h3><ol>
-<li><p>将被调用函数的参数按照从右到左的顺序压入栈中</p>
-</li>
-<li><p>将返回地址 eip 压入栈中</p>
-</li>
-</ol>
-<p>这两步操作都是调用者负责的，因此压入的栈属于调用者的栈帧</p>
-<h3 id="被调用者栈帧操作"><a href="#被调用者栈帧操作" class="headerlink" title="被调用者栈帧操作"></a>被调用者栈帧操作</h3><p>每个函数的机器指令段的开头：</p>
-<ol>
-<li><p>在栈帧中保存上一栈帧的栈底地址，汇编指令为 <code>push ebp</code></p>
-</li>
-<li><p>将上一栈帧的栈顶地址作为当前函数栈帧的栈底地址，汇编指令为 <code>mov ebp, esp</code>，此时保存了调用者函数的 ebp，并且建立了一个新的栈帧</p>
-</li>
-<li><p>为当前函数的局部变量开辟足够的空间，汇编指令为 <code>sub esp, M</code>，M 为局部变量占用栈帧空间的字节数</p>
-</li>
-</ol>
-<p>每个函数的机器指令段的末尾：</p>
-<ol>
-<li><p>将 esp 恢复为为局部变量开辟空间之前的值，汇编指令为 <code>mov esp, ebp</code>，恢复后 esp 的值恰好是上一栈帧栈底地址的地址</p>
-</li>
-<li><p>将 ebp 恢复为上一栈帧的栈底地址，汇编指令为 <code>mov ebp, [esp]</code></p>
-</li>
-<li><p>执行汇编指令 <code>pop esp</code>，恢复后 esp 的值恰好是存放返回地址的地址</p>
-</li>
-<li><p>将 eip 恢复为 <code>call</code> 指令之前的待执行的命令，汇编指令为 <code>mov eip, [esp]</code></p>
-</li>
-<li><p>执行 <code>pop esp</code>， 恢复后 esp 的值恰好为刚执行完的函数的第一个形参的入栈地址</p>
-</li>
-<li><p>弹出调用函数的所有实参，汇编指令为 <code>pop ...</code>，恢复后 esp 的值</p>
-</li>
-</ol>
-<h2 id="栈上局部变量析构"><a href="#栈上局部变量析构" class="headerlink" title="栈上局部变量析构"></a>栈上局部变量析构</h2><p>使用全局指针指向栈上局部变量，在栈上局部变量生存周期结束后执行析构函数，仍能通过全局指针访问栈上局部变量属性和和方法</p>
-<p>栈上局部变量析构只是把栈对象所在的内存标记成未使用而已，原先内容不会随着释放而自动修改</p>
-<p>从汇编的角度来看，右大括号结束后会把这个对象弹出栈，所谓的弹出栈对应的就是一个 <code>pop</code> 指令，而 <code>pop</code> 指令等价于将栈顶指针向栈底移动 <code>sizeof(t)</code> 的大小，原来的内容其实还在内存中，只要你不往栈里 <code>push</code> 新的内容，那这个地址的内容就不会变</p>
-<h2 id="函数约定调用"><a href="#函数约定调用" class="headerlink" title="函数约定调用"></a>函数约定调用</h2><p>在函数调用过程中，有两个很重要的问题必须得到明确说明</p>
-<ul>
-<li><p>当参数个数多于一个时，按照什么顺序把参数压入堆栈</p>
-</li>
-<li><p>函数调用后，由谁负责恢复堆栈</p>
-</li>
-</ul>
-<p>函数约定调用是函数调用者和被调用的函数体之间关于参数传递、返回值传递、堆栈清除、寄存器使用的一种约定</p>
-<p>常见的调用约定有：<code>stdcall</code>、<code>cdecl</code>、<code>fastcall</code>、<code>thiscall</code></p>
-<h3 id="stdcall"><a href="#stdcall" class="headerlink" title="stdcall"></a>stdcall</h3><p>Standard Call 的缩写，C++ 的标准调用方式</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 声明语法</span></span><br><span class="line"><span class="function"><span class="type">int</span> __stdcall <span class="title">function</span><span class="params">(<span class="type">int</span> a,<span class="type">int</span> b)</span></span></span><br></pre></td></tr></table></figure>
-
-<p><code>stdcall</code> 的调用约定意味着：</p>
-<ul>
-<li><p>参数从右向左压入堆栈</p>
-</li>
-<li><p>被调函数清理堆栈</p>
-</li>
-<li><p>函数名自动加前导的下划线，后面紧跟一个 <code>@</code> 符号，其后紧跟着参数的尺寸</p>
-</li>
-</ul>
-<h3 id="cdecl"><a href="#cdecl" class="headerlink" title="cdecl"></a>cdecl</h3><p>C Declaration 的缩写，C 语言缺省的调用约定</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 声明语法</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">function</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>          <span class="comment">// 不加修饰就是 C 调用约定 </span></span></span><br><span class="line"><span class="function"><span class="type">int</span> __cdecl <span class="title">function</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>  <span class="comment">// 明确指出 C 调用约定</span></span></span><br></pre></td></tr></table></figure>
-
-<p><code>cdecl</code> 调用约定意味着：</p>
-<ul>
-<li><p>参数从右向左压入堆栈</p>
-</li>
-<li><p>主调函数负责清理堆栈</p>
-</li>
-<li><p>允许函数的参数的个数是不固定的</p>
-</li>
-<li><p>仅在函数名前加上一个下划线前缀</p>
-</li>
-</ul>
-<h3 id="fastcall"><a href="#fastcall" class="headerlink" title="fastcall"></a>fastcall</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 声明语法</span></span><br><span class="line"><span class="function"><span class="type">int</span> fastcall <span class="title">function</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span>  </span></span><br></pre></td></tr></table></figure>
-
-<p><code>fastcall</code> 调用约定意味着：</p>
-<ul>
-<li><p>函数的第一个和第二个 <code>DWORD</code> 参数（或者尺寸更小的）通过 ecx 和 edx 传递，其他参数通过从右向左的顺序压栈</p>
-</li>
-<li><p>被调函数清理堆栈</p>
-</li>
-<li><p>函数名修改规则同 <code>stdcall</code></p>
-</li>
-</ul>
-<h3 id="thiscall"><a href="#thiscall" class="headerlink" title="thiscall"></a>thiscall</h3><p>C++ 类成员函数缺省的调用约定</p>
-<p><code>thiscall</code> 是唯一一个不能明确指明的函数修饰，因为 <code>thiscall</code> 不是关键字</p>
-<p>对于参数个数固定情况下，类似于 <code>stdcall</code>，不定时则类似 <code>cdecl</code></p>
-<p><code>thiscall</code> 意味着：</p>
-<ul>
-<li><p>参数从右向左入栈</p>
-</li>
-<li><p>如果参数个数不确定，<code>this</code> 指针在所有参数压栈后被压入堆栈，如果参数个数确定，<code>this</code> 指针通过 ecx 传递给被调用者</p>
-</li>
-<li><p>如果参数个数不确定，调用者清理堆栈，否则函数自己清理堆栈</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E6%9F%94%E6%80%A7%E6%95%B0%E7%BB%84/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E6%9F%94%E6%80%A7%E6%95%B0%E7%BB%84/" class="post-title-link" itemprop="url">柔性数组</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-02 20:29:09" itemprop="dateCreated datePublished" datetime="2023-06-02T20:29:09+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="数组形式"><a href="#数组形式" class="headerlink" title="数组形式"></a>数组形式</h2><ol>
-<li>定长数组：浪费空间</li>
-</ol>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">buf</span> &#123;</span><br><span class="line">    <span class="type">int</span> len;</span><br><span class="line">    <span class="type">char</span> data[<span class="number">1024</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>指针数组：需要手动申请和释放内存</li>
-</ol>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">buf</span> &#123;</span><br><span class="line">    <span class="type">int</span> len;</span><br><span class="line">    <span class="type">char</span>* data;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
-<li>柔性数组</li>
-</ol>
-<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">buf</span> &#123;</span><br><span class="line">    <span class="type">int</span> len;</span><br><span class="line">    <span class="type">char</span> buf[];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>柔性数组成员必须定义在结构体里面且为最后元素</p>
-</li>
-<li><p>结构体中不能单独只有柔性数组成员</p>
-</li>
-<li><p>柔性数组不占内存</p>
-</li>
-</ul>
-<p>在一个结构体的最后，申明一个长度为空的数组，就可以使得这个结构体是可变长的</p>
-<p>对于编译器来说，此时长度为 0 的数组并不占用空间，因为数组名本身不占空间，它只是一个偏移量，数组名这个符号本身代表了一个不可修改的地址常量</p>
-<p>结构体使用指针时地址不连续，需要两次 <code>malloc</code>，而柔性数组地址连续，只需要一次 <code>malloc</code>，同理释放前者需要两次，后者可以一起释放</p>
-<p><code>sizeof</code> 返回不包括柔性数组的内存</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">pen</span> &#123;</span><br><span class="line">    <span class="type">int</span> len;</span><br><span class="line">    <span class="type">char</span> data[];<span class="comment">//柔性数组</span></span><br><span class="line">&#125; pen;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span> </span>&#123;</span><br><span class="line">    <span class="type">char</span> str[] = <span class="string">&quot;this is a new string&quot;</span>;<span class="comment">//需要填入的字符串</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">pen</span> *p = (<span class="keyword">struct</span> pen*)<span class="built_in">malloc</span>(<span class="built_in">sizeof</span>(pen) + <span class="built_in">strlen</span>(str) + <span class="number">1</span>);</span><br><span class="line">    p-&gt;data= <span class="literal">NULL</span>;</span><br><span class="line">    p-&gt;len = <span class="built_in">strlen</span>(str);</span><br><span class="line">    <span class="built_in">strcpy</span>((<span class="type">char</span> *)(p + <span class="number">1</span>), str);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;pen-&gt;data: %s\n&quot;</span>, p-&gt;data);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E5%BC%82%E5%B8%B8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E5%BC%82%E5%B8%B8/" class="post-title-link" itemprop="url">异常</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-02 20:24:14" itemprop="dateCreated datePublished" datetime="2023-06-02T20:24:14+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="throw"><a href="#throw" class="headerlink" title="throw"></a>throw</h2><p>异常事件发生时，程序使用 <code>throw</code> 关键字抛出异常表达式</p>
-<p>在包含了异常出现点的最内层的 <code>try</code> 块，依次按类型匹配 <code>catch</code> 语句中的异常对象</p>
-<p><code>throw</code> 语句必须包含在 <code>try</code> 块中，也可以是被包含在调用栈的外层函数的 <code>try</code> 块中</p>
-<p>执行 <code>throw</code> 语句时，<code>throw</code> 表达式将作为对象被复制构造为一个新的对象，称为异常对象</p>
-<p>异常对象放在内存的特殊位置，该位置既不是栈也不是堆</p>
-<p>当执行一个 <code>throw</code> 语句时，跟在 <code>throw</code> 语句之后的语句将不再被执行，<code>throw</code> 语句的语法有点类似于 <code>return</code>，因此导致在调用栈上的函数可能提早退出</p>
-<h2 id="异常对象"><a href="#异常对象" class="headerlink" title="异常对象"></a>异常对象</h2><p>异常对象是一种特殊的对象，编译器依据异常抛出表达式构造异常对象</p>
-<p>异常对象可以进行复制构造，要求异常抛出表达式的复制构造函数（或移动构造函数）、析构函数不能是私有的</p>
-<p>在 <code>throw</code> 语句中抛出局部变量的指针或引用也几乎是错误的行为</p>
-<p><code>throw</code> 表达式的静态编译类型将决定异常对象的类型，所以当 <code>throw</code> 出的是基类指针的解引用，而该指针所指向的实际对象是派生类对象，此时将发生派生类对象切割</p>
-<h2 id="catch"><a href="#catch" class="headerlink" title="catch"></a>catch</h2><p>如果 <code>catch</code> 语句的参数是引用类型，则该参数可直接作用于异常对象</p>
-<p>如果 <code>catch</code> 参数是传值的，则复制构函数将依据异常对象来构造 <code>catch</code> 参数对象，在该 <code>catch</code> 语句结束的时候，先析构 <code>catch</code> 参数对象，然后再析构异常对象</p>
-<p>在进行异常对象的匹配时，编译器不会做任何的隐式类型转换或类型提升</p>
-<h2 id="exception"><a href="#exception" class="headerlink" title="exception"></a>exception</h2><p>C++ <code>std::exception</code> 有一个 <code>what()</code> 虚函数，返回一个字符串</p>
-<h2 id="栈展开"><a href="#栈展开" class="headerlink" title="栈展开"></a>栈展开</h2><p>异常抛出时，将一路向外层寻找 <code>catch</code> 语句</p>
-<p>寻找结束于某个 <code>catch</code> 语句或标准库函数 <code>terminate</code>，在这个展开过程中局部变量的销毁问题很关键</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">test2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="function">string <span class="title">s</span><span class="params">(<span class="string">&quot;123456&quot;</span>)</span></span>;</span><br><span class="line">    <span class="type">char</span> c = s.<span class="built_in">at</span>(<span class="number">100</span>);</span><br><span class="line">    cout&lt;&lt;c;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">test2</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="type">int</span> * p = <span class="keyword">new</span> <span class="type">int</span> [<span class="number">100</span>];</span><br><span class="line">        <span class="built_in">test1</span>();</span><br><span class="line">        <span class="keyword">delete</span> [] p;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">catch</span>(exception e) &#123;</span><br><span class="line">        cerr&lt;&lt;<span class="string">&quot;error&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>可以使用 RAII 的思想管理资源，从而避免资源泄露</p>
-<h2 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h2><p>发生异常时：</p>
-<ol>
-<li><p>首先检查异常发生的位置是否在当前函数的某个 <code>try</code> 中，如果在则寻找 <code>catch</code>，不在则沿着函数调用栈重复第一步</p>
-</li>
-<li><p>找到对应的 <code>catch</code> 块，根据 RTTI 查看这个异常类型是否和 <code>catch</code> 块中捕获类型相同，不同则重复第一步，相同则继续</p>
-</li>
-<li><p>处理异常，执行栈回退，释放 <code>try</code> 块中的局部变量</p>
-</li>
-</ol>
-<h2 id="损耗"><a href="#损耗" class="headerlink" title="损耗"></a>损耗</h2><p>RTTI、不断的回溯会导致较多的 catch miss，从而导致性能损耗</p>
-<h2 id="异常机制与构造函数"><a href="#异常机制与构造函数" class="headerlink" title="异常机制与构造函数"></a>异常机制与构造函数</h2><p>构造函数没有返回值，所以应该使用异常机制来报告发生的问题</p>
-<h2 id="异常机制与析构函数"><a href="#异常机制与析构函数" class="headerlink" title="异常机制与析构函数"></a>异常机制与析构函数</h2><p>C++ 不禁止析构函数向外界抛出异常，但析构函数被期望不向外界函数抛出异常</p>
-<p>析构函数中向函数外抛出异常，将直接调用 <code>terminator()</code> 系统函数终止程序</p>
-<p>如果一个析构函数内部抛出了异常，就应该在析构函数的内部捕获并处理该异常，不能让异常被抛出析构函数之外</p>
 
       
     </div>

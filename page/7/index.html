@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">409</span>
+          <span class="site-state-item-count">410</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -133,7 +133,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -150,6 +150,397 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/19/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-perf/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/19/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-perf/" class="post-title-link" itemprop="url">perf</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-19 11:16:41" itemprop="dateCreated datePublished" datetime="2023-06-19T11:16:41+08:00">2023-06-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>perf 是 performance 的缩写，是一个事件驱动的可观测性工具</p>
+<h2 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h2><p><code>perf list</code> 查看支持事件，一般来说分为六类</p>
+<ul>
+<li><p>硬件事件，来自于 CPU 硬件监控计数器</p>
+</li>
+<li><p>软件事件，来自于内核计数器</p>
+</li>
+<li><p>内核追踪点事件，来自于内核中硬编码的静态指令点</p>
+</li>
+<li><p>USDT 事件，来自于用户程序的静态追踪点</p>
+</li>
+<li><p>动态追踪事件，来自于软件动态插桩</p>
+</li>
+<li><p>时许剖析，来自于通过 <code>perf record</code> 收集到的数据</p>
+</li>
+</ul>
+<h3 id="软件事件"><a href="#软件事件" class="headerlink" title="软件事件"></a>软件事件</h3><ul>
+<li><p>cpu-clock，cpu 执行的计数器</p>
+</li>
+<li><p>task-clock，某个任务在 cpu 上运行时的 clock 数</p>
+</li>
+<li><p>page-faults，缺页中断数</p>
+</li>
+<li><p>alignment-faults，对齐错误</p>
+</li>
+<li><p>context-switches，上下文切换数</p>
+</li>
+<li><p>cpu-migrations，任务在 cpu 间迁移数</p>
+</li>
+<li><p>minor-faults，缺页中断一部分，指的是访问在内存中但是没有映射到程序地址空间的页发生的错误</p>
+</li>
+<li><p>major-faults，缺页中断一部分，指的是访问不在内存中的页，需要磁盘参与进行换页的中断</p>
+</li>
+</ul>
+<h3 id="硬件事件"><a href="#硬件事件" class="headerlink" title="硬件事件"></a>硬件事件</h3><ul>
+<li><p>cache-misses，缓存不命中</p>
+</li>
+<li><p>branch-misses，分支预测失败</p>
+</li>
+<li><p>cpu-cycles，cpu 时钟情况</p>
+</li>
+<li><p>stalled_cycles_frontend，cpu 前端的停滞周期数</p>
+</li>
+<li><p>stalled_cycles_backend，cpu 后端的停滞周期数</p>
+</li>
+</ul>
+<h2 id="计数"><a href="#计数" class="headerlink" title="计数"></a>计数</h2><p><code>perf stat</code> 来收集一些计数信息</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">perf <span class="built_in">stat</span> [-e &lt;EVENT&gt; | --event=EVENT] [-a] &lt;<span class="built_in">command</span>&gt;</span><br><span class="line">perf <span class="built_in">stat</span> [-e &lt;EVENT&gt; | --event=EVENT] [-a] — &lt;<span class="built_in">command</span>&gt; [&lt;options&gt;]</span><br><span class="line"></span><br><span class="line">-e, --event &lt;event&gt; 指定事件</span><br><span class="line">--filter &lt;filter&gt; 过滤事件</span><br><span class="line">-i 不统计子进程</span><br><span class="line">-a 对全部 CPU 进行计数</span><br><span class="line">-p 指定进程</span><br><span class="line">-t 指定线程</span><br><span class="line">-v 详细信息</span><br><span class="line">-I 指定事件间隔，单位毫秒，最小 100ms</span><br><span class="line">-r 重复运行，并显示平均信息</span><br></pre></td></tr></table></figure>
+
+<h2 id="采样"><a href="#采样" class="headerlink" title="采样"></a>采样</h2><p><code>perf record</code> 和 <code>perf top</code> 对系统进行剖析</p>
+<h3 id="perf-top"><a href="#perf-top" class="headerlink" title="perf top"></a>perf top</h3><p><code>perf top</code> 可以看到目前的 CPU 执行占比情况，该情况会随着时间刷新，这可以帮助快速的发现热点</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">perf top [-e &lt;EVENT&gt; | --event=EVENT] [&lt;options&gt;]</span><br><span class="line"></span><br><span class="line">-a 全系统采样</span><br><span class="line">-c 每采样 n 个事件记录一次</span><br><span class="line">-d 刷新间隔时间</span><br><span class="line">-e, --event &lt;event&gt; 指定事件</span><br><span class="line">-p 指定进程</span><br><span class="line">-t 指定线程</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/06/19/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-perf/01.png" class="">
+
+<ul>
+<li><p>Overhead 该符号的性能事件在所有采样事件中的比例</p>
+</li>
+<li><p>Shared 该函数或指令所在的动态共享对象，如内核、进程名、动态链接库</p>
+</li>
+<li><p>Object 动态共享对象类型，<code>.</code> 表示用户空间的可执行程序，<code>k</code> 内核空间</p>
+</li>
+<li><p>Symbol 符号名、函数名，函数名未知时用十六进制表示</p>
+</li>
+</ul>
+<h3 id="perf-record"><a href="#perf-record" class="headerlink" title="perf record"></a>perf record</h3><p><code>perf record</code> 是把多个时间的 <code>perf top</code> 结果作为切片保存到一个文件里，从而得到一段时间里的执行情况，默认在当前目录下生成数据文件 perf.data</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">perf record [-e &lt;EVENT&gt; | --event=EVENT] [-l] [-a] &lt;<span class="built_in">command</span>&gt;</span><br><span class="line">perf record [-e &lt;EVENT&gt; | --event=EVENT] [-l] [-a] —- &lt;<span class="built_in">command</span>&gt; [&lt;options&gt;]</span><br><span class="line"></span><br><span class="line">-e, --event &lt;event&gt; 指定事件</span><br><span class="line">--filter &lt;filter&gt; 过滤事件</span><br><span class="line">-a 对全部 CPU 进行计数</span><br><span class="line">-p 指定进程</span><br><span class="line">-t 指定线程</span><br><span class="line">-f 覆盖已存在的数据文件</span><br><span class="line">-c 每采样 n 个事件记录一次</span><br><span class="line">-o 输出文件名</span><br><span class="line">-g 保存调用栈</span><br><span class="line">-s 每个线程都统计</span><br><span class="line">-F, --freq &lt;n&gt; 采样频率</span><br></pre></td></tr></table></figure>
+
+<p><code>perf record</code> 得到的结果数据是无法直接读取的，可以用 <code>perf script</code> 将其转换成可读文件，或者直接用 <code>perf report</code> 进行图形化展示</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/14/Bazel-WorkspaceRule/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/14/Bazel-WorkspaceRule/" class="post-title-link" itemprop="url">WorkspaceRule</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-14 14:39:09" itemprop="dateCreated datePublished" datetime="2023-06-14T14:39:09+08:00">2023-06-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Bazel/" itemprop="url" rel="index"><span itemprop="name">Bazel</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>WORKSPACE 文件中的 rule 主要是为了引入外部依赖，其主要分为原生 rule 和 Starlark rule</p>
+<h2 id="bind"><a href="#bind" class="headerlink" title="bind"></a>bind</h2><p>原生 rule</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bind(name, actual, compatible_with, deprecation, distribs, features, licenses, restricted_to, tags, testonly, visibility)</span><br></pre></td></tr></table></figure>
+
+<p><code>bind</code> 用于给 target 在 <code>//external</code> 包中创建一个别名</p>
+<p><code>//external</code> 不是常规的包，可以把它看成一个包含所有绑定目标的虚拟包</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">bind(</span><br><span class="line">    name = &quot;javacc-latest&quot;,</span><br><span class="line">    actual = &quot;//third_party/javacc-v2&quot;,</span><br><span class="line">)</span><br><span class="line"># 使用 bind 后可以用 //external:javacc-latest 来替代 //third_party/javacc-v2</span><br><span class="line"></span><br><span class="line"># 引入外部包</span><br><span class="line">bind(</span><br><span class="line">    name = &quot;openssl&quot;,</span><br><span class="line">    actual = &quot;@my-ssl//src:openssl-lib&quot;,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><code>bind</code> 是不推荐使用的</p>
+<h2 id="local-repository"><a href="#local-repository" class="headerlink" title="local_repository"></a>local_repository</h2><p>原生 rule</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">local_repository(name, path, repo_mapping)</span><br></pre></td></tr></table></figure>
+
+<p>引入一个本地目录中的 Bazel 仓库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">local_repository(</span><br><span class="line">    name = &quot;my-ssl&quot;,</span><br><span class="line">    path = &quot;/home/user/ssl&quot;,</span><br><span class="line">)</span><br><span class="line"># 之后使用 /home/user/ssl 中的 target 时可以用 @my-ssl//src:openssl-lib 表示</span><br></pre></td></tr></table></figure>
+
+<h2 id="new-local-repository"><a href="#new-local-repository" class="headerlink" title="new_local_repository"></a>new_local_repository</h2><p>原生 rule</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_local_repository(name, build_file, build_file_content, path, repo_mapping, workspace_file, workspace_file_content)</span><br></pre></td></tr></table></figure>
+
+<p>引入一个本地目录中的非 Bazel 仓库或文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"># WORKSPACE</span><br><span class="line">new_local_repository(</span><br><span class="line">    name = &quot;my-ssl&quot;,</span><br><span class="line">    path = &quot;/home/user/ssl&quot;,</span><br><span class="line">    build_file = &quot;BUILD.my-ssl&quot;,</span><br><span class="line">)</span><br><span class="line"># BUILD.my-ssl</span><br><span class="line">java_library(</span><br><span class="line">    name = &quot;openssl&quot;,</span><br><span class="line">    srcs = glob([&#x27;*.java&#x27;])</span><br><span class="line">    visibility = [&quot;//visibility:public&quot;],</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"># WORKSPACE</span><br><span class="line">new_local_repository(</span><br><span class="line">    name = &quot;piano&quot;,</span><br><span class="line">    path = &quot;/home/username/Downloads/piano.jar&quot;,</span><br><span class="line">    build_file = &quot;BUILD.piano&quot;,</span><br><span class="line">)</span><br><span class="line"># BUILD.plano</span><br><span class="line">java_import(</span><br><span class="line">    name = &quot;play-music&quot;,</span><br><span class="line">    jars = [&quot;piano.jar&quot;],</span><br><span class="line">    visibility = [&quot;//visibility:public&quot;],</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h2 id="git-repository"><a href="#git-repository" class="headerlink" title="git_repository"></a>git_repository</h2><p>Starlark rule，需要 <code>load(@bazel_tools//tools/build_defs/repo:git.bzl)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git_repository(name, branch, commit, init_submodules, patch_args, patch_cmds, patch_cmds_win,</span><br><span class="line">               patch_tool, patches, recursive_init_submodules, remote, shallow_since, strip_prefix,</span><br><span class="line">               tag, verbose)</span><br></pre></td></tr></table></figure>
+
+<p>克隆一个外部 Bazel 仓库</p>
+<h2 id="new-git-repository"><a href="#new-git-repository" class="headerlink" title="new_git_repository"></a>new_git_repository</h2><p>Starlark rule，需要 <code>load(@bazel_tools//tools/build_defs/repo:git.bzl)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">new_git_repository(name, branch, build_file, build_file_content, commit, init_submodules,</span><br><span class="line">                   patch_args, patch_cmds, patch_cmds_win, patch_tool, patches,</span><br><span class="line">                   recursive_init_submodules, remote, shallow_since, strip_prefix, tag, verbose,</span><br><span class="line">                   workspace_file, workspace_file_content)</span><br></pre></td></tr></table></figure>
+
+<p>克隆一个外部非 Bazel 仓库</p>
+<h2 id="http-archive"><a href="#http-archive" class="headerlink" title="http_archive"></a>http_archive</h2><p>Starlark rule，需要 <code>load(@bazel_tools//tools/build_defs/repo:http.bzl)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http_archive(name, auth_patterns, build_file, build_file_content, canonical_id, netrc, patch_args,</span><br><span class="line">             patch_cmds, patch_cmds_win, patch_tool, patches, sha256, strip_prefix, type, url, urls,</span><br><span class="line">             workspace_file, workspace_file_content)</span><br></pre></td></tr></table></figure>
+
+<p>下载一个压缩的 Bazel 仓库，对其解压后引入该仓库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># WORKSPACE</span><br><span class="line">load(&quot;@bazel_tools//tools/build_defs/repo:http.bzl&quot;, &quot;http_archive&quot;)</span><br><span class="line">http_archive(</span><br><span class="line">    name = &quot;my_ssl&quot;,</span><br><span class="line">    urls = [&quot;http://example.com/openssl.zip&quot;],</span><br><span class="line">    sha256 = &quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;,</span><br><span class="line">    build_file = &quot;@//:openssl.BUILD&quot;,</span><br><span class="line">)</span><br><span class="line">#openssl.BUILD</span><br><span class="line">cc_library(</span><br><span class="line">    name = &quot;openssl-lib&quot;,</span><br><span class="line">    srcs = [&quot;src/openssl.cc&quot;],</span><br><span class="line">    hdrs = [&quot;src/openssl.h&quot;],</span><br><span class="line">)</span><br><span class="line"># 使用 @my_ssl//:openssl-lib</span><br></pre></td></tr></table></figure>
+
+<h2 id="http-file"><a href="#http-file" class="headerlink" title="http_file"></a>http_file</h2><p>Starlark rule，需要 <code>load(@bazel_tools//tools/build_defs/repo:http.bzl)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http_file(name, auth_patterns, canonical_id, downloaded_file_path, executable, netrc, sha256, urls)</span><br></pre></td></tr></table></figure>
+
+<p>通过 URL 下载文件并引入仓库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># WORKSPACE</span><br><span class="line">load(&quot;@bazel_tools//tools/build_defs/repo:http.bzl&quot;, &quot;http_file&quot;)</span><br><span class="line"></span><br><span class="line">http_file(</span><br><span class="line">    name = &quot;my_deb&quot;,</span><br><span class="line">    urls = [&quot;http://example.com/package.deb&quot;],</span><br><span class="line">    sha256 = &quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot;,</span><br><span class="line">)</span><br><span class="line"># 使用 @my_deb//file</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/12/Bazel-%E5%87%A0%E4%B8%AA%E9%87%8D%E8%A6%81%E6%A6%82%E5%BF%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/12/Bazel-%E5%87%A0%E4%B8%AA%E9%87%8D%E8%A6%81%E6%A6%82%E5%BF%B5/" class="post-title-link" itemprop="url">几个重要概念</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-12 20:12:32" itemprop="dateCreated datePublished" datetime="2023-06-12T20:12:32+08:00">2023-06-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Bazel/" itemprop="url" rel="index"><span itemprop="name">Bazel</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="工作区"><a href="#工作区" class="headerlink" title="工作区"></a>工作区</h2><p>工作区包括项目源文件、Bazel 构建产物和 Bazel 需要的文件</p>
+<p>{ % asset_img 01.png % }</p>
+<p>Bazel 所需文件包括：</p>
+<ul>
+<li><p>WORKSPACE 文件，位于项目目录结构的根目录</p>
+</li>
+<li><p>一个或多个 BUILD 文件，工作区中包含 BUILD 文件的目录被视为是一个包，BUILD 文件表示如何构建这个包</p>
+</li>
+</ul>
+<p>当 Bazel 构建项目时，所有输入和依赖项必须在同一个工作区中</p>
+<p>位于不同工作区中的文件彼此独立，除非链接进本工作区</p>
+<h2 id="WORKSPACE-文件"><a href="#WORKSPACE-文件" class="headerlink" title="WORKSPACE 文件"></a>WORKSPACE 文件</h2><p>WORKSPACE 文件标明当前目录是项目的根目录，Bazel 会忽略子目录中的 WORKSPACE 文件，因为其他 WORKSPACE 文件会当视为其他项目的根目录</p>
+<p>WORKSPACE 主要用于声明构建所需的外部依赖</p>
+<p>Bazel 也支持将 WORKSPACE 文件命名为 WORKSPACE.bazel，如果两种命名同时存在时，Bazel 会使用 WORKSPACE.bazel，以为它优先级更高</p>
+<p>项目根目录可以使用 <code>@</code> 替代</p>
+<h2 id="包"><a href="#包" class="headerlink" title="包"></a>包</h2><p>包是 BUILD 文件或 BUILD.bazel 文件所在的目录，它包括目录中的所有文件</p>
+<h2 id="BUILD-文件"><a href="#BUILD-文件" class="headerlink" title="BUILD 文件"></a>BUILD 文件</h2><p>一个 BUILD 文件包含几种不同类型的 Bazel 指令，最重要的指令是构建规则，它告诉 Bazel 如何构建所需的输出</p>
+<p>BUILD 文件中构建规则作用于 target，该 target 对应一组特定的源文件和依赖项</p>
+<p>一个 target 还可以依赖其他 target</p>
+<p>一个 target 的默认可见性是当前 BUILD 文件，即当前目录包中，但可以显式地指定 target 的可见性</p>
+<p>BUILD 文件使用 Starlark 语言编写，但不允许有函数的定义、<code>for</code> 语句、<code>if</code> 语句，可以有列表推导和 <code>if</code> 表达式，函数应该被定义在 .bzzl 文件中，而且 <code>*args</code> 和 <code> **kwargs</code> 不允许使用，除非显示列出所有参数</p>
+<h2 id="target-名称"><a href="#target-名称" class="headerlink" title="target 名称"></a>target 名称</h2><p>在 BUILD 文件和命令行中，target 名称格式是 <code>@myrepo//path_to_package:target_name</code></p>
+<ul>
+<li><p>如果引用的 target 跟当前 target 在同一工作区，可以使用 <code>//path_to_package:target_name</code></p>
+</li>
+<li><p>如果引用的 target 在当前 BUILD 目录中，可以直接使用 <code>:target_name</code></p>
+</li>
+<li><p>如果引用的 target 在 WORKSPACE 目录中，可以直接使用 <code>//:target_name</code></p>
+</li>
+</ul>
+<h2 id="加载扩展"><a href="#加载扩展" class="headerlink" title="加载扩展"></a>加载扩展</h2><p>扩展需要写在 .bzl 文件中，通过 <code>load</code> 引入</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +586,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:48" itemprop="dateModified" datetime="2023-12-12T13:39:48+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -282,7 +673,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:48" itemprop="dateModified" datetime="2023-12-12T13:39:48+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -369,7 +760,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -465,7 +856,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -619,7 +1010,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -720,7 +1111,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -962,7 +1353,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:48" itemprop="dateModified" datetime="2023-12-12T13:39:48+08:00">2023-12-12</time>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -996,402 +1387,6 @@
 <li><p><code>NO_CACHE</code> 将结果存储在普通变量的 <code>VAR</code> 中，而不是 cache 变量 <code>VAR</code></p>
 </li>
 </ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/06/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-Feed%E6%B5%81/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/06/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-Feed%E6%B5%81/" class="post-title-link" itemprop="url">Feed 流设计</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-06 16:32:41" itemprop="dateCreated datePublished" datetime="2023-06-06T16:32:41+08:00">2023-06-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">后端设计</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Feed 流是将用户主动订阅的若干消息源组合在一起形成内容聚合器，帮助用户持续地获取最新的订阅源内容</p>
-<p>简而言之，Feed 流就是持续更新并呈现给用户内容的信息流</p>
-<h2 id="展现形式"><a href="#展现形式" class="headerlink" title="展现形式"></a>展现形式</h2><ul>
-<li><p>timeline 是最典型的 Feed 流展示方式，它按照内容更新的时间先后顺序将内容展示给用户</p>
-</li>
-<li><p>rank 即按照某些因素计算内容的权重，从而决定内容展示的先后顺序</p>
-</li>
-<li><p>aggregate 聚合类型，比如几个朋友看了一部电影，这就可以聚合为一条 Feed</p>
-</li>
-<li><p>notice 通知类型，一般用于各种通知、私信等场景</p>
-</li>
-</ul>
-<h2 id="timeline-设计"><a href="#timeline-设计" class="headerlink" title="timeline 设计"></a>timeline 设计</h2><h3 id="拉模型"><a href="#拉模型" class="headerlink" title="拉模型"></a>拉模型</h3><p>用户刷新时，服务先查询用户所有关注的 uid，根据 uid 查询发布的内容，再按照发布时间进行排序</p>
-<p>因为拉模型每次都需要读取所有关注的内容，因此拉模型也称为读扩散</p>
-<ul>
-<li><p>拉模型不需要额外的存储，每次发布只需写入一条数据</p>
-</li>
-<li><p>用户增删关注只需操作关注列表，没有额外操作</p>
-</li>
-<li><p>头部发布者不需要特殊处理</p>
-</li>
-<li><p>因为每次拉取都需要大量读取数据和排序，关注数较多时耗时增加明显</p>
-</li>
-</ul>
-<h3 id="推模型"><a href="#推模型" class="headerlink" title="推模型"></a>推模型</h3><p>内容发布者发布新内容时，对粉丝的 timeline 进行写入，因此也被称为写扩散</p>
-<ul>
-<li><p>推模型的拉取操作简单高效</p>
-</li>
-<li><p>推模型的发布操作逻辑复杂，不仅需要更新内容，在新增、取消关注的时候也需要额外逻辑处理</p>
-</li>
-<li><p>头部发布者的写入量巨大</p>
-</li>
-</ul>
-<h3 id="模型对比"><a href="#模型对比" class="headerlink" title="模型对比"></a>模型对比</h3><table>
-<thead>
-<tr>
-<th></th>
-<th>优点</th>
-<th>缺点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>拉模型</td>
-<td>逻辑简单，节约存储空间</td>
-<td>读取效率低下</td>
-</tr>
-<tr>
-<td>推模型</td>
-<td>读取操作快</td>
-<td>逻辑复杂，消耗大量存储空间</td>
-</tr>
-</tbody></table>
-<p>Feed 流是一个极度读写不平衡的场景，这使得拉模型消耗的 CPU 等资源反而更高</p>
-<p>推送 Feed 流可以分段进行，但用户很难容忍打开页面时需要较长等候时间，因此拉模型读取效率低下的缺点使得它的应用受到了极大限制</p>
-<p>针对头部发布者，可以有选择地过滤掉一些粉丝来减少写入量</p>
-<p>结合以上分析，可以针对在线用户使用推模型，离线用户使用拉模型</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/" class="post-title-link" itemprop="url">JWT</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-05 14:53:21" itemprop="dateCreated datePublished" datetime="2023-06-05T14:53:21+08:00">2023-06-05</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5/" itemprop="url" rel="index"><span itemprop="name">常见概念</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>JWT 即 Json Web Token，是一种跨域认证解决方案</p>
-<h2 id="跨域认证"><a href="#跨域认证" class="headerlink" title="跨域认证"></a>跨域认证</h2><p>用户认证一般流程</p>
-<ol>
-<li><p>用户向服务器发送用户名和密码</p>
-</li>
-<li><p>服务器验证通过后，在当前 session 里面保存相关数据，比如用户角色、登录时间等等</p>
-</li>
-<li><p>服务器向用户返回一个 session_id，写入用户的 Cookie</p>
-</li>
-<li><p>用户随后的每一次请求，都会通过 Cookie 将 session_id 传回服务器</p>
-</li>
-<li><p>服务器收到 session_id，找到前期保存的数据，由此得知用户的身份</p>
-</li>
-</ol>
-<p>该方案存在扩展性不好的问题，当遇到服务器集群或者是跨域的服务架构，就需要做到 session 数据共享才能使每台服务器都能读到 session</p>
-<p>为了解决 session 共享问题，有两种方案</p>
-<ol>
-<li><p>将 session 持久化，这样服务收到请求向持久层请求数据</p>
-</li>
-<li><p>服务端不保存 session，将 session 保存在客户端，这样客户端每次请求到将 session 发回服务端</p>
-</li>
-</ol>
-<p>JWT 就是改良方案二的一个代表</p>
-<h2 id="JWT-原理"><a href="#JWT-原理" class="headerlink" title="JWT 原理"></a>JWT 原理</h2><p>JWT 是一个很长的字符串，由 Header 头部、Payload 负载和 Signature 签名组成，中间用点 . 分隔成三个部分</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Header.Payload.Signature</span><br></pre></td></tr></table></figure>
-
-<h3 id="Header"><a href="#Header" class="headerlink" title="Header"></a>Header</h3><p>Header 是一个 JSON 对象，描述 JWT 的元数据，包括以下字段</p>
-<ul>
-<li><p>alg：签名算法，默认 HS256</p>
-</li>
-<li><p>typ：token 类型，JWT 统一为 JWT</p>
-</li>
-</ul>
-<p>最后需要将 Header 的 JSON 对象使用 Base64URL 算法转成字符串</p>
-<h3 id="Payload"><a href="#Payload" class="headerlink" title="Payload"></a>Payload</h3><p>Payload 是一个 JSON 对象，描述需要传递的信息，包括以下字段</p>
-<ul>
-<li><p>iss：issuer 签发人</p>
-</li>
-<li><p>exp：expiration time 过期时间</p>
-</li>
-<li><p>sub：subject 主题</p>
-</li>
-<li><p>aud：audience 受众</p>
-</li>
-<li><p>nbf：not before 生效时间</p>
-</li>
-<li><p>iat：issued at 签发时间</p>
-</li>
-<li><p>jti：JWT id 编号</p>
-</li>
-</ul>
-<p>除了官方字段，还可以在这个部分定义私有字段</p>
-<p>最后需要将 Payload 的 JSON 对象使用 Base64URL 算法转成字符串</p>
-<h3 id="Signature"><a href="#Signature" class="headerlink" title="Signature"></a>Signature</h3><p>Signature 是对前两部分利用私钥的签名，防止数据篡改</p>
-<p>服务端根据 Header 中的算法，利用私钥、 Header 和 Payload 计算签名，再使用 Base64URL 转成字符串</p>
-<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><ul>
-<li><p>客户端每次与服务器通信都要带上这个 JWT，可以把它放在 Cookie 里面自动发送，但是这样不能跨域</p>
-</li>
-<li><p>将 JWT 放在 HTTP 请求的头信息 Authorization 字段里面，这样就解决了跨域的问题</p>
-</li>
-<li><p>JWT 放在 POST 请求的数据体里面，这样也能解决了跨域的问题</p>
-</li>
-</ul>
-<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
-<li><p>JWT 默认是不加密，但也可以生成原始 Token 以后用密钥再加密一次</p>
-</li>
-<li><p>JWT 不加密的情况下，不能将秘密数据写入 JWT</p>
-</li>
-<li><p>JWT 不仅可以用于认证，也可以用于交换信息</p>
-</li>
-<li><p>由于服务器不保存 session 状态，因此无法在使用过程中废止某个 token，或者更改 token 的权限，除非服务器部署额外的逻辑</p>
-</li>
-<li><p>JWT 本身包含了认证信息，一旦泄露任何人都可以获得该令牌的所有权限，所以 JWT 的有效期应该设置得比较短</p>
-</li>
-<li><p>为了减少盗用，JWT 不应该使用 HTTP 协议明码传输，要使用 HTTPS 协议传输</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-Base64/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-Base64/" class="post-title-link" itemprop="url">Base64</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-05 11:39:32" itemprop="dateCreated datePublished" datetime="2023-06-05T11:39:32+08:00">2023-06-05</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-12 13:39:49" itemprop="dateModified" datetime="2023-12-12T13:39:49+08:00">2023-12-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">编码格式</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Base64 是一种用 64 个可打印字符来表示二进制数据的表示方法，其中的可打印字符包括 A-Z、a-z、0-9、+、\</p>
-<p>它将 6 个 bit （2^6&#x3D;64）映射到一个可打印字符，这样 3 个字节的二进制数据就变成了 4 个可打印字符</p>
-<p>Base64 编码并不是为了减小内容体积，相反它反而增大了内容的大小，因为用 4 个字符替代 3 个字节，整体大小增加了三分之一</p>
-<p>如果要编码的字节数不能被 3 整除，则会多出 1 个或 2 个字节，那么可以先使用 0 字节值在末尾补足，使其能够被 3 整除，然后再进行 Base64 的编码，在编码后的 Base64 文本后加上一个或两个 &#x3D; 号，代表补足的字节数</p>
-<h2 id="为什么需要-Base64"><a href="#为什么需要-Base64" class="headerlink" title="为什么需要 Base64"></a>为什么需要 Base64</h2><ol>
-<li><p>一个传输协议如果是基于 ASCII 文本的，那么它就不能传输二进制流，如果要传输二进制流就得编码。常见的诸如 http 协议的 url 就是纯文本的，不能直接放二进制流</p>
-</li>
-<li><p>在一些硬件或软件上，某些二进制值表示的意义不一样，做的处理也不一样，这就导致那些不兼容的二进制值被错误处理，所以就先把传输数据做一个 Base64 编码，统统变成可见字符，这样出错的可能性就大大降低了</p>
-</li>
-</ol>
-<h2 id="Base64URL"><a href="#Base64URL" class="headerlink" title="Base64URL"></a>Base64URL</h2><p>Base64 有三个字符 +、&#x2F; 和 &#x3D; 在 URL 里面有特殊含义，所以在 Base64URL 中被替换掉，其中 &#x3D; 被省略、+ 替换成 -，&#x2F; 替换成 _</p>
 
       
     </div>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Linux 性能工具图谱     平均负载平均负载是指单位时间内，系统处于可运行状态和不可中断状态的平均进程数，也就是平均活跃进程数，它和 CPU 使用率并没有直接关系 可运行状态可运行状态的进程，是指正在使用 CPU 或者正在等待 CPU 的进程，也就是用 ps 命令看到的处于 R 状态（Running 或 Runnable）的进程 不可中断状态不可中断状态的进程则是正处于内核态关键流程中的进程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux性能优化">
+<meta property="og:url" content="https://chaxxro.github.io/2023/12/13/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="Linux 性能工具图谱     平均负载平均负载是指单位时间内，系统处于可运行状态和不可中断状态的平均进程数，也就是平均活跃进程数，它和 CPU 使用率并没有直接关系 可运行状态可运行状态的进程，是指正在使用 CPU 或者正在等待 CPU 的进程，也就是用 ps 命令看到的处于 R 状态（Running 或 Runnable）的进程 不可中断状态不可中断状态的进程则是正处于内核态关键流程中的进程">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://chaxxro.github.io/2023/12/13/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/01.png">
+<meta property="og:image" content="https://chaxxro.github.io/2023/12/13/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/02.png">
+<meta property="article:published_time" content="2023-12-13T05:36:19.000Z">
+<meta property="article:modified_time" content="2023-12-14T14:36:04.255Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="Linux性能优化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://chaxxro.github.io/2023/12/13/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/01.png">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/12/13/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/12/13/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/","path":"2023/12/13/常用工具-Linux性能优化/","title":"Linux性能优化"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Linux性能优化 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B3%E5%9D%87%E8%B4%9F%E8%BD%BD"><span class="nav-text">平均负载</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AF%E8%BF%90%E8%A1%8C%E7%8A%B6%E6%80%81"><span class="nav-text">可运行状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E5%8F%AF%E4%B8%AD%E6%96%AD%E7%8A%B6%E6%80%81"><span class="nav-text">不可中断状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8E-CPU-%E8%B4%9F%E8%BD%BD%E5%85%B3%E7%B3%BB"><span class="nav-text">与 CPU 负载关系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2"><span class="nav-text">上下文切换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CPU-%E8%B4%9F%E8%BD%BD%E6%8C%87%E6%A0%87"><span class="nav-text">CPU 负载指标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E7%8A%B6%E6%80%81"><span class="nav-text">进程状态</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">410</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/12/13/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Linux性能优化 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux性能优化
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-12-13 13:36:19" itemprop="dateCreated datePublished" datetime="2023-12-13T13:36:19+08:00">2023-12-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-14 22:36:04" itemprop="dateModified" datetime="2023-12-14T22:36:04+08:00">2023-12-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%B7%A5%E5%85%B7%E8%87%AA%E6%9F%A5/" itemprop="url" rel="index"><span itemprop="name">工具自查</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Linux 性能工具图谱</p>
+<img src="/2023/12/13/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/01.png" class="">
+
+<img src="/2023/12/13/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/02.png" class="">
+
+<h2 id="平均负载"><a href="#平均负载" class="headerlink" title="平均负载"></a>平均负载</h2><p>平均负载是指单位时间内，系统处于可运行状态和不可中断状态的平均进程数，也就是平均活跃进程数，它和 CPU 使用率并没有直接关系</p>
+<h3 id="可运行状态"><a href="#可运行状态" class="headerlink" title="可运行状态"></a>可运行状态</h3><p>可运行状态的进程，是指正在使用 CPU 或者正在等待 CPU 的进程，也就是用 ps 命令看到的处于 R 状态（Running 或 Runnable）的进程</p>
+<h3 id="不可中断状态"><a href="#不可中断状态" class="headerlink" title="不可中断状态"></a>不可中断状态</h3><p>不可中断状态的进程则是正处于内核态关键流程中的进程，并且这些流程是不可打断的，比如最常见的是等待硬件设备的 I&#x2F;O 响应，也就是在 ps 命令中看到的 D 状态（Uninterruptible Sleep，也称为 Disk Sleep）的进程</p>
+<p>当一个进程向磁盘读写数据时，为了保证数据的一致性，在得到磁盘回复前，它是不能被其他进程或者中断打断的，这个时候的进程就处于不可中断状态</p>
+<p>不可中断状态实际上是系统对进程和硬件设备的一种保护机制</p>
+<h3 id="与-CPU-负载关系"><a href="#与-CPU-负载关系" class="headerlink" title="与 CPU 负载关系"></a>与 CPU 负载关系</h3><p>平均负载不仅包括了正在使用 CPU 的进程，还包括等待 CPU 和等待 I&#x2F;O 的进程</p>
+<p>CPU 使用率，是单位时间内 CPU 繁忙情况的统计，跟平均负载并不一定完全对应</p>
+<ul>
+<li><p>CPU 密集型进程，使用大量 CPU 会导致平均负载升高，此时这两者是一致的</p>
+</li>
+<li><p>I&#x2F;O 密集型进程，等待 I&#x2F;O 也会导致平均负载升高，但 CPU 使用率不一定很高</p>
+</li>
+<li><p>大量等待 CPU 的进程调度也会导致平均负载升高，此时的 CPU 使用率也会比较高</p>
+</li>
+</ul>
+<h2 id="上下文切换"><a href="#上下文切换" class="headerlink" title="上下文切换"></a>上下文切换</h2><p>过多的上下文切换，会把 CPU 时间消耗在寄存器、内核栈以及虚拟内存等数据的保存和恢复上，缩短进程真正运行的时间</p>
+<p>可以使用 <code>vmstat</code> 来查询系统的上下文切换情况，可以使用 <code>pidstat -w</code> 查看每个进程的详细情况</p>
+<p>上下文切换分为自愿上下文切换和非自愿上下文切换</p>
+<ul>
+<li><p>自愿上下文切换是指进程无法获取所需资源，导致的上下文切换。比如说， I&#x2F;O、内存等系统资源不足时，就会发生自愿上下文切换</p>
+</li>
+<li><p>非自愿上下文切换，则是指进程由于时间片已到等原因，被系统强制调度，进而发生的上下文切换。比如说，大量进程都在争抢 CPU 时，就容易发生非自愿上下文切换</p>
+</li>
+</ul>
+<h2 id="CPU-负载指标"><a href="#CPU-负载指标" class="headerlink" title="CPU 负载指标"></a>CPU 负载指标</h2><ul>
+<li><p>us，代表用户态 CPU 时间。不包括下面的 nice 时间，但包括了 guest 时间</p>
+</li>
+<li><p>ni，代表低优先级用户态 CPU 时间，也就是进程的 nice 值被调整为 1-19 之间时的 CPU 时间。这里注意，nice 可取值范围是 -20 到 19，数值越大，优先级反而越低</p>
+</li>
+<li><p>sys，代表内核态 CPU 时间</p>
+</li>
+<li><p>idle，通常缩写为 id，代表空闲时间，不包括等待 I&#x2F;O 的时间</p>
+</li>
+<li><p>iowait，通常缩写为 wa，代表等待 I&#x2F;O 的 CPU 时间</p>
+</li>
+<li><p>irq，通常缩写为 hi，代表处理硬中断的 CPU 时间</p>
+</li>
+<li><p>softirq，通常缩写为 si，代表处理软中断的 CPU 时间</p>
+</li>
+<li><p>steal，通常缩写为 st，代表当系统运行在虚拟机中的时候，被其他虚拟机占用的 CPU 时间</p>
+</li>
+<li><p>guest，代表通过虚拟化运行其他操作系统的时间，也就是运行虚拟机的 CPU 时间</p>
+</li>
+<li><p>guest_nice，通常缩写为 gnice，代表以低优先级运行虚拟机的时间</p>
+</li>
+</ul>
+<h2 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h2><ul>
+<li><p>R 进程在 CPU 的就绪队列中，正在运行或者正在等待运行</p>
+</li>
+<li><p>D 不可中断状态睡眠，一般表示进程正在跟硬件交互，并且交互过程不允许被其他进程或中断打断</p>
+</li>
+<li><p>Z 僵尸进程，也就是进程实际上已经结束了，但是父进程还没有回收它的资源</p>
+</li>
+<li><p>S 可中断状态睡眠，表示进程因为等待某个事件而被系统挂起。当进程等待的事件发生时，它会被唤醒并进入 R 状态</p>
+</li>
+<li><p>I 空闲状态，用在不可中断睡眠的内核线程上</p>
+</li>
+<li><p>T 进程处于暂停或者跟踪状态</p>
+</li>
+<li><p>X 进程已经消亡</p>
+</li>
+</ul>
+<p>D 状态的进程会导致平均负载升高，I 状态的进程却不会</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" rel="tag"># Linux性能优化</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/12/06/cpp%E7%BB%86%E8%8A%82-CRTP/" rel="prev" title="CRTP">
+                  <i class="fa fa-chevron-left"></i> CRTP
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/12/13/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-mpstat/" rel="next" title="mpstat">
+                  mpstat <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
