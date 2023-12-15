@@ -273,3 +273,122 @@ destruct Object
 {% asset_img 3.png %}
 
 `std::unique_ptr` 的构造函数都只接受 `pointer` 类型，因此内部只保存了模板类参数类型的指针，所以当父类析构函数非虚函数时，只会调用父类的析构函数
+
+## 线程安全
+
+`shared_ptr` 中有两个指针，一个指向所管理数据的地址，另一个指向执行控制块的地址
+
+### 引用计数
+
+执行控制块包括对关联资源的引用计数以及弱引用计数等
+
+```cpp
+template<_Lock_policy _Lp = __default_lock_policy>
+    class _Sp_counted_base
+    : public _Mutex_base<_Lp>
+    {
+    public:
+      _Sp_counted_base() noexcept
+      : _M_use_count(1), _M_weak_count(1) { }
+
+      void
+      _M_add_ref_copy()
+      { __gnu_cxx::__atomic_add_dispatch(&_M_use_count, 1); }
+
+      void
+      _M_release() noexcept
+      {
+        // Be race-detector-friendly.  For more info see bits/c++config.
+        _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE(&_M_use_count);
+        if (__gnu_cxx::__exchange_and_add_dispatch(&_M_use_count, -1) == 1)
+          {
+            _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(&_M_use_count);
+            _M_dispose();
+            // There must be a memory barrier between dispose() and destroy()
+            // to ensure that the effects of dispose() are observed in the
+            // thread that runs destroy().
+            // See http://gcc.gnu.org/ml/libstdc++/2005-11/msg00136.html
+            if (_Mutex_base<_Lp>::_S_need_barriers)
+              {
+                __atomic_thread_fence (__ATOMIC_ACQ_REL);
+              }
+
+            // Be race-detector-friendly.  For more info see bits/c++config.
+            _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE(&_M_weak_count);
+            if (__gnu_cxx::__exchange_and_add_dispatch(&_M_weak_count,
+                                                       -1) == 1)
+              {
+                _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(&_M_weak_count);
+                _M_destroy();
+              }
+          }
+      }
+
+      void
+      _M_weak_add_ref() noexcept
+      { __gnu_cxx::__atomic_add_dispatch(&_M_weak_count, 1); }
+
+      void
+      _M_weak_release() noexcept
+      {
+        // Be race-detector-friendly. For more info see bits/c++config.
+        _GLIBCXX_SYNCHRONIZATION_HAPPENS_BEFORE(&_M_weak_count);
+        if (__gnu_cxx::__exchange_and_add_dispatch(&_M_weak_count, -1) == 1)
+          {
+            _GLIBCXX_SYNCHRONIZATION_HAPPENS_AFTER(&_M_weak_count);
+            if (_Mutex_base<_Lp>::_S_need_barriers)
+              {
+                // See _M_release(),
+                // destroy() must observe results of dispose()
+                __atomic_thread_fence (__ATOMIC_ACQ_REL);
+              }
+            _M_destroy();
+          }
+      }
+
+      long
+      _M_get_use_count() const noexcept
+      {
+        // 使用 relaxed 模型，与其他线程没有同步关系
+        return __atomic_load_n(&_M_use_count, __ATOMIC_RELAXED);
+      }
+
+    private:
+      _Atomic_word  _M_use_count;     // #shared
+      _Atomic_word  _M_weak_count;    // #weak + (#shared != 0)
+    };
+```
+
+### 修改指向
+
+多线程代码操作的是同一个 `shared_ptr` 的对象，多个线程同时读是安全的，多个线程同时读写是不安全的
+
+```cpp
+void fn(shared_ptr<A>& sp) {
+    if (..) {
+        sp = other_sp;
+    } else if (...) {
+        sp = other_sp2;
+    }
+}
+std::thread td(fn, std::ref(sp1));
+
+/*
+修改指向，sp 原先指向的引用计数的值要 -1，other_sp 指向的引用计数值要 +1，这几步操作加起来并不是一个原子操作
+
+如果多个线程都在修改 sp 的指向的时候，那么有可能会出问题。比如在导致计数在操作 -1 的时候，其内部的指向已经被其他线程修改过了，引用计数的异常会导致某个管理的对象被提前析构，后续在使用到该数据的时候触发coredump
+*/
+```
+
+多线程代码操作的不是同一个 `shared_ptr` 的对象，但管理的数据是同一份，该对象是线程安全的，但不意味着管理的对象时线程安全的
+
+```cpp
+void fn(shared_ptr<A> sp) {
+    if (..) {
+        sp = other_sp;
+    } else if (...) {
+        sp = other_sp2;
+    }
+}
+std::thread td(fn, sp1);
+```
