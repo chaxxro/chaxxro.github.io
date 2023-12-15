@@ -3,13 +3,13 @@ toc:
   enable: true
   number: false
   max_depth: 3
-title: 优先使用 std::make_shared 函数创建 std::shared_ptr
-date: 2023-02-27 22:25:09
+title: shared_ptr相关细节
+date: 2023-12-15 10:25:55
 tags: cpp 智能指针
 categories: cpp
 ---
 
-## std::shared_ptr 构造函数
+## 优先使用 make_shared
 
 直接构造 `shared_ptr` 需要先 `new` 相应的对象
 
@@ -22,7 +22,7 @@ template< class Y, class Deleter, class Alloc >
 shared_ptr( Y* ptr, Deleter d, Alloc alloc );
 ```
 
-## std::make_shared 函数模板
+`std::make_shared` 函数模板
 
 ```cpp
 // since c++11
@@ -42,17 +42,7 @@ auto sp0 = std::make_shared<int[5]>();
 auto sp1 = std::make_shared<int[]>(5);
 ```
 
-## 两中创建 `std::shared_ptr` 方法的优缺点
-
-- 异常安全，发生异常时仍释放资源
-
-- `std::make_shared` 比起直接使用 `new` 效率更高
-
-- 构造函数是保护或私有时，无法使用 `std::make_shared`
-
-- `std::make_shared` 无法指定删除器
-
-## `std::make_shared` 为什么是异常安全的
+### `std::make_shared` 异常安全，发生异常时仍释放资源
 
 ```cpp
 class Foo;
@@ -83,9 +73,7 @@ func(std::make_shared<Foo>(), get_value())
 
 编译器不保证执行这两个步骤的顺序，所以当 `get_value` 发生异常时不会影响 `std::make_shared`，所以使用 `std::make_shared` 是异常安全的
 
-## `std::make_shared` 为什么更高效
-
-### `std::shared_ptr` 内存布局
+### `std::make_shared` 比起直接使用 `new` 效率更高
 
 ```cpp
 // shared_ptr.h
@@ -121,11 +109,7 @@ private:
 
 可以看出，`shared_ptr` 内部有两块资源，分别是原始资源 `element_type* _M_ptr` 和控制块 `_Sp_counted_base _M_pi`
 
-### 直接构造 `std::shared_ptr`
-
 直接调用构造函数时，需要先创建原始资源，再创建控制块，即需要通过两次 `new` 创建资源
-
-### 使用 `std::make_shared`
 
 ```cpp
 // shared_ptr.h
@@ -188,3 +172,104 @@ class _Sp_counted_ptr_inplace final : public _Sp_counted_base<_Lp> {
 构造 `__shared_count` 时，通过引入 `_Sp_counted_ptr_inplace` 将原始数据和控制块组合在一起，达到一次分配内存同时创建两个资源的效果
 
 由于 `std::make_shared` 仅分配一次资源，从而比直接构造 `shared_ptr` 效率更高
+
+### make_shared 劣势
+
+构造函数是保护或私有时，无法使用 `std::make_shared`
+
+`std::make_shared` 无法指定删除器
+
+## shared_ptr 与 unique_ptr 在释放资源时的不同
+
+```cpp
+namespace Test {
+  class Object {
+  public:
+    using pointer = std::shared_ptr<Object>;
+    virtual ~Object() {
+      std::cout << "destruct Object" << std::endl;
+    };
+    // ~Object() {
+    //   std::cout << "destruct Object" << std::endl;
+    // };
+  };
+
+  class RealObject: public Object {
+  public:
+    RealObject(const std::string& str) {
+	  str_ = str;
+      std::cout << "construct " << str_ << std::endl;
+    }
+    ~RealObject() {
+      std::cout << "destruct " << str_ << std::endl;
+    }
+
+  private:
+    std::string str_;
+  };
+
+  void testCase() {
+    std::shared_ptr<Object> sObj = std::make_shared<RealObject>("shared_ptr");
+    std::unique_ptr<Object> uObj = std::make_unique<RealObject>("unique_ptr");
+    Object* rObj = new RealObject("raw_ptr");
+    delete rObj;
+  }
+};
+
+int main(int argc, char** argv) {
+  Test::testCase();
+  return 0;
+}
+
+/*
+非虚基类析构函数
+construct shared_ptr
+construct unique_ptr
+construct raw_ptr
+destruct Object
+destruct Object
+destruct shared_ptr
+destruct Object
+*/
+
+/*
+虚析构函数
+construct shared_ptr
+construct unique_ptr
+construct raw_ptr
+destruct raw_ptr
+destruct Object
+destruct unique_ptr
+destruct Object
+destruct shared_ptr
+destruct Object
+*/
+```
+
+从 demo 的输出结果，可以得到下面结论
+
+1. 当基类析构函数是虚函数时，`std::shared_ptr` 和 `std::unique_ptr` 都能正确释放资源
+
+2. 当基类析构函数不是虚函数时，`std::shared_ptr` 可以正确释放资源，而 `std::unique_ptr` 没能正确释放子类资源
+
+3. `std::shared_ptr` 在两种情况下都能正确释放资源，是因为能够正确调用子类析构函数
+
+4. `std::unique_ptr` 在基类析构函数不是虚函数时，只会调用父类析构函数，这跟原始指针的行为时一致的
+
+造成 `std::shared_ptr` 和 `std::unqiue_ptr` 在释放资源上不同的原因在它们的构造函数
+
+先来看 `std::shared_ptr` 的构造函数
+
+{% asset_img 1.jpeg %}
+
+从图中可以看到 `std::shared_ptr` 的构造函数是模板函数，因此内部保存了传入的原始指针类型
+
+再来看 `std::unique_ptr` 的构造函数
+
+{% asset_img 2.png %}
+
+`std::unique_ptr` 先内部定一个了一个 `pointer` 类型，该类型取决于 `_Tp`
+
+{% asset_img 3.png %}
+
+`std::unique_ptr` 的构造函数都只接受 `pointer` 类型，因此内部只保存了模板类参数类型的指针，所以当父类析构函数非虚函数时，只会调用父类的析构函数
