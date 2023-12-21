@@ -32,4 +32,22 @@ offset 映射起点与文件头的偏移
 
 // 取消映射
 int munmap(void *addr, size_t length);
+// 将修改写入文件，mumap 不保证一定写入
+int msync(void *addr, size_t length, int flags);
+/*
+MS_ASYNC 异步刷新
+MS_SYNC 同步刷新
+MS_INVALIDATE 使同一文件的其他映射无效，以便可以用刚刚写入的新值更新它们
+*/
+
+// 扩展、缩小、移动现有的内存映射
+void *mremap(void *old_address, size_t old_size,
+             size_t new_size, int flags, ... /* void *new_address */);
+/*
+默认情况下，如果当前位置没有足够的空间来扩展映射，则 mremap() 会失败
+MREMAP_MAYMOVE 允许将映射重新定位到一个新的虚拟地址。如果映射被重新定位，则绝对指针指向旧的映射位置无效
+MREMAP_FIXED 
+*/
 ```
+
+大部分的硬件设计都不支持在没有读取权限的情况下执行写操作，所以在 `open` 中应该使用 `O_RDWR` 代替 `O_WRONLY`

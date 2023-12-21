@@ -3,10 +3,10 @@ toc:
   enable: true
   number: false
   max_depth: 3
-title: Linux性能优化
+title: Linux性能分析
 date: 2023-12-13 13:36:19
-tags: Linux性能优化
-categories: 工具自查
+tags: 操作系统
+categories: Linux性能分析
 ---
 
 Linux 性能工具图谱
@@ -14,6 +14,35 @@ Linux 性能工具图谱
 {% asset_img 01.png %}
 
 {% asset_img 02.png %}
+
+## 工具
+
+### 负载
+
+- top
+
+- uptime
+
+### CPU
+
+- mpstat
+
+- pidstat
+
+### IO
+
+- iostat
+
+- iotop
+
+- blktrace
+
+### 内存
+
+
+### 上下文切换
+
+- vmstat
 
 ## 平均负载
 
