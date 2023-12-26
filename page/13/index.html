@@ -122,13 +122,13 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">403</span>
+          <span class="site-state-item-count">407</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-count">32</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -150,6 +150,544 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-mutex/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-mutex/" class="post-title-link" itemprop="url">mutex</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:20:52" itemprop="dateCreated datePublished" datetime="2023-05-29T21:20:52+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>用于提供对共享变量的互斥访问</p>
+<table>
+<thead>
+<tr>
+<th align="center">名称</th>
+<th align="center">用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">std::mutex</td>
+<td align="center">最基本也是最常用的互斥类</td>
+</tr>
+<tr>
+<td align="center">std::recursive_mutex</td>
+<td align="center">允许同一个线程对互斥量多次上锁（即递归上锁），来获得对互斥量对象的多层所有权</td>
+</tr>
+<tr>
+<td align="center">std::timed_mutex</td>
+<td align="center">除具备 mutex 功能外，还提供了带时限请求锁定的功能</td>
+</tr>
+<tr>
+<td align="center">std::shared_mutex</td>
+<td align="center">提供共享互斥功能</td>
+</tr>
+<tr>
+<td align="center">std::recursive_timed_mutex</td>
+<td align="center">同一线程可递归的 timed_mutex</td>
+</tr>
+<tr>
+<td align="center">std::shared_timed_mutex</td>
+<td align="center">提供共享互斥设施并带有超时功能</td>
+</tr>
+</tbody></table>
+<p>与 <code>std::thread</code> 一样，<code>mutex</code> 相关类不支持拷贝构造、不支持赋值，同时 <code>mutex</code> 类也不支持 <code>move</code> 语义(move 构造、move 赋值)</p>
+<h2 id="mutex-通用操作"><a href="#mutex-通用操作" class="headerlink" title="mutex 通用操作"></a>mutex 通用操作</h2><p><code>lock</code>、<code>try_lock</code>、<code>unlock</code> 四个 <code>mutex</code> 都支持这些操作，但是不同类在行为上有些微区别</p>
+<h3 id="lock"><a href="#lock" class="headerlink" title="lock"></a>lock</h3><p>如果互斥量没有被锁住，则调用线程将该 <code>mutex</code> 锁住，直到调用 <code>unlock</code> 之前，该线程一直拥有该锁</p>
+<p>如果 <code>mutex</code> 已被其它线程 <code>lock</code>，则调用线程将被阻塞，直到其它线程 <code>unlock</code> 该 <code>mutex</code></p>
+<p>如果当前 <code>mutex</code> 已经被当前线程锁住，则 <code>std::mutex</code> 产生死锁，而 <code>recursive</code> 系列则成功返回</p>
+<h3 id="try-lock"><a href="#try-lock" class="headerlink" title="try_lock"></a>try_lock</h3><p>如果互斥量没有被锁住，则调用线程将该 <code>mutex</code> 锁住（返回 <code>true</code>），直到该线程调用 <code>unlock</code> 释放</p>
+<p>如果 <code>mutex</code> 已被其它线程 <code>lock</code>，则调用线程将失败，并返回 <code>false</code>，但不会被阻塞</p>
+<p>如果当前 <code>mutex</code> 已经被当前线程锁住，则 <code>std::mutex</code> 死锁，而 <code>recursive</code> 系列则成功返回 <code>true</code></p>
+<h3 id="unlock"><a href="#unlock" class="headerlink" title="unlock"></a>unlock</h3><p>释放对 <code>mutex</code> 的所有权</p>
+<p>对于 <code>recursive</code> 系列 <code>mutex</code>，<code>unlock</code> 次数需要与 <code>lock</code> 次数相同才可以完全解锁</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;mutex&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">inc</span><span class="params">(std::mutex &amp;mutex, <span class="type">int</span> loop, <span class="type">int</span> &amp;counter)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; loop; i++) &#123;</span><br><span class="line">        mutex.<span class="built_in">lock</span>();</span><br><span class="line">        ++counter;</span><br><span class="line">        mutex.<span class="built_in">unlock</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::thread threads[<span class="number">5</span>];</span><br><span class="line">    std::mutex mutex;</span><br><span class="line">    <span class="type">int</span> counter = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (std::thread &amp;thr: threads) &#123;</span><br><span class="line">        thr = std::<span class="built_in">thread</span>(inc, std::<span class="built_in">ref</span>(mutex), <span class="number">1000</span>, std::<span class="built_in">ref</span>(counter));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (std::thread &amp;thr: threads) &#123;</span><br><span class="line">        thr.<span class="built_in">join</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 输出：5000，如果inc中调用的是try_lock，则此处可能会&lt;5000</span></span><br><span class="line">    std::cout &lt;&lt; counter &lt;&lt; std::endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="仅用于-timed-系列操作"><a href="#仅用于-timed-系列操作" class="headerlink" title="仅用于 timed 系列操作"></a>仅用于 timed 系列操作</h2><p><code>try_lock_for</code>、<code>try_lock_until</code> 仅用于 timed 系列的 <code>mutex</code>，函数最多会等待指定的时间，如果仍未获得锁，则返回 <code>false</code></p>
+<p>除超时设定外，这两个函数与 <code>try_lock</code> 行为一致</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等待指定时长</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Rep</span>, <span class="keyword">class</span> <span class="title class_">Period</span>&gt;</span><br><span class="line">    <span class="built_in">try_lock_for</span>(<span class="type">const</span> chrono::duration&lt;Rep, Period&gt;&amp; rel_time);</span><br><span class="line"><span class="comment">// 等待到指定时间</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Clock</span>, <span class="keyword">class</span> <span class="title class_">Duration</span>&gt;</span><br><span class="line">    <span class="built_in">try_lock_until</span>(<span class="type">const</span> chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;mutex&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;chrono&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">run500ms</span><span class="params">(std::timed_mutex &amp;mutex)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> _500ms = std::chrono::<span class="built_in">milliseconds</span>(<span class="number">500</span>);</span><br><span class="line">    <span class="keyword">if</span> (mutex.<span class="built_in">try_lock_for</span>(_500ms)) &#123;</span><br><span class="line">        std::cout &lt;&lt; <span class="string">&quot;获得了锁&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        std::cout &lt;&lt; <span class="string">&quot;未获得锁&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::timed_mutex mutex;</span><br><span class="line"></span><br><span class="line">    mutex.<span class="built_in">lock</span>();</span><br><span class="line">    <span class="function">std::thread <span class="title">thread</span><span class="params">(run500ms, std::ref(mutex))</span></span>;</span><br><span class="line">    thread.<span class="built_in">join</span>();</span><br><span class="line">    mutex.<span class="built_in">unlock</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="std-shared-mutex"><a href="#std-shared-mutex" class="headerlink" title="std::shared_mutex"></a>std::shared_mutex</h2><p>cpp17 引入了读写锁 <code>std::shared_mutex</code></p>
+<p>共享锁方法 <code>lock_shared</code>、<code>try_lock_shared</code>、<code>unlock_shared</code>，也可以使用 <code>std::shared_lock</code></p>
+<p>排他锁方法 <code>lock</code>、<code>try_lock</code>、<code>unlock</code>，也可以使用 <code>std::unique_lock</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ThreadSafeCounter</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="built_in">ThreadSafeCounter</span>() = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="type">unsigned</span> <span class="type">int</span> <span class="title">get</span><span class="params">()</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="function">std::shared_lock <span class="title">lock</span><span class="params">(mutex_)</span></span>;</span><br><span class="line">    <span class="keyword">return</span> value_;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="type">unsigned</span> <span class="type">int</span> <span class="title">increment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="function">std::unique_lock <span class="title">lock</span><span class="params">(mutex_)</span></span>;</span><br><span class="line">    <span class="keyword">return</span> ++value_;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">reset</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="function">std::unique_lock <span class="title">lock</span><span class="params">(mutex_)</span></span>;</span><br><span class="line">    value_ = <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="keyword">mutable</span> std::shared_mutex mutex_;</span><br><span class="line">  <span class="type">unsigned</span> <span class="type">int</span> value_ = <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  ThreadSafeCounter counter;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">auto</span> increment_and_print = [&amp;counter]() &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">3</span>; i++) &#123;</span><br><span class="line">      std::cout &lt;&lt; std::this_thread::<span class="built_in">get_id</span>() &lt;&lt; <span class="string">&#x27; &#x27;</span> &lt;&lt; counter.<span class="built_in">increment</span>()</span><br><span class="line">                &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="function">std::thread <span class="title">thread1</span><span class="params">(increment_and_print)</span></span>;</span><br><span class="line">  <span class="function">std::thread <span class="title">thread2</span><span class="params">(increment_and_print)</span></span>;</span><br><span class="line"></span><br><span class="line">  thread1.<span class="built_in">join</span>();</span><br><span class="line">  thread2.<span class="built_in">join</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="std-try-lock"><a href="#std-try-lock" class="headerlink" title="std::try_lock"></a>std::try_lock</h2><p>当有多个 <code>mutex</code> 需要同时执行 <code>try_lock</code> 时，该函数会按参数从左到右的顺序，对 <code>mutex</code> 顺次执行 <code>try_lock</code> 操作</p>
+<p>当其中某个 <code>mutex.try_lock()</code> 失败时，已成功锁定的 mutex 都将被解锁</p>
+<p>该函数成功时返回-1， 否则返回失败 mutex 的索引，索引从 0 开始计数</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">L1</span>, <span class="keyword">class</span> <span class="title class_">L2</span>, <span class="keyword">class</span>... L3&gt;</span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">try_lock</span><span class="params">(L1&amp;, L2&amp;, L3&amp;...)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="std-lock"><a href="#std-lock" class="headerlink" title="std::lock"></a>std::lock</h2><p>批量上锁方式，采用死锁算法来锁定给定的 <code>mutex</code> 列表，避免死锁，上锁顺序是不确定的</p>
+<p>该函数保证如果成功则所有 <code>mutex</code> 全部上锁，如果失败则全部解锁</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">L1</span>, <span class="keyword">class</span> <span class="title class_">L2</span>, <span class="keyword">class</span>... L3&gt;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">(L1&amp;, L2&amp;, L3&amp;...)</span></span>;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E7%BB%86%E8%8A%82-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%92%8C%E5%86%85%E5%AD%98%E5%BA%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp%E7%BB%86%E8%8A%82-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%92%8C%E5%86%85%E5%AD%98%E5%BA%8F/" class="post-title-link" itemprop="url">内存模型和内存序</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:20:41" itemprop="dateCreated datePublished" datetime="2023-05-29T21:20:41+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>内存序是用来约束同一个线程内的内存访问排序方式的，虽然同一个线程内的代码顺序重排不会影响本线程的执行结果，但是在多线程环境下，重排造成的数据访问顺序变化会影响其它线程的访问结果</p>
+<p>因为代码重排会对其他线程造成影响，所以引入了内存模型来解决如何合理地限制单一线程中的代码执行顺序，使得在不使用锁的情况下，既能最大化利用 CPU 的计算能力，又能保证多线程环境下不会出现逻辑错误</p>
+<h2 id="原子性"><a href="#原子性" class="headerlink" title="原子性"></a>原子性</h2><p>一个代码操作可能会被拆解成多个机器指令，原子性指的是代码指令的完整性</p>
+<p>在单核情况下，代码指令要么被执行要么不被执行，不存在中间状态</p>
+<p>在多核情况下，因为一个代码可能会被拆解成多个机器指令，意味着在某些特定时间点，一部分指令被执行了而一部分没被执行，从而其他线程可能会看到中间值</p>
+<h2 id="可见性问题"><a href="#可见性问题" class="headerlink" title="可见性问题"></a>可见性问题</h2><p>所谓可见性，是当一个线程对某个共享变量的操作，另外一个线程立即可见这个共享变量的变更</p>
+<p>由于处理器和内存的速度差距太大，为了提高处理速度，处理器不直接和内存进行通信，而是先将系统内存的数据读到内部缓存（L1，L2或其他）后再进行操作</p>
+<p>基于局部性原理，处理器在读取内存数据时是一块块地读取，每一小块数据也叫缓存行。当处理器操作完数据，也不直接写回内存，而且先写入缓存中，并将当前缓存标记为脏。等到当前缓存被替换时，才将数据写回内存</p>
+<p>为了提高效率，处理器使用写缓存区临时保存向内存写入的数据。写缓冲区可以保证指令流水线的持续运行，同时合并写缓冲区中对同一内存地址的多次写，减少内存总线的占用。但是由于缓冲区的数据并非及时写回内存，且写缓冲区仅对自己的处理器可见，其他处理器无法感知当前共享变量已经变更</p>
+<h2 id="有序性问题"><a href="#有序性问题" class="headerlink" title="有序性问题"></a>有序性问题</h2><p>编译器只保证在单线程环境下，执行结果的最终一致，所以指令重排在单线程环境下完全是允许的</p>
+<p>对于编译器来说，它只知道在当前线程中数据的读写以及数据之间的依赖关系，并不知道哪些数据是在线程间共享，而且是有可能会被修改的，这些是需要开发人员去保证的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> A, B;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  A = B + <span class="number">1</span>;</span><br><span class="line">  B = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="built_in">foo</span>();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">在不使用优化的情况下编译：</span></span><br><span class="line"><span class="comment">1. 先把变量 B 的值赋给寄存器 eax</span></span><br><span class="line"><span class="comment">2. 将寄存器 eax 加 1 的结果赋值给变量 A</span></span><br><span class="line"><span class="comment">3. 将变量 B 置为 0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">使用 O2 优化编译：</span></span><br><span class="line"><span class="comment">1. 先把变量 B 的值赋给寄存器 eax</span></span><br><span class="line"><span class="comment">2. 变量 B 置零</span></span><br><span class="line"><span class="comment">3. 将寄存器 eax 加 1 的结果赋值给变量 A</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="为什么需要内存模型"><a href="#为什么需要内存模型" class="headerlink" title="为什么需要内存模型"></a>为什么需要内存模型</h2><p>因为指令乱序以及多线程环境数据竞争的不确定性，导致在开发的时候经常会使用信号量或者锁来实现同步需求，进而解决数据竞争导致的不确定性问题。但是加锁或者信号量是相对接近操作系统的底层原语，每一次加锁或者解锁都有可能导致用户态和内核态的互相切换，这就导致了数据访问开销。如果锁使用不当，还可能会造成严重的性能问题，所以就需要一种语言层面的机制，既没有锁那样的大开销，又可以满足数据访问一致性的需求</p>
+<p>引入内存模型的原因，有以下几个原因：</p>
+<ul>
+<li><p>编译器优化：在某些情况下，即使是简单的语句，也不能保证是原子操作</p>
+</li>
+<li><p>CPU out-of-order：CPU 为了提升计算性能，可能会调整指令的执行顺序</p>
+</li>
+<li><p>CPU Cache 不一致：在 CPU Cache 的影响下，在某个 CPU 执行了指令，不会立即被其它 CPU 所看到</p>
+</li>
+</ul>
+<h2 id="sequenced-before"><a href="#sequenced-before" class="headerlink" title="sequenced-before"></a>sequenced-before</h2><p>sequenced-before 用于表示单线程之间，两个操作上的先后顺序，这个顺序是非对称、可以进行传递的关系</p>
+<p>它不仅仅表示两个操作之间的先后顺序，还表示了操作结果之间的可见性关系</p>
+<ul>
+<li><p>如果 A sequenced-before B，代表 A 的求值会先完成，才进行对 B 的求值，并且 A 的结果 B 可见</p>
+</li>
+<li><p>如果 A not sequenced-before B，而 B sequenced-before A，则代表先对 B 进行求值，然后对 A 进行求值</p>
+</li>
+<li><p>如果 A not sequenced-before B，而 B not sequenced-before A，则 A 和 B 都有可能先执行，甚至可以同时执行</p>
+</li>
+</ul>
+<h2 id="happens-before"><a href="#happens-before" class="headerlink" title="happens-before"></a>happens-before</h2><p>happens-before 是 sequenced-before 的扩展，因为它还包含了不同线程之间的关系</p>
+<p>happens-before 关系表示的不同线程之间的操作先后顺序，同样的也是非对称、可传递的关系</p>
+<p>happens-before 包含两种情况，一种是同一线程内的 happens-before，等同于 sequenced-before，另一种是不同线程的 happens-before 关系</p>
+<p>假设有一个变量 x 初始化为 0，此时有两个线程同时运行，线程 A 进行 <code>++x</code> 操作，线程 B 打印 x 的值。因为这两个线程不具备 happens-before 关系，也就是说没有保证 <code>++x</code> 操作对于打印 x 的操作是可见的，因此打印的值有可能是 0，也有可能是 1</p>
+<p>如果 A happens-before B，则 A 的内存状态将在 B 操作执行之前就可见，这就为线程间的数据访问提供了保证</p>
+<h2 id="synchronizes-with"><a href="#synchronizes-with" class="headerlink" title="synchronizes-with"></a>synchronizes-with</h2><p>synchronized-with 描述的是不同线程间的同步关系，当线程 A synchronized-with 线程 B 时，代表线程 A 对某个变量或者内存的操作，对于线程 B 是可见的。换句话说 synchronized-with 就是跨线程版本的 happens-before</p>
+<h2 id="C-11-支持内存模型"><a href="#C-11-支持内存模型" class="headerlink" title="C++11 支持内存模型"></a>C++11 支持内存模型</h2><p>C++11 原子操作的很多函数都有个 <code>std::memory_order</code> 参数，这个参数就是这里所说的内存模型，其并不是类似 POD 的内存布局，而是一种数据同步模型，准确说法应该是储存一致性模型，其作用是对同一时间的读写操作进行排序</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="title class_">memory_order</span> &#123;</span><br><span class="line">    memory_order_relaxed,  <span class="comment">// 不对执行顺序做任何保证</span></span><br><span class="line">    memory_order_consume,  <span class="comment">// 所有后续本原子类型操作必须在本原子操作完成后执行</span></span><br><span class="line">    memory_order_acquire,  <span class="comment">// 本线程中，所有后续的读操作均在本原子操作完成后执行</span></span><br><span class="line">    memory_order_release,  <span class="comment">// 本线程中，所有之前的写操作完成后才能执行本原子操作</span></span><br><span class="line">    memory_order_acq_rel,  <span class="comment">// memory_order_acquire + memory_order_release</span></span><br><span class="line">    memory_order_seq_cst,  <span class="comment">// 全部顺序执行</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>从读写的角度进行划分的话，可以分为三种：</p>
+<ul>
+<li><p>读操作 <code>memory_order_relaxed</code>、<code>memory_order_acquire</code>、<code>memory_order_consume</code>、<code>memory_order_seq_cst</code></p>
+</li>
+<li><p>写操作 <code>memory_order_release</code>、<code>memory_order_relaxed</code>、<code>memory_order_seq_cst</code></p>
+</li>
+<li><p>读-修改-写操作 <code>memory_order_acq_rel</code>、<code>memory_order_seq_cst</code>、<code>memory_order_relaxed</code></p>
+</li>
+</ul>
+<p>当执行读操作时只能指定读操作内存序，写操作只能指定写操作内存序</p>
+<p>从访问控制的角度可以分为三种：</p>
+<ul>
+<li><p>Sequential consistency 顺序一致性模型</p>
+</li>
+<li><p>Relax 松散模型</p>
+</li>
+<li><p>Acquire-Release 获取释放模型</p>
+</li>
+</ul>
+<h2 id="Relaxed-ordering-模型"><a href="#Relaxed-ordering-模型" class="headerlink" title="Relaxed ordering 模型"></a>Relaxed ordering 模型</h2><p>对应 <code>memory_order_relaxed</code>，其对于内存序的限制最小，这种方式只能保证当前的数据访问是原子操作，但是对内存访问顺序没有任何约束，也就是说对不同的原子变量的读写可能会被重新排序，不同的线程可能会看到不同的执行顺序</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">write_x_then_y</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  x.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_relaxed);  <span class="comment">// 1</span></span><br><span class="line">  y.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_relaxed);  <span class="comment">// 2</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">read_y_then_x</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (!y.<span class="built_in">load</span>(std::memory_order_relaxed)) &#123; <span class="comment">// 3</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;y load false&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (x.<span class="built_in">load</span>(std::memory_order_relaxed)) &#123; <span class="comment">//4</span></span><br><span class="line">    ++z;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">当线程 t1 运行至 1 处将 x 设置为 true，t1 运行至 2 处将 y 设置为 true</span></span><br><span class="line"><span class="comment">这些操作仅在 CPU1 的 store buffer 中，还未放入 cache 和 memory 中，CPU2 自然不知道。</span></span><br><span class="line"><span class="comment">如果 CPU1 先将 y 放入 memory，那么 CPU2 就会读取 y 的值为 true。那么 t2 就会运行至 3 处从 while 循环退出，进而运行至 4 处，此时 CPU1 还未将 x 的值写入 memory，t2 读取的 x 值为 false，进而线程 t2 运行结束，然后 CPU1 将 x 写入 true, t1 结束运行</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 1 </span></span><br><span class="line">r1 = y.<span class="built_in">load</span>(std::memory_order_relaxed); <span class="comment">// A</span></span><br><span class="line">x.<span class="built_in">store</span>(r1, std::memory_order_relaxed); <span class="comment">// B</span></span><br><span class="line"><span class="comment">// thread 2</span></span><br><span class="line">r2 = x.<span class="built_in">load</span>(std::memory_order_relaxed); <span class="comment">// C </span></span><br><span class="line">y.<span class="built_in">store</span>(<span class="number">42</span>, std::memory_order_relaxed); <span class="comment">// D</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">允许产生结果 r1 == 42 &amp;&amp; r2 == 42 </span></span><br><span class="line"><span class="comment">因为 C 和 D 之间没有依赖关系，因此编译器允许调整 C 和 D 的执行顺序</span></span><br><span class="line"><span class="comment">D 在 y 上的副效应，可能可见于线程 1 中的加载 A ，同时 B 在 x 上的副效应，可能可见于线程 2 中的加载 C</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// thread 1</span></span><br><span class="line">y.<span class="built_in">store</span>(<span class="number">20</span>, std::memory_order_relaxed);</span><br><span class="line">x.<span class="built_in">store</span>(<span class="number">10</span>, std::memory_order_relaxed);</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 2</span></span><br><span class="line"><span class="keyword">if</span> (x.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>) &#123;</span><br><span class="line">  <span class="built_in">assert</span>(y.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">20</span>);</span><br><span class="line">  y.<span class="built_in">store</span>(<span class="number">10</span>, std::memory_order_relaxed);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 3</span></span><br><span class="line"><span class="keyword">if</span> (y.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>) &#123;</span><br><span class="line">  <span class="built_in">assert</span>(x.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>relaxed 的可见性不是全局的。当线程 3 可见 <code>y == 10</code> 时，不代表线程 1 中的 <code>x = 10</code> 是可见的，因为线程 1 的写入结果从 cache 同步到线程 2 的 cache 不代表同步到了线程 3 的 cache</p>
+<p>与其它内存序相比，relaxed 内存序具有最少的同步开销，一般用于多线程计数器，<code>std::shared_ptr</code> 的引用计数递增就是利用这个实现的，但引用计数的递减使用 acq-rel 模型</p>
+<h2 id="Acquire-Release-模型"><a href="#Acquire-Release-模型" class="headerlink" title="Acquire-Release 模型"></a>Acquire-Release 模型</h2><p>Acquire-Release 模型的控制力度介于 Relax 模型和 Sequential consistency 模型之间，对应 <code>memory_order_consume</code>、<code>memory_order_acquire</code>、<code>memory_order_release</code> 和 <code>memory_order_acq_rel</code></p>
+<ul>
+<li><p>只能用于读操作 <code>memory_order_consume</code>、<code>memory_order_acquire</code></p>
+</li>
+<li><p>只能用于写操作 <code>memory_order_release</code></p>
+</li>
+<li><p>既能用于读操作也能用于写操作 <code>memory_order_acq_rel</code></p>
+</li>
+</ul>
+<p>这些约束符互相配合，可以实现相对严格一点的内存访问顺序控制</p>
+<h3 id="acquire-release"><a href="#acquire-release" class="headerlink" title="acquire-release"></a>acquire-release</h3><p>A 线程对原子变量使用 <code>memory_order_release</code> 写，B 线程对原子变量使用 <code>memory_order_acquire</code> 读</p>
+<ul>
+<li><p>A 线程中 <code>store()</code> 之前的写指令（包括非原子变量和 relaxed 模型）不允许重排至 <code>store()</code> 之后，所有之前的写内存操作完成后才能执行本条原子操作，但之前的写操作是允许乱序的，并且这些写入操作对线程 B 可见。之后的读写操作不允许重排值 <code>store()</code> 之前</p>
+</li>
+<li><p>B 线程中 <code>load()</code> 之后的读指令不允许重排至 <code>load()</code> 之前，所有后续的读内存操作都必须在本条原子操作完成后执行，但之后的读操作是允许乱序的</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">std::atomic&lt;<span class="type">bool</span>&gt; has_release;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">release</span><span class="params">(<span class="type">int</span> *data)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!data) &#123;</span><br><span class="line">        data = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">100</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    has_release.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_release);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">acquire</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (!has_release.<span class="built_in">load</span>(std::memory_order_acquire));</span><br><span class="line">    <span class="type">int</span> a = data[<span class="number">0</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="function">thread <span class="title">t1</span><span class="params">(release)</span></span>;</span><br><span class="line">    <span class="function">thread <span class="title">t2</span><span class="params">(acquire)</span></span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 副作用</span></span><br><span class="line">std::atomic&lt;<span class="type">int</span>&gt; net_con&#123;<span class="number">0</span>&#125;;</span><br><span class="line">std::atomic&lt;<span class="type">int</span>&gt; has_alloc&#123;<span class="number">0</span>&#125;;</span><br><span class="line"><span class="type">char</span> buffer[<span class="number">1024</span>];</span><br><span class="line"><span class="type">char</span> file_content[<span class="number">1024</span>];</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">release_thread</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">sprintf</span>(buffer, <span class="string">&quot;%s&quot;</span>, <span class="string">&quot;something_to_read_tobuffer&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这两个是与 buffer 完全无关的代码</span></span><br><span class="line">    net_con.<span class="built_in">store</span>(<span class="number">1</span>, std::memory_order_release);</span><br><span class="line">    has_alloc.<span class="built_in">store</span>(<span class="number">1</span>, std::memory_order_release);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">acquire_thread</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (!has_alloc.<span class="built_in">load</span>(std::memory_order_acquire));</span><br><span class="line">    <span class="type">bool</span> v = has_alloc.<span class="built_in">load</span>(std::memory_order_acquire);</span><br><span class="line">    <span class="keyword">if</span> (v) &#123;</span><br><span class="line">         net_con.<span class="built_in">load</span>(std::memory_order_relaxed);</span><br><span class="line">    <span class="comment">// 这个是与两个原子变量完全无关的操作。</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">strstr</span>(file_content, <span class="string">&quot;auth_key =&quot;</span>)) &#123;</span><br><span class="line">        <span class="comment">// fetch user and password</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">buffer 与 file_content 与两个原子变量没有任何联系，按理说这部分的代码是可以放到任何位置执行的</span></span><br><span class="line"><span class="comment">但是由于使用了 release-acquire，那么会导致 buffer 和 file_content 的访问都被波及</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="consume-release"><a href="#consume-release" class="headerlink" title="consume-release"></a>consume-release</h3><p>acquire-release 的副作用给性能带来一定的影响，<code>memory_order_consume</code> 把与真正变量无关的代码剥离出去，让它们能够任意排列，不要被 release-acquire 误伤</p>
+<p><code>std::memory_order_acquire</code> 是要求后面所有的读都不得提前，<code>std::memory_order_consume</code> 是要求后面依赖于本次读的操作不能乱序</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">std::atomic&lt;<span class="type">int</span>*&gt; global_addr&#123;<span class="literal">nullptr</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">func</span><span class="params">(<span class="type">int</span> *data)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> *addr = global_addr.<span class="built_in">load</span>(std::memory_order_consume);</span><br><span class="line">    <span class="type">int</span> d = *data;</span><br><span class="line">    <span class="type">int</span> f = *(data+<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (addr) &#123;</span><br><span class="line">        <span class="type">int</span> x = *addr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">global_addr、addr、x 形成了读依赖，这几个变量是不能乱序的</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Sequential-consistency-模型"><a href="#Sequential-consistency-模型" class="headerlink" title="Sequential consistency 模型"></a>Sequential consistency 模型</h2><p>Sequential consistency 模型又称为顺序一致性模型，是控制粒度最严格的内存模型</p>
+<ul>
+<li><p>程序指令与源码顺序一致，所有关于原子操作的代码都不会被乱序</p>
+</li>
+<li><p>所有线程的所有操作存在一个全局的顺序</p>
+</li>
+<li><p>每个线程中所有操作的先后关系，其顺序对于所有线程都是可见的，它是所有线程的全局同步</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">std::atomic&lt;<span class="type">bool</span>&gt; x, y;</span><br><span class="line">std::atomic&lt;<span class="type">int</span>&gt; z;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">write_x_then_y</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  x.<span class="built_in">store</span>(<span class="literal">true</span>); <span class="comment">// 1</span></span><br><span class="line">  y.<span class="built_in">store</span>(<span class="literal">true</span>); <span class="comment">// 2</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">read_y_then_x</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (!y.<span class="built_in">load</span>())</span><br><span class="line">    ;           <span class="comment">// 3</span></span><br><span class="line">  <span class="keyword">if</span> (x.<span class="built_in">load</span>()) <span class="comment">// 4</span></span><br><span class="line">    ++z;        <span class="comment">// 5</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  x = <span class="literal">false</span>;</span><br><span class="line">  y = <span class="literal">false</span>;</span><br><span class="line">  z = <span class="number">0</span>;</span><br><span class="line">  <span class="function">std::thread <span class="title">a</span><span class="params">(write_x_then_y)</span></span>;</span><br><span class="line">  <span class="function">std::thread <span class="title">b</span><span class="params">(read_y_then_x)</span></span>;</span><br><span class="line">  a.<span class="built_in">join</span>();</span><br><span class="line">  b.<span class="built_in">join</span>();</span><br><span class="line">  <span class="built_in">assert</span>(z.<span class="built_in">load</span>() != <span class="number">0</span>);  <span class="comment">// 永远不会触发</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">y 的 store 和 load 操作构成了 synchronized-with 关系</span></span><br><span class="line"><span class="comment">1 happens-before 2</span></span><br><span class="line"><span class="comment">2 happens-before 3</span></span><br><span class="line"><span class="comment">3 happens-before 4</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">write_x</span><span class="params">()</span> </span>&#123; x.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_seq_cst); &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">write_y</span><span class="params">()</span> </span>&#123; y.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_seq_cst); &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">read_x_then_y</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (!x.<span class="built_in">load</span>(std::memory_order_seq_cst))</span><br><span class="line">    ;</span><br><span class="line">  <span class="keyword">if</span> (y.<span class="built_in">load</span>(std::memory_order_seq_cst)) &#123;</span><br><span class="line">    ++z;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">read_y_then_x</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (!y.<span class="built_in">load</span>(std::memory_order_seq_cst))</span><br><span class="line">    ;</span><br><span class="line">  <span class="keyword">if</span> (x.<span class="built_in">load</span>(std::memory_order_seq_cst)) &#123;</span><br><span class="line">    ++z;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="function">std::thread <span class="title">a</span><span class="params">(write_x)</span></span>;</span><br><span class="line">  <span class="function">std::thread <span class="title">b</span><span class="params">(write_y)</span></span>;</span><br><span class="line">  <span class="function">std::thread <span class="title">c</span><span class="params">(read_x_then_y)</span></span>;</span><br><span class="line">  <span class="function">std::thread <span class="title">d</span><span class="params">(read_y_then_x)</span></span>;</span><br><span class="line">  a.<span class="built_in">join</span>();</span><br><span class="line">  b.<span class="built_in">join</span>();</span><br><span class="line">  c.<span class="built_in">join</span>();</span><br><span class="line">  d.<span class="built_in">join</span>();</span><br><span class="line">  <span class="built_in">assert</span>(z.<span class="built_in">load</span>() != <span class="number">0</span>); <span class="comment">// 永远不会出发</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>顺序一致性的所有操作都按照代码指定的顺序进行，符合开发人员的思维逻辑，但这种严格的排序也限制了现代 CPU 利用硬件进行并行处理的能力，会严重拖累系统的性能</p>
+<h2 id="无锁队列"><a href="#无锁队列" class="headerlink" title="无锁队列"></a>无锁队列</h2>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-lock-guard/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-lock-guard/" class="post-title-link" itemprop="url">lock_guard</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:20:24" itemprop="dateCreated datePublished" datetime="2023-05-29T21:20:24+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="lock-guard"><a href="#lock-guard" class="headerlink" title="lock_guard"></a>lock_guard</h2><p><code>std::lock_guard</code> 利用了 C++ RAII 的特性，在构造函数中上锁，析构函数中解锁，从而保证了一个已锁的互斥量总是会被正确的解锁</p>
+<p><code>std::lock_guard</code> 没有任何成员函数</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Mutex</span>&gt; <span class="keyword">class</span> <span class="title class_">lock_guard</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="built_in">lock_guard</span>(lock_guard <span class="type">const</span>&amp;) = <span class="keyword">delete</span>;</span><br><span class="line">  lock_guard&amp; <span class="keyword">operator</span>=(lock_guard <span class="type">const</span>&amp;) = <span class="keyword">delete</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">Mutex 代表互斥量，可以是 std::mutex、std::timed_mutex、std::recursive_mutex、std::recursive_timed_mutex 中的任何一个，也可以是 std::unique_lock，都提供了 lock 和 unlock 的能力</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">lock_guard 仅用于上锁、解锁，不对 mutex 承担供任何生周期的管理，因此在使用的时候，请确保 lock_guard 管理的 mutex 一直有效</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">std::mutex my_lock;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">add</span><span class="params">(<span class="type">int</span> &amp;num, <span class="type">int</span> &amp;sum)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="function">std::lock_guard&lt;std::mutex&gt; <span class="title">lock</span><span class="params">(my_lock)</span></span>;</span><br><span class="line">    <span class="keyword">if</span> (num &lt; <span class="number">100</span>) &#123;</span><br><span class="line">      num += <span class="number">1</span>;</span><br><span class="line">      sum += num;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> sum = <span class="number">0</span>;</span><br><span class="line">  <span class="type">int</span> num = <span class="number">0</span>;</span><br><span class="line">  std::vector&lt;std::thread&gt; ver; <span class="comment">// 保存线程的vector</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">20</span>; ++i) &#123;</span><br><span class="line">    std::thread t = std::<span class="built_in">thread</span>(add, std::<span class="built_in">ref</span>(num), std::<span class="built_in">ref</span>(sum));</span><br><span class="line">    ver.<span class="built_in">emplace_back</span>(std::<span class="built_in">move</span>(t)); <span class="comment">// 保存线程</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  std::for_each(ver.<span class="built_in">begin</span>(), ver.<span class="built_in">end</span>(),</span><br><span class="line">                std::<span class="built_in">mem_fn</span>(&amp;std::thread::join)); <span class="comment">// join</span></span><br><span class="line">  std::cout &lt;&lt; sum &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="unique-lock"><a href="#unique-lock" class="headerlink" title="unique_lock"></a>unique_lock</h2><p><code>std::unique_lock</code> 有更多成员函数函数，可以手动释放锁，一般配合条件变量使用</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-lambda/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-lambda/" class="post-title-link" itemprop="url">lambda</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:20:14" itemprop="dateCreated datePublished" datetime="2023-05-29T21:20:14+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[capture](parameters)-&gt;<span class="keyword">return</span>-type &#123;body&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>lambda 表达式使得可以使用匿名函数</p>
+<p>使用 <code>auto</code> 关键字保存 lambda 表达式，之后就可以当做正常的函数使用</p>
+<p>lambda 表达式是 inline 函数</p>
+<ul>
+<li><code>[...]</code>：标识一个 lambda 表达式的开始，不能省略；表达式可以引用在它之外声明的变量，但只能使用定义 lambda 为止时所在作用范围内可见的变量，这些变量的集合成为闭包，被定义在 <code>[]</code> 内</li>
+</ul>
+<ol>
+<li><code>[]</code>：没有任何参数</li>
+<li><code>[=]</code>：所在范围内所有可见的局部变量按值传递</li>
+<li><code>[&amp;]</code>：所在范围内所有可见的局部变量按引用传递</li>
+<li><code>[this]</code>：所在类中的成员变量</li>
+<li><code>[a]</code>：将 a 按值进行传递</li>
+<li><code>[&amp;a]</code>：将 a 按引用进行传递</li>
+</ol>
+<ul>
+<li><p><code>()</code>：标识重载 <code>()</code> 操作符参数，接受参数可以按值和按引用传递</p>
+</li>
+<li><p><code>-&gt;</code>：标识返回值类型；当只有一个返回语句或返回类型为 void 时可以自动推导返回类型，故可以省略</p>
+</li>
+<li><p><code>&#123;&#125;</code>：函数体</p>
+</li>
+</ul>
+<p>lambda 表达式在编译时被翻译成一个未命名的未命名对象，产生的类中含有一个重载的函数调用运算符 <code>operator()</code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> lambda = [&amp;os, str](<span class="type">const</span> string &amp;s) &#123;</span><br><span class="line">    os &lt;&lt; s &lt;&lt; str;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LambdaImpl</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">// [] 引用/值捕获</span></span><br><span class="line">    <span class="built_in">LambdaImpl</span>(ostream &amp;os, string str) : <span class="built_in">os_</span>(os), <span class="built_in">str_</span>(str) &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// () 调用参数</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="type">const</span> string&amp; s)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">        cout &lt;&lt; s &lt;&lt; str_;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    ostream &amp;os_;</span><br><span class="line">    string str_;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +733,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -341,7 +879,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -427,7 +965,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -535,7 +1073,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -634,7 +1172,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -728,7 +1266,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -829,448 +1367,6 @@
 
 <p>成员函数 <code>count()</code> 用来获得一个 <code>duration</code> 对象中包含多少个 <code>ratio</code> 对象</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">chrono::hours <span class="title">two_hours</span><span class="params">(<span class="number">2</span>)</span></span>;</span><br><span class="line"><span class="function">chrono::minutes <span class="title">five_minutes</span><span class="params">(<span class="number">5</span>)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">auto</span> duration = two_hours + five_minutes;</span><br><span class="line"><span class="keyword">auto</span> seconds = chrono::<span class="built_in">duration_cast</span>&lt;chrono::seconds&gt;(duration);</span><br><span class="line">cout &lt;&lt; <span class="string">&quot;02:05 is &quot;</span> &lt;&lt; seconds.<span class="built_in">count</span>() &lt;&lt; <span class="string">&quot; seconds&quot;</span> &lt;&lt; endl;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-call-once/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-call-once/" class="post-title-link" itemprop="url">call_once</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-29 21:18:32" itemprop="dateCreated datePublished" datetime="2023-05-29T21:18:32+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>保证 <code>call_once</code> 调用的函数只被执行一次，需要与 <code>std::once_flag</code> 配合使用</p>
-<p><code>std::once_flag</code> 被设计为对外封闭的，即外部没有任何渠道可以改变 <code>once_flag</code> 的值，仅可以通过<code>std::call_once</code> 函数修改</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;mutex&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">initialize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; __FUNCTION__ &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">std::once_flag of;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">my_thread</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::<span class="built_in">call_once</span>(of, initialize);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::thread threads[<span class="number">10</span>];</span><br><span class="line">    <span class="keyword">for</span> (std::thread &amp;thr: threads) &#123;</span><br><span class="line">        thr = std::<span class="built_in">thread</span>(my_thread);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (std::thread &amp;thr: threads) &#123;</span><br><span class="line">        thr.<span class="built_in">join</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 仅输出一次：initialize</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-atomic/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-atomic/" class="post-title-link" itemprop="url">atomic</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-29 21:17:52" itemprop="dateCreated datePublished" datetime="2023-05-29T21:17:52+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>原子操作是不可打断的最低粒度操作，是线程安全的、更高效的线程同步手段</p>
-<p>使用原子变量就不需要使用互斥量来保护数据，用起来更简洁</p>
-<p>C++11 中所有的原子类都是不允许拷贝、不允许移动的</p>
-<h2 id="std-atomic"><a href="#std-atomic" class="headerlink" title="std::atomic"></a>std::atomic<T></h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">atomic</span>;</span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">atomic</span>&lt;T*&gt;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">atomic</span>&lt;std::shared_ptr&lt;U&gt;&gt;;</span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">atomic</span>&lt;std::weak_ptr&lt;U&gt;&gt;;</span><br></pre></td></tr></table></figure>
-
-<p>多线程下读写原子变量，其行为取决于内存模型</p>
-<p>C++11 定义了一些基础类型的原子变量，如 <code>std::atomic_bool</code>、<code>std::atomic_char</code>、<code>std::atomic_int</code>、<code>std::atomic_uint32_t</code>、<code>std::atomic_ptrdiff_t</code> 等</p>
-<p>自定义类型的原子变量，需要自定义类型满足连续内存、可以按位拷贝 <code>memcpy</code> 和没有虚函数，也就是以下判断都是 <code>true</code></p>
-<ul>
-<li><p><code>std::is_trivially_copyable&lt;T&gt;::value</code></p>
-</li>
-<li><p><code>std::is_copy_constructible&lt;T&gt;::value</code></p>
-</li>
-<li><p><code>std::is_move_constructible&lt;T&gt;::value</code></p>
-</li>
-<li><p><code>std::is_copy_assignable&lt;T&gt;::value</code></p>
-</li>
-<li><p><code>std::is_move_assignable&lt;T&gt;::value</code></p>
-</li>
-</ul>
-<h3 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数"></a>构造函数</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将原子对象放在未初始化的状态中，后续可用 std::atomic_init 初始化</span></span><br><span class="line"><span class="built_in">atomic</span>() <span class="keyword">noexcept</span> = <span class="keyword">default</span>;</span><br><span class="line"><span class="comment">// 用 desired 初始化对象，初始化不是原子性的</span></span><br><span class="line"><span class="function"><span class="keyword">constexpr</span> <span class="title">atomic</span><span class="params">( T desired )</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="built_in">atomic</span>( <span class="type">const</span> atomic&amp; ) = <span class="keyword">delete</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="operator-x3D"><a href="#operator-x3D" class="headerlink" title="operator&#x3D;"></a>operator&#x3D;</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">T <span class="keyword">operator</span>=( T desired ) <span class="keyword">noexcept</span>; </span><br><span class="line">T <span class="keyword">operator</span>=( T desired ) <span class="keyword">volatile</span> <span class="keyword">noexcept</span>;</span><br><span class="line">atomic&amp; <span class="keyword">operator</span>=( <span class="type">const</span> atomic&amp; ) = <span class="keyword">delete</span>;</span><br><span class="line">atomic&amp; <span class="keyword">operator</span>=( <span class="type">const</span> atomic&amp; ) <span class="keyword">volatile</span> = <span class="keyword">delete</span>;</span><br></pre></td></tr></table></figure>
-
-<p>与大多数赋值运算符不同，原子类型的赋值运算符不会返回左值引用，而是返回一个副本</p>
-<h3 id="is-lock-free"><a href="#is-lock-free" class="headerlink" title="is_lock_free"></a>is_lock_free</h3><p>判断 <code>atomic&lt;T&gt;</code> 是否是 lock free，因为对于一些类型底层可能会使用锁保证原子性</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">A</span> &#123;</span><br><span class="line">  <span class="type">int</span> a[<span class="number">100</span>];</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">B</span> &#123;</span><br><span class="line">  <span class="type">int</span> x, y;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  std::cout &lt;&lt; std::boolalpha &lt;&lt; <span class="string">&quot;std::atomic&lt;A&gt; is lock free? &quot;</span></span><br><span class="line">            &lt;&lt; std::atomic&lt;A&gt;&#123;&#125;.<span class="built_in">is_lock_free</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">            &lt;&lt; <span class="string">&quot;std::atomic&lt;B&gt; is lock free? &quot;</span></span><br><span class="line">            &lt;&lt; std::atomic&lt;B&gt;&#123;&#125;.<span class="built_in">is_lock_free</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// std::atomic&lt;A&gt; is lock free? false</span></span><br><span class="line"><span class="comment">// std::atomic&lt;B&gt; is lock free? true</span></span><br></pre></td></tr></table></figure>
-
-<p>C++17提供了编译时判断 <code>is_always_lock_free()</code>，之所以会出现无锁不确定的情况主要是因为内存对齐</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">constexpr</span> <span class="type">bool</span> is_always_lock_free = <span class="comment">/*implementation-defined*/</span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="store"><a href="#store" class="headerlink" title="store"></a>store</h3><p>操作是原子的，按照所指定的内存顺序赋值</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">store</span><span class="params">(T desr, memory_order m = memory_order_seq_cst)</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">store</span><span class="params">(T desr, memory_order m = memory_order_seq_cst)</span> <span class="keyword">volatile</span> <span class="keyword">noexcept</span></span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="load"><a href="#load" class="headerlink" title="load"></a>load</h3><p>操作是原子的，按照所指定的内存顺序加载返回当前值</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">T <span class="title">load</span><span class="params">(memory_order m = memory_order_seq_cst)</span> <span class="type">const</span> <span class="keyword">volatile</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="function">T <span class="title">load</span><span class="params">(memory_order m = memory_order_seq_cst)</span> <span class="type">const</span> <span class="keyword">noexcept</span></span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="exchange"><a href="#exchange" class="headerlink" title="exchange"></a>exchange</h3><p>赋值后返回变量赋值前的值，整个操作是原子性的，一个原子的读-修改-写操作</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">T <span class="title">exchange</span><span class="params">(T desr, memory_order m = memory_order_seq_cst)</span> <span class="keyword">volatile</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="function">T <span class="title">exchange</span><span class="params">(T desr, memory_order m = memory_order_seq_cst)</span> <span class="keyword">noexcept</span></span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="compare-exchange"><a href="#compare-exchange" class="headerlink" title="compare_exchange"></a>compare_exchange</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">bool</span> <span class="title">compare_exchange_weak</span><span class="params">(T&amp; expect, T desr, memory_order s, memory_order f)</span> <span class="keyword">volatile</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">compare_exchange_weak</span><span class="params">(T&amp; expect, T desr, memory_order s, memory_order f)</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">compare_exchange_weak</span><span class="params">(T&amp; expect, T desr, memory_order m = memory_order_seq_cst)</span> <span class="keyword">volatile</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">compare_exchange_weak</span><span class="params">(T&amp; expect, T desr, memory_order m = memory_order_seq_cst)</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">compare_exchange_strong</span><span class="params">(T&amp; expect, T desr, memory_order s, memory_order f)</span> <span class="keyword">volatile</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">compare_exchange_strong</span><span class="params">(T&amp; expect, T desr, memory_order s, memory_order f)</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">compare_exchange_strong</span><span class="params">(T&amp; expect, T desr, memory_order m = memory_order_seq_cst)</span> <span class="keyword">volatile</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">compare_exchange_strong</span><span class="params">(T&amp; expect, T desr, memory_order m = memory_order_seq_cst)</span> <span class="keyword">noexcept</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p><code>compare_exchange</code> 就是 CAS，在对数据执行写操作前，先比较下数据是否有变更，没有变更的情况下才去执行写操作，否则返回失败</p>
-<ul>
-<li><p><code>*this == expect</code>，返回 <code>true</code> 且将 <code>desr</code> 赋值给 <code>*this</code>，整个过程是一个读-修改-写操作，对应 <code>success</code> 内存序</p>
-</li>
-<li><p><code>*this != expect</code>，返回 <code>false</code> 且将 <code>*this</code> 赋值给 <code>expect</code>，整个过程是一个读操作，对应 <code>failure</code> 内存序</p>
-</li>
-</ul>
-<p>比较和赋值操作是按位进行的，类似于 <code>std::memcmp</code> 和 <code>std::memcpy</code>，而不使用构造函数、赋值运算符或比较运算符</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="function">std::atomic_int <span class="title">a</span><span class="params">(<span class="number">10</span>)</span></span>;</span><br><span class="line">  <span class="type">int</span> b = <span class="number">10</span>;</span><br><span class="line">  <span class="type">int</span> c = <span class="number">20</span>;</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;a: &quot;</span> &lt;&lt; a &lt;&lt; <span class="string">&quot;, b: &quot;</span> &lt;&lt; b &lt;&lt; <span class="string">&quot;, c: &quot;</span> &lt;&lt; c &lt;&lt; std::endl;</span><br><span class="line">  a.<span class="built_in">compare_exchange_weak</span>(b, c);</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;a: &quot;</span> &lt;&lt; a &lt;&lt; <span class="string">&quot;, b: &quot;</span> &lt;&lt; b &lt;&lt; <span class="string">&quot;, c: &quot;</span> &lt;&lt; c &lt;&lt; std::endl;</span><br><span class="line">  a.<span class="built_in">compare_exchange_weak</span>(b, c);</span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;a: &quot;</span> &lt;&lt; a &lt;&lt; <span class="string">&quot;, b: &quot;</span> &lt;&lt; b &lt;&lt; <span class="string">&quot;, c: &quot;</span> &lt;&lt; c &lt;&lt; std::endl;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// a: 10, b: 10, c: 20</span></span><br><span class="line"><span class="comment">// a: 20, b: 10, c: 20</span></span><br><span class="line"><span class="comment">// a: 20, b: 20, c: 20</span></span><br></pre></td></tr></table></figure>
-
-<p><code>compare_exchange_weak</code> 在某些平台会小概率发生即使 <code>*this == expect</code> 也仍然返回 <code>false</code>，但 <code>compare_exchange_weak</code> 性能更好</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keyword">struct</span> <span class="title class_">node</span> &#123;</span><br><span class="line">  T data;</span><br><span class="line">  node *next;</span><br><span class="line">  <span class="built_in">node</span>(<span class="type">const</span> T &amp;data) : <span class="built_in">data</span>(data), <span class="built_in">next</span>(<span class="literal">nullptr</span>) &#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keyword">class</span> <span class="title class_">stack</span> &#123;</span><br><span class="line">  std::atomic&lt;node&lt;T&gt; *&gt; head;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(<span class="type">const</span> T &amp;data)</span> </span>&#123;</span><br><span class="line">    node&lt;T&gt; *new_node = <span class="keyword">new</span> <span class="built_in">node</span>&lt;T&gt;(data);</span><br><span class="line"></span><br><span class="line">    new_node-&gt;next = head.<span class="built_in">load</span>(std::memory_order_relaxed);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (!head.<span class="built_in">compare_exchange_weak</span>(new_node-&gt;next, new_node,</span><br><span class="line">                                       std::memory_order_release,</span><br><span class="line">                                       std::memory_order_relaxed))</span><br><span class="line">      ;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  stack&lt;<span class="type">int</span>&gt; s;</span><br><span class="line">  s.<span class="built_in">push</span>(<span class="number">1</span>);</span><br><span class="line">  s.<span class="built_in">push</span>(<span class="number">2</span>);</span><br><span class="line">  s.<span class="built_in">push</span>(<span class="number">3</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="fetch"><a href="#fetch" class="headerlink" title="fetch"></a>fetch</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">T <span class="title">fetch_add</span><span class="params">(T arg, std::memory_order order = std::memory_order_seq_cst)</span></span>;</span><br><span class="line"><span class="function">T <span class="title">fetch_sub</span><span class="params">(T arg, std::memory_order order = std::memory_order_seq_cst)</span></span>;</span><br><span class="line"><span class="function">T <span class="title">fetch_and</span><span class="params">(T arg, std::memory_order order = std::memory_order_seq_cst)</span></span>;</span><br><span class="line"><span class="function">T <span class="title">fetch_or</span><span class="params">(T arg, std::memory_order order = std::memory_order_seq_cst)</span></span>;</span><br><span class="line"><span class="function">T <span class="title">fetch_xor</span><span class="params">(T arg, std::memory_order order = std::memory_order_seq_cst)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>将 arg 加或者减去到包含的值并返回在操作之前的值，整个操作是原子的</p>
-<h2 id="std-atomic-flag"><a href="#std-atomic-flag" class="headerlink" title="std::atomic_flag"></a>std::atomic_flag</h2><p>提供了标志的管理，标志有三种状态：clear、set 和未初始化状态</p>
-<ul>
-<li><p>clear：可以理解成 bool 类型的 false</p>
-</li>
-<li><p>set：可理解为 bool 类型的 true</p>
-</li>
-</ul>
-<h3 id="构造函数-1"><a href="#构造函数-1" class="headerlink" title="构造函数"></a>构造函数</h3><p>缺省情况下 <code>atomic_flag</code> 处于未初始化状态，除非初始化时使用了 <code>ATOMIC_FLAG_INIT</code> 宏，则此时 <code>atomic_flag</code> 处于 clear 状态</p>
-<h3 id="clear"><a href="#clear" class="headerlink" title="clear"></a>clear</h3><p>把 <code>atomic_flag</code> 置为 clear 状态</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">clear</span><span class="params">(memory_order m = memory_order_seq_cst)</span> <span class="keyword">volatile</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">clear</span><span class="params">(memory_order m = memory_order_seq_cst)</span> <span class="keyword">noexcept</span></span>;</span><br></pre></td></tr></table></figure>
-
-<h3 id="test-and-set"><a href="#test-and-set" class="headerlink" title="test_and_set"></a>test_and_set</h3><p>检测 flag 是否处于 <code>set</code> 状态。如果不是，则将其设置为 <code>set</code> 状态，并返回 false，否则返回 true</p>
-<p>保证多线程环境下只被设置一次</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">bool</span> <span class="title">test_and_set</span><span class="params">(std::memory_order order = std::memory_order_seq_cst)</span> <span class="keyword">volatile</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">test_and_set</span><span class="params">(std::memory_order order = std::memory_order_seq_cst)</span> <span class="keyword">noexcept</span></span>;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;atomic&gt;</span>    <span class="comment">// atomic_flag</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span>  </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;list&gt;</span>      </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span>    </span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">race</span><span class="params">(std::atomic_flag &amp;af, <span class="type">int</span> id, <span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 第一个完成计数的打印：Win</span></span><br><span class="line">  <span class="keyword">if</span> (!af.<span class="built_in">test_and_set</span>()) &#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%s[%d] win!!!\n&quot;</span>, __FUNCTION__, id);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  std::atomic_flag af = ATOMIC_FLAG_INIT;</span><br><span class="line"></span><br><span class="line">  std::list&lt;std::thread&gt; lstThread;</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">    lstThread.<span class="built_in">emplace_back</span>(race, std::<span class="built_in">ref</span>(af), i + <span class="number">1</span>, <span class="number">5000</span> * <span class="number">10000</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (std::thread &amp;thr : lstThread) &#123;</span><br><span class="line">    thr.<span class="built_in">join</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-async/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-async/" class="post-title-link" itemprop="url">async</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-29 21:12:12" itemprop="dateCreated datePublished" datetime="2023-05-29T21:12:12+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><code>std::async</code> 用于直接创建异步任务，实际上就是创建一个线程执行相应任务，基本上可以代替 <code>std::thread</code> 的所有事情，异步任务返回的结果保存在 <code>std::future</code> 中</p>
-<p><code>std::async</code> 有两种重载形式</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 用来推断函数 F 的返回值类型</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> FR typename result_of<span class="string">&lt;typename decay&lt;F&gt;</span>::type(typename decay<span class="string">&lt;Args&gt;</span>::type...)&gt;::type</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 不含执行策略</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">F</span>, <span class="keyword">class</span>... Args&gt;</span><br><span class="line"><span class="function">future&lt;FR&gt; <span class="title">async</span><span class="params">(F&amp;&amp; f, Args&amp;&amp;... args)</span></span>;</span><br><span class="line"><span class="comment">// 含执行策略</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">F</span>, <span class="keyword">class</span>... Args&gt;</span><br><span class="line"><span class="function">future&lt;FR&gt; <span class="title">async</span><span class="params">(launch policy, F&amp;&amp; f, Args&amp;&amp;... args)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 执行策略定义了 async 执行 F 的方式，是一个枚举值</span></span><br><span class="line"><span class="keyword">enum class</span> <span class="title class_">launch</span> </span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 启动一个新线程执行任务</span></span><br><span class="line">    async,</span><br><span class="line">    <span class="comment">// 延迟执行任务，调用 get 或者 wait 时才会执行，不会创建线程，惰性执行在当前线程</span></span><br><span class="line">    deferred,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不含加载策略的版本，使用的是 std::launch::async|std::launch::deferred</span></span><br><span class="line"><span class="comment">// 即可能是 std::lauch::async 也可能是 std::lauch::deferred</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">auto</span> print = [](<span class="type">char</span> c) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">      std::cout &lt;&lt; c;</span><br><span class="line">      std::cout.<span class="built_in">flush</span>();</span><br><span class="line">      std::this_thread::<span class="built_in">sleep_for</span>(std::chrono::<span class="built_in">milliseconds</span>(<span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 不同launch策略的效果</span></span><br><span class="line">  std::launch policies[] = &#123;std::launch::async, std::launch::deferred&#125;;</span><br><span class="line">  <span class="type">const</span> <span class="type">char</span> *names[] = &#123;<span class="string">&quot;async   &quot;</span>, <span class="string">&quot;deferred&quot;</span>&#125;;</span><br><span class="line">  <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="built_in">sizeof</span>(policies) / <span class="built_in">sizeof</span>(policies[<span class="number">0</span>]); i++) &#123;</span><br><span class="line">    std::cout &lt;&lt; names[i] &lt;&lt; <span class="string">&quot;: &quot;</span>;</span><br><span class="line">    std::cout.<span class="built_in">flush</span>();</span><br><span class="line">    std::future&lt;<span class="type">void</span>&gt; f1 = std::<span class="built_in">async</span>(policies[i], print, <span class="string">&#x27;+&#x27;</span>);</span><br><span class="line">    std::future&lt;<span class="type">void</span>&gt; f2 = std::<span class="built_in">async</span>(policies[i], print, <span class="string">&#x27;-&#x27;</span>);</span><br><span class="line">    f1.<span class="built_in">get</span>();</span><br><span class="line">    f2.<span class="built_in">get</span>();</span><br><span class="line">    std::cout &lt;&lt; std::endl;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// async   : +-+-+-+--+-++-+--+-+</span></span><br><span class="line"><span class="comment">// deferred: ++++++++++----------</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/26/cpp%E6%A0%87%E5%87%86%E5%BA%93-type-trait/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/26/cpp%E6%A0%87%E5%87%86%E5%BA%93-type-trait/" class="post-title-link" itemprop="url">type_trait</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-26 19:46:35" itemprop="dateCreated datePublished" datetime="2023-05-26T19:46:35+08:00">2023-05-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><code>type_trait</code> 头文件定义了一系列基于编译时模板的接口，用于查询或修改类型的属性</p>
-<h2 id="获取类型属性"><a href="#获取类型属性" class="headerlink" title="获取类型属性"></a>获取类型属性</h2><p>模板类中都提供了一个静态成员变量 <code>bool value</code> 标识结果</p>
-<p>从 cpp17 起直接使用 <code>std::is_xxx_v&lt;T&gt;</code> 来获取 <code>std::is_xxx&lt;T&gt;::value</code></p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在考虑 cv 的情况下，判断是否是同一类型</span></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">U</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">is_same</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">Base</span>, <span class="keyword">class</span> <span class="title class_">Derived</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">is_base_of</span>;</span><br></pre></td></tr></table></figure>
-
-<h2 id="调整类型属性"><a href="#调整类型属性" class="headerlink" title="调整类型属性"></a>调整类型属性</h2><p>模板类中定义了一个类型别名 <code>type</code> 表示目标类型</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">remove_cv</span>;</span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">add_cv</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">remove_const</span>;</span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">add_const</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">remove_volatile</span>;</span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">add_volatile</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">remove_reference</span>;</span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">add_rvalue_reference</span>;</span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">add_lavalue_reference</span>;</span><br></pre></td></tr></table></figure>
-
-<p>如果 <code>T</code> 是函数、引用和 cv 属性是，<code>std::add_const</code> 会失效</p>
-<h2 id="类型转换"><a href="#类型转换" class="headerlink" title="类型转换"></a>类型转换</h2><ul>
-<li><code>std::decay</code> 用于类型退化，将右值转换成左值，数组转换成指针，函数转换成指针</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">decay</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> U&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">decay_equiv</span> : </span><br><span class="line">    std::is_same&lt;<span class="keyword">typename</span> std::decay&lt;T&gt;::type, U&gt;::type </span><br><span class="line">&#123;&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::cout &lt;&lt; std::boolalpha</span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="type">int</span>, <span class="type">int</span>&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="type">int</span>&amp;, <span class="type">int</span>&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="type">int</span>&amp;&amp;, <span class="type">int</span>&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="type">const</span> <span class="type">int</span>&amp;, <span class="type">int</span>&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="type">int</span>[<span class="number">2</span>], <span class="type">int</span>*&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span></span><br><span class="line">              &lt;&lt; decay_equiv&lt;<span class="built_in">int</span>(<span class="type">int</span>), <span class="built_in">int</span>(*)(<span class="type">int</span>)&gt;::value &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>std::enable_if</code> 主要用于 SFINAE 场景中，通过对模板函数、模板类中的模板类型进行谓词判断，从而使程序能够选择合适的模板函数重载版本或模板类特化版本</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">接受两个模板参数，第一个参数为布尔条件，第二个参数为类型</span></span><br><span class="line"><span class="comment">当条件为真时，有一个成员 typedef，且是第二个模板参数</span></span><br><span class="line"><span class="comment">当条件为假时，不存在成员 typedef</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="type">bool</span> B, <span class="keyword">class</span> <span class="title class_">T</span> = <span class="type">void</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> enable_if;</span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">enable_if</span>&lt;<span class="literal">true</span>, T&gt; &#123; <span class="keyword">using</span> type = T; &#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">T</span> &#123;</span><br><span class="line">  <span class="keyword">enum</span> &#123; <span class="type">int_t</span>, <span class="type">float_t</span> &#125; type;</span><br><span class="line">  <span class="keyword">template</span> &lt;<span class="keyword">typename</span> Integer,</span><br><span class="line">            std::<span class="type">enable_if_t</span>&lt;std::is_integral&lt;Integer&gt;::value, <span class="type">bool</span>&gt; = <span class="literal">true</span>&gt;</span><br><span class="line">  <span class="built_in">T</span>(Integer) : <span class="built_in">type</span>(<span class="type">int_t</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">template</span> &lt;</span><br><span class="line">      <span class="keyword">typename</span> Floating,</span><br><span class="line">      std::<span class="type">enable_if_t</span>&lt;std::is_floating_point&lt;Floating&gt;::value, <span class="type">bool</span>&gt; = <span class="literal">true</span>&gt;</span><br><span class="line">  <span class="built_in">T</span>(Floating) : <span class="built_in">type</span>(<span class="type">float_t</span>) &#123;&#125; <span class="comment">// OK</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>std::invoke_result</code> 和 <code>std::result_of</code> 获取可调用对象的返回值类型</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">F</span>, <span class="keyword">class</span>... ArgTypes &gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">result_of</span>&lt;<span class="built_in">F</span>(ArgTypes...)&gt;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">F</span>, <span class="keyword">class</span>... ArgTypes&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">invoke_result</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">S</span> &#123;</span><br><span class="line">    <span class="function"><span class="type">double</span> <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="type">char</span>, <span class="type">int</span>&amp;)</span></span>;</span><br><span class="line">    <span class="function"><span class="type">float</span> <span class="title">operator</span><span class="params">()</span><span class="params">(<span class="type">int</span>)</span> </span>&#123; <span class="keyword">return</span> <span class="number">1.0</span>;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;</span><br><span class="line"><span class="keyword">typename</span> std::result_of&lt;<span class="built_in">T</span>(<span class="type">int</span>)&gt;::<span class="function">type <span class="title">f</span><span class="params">(T&amp; t)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;overload of f for callable T\n&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">t</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T, <span class="keyword">class</span> U&gt;</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">f</span><span class="params">(U u)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;overload of f for non-callable T\n&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> u;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::result_of&lt;<span class="built_in">S</span>(<span class="type">char</span>, <span class="type">int</span>&amp;)&gt;::type d = <span class="number">3.14</span>; <span class="comment">// d has type double</span></span><br><span class="line">    <span class="built_in">static_assert</span>(std::is_same&lt;<span class="keyword">decltype</span>(d), <span class="type">double</span>&gt;::value, <span class="string">&quot;&quot;</span>);</span><br><span class="line"> </span><br><span class="line">    std::invoke_result&lt;S,<span class="type">char</span>,<span class="type">int</span>&amp;&gt;::type b = <span class="number">3.14</span>;</span><br><span class="line">    <span class="built_in">static_assert</span>(std::is_same&lt;<span class="keyword">decltype</span>(b), <span class="type">double</span>&gt;::value, <span class="string">&quot;&quot;</span>);</span><br><span class="line"> </span><br><span class="line">    std::result_of&lt;<span class="built_in">S</span>(<span class="type">int</span>)&gt;::type x = <span class="number">3.14</span>; <span class="comment">// x has type float</span></span><br><span class="line">    <span class="built_in">static_assert</span>(std::is_same&lt;<span class="keyword">decltype</span>(x), <span class="type">float</span>&gt;::value, <span class="string">&quot;&quot;</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">C</span> &#123; <span class="function"><span class="type">double</span> <span class="title">Func</span><span class="params">(<span class="type">char</span>, <span class="type">int</span>&amp;)</span></span>; &#125;;</span><br><span class="line">    std::result_of&lt;<span class="keyword">decltype</span>(&amp;C::Func)(C, <span class="type">char</span>, <span class="type">int</span>&amp;)&gt;::type g = <span class="number">3.14</span>;</span><br><span class="line">    <span class="built_in">static_assert</span>(std::is_same&lt;<span class="keyword">decltype</span>(g), <span class="type">double</span>&gt;::value, <span class="string">&quot;&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>std::conditional</code> 编译时进行类型选择</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt; <span class="type">bool</span> B, <span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">F</span> &gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">conditional</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">typedef</span> std::conditional&lt;<span class="literal">true</span>, <span class="type">int</span>, <span class="type">double</span>&gt;::type Type1;</span><br><span class="line">    <span class="keyword">typedef</span> std::conditional&lt;<span class="literal">false</span>, <span class="type">int</span>, <span class="type">double</span>&gt;::type Type2;</span><br><span class="line">    <span class="keyword">typedef</span> std::conditional&lt;<span class="built_in">sizeof</span>(<span class="type">int</span>) &gt;= <span class="built_in">sizeof</span>(<span class="type">double</span>), <span class="type">int</span>, <span class="type">double</span>&gt;::type Type3;</span><br><span class="line"> </span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">typeid</span>(Type1).<span class="built_in">name</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">typeid</span>(Type2).<span class="built_in">name</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    std::cout &lt;&lt; <span class="built_in">typeid</span>(Type3).<span class="built_in">name</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
 

@@ -122,13 +122,13 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">403</span>
+          <span class="site-state-item-count">407</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
           <a href="/categories/">
-        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-count">32</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -150,6 +150,533 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E5%86%85%E5%AD%98%E6%9B%BF%E6%8D%A2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E5%86%85%E5%AD%98%E6%9B%BF%E6%8D%A2/" class="post-title-link" itemprop="url">内存替换算法</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 20:55:27" itemprop="dateCreated datePublished" datetime="2023-04-28T20:55:27+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1/" itemprop="url" rel="index"><span itemprop="name">后端设计</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>常见的内存替换算法有：FIFO，LRU，LFU，LRU-K，2Q</p>
+<h2 id="FIFO（First-In-First-Out）"><a href="#FIFO（First-In-First-Out）" class="headerlink" title="FIFO（First In First Out）"></a>FIFO（First In First Out）</h2><p>最近刚访问的，将来访问的可能性比较大</p>
+<p>使用一个队列，新加入的放入队尾，每次淘汰队首，即最先进入的数据，最先被淘汰</p>
+<p>FIFO 无法体现页面冷热信息</p>
+<h2 id="LRU（Least-Recently-Used）"><a href="#LRU（Least-Recently-Used）" class="headerlink" title="LRU（Least Recently Used）"></a>LRU（Least Recently Used）</h2><p>如果数据最近被访问过，那么将来被访问的几率也更高，所以应该淘汰最长时间没有被访问的数据</p>
+<ul>
+<li><p>新数据直接插入到列表头部</p>
+</li>
+<li><p>缓存数据被命中，将数据移动到列表头部</p>
+</li>
+<li><p>缓存已满的时候，移除列表尾部数据</p>
+</li>
+</ul>
+<p>LRU 无法应对偶发的访问操作，比如说批量查询某些数据，可能使缓存中热门数据被这些偶发使用的数据替代，造成缓存污染，导致缓存命中率下降</p>
+<p>链表添加节点删除节点时间复杂度 O(1)，非常适合当做存储缓存数据容器，但链表有几个缺点：每次获取任意节点数据，都需要从头结点遍历下去，这就导致获取节点复杂度为 O(N)；移动中间节点到头结点，需要知道中间节点前一个节点的信息，单向链表就不得不再次遍历获取信息</p>
+<p>使用散列表存储节点，获取节点的复杂度将会降低为 O(1)，节点移动问题可以在节点中再增加前驱指针，记录上一个节点信息，这样链表就从单向链表变成了双向链表</p>
+<img src="/2023/04/28/%E5%90%8E%E7%AB%AF%E8%AE%BE%E8%AE%A1-%E5%86%85%E5%AD%98%E6%9B%BF%E6%8D%A2/01.png" class="">
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LRUCache</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  unordered_map&lt;<span class="type">int</span>, list&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt;::iterator&gt; lru;</span><br><span class="line">  list&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt; his;</span><br><span class="line">  <span class="type">int</span> cap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="built_in">LRUCache</span>(<span class="type">int</span> capacity) &#123; cap = capacity; &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">get</span><span class="params">(<span class="type">int</span> key)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (lru.<span class="built_in">count</span>(key) != <span class="number">0</span>) &#123;</span><br><span class="line">      his.<span class="built_in">splice</span>(his.<span class="built_in">begin</span>(), his, lru[key]);</span><br><span class="line">      <span class="keyword">return</span> lru[key]-&gt;second;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">put</span><span class="params">(<span class="type">int</span> key, <span class="type">int</span> value)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (lru.<span class="built_in">count</span>(key))</span><br><span class="line">      his.<span class="built_in">erase</span>(lru[key]);</span><br><span class="line">    his.<span class="built_in">push_front</span>(<span class="built_in">make_pair</span>(key, value));</span><br><span class="line">    lru[key] = his.<span class="built_in">begin</span>();</span><br><span class="line">    <span class="keyword">if</span> (lru.<span class="built_in">size</span>() &gt; cap) &#123;</span><br><span class="line">      lru.<span class="built_in">erase</span>(his.<span class="built_in">rbegin</span>()-&gt;first);</span><br><span class="line">      his.<span class="built_in">pop_back</span>();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="LFU"><a href="#LFU" class="headerlink" title="LFU"></a>LFU</h2><p>如果数据过去被访问多次，那么将来被访问的频率也更高</p>
+<p>每个数据块加入一个引用计数，所有数据块按照引用计数排序，具有相同引用计数的数据块则按照时间排序，每次淘汰队尾数据块</p>
+<p>LFU 能够避免偶发性的操作导致缓存命中率下降的问题，但它有排序开销和无法淘汰一开始有高访问率而之后长时间没有被访问数据的问题</p>
+<h2 id="LRU-K"><a href="#LRU-K" class="headerlink" title="LRU-K"></a>LRU-K</h2><p>最久未使用 K 次淘汰算法，K 代表最近使用的次数，因此 LRU 可以认为是 LRU-1</p>
+<p>LRU-K 维护两个队列，访问列表和缓存列表</p>
+<ol>
+<li><p>数据第一次被访问时加入到访问列表，访问列表按照一定规则（如 FIFO，LRU）淘汰</p>
+</li>
+<li><p>当访问列表中的数据访问次数达到 K 次后将数据从访问列表删除，并将数据添加到缓存列表头节点，如果数据已经在缓存列表中，则移动到头结点</p>
+</li>
+<li><p>若缓存列表数据量超过上限，淘汰缓存列表中排在末尾的数据，即淘汰倒数第 K 次访问离现在最久的数据</p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/" class="post-title-link" itemprop="url">进程的内存结构</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 20:51:47" itemprop="dateCreated datePublished" datetime="2023-04-28T20:51:47+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>每个进程所分配的内存由很多部分组成，通常称之为段</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/01.png" class="">
+
+<h2 id="文本段-（text-段）"><a href="#文本段-（text-段）" class="headerlink" title="文本段 （text 段）"></a>文本段 （text 段）</h2><ul>
+<li><p>包含了进程运行的程序机器语言指令</p>
+</li>
+<li><p>文本段具有只读属性，以防止进程通过错误指针意外修改自身指令</p>
+</li>
+<li><p>因为多个进程可同时运行同一程序，所以又将文本段设为可共享，一份程序代码的拷贝可以映射到所有这些进程的虚拟地址空间中</p>
+</li>
+</ul>
+<h2 id="初始化的数据段（data-段）"><a href="#初始化的数据段（data-段）" class="headerlink" title="初始化的数据段（data 段）"></a>初始化的数据段（data 段）</h2><ul>
+<li><p>包含显式初始化的全局变量和静态变量</p>
+</li>
+<li><p>当程序加载到内存时，从可执行文件中读取这些变量的值</p>
+</li>
+</ul>
+<h2 id="未初始化数据段（BSS-段）"><a href="#未初始化数据段（BSS-段）" class="headerlink" title="未初始化数据段（BSS 段）"></a>未初始化数据段（BSS 段）</h2><ul>
+<li><p>包含了未进行显式初始化的全局变量和静态变量</p>
+</li>
+<li><p>程序启动之前，系统将本段内所有内存初始化为 0</p>
+</li>
+<li><p>程序结束后静态变量资源由系统自动释放</p>
+</li>
+</ul>
+<p>将经始化的全局变量和静态变量与未初始化的全局变量和静态变量分开存放，其主要原因在于程序在磁盘上存储时，没有必要为未经初始化的变量分配存储空间。可执行文件只需记录未初始化数据段的位置及所需大小，直到运行时再由程序加载器来分配空间</p>
+<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><ul>
+<li><p>可在运行时为变量动态进行内存分配的一块区域</p>
+</li>
+<li><p>从低地址位向高地址位增长，采用链式存储结构</p>
+</li>
+</ul>
+<h2 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h2><ul>
+<li><p>一个动态增长和收缩的段，由栈帧组成</p>
+</li>
+<li><p>从高地址位向低地址位增长的，是一块连续的内存区域，最大容量是由系统预先定义好的，用户能从栈中获取的空间较小</p>
+</li>
+<li><p>系统会为每个当前调用的函数分配一个栈帧</p>
+</li>
+</ul>
+<h2 id="内核空间"><a href="#内核空间" class="headerlink" title="内核空间"></a>内核空间</h2><p>在 32 位 Linux 系统中，内核空间通常是 1GB，3GB 用于用户空间</p>
+<p>在 64 位 Linux 系统中，内核空间通常是 128TB，128TB 用于用户空间</p>
+<p>需要注意的是，具体的内核空间大小可能会因 Linux 发行版、内核版本、配置以及硬件架构的不同而有所变化</p>
+<h2 id="包含-static、virtual-的类内存分布"><a href="#包含-static、virtual-的类内存分布" class="headerlink" title="包含 static、virtual 的类内存分布"></a>包含 static、virtual 的类内存分布</h2><ul>
+<li><p><code>static</code> 修饰成员变量在 data 段</p>
+</li>
+<li><p><code>static</code> 修饰的成员函数在 text 端</p>
+</li>
+<li><p>虚指针和该类其他成员一起存储在 data 段，其值指向 data 段中的类虚函数表，虚函数表中存放着一个个函数指针，函数指针指向 text 段中的具体函数</p>
+</li>
+</ul>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80/02.png" class="">
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/" class="post-title-link" itemprop="url">进程调度</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 20:50:12" itemprop="dateCreated datePublished" datetime="2023-04-28T20:50:12+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="调度算法"><a href="#调度算法" class="headerlink" title="调度算法"></a>调度算法</h2><ul>
+<li><p>非抢占式调度算法：挑选一个进程，然后让该进程运行直到被阻塞，或者直到该进程退出，才会调用另外一个进程，也就是说不会理时钟中断这个事情</p>
+</li>
+<li><p>抢占式调度算法挑选一个进程，然后让该进程只运行某段时间，如果在该时段结束时，该进程仍然在运行时，则会把它挂起，接着调度程序从就绪队列挑选另外一个进程。这种抢占式调度处理，需要在时间间隔的末端发生时钟中断，以便把 CPU 控制返回给调度程序进行调度，也就是常说的时间片机制</p>
+</li>
+</ul>
+<h2 id="调度原则"><a href="#调度原则" class="headerlink" title="调度原则"></a>调度原则</h2><ul>
+<li><p>CPU 利用率：如果运行的程序，发生了 I&#x2F;O 事件的请求，那 CPU 使用率必然会很低，为了提高 CPU 利用率，<br>在这种发生 I&#x2F;O 事件致使 CPU 空闲的情况下，调度程序需要从就绪队列中选择一个进程来运行</p>
+</li>
+<li><p>系统吞吐量：有的程序执行某个任务花费的时间会比较长，如果这个程序一直占用着 CPU，会造成系统吞吐量（CPU 在单位时间内完成的进程数量）<br>的降低；要提高系统的吞吐率，调度程序要权衡长任务和短任务进程的运行完成数量</p>
+</li>
+<li><p>周转时间：进程运行时间和进程等待时间总和称为周转时间；一个进程的周转时间越小越好</p>
+</li>
+<li><p>等待时间：处于就绪队列的进程不能等太久</p>
+</li>
+<li><p>响应时间：用户提交请求到系统第一次产生响应所花费的时间，在交互式系统中，响应时间是衡量调度算法好坏的主要标准</p>
+</li>
+</ul>
+<h2 id="调度算法-1"><a href="#调度算法-1" class="headerlink" title="调度算法"></a>调度算法</h2><h3 id="非抢占式的先来先服务（First-Come-First-Severd-FCFS）"><a href="#非抢占式的先来先服务（First-Come-First-Severd-FCFS）" class="headerlink" title="非抢占式的先来先服务（First Come First Severd, FCFS）"></a>非抢占式的先来先服务（First Come First Severd, FCFS）</h3><p>每次从就绪队列选择最先进入队列的进程，然后一直运行，直到进程退出或被阻塞，<br>才会继续从队列中选择第一个进程接着运行</p>
+<p>FCFS 对长作业有利，适用于 CPU 繁忙型作业的系统，而不适用于 I&#x2F;O 繁忙型作业的系统</p>
+<h3 id="非抢占式的最短作业优先（Shortest-Job-First-SJF）"><a href="#非抢占式的最短作业优先（Shortest-Job-First-SJF）" class="headerlink" title="非抢占式的最短作业优先（Shortest Job First, SJF）"></a>非抢占式的最短作业优先（Shortest Job First, SJF）</h3><p>优先选择运行时间最短的进程来运行，这有助于提高系统的吞吐量</p>
+<p>对长作业不利，很容易造成一种极端现象</p>
+<h3 id="非抢占式高响应比优先（Highest-Response-Ratio-Next-HRRN）"><a href="#非抢占式高响应比优先（Highest-Response-Ratio-Next-HRRN）" class="headerlink" title="非抢占式高响应比优先（Highest Response Ratio Next, HRRN）"></a>非抢占式高响应比优先（Highest Response Ratio Next, HRRN）</h3><p>每次进行进程调度时，先计算响应比优先级，然后把响应比优先级最高的进程投入运行</p>
+<p>等待时间越长，优先权越高</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/01.png" class="">
+
+<h3 id="抢占式时间轮片"><a href="#抢占式时间轮片" class="headerlink" title="抢占式时间轮片"></a>抢占式时间轮片</h3><p>每个进程被分配一个时间段，称为时间片（Quantum），即允许该进程在该时间段中运行</p>
+<p>如果时间片用完，进程还在运行，那么将会把此进程从 CPU 释放出来，并把 CPU 分配另外一个进程</p>
+<p>如果该进程在时间片结束前阻塞或结束，则 CPU 立即进行切换</p>
+<h3 id="最高优先级"><a href="#最高优先级" class="headerlink" title="最高优先级"></a>最高优先级</h3><p>从就绪队列中选择最高优先级的进程进行运行</p>
+<p>进程的优先级可以分为，静态优先级或动态优先级：</p>
+<ul>
+<li><p>静态优先级：创建进程时候，就已经确定了优先级了，然后整个运行时间优先级都不会变化</p>
+</li>
+<li><p>动态优先级：根据进程的动态变化调整优先级，比如如果进程运行时间增加，则降低其优先级，如果进程等待时间（就绪队列的等待时间）增加，则升高其优先级，也就是随着时间的推移增加等待进程的优先级</p>
+</li>
+</ul>
+<p>该算法还分为抢占式和非抢占式：</p>
+<ul>
+<li><p>非抢占式：当就绪队列中出现优先级高的进程，运行完当前进程，再选择优先级高的进程</p>
+</li>
+<li><p>抢占式：当就绪队列中出现优先级高的进程，当前进程挂起，调度优先级高的进程运行</p>
+</li>
+</ul>
+<h3 id="多级反馈队列"><a href="#多级反馈队列" class="headerlink" title="多级反馈队列"></a>多级反馈队列</h3><p>多级反馈队列是时间片轮转和最高优先级的综合和发展</p>
+<p>多级：有多个队列，每个队列优先级从高到低，同时优先级越高时间片越短</p>
+<p>反馈：如果有新的进程加入优先级高的队列时，立刻停止当前正在运行的进程，转而去运行优先级高的队列</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/02.png" class="">
+
+<ul>
+<li><p>设置了多个队列，赋予每个队列不同的优先级，每个队列优先级从高到低，同时优先级越高时间片越短</p>
+</li>
+<li><p>新的进程会被放入到第一级队列的末尾，按先来先服务的原则排队等待被调度，如果在第一级队列规定的时间片没运行完成，则将其转入到第二级队列的末尾，以此类推，直至完成</p>
+</li>
+<li><p>当较高优先级的队列为空，才调度较低优先级的队列中的进程运行。如果进程运行时，有新进程进入较高优先级的队列，则停止当前运行的进程并将其移入到原队列末尾，接着让较高优先级的进程运行</p>
+</li>
+</ul>
+<p>对于短作业可能可以在第一级队列很快被处理完；对于长作业，如果在第一级队列处理不完，可以移入下次队列等待被执行，虽然等待的时间变长了，但是运行时间也会更长了，所以该算法很好的兼顾了长短作业，同时有较好的响应时间</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B/" class="post-title-link" itemprop="url">线程</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 20:48:52" itemprop="dateCreated datePublished" datetime="2023-04-28T20:48:52+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>线程是进程的子任务，是 CPU 调度和分派的基本单位，实现进程内部的并发</p>
+<p>进程内每个线程完成不同的任务，但是共享同一地址空间（也就是同样的动态内存，映射文件，目标代码等等），打开的文件队列和其他内核资源</p>
+<h2 id="线程实现"><a href="#线程实现" class="headerlink" title="线程实现"></a>线程实现</h2><ul>
+<li><p>用户线程：在用户空间实现的线程，不是由内核管理的线程，是由用户态的线程库来完成线程的管理</p>
+</li>
+<li><p>内核线程：在内核中实现的线程，是由内核管理的线程</p>
+</li>
+<li><p>轻量级进程：在内核中来支持用户线程</p>
+</li>
+</ul>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B/01.png" class="">
+
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B/02.png" class="">
+
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E7%BA%BF%E7%A8%8B/03.png" class="">
+
+<h2 id="用户线程"><a href="#用户线程" class="headerlink" title="用户线程"></a>用户线程</h2><p>用户线程是基于用户态的线程管理库来实现的，那么线程控制块（Thread Control Block, TCB）<br>也是在库里面来实现的，对于操作系统而言是看不到这个 TCB 的，它只能看到整个进程的 PCB</p>
+<p>用户线程的整个线程管理和调度，操作系统是不直接参与的，而是由用户级线程库函数来完成线程的管理，<br>包括线程的创建、终止、同步和调度等</p>
+<p>优点：</p>
+<ul>
+<li><p>每个进程都需要有它私有的线程控制块（TCB）列表，用来跟踪记录它各个线程状态信息（PC、栈指针、寄存器），<br>TCB 由用户级线程库函数来维护，可用于不支持线程技术的操作系统</p>
+</li>
+<li><p>用户线程的切换也是由线程库函数来完成的，无需用户态与内核态的切换，所以速度特别快</p>
+</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li><p>由于操作系统不参与线程的调度，如果一个线程发起了系统调用而阻塞，那进程所包含的用户线程都不能执行了</p>
+</li>
+<li><p>当一个线程开始运行后，除非它主动地交出 CPU 的使用权，否则它所在的进程当中的其他线程无法运行，因为用户态的线程没法打断当前运行中的线程，它没有这个特权，只有操作系统才有，但是用户线程不是由操作系统管理的</p>
+</li>
+<li><p>由于时间片分配给进程，在多线程执行时，每个线程得到的时间片较少，执行会比较慢</p>
+</li>
+</ul>
+<h2 id="内核线程"><a href="#内核线程" class="headerlink" title="内核线程"></a>内核线程</h2><p>内核线程是由操作系统管理的，线程对应的 TCB 自然是放在操作系统里的，这样线程的创建、终止和管理都是由操作系统负责</p>
+<p>优点：</p>
+<ul>
+<li><p>在一个进程当中，如果某个内核线程发起系统调用而被阻塞，并不会影响其他内核线程的运行</p>
+</li>
+<li><p>多线程的进程获得更多的 CPU 运行时间</p>
+</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li><p>在支持内核线程的操作系统中，由内核来维护进程和线程的上下文信息，如 PCB 和 TCB</p>
+</li>
+<li><p>线程的创建、终止和切换都是通过系统调用的方式来进行，因此对于系统来说，系统开销比较大</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +722,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -453,7 +980,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -580,7 +1107,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -729,7 +1256,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -849,7 +1376,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -947,7 +1474,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
+      <time title="修改时间：2023-12-26 16:53:13" itemprop="dateModified" datetime="2023-12-26T16:53:13+08:00">2023-12-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1060,417 +1587,6 @@
 <p>在某些对性能要求非常苛刻的场景中，页面会被设置得非常的大，这些页被称之为大页 Huge Page，可以减少页表条目，加快检索速度，提升 TLB 快表的命中率</p>
 <p>使用大页的同时一般会禁止页面交换，大容量交换会让磁盘读写成为 CPU 处理的瓶颈</p>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%B9%B6%E5%8F%91/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%B9%B6%E5%8F%91/" class="post-title-link" itemprop="url">并发</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 21:29:13" itemprop="dateCreated datePublished" datetime="2023-04-26T21:29:13+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>并发（concurrent）指宏观上看起来两个程序在同时运行，比如说在单核 cpu 上的多任务。从微观上看多个程序的指令是交织着在一个 CPU 核心上运行，在单个周期内只运行了一个指令。这种机制并不能提高计算机的性能，只能提高效率</p>
-<p>并行（parrallel）指严格物理意义上的同时运行，比如多核 cpu 下两个程序分别运行在两个核上，两者之间互不影响，单个周期内每个程序都运行了自己的指令，也就是运行了两条指令。并行可以提高计算机的效率</p>
-<h2 id="互斥与同步"><a href="#互斥与同步" class="headerlink" title="互斥与同步"></a>互斥与同步</h2><p>互斥：是指某一资源同时只允许一个访问者对其进行访问，具有唯一性和排它性；互斥无法限制访问者对资源的访问顺序，即访问是无序的</p>
-<p>同步：是指在互斥的基础上（大多数情况），通过其它机制实现访问者对资源的有序访问</p>
-<h2 id="多核、多进程、多线程"><a href="#多核、多进程、多线程" class="headerlink" title="多核、多进程、多线程"></a>多核、多进程、多线程</h2><ul>
-<li><p>计算机的 cpu 核数是同时可以并行的线程数量（cpu 只能看到线程，线程是 cpu 调度分配的最小单位）</p>
-</li>
-<li><p>如果计算机有多个 cpu 核，且计算机中的总的线程数量小于核数，那线程就可以并行运行在不同的核中</p>
-</li>
-<li><p>如果是单核多线程，那多线程之间就不是并行而是并发，为了均衡负载，cpu 调度器会不断的在单核上切换不同的线程执行</p>
-</li>
-<li><p>如果是多核多线程且线程数量大于核数，其中有些线程就会不断切换，并发执行，但实际上最大的并行数量还是当前这个进程中的核的数量，所以盲目增加线程数不仅不会让你的程序更快，反而会给你的程序增加额外的开销</p>
-</li>
-<li><p>对计算密集型任务，使用核心数个线程就可以占满 cpu 资源，进而可以充分利用 cpu，如果再多线程就会造成额外的开销</p>
-</li>
-<li><p>对于 IO 密集型任务，线程由于被 IO 阻塞，如果仍然用核心数个线程，cpu 是跑不满的，于是可以使用更多个线程来提高 cpu 使用率</p>
-</li>
-</ul>
-<h2 id="单核机器的多线程需要加锁"><a href="#单核机器的多线程需要加锁" class="headerlink" title="单核机器的多线程需要加锁"></a>单核机器的多线程需要加锁</h2><p>线程锁通常用来实现线程的同步和通信，单核机器上的多线程程序，仍然存在线程同步的问题；在抢占式操作系统中，通常为每个线程分配一个时间片，当某个线程时间片耗尽时，操作系统会将其挂起，然后运行另一个线程。如果这两个线程共享某些数据，不使用线程锁的前提下，可能会导致共享数据修改引起冲突</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-socket/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-socket/" class="post-title-link" itemprop="url">socket</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 21:23:51" itemprop="dateCreated datePublished" datetime="2023-04-26T21:23:51+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">网络编程</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Unix&#x2F;Linux 基本哲学之一就是一切皆文件，都可以用 open –&gt; write&#x2F;read –&gt; close 模式来操作</p>
-<p>socket 即是一种特殊的文件，一些 socket 函数就是对其进行的操作（读&#x2F;写 IO、打开、关闭）</p>
-<h2 id="套接字描述符"><a href="#套接字描述符" class="headerlink" title="套接字描述符"></a>套接字描述符</h2><p>套接字描述符是一个整数，最熟悉的句柄是 0、1、2 三个，0 是标准输入，1 是标准输出，2 是标准错误输出，分别对应 <code>FILE*</code> 结构 <code>stdin</code>、<code>stdout</code>、<code>stderr</code></p>
-<p>当应用程序要创建一个套接字时，操作系统就返回一个小整数作为描述符来标识这个套接字，应用程序则使用这个描述符作为传递参数，通过调用函数来完成操作</p>
-<p>应用程序只需记住这个描述符，并在以后操作该文件时使用它</p>
-<p>系统为每个运行的进程维护一张单独的文件描述符表，当进程打开一个文件时，系统把一个指向此文件内部数据结构的指针写入文件描述符表，并把该表的索引值返回给调用者</p>
-<h2 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h2><ul>
-<li>tcp</li>
-</ul>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-socket/01.png" class="">
-
-<ul>
-<li>udp</li>
-</ul>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-socket/02.png" class="">
-
-<h2 id="socket-异常"><a href="#socket-异常" class="headerlink" title="socket 异常"></a>socket 异常</h2><p>TCP 连接建立之后，能感知 TCP 链路的方式是有限的，一种是以 <code>read</code> 为核心的读操作，另一种是以 <code>write</code> 为核心的写操作</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-socket/03.png" class="">
-
-<h3 id="客户端连接服务器未监听端口"><a href="#客户端连接服务器未监听端口" class="headerlink" title="客户端连接服务器未监听端口"></a>客户端连接服务器未监听端口</h3><p>服务端会对收到的 SYN 回应一个 RST，客户端收到 RST 之后，终止连接并进入 CLOSED 状态，返回 <code>ECONNREFUSED</code></p>
-<h3 id="服务器不可达"><a href="#服务器不可达" class="headerlink" title="服务器不可达"></a>服务器不可达</h3><p>服务端地址不可访问，返回 <code>EHOSTUNREACH</code></p>
-<h3 id="超时连接"><a href="#超时连接" class="headerlink" title="超时连接"></a>超时连接</h3><p>客户端发送的 SYN 丢失在网络中，没有得到确认，客户端的 TCP 会超时重发 SYN，发送 7 个 SYN 后等待一个超时时间，仍然没有收到 ACK，则 <code>connect()</code> 返回超时</p>
-<h3 id="服务器端-SYN-ACK-丢失"><a href="#服务器端-SYN-ACK-丢失" class="headerlink" title="服务器端 SYN-ACK 丢失"></a>服务器端 SYN-ACK 丢失</h3><p>客户端没有收到 SYN-ACK 包，类似于超时连接错误</p>
-<p>服务器端由 LISTEN 进入 SYN_RECV，服务端的 TCP 会重发 SYN-ACK，直到超时，即 SYN 攻击</p>
-<h3 id="客户端-ACK-丢失"><a href="#客户端-ACK-丢失" class="headerlink" title="客户端 ACK 丢失"></a>客户端 ACK 丢失</h3><p>服务器端没有收到 ACK 包，类似于 SYN 攻击</p>
-<p>对于客户端来讲，由 SYN_SENT 状态进入了 ESTABLISED 状态，即连接成功，客户端可以发送数据，但实际上数据是发送不到服务端；客户端发送出去的数据得不到确认，最终，客户端产生一个复位信号并终止连接</p>
-<h3 id="网络断开且互相不发送数据"><a href="#网络断开且互相不发送数据" class="headerlink" title="网络断开且互相不发送数据"></a>网络断开且互相不发送数据</h3><p>在没有 ICMP 报文的情况下，TCP 程序并不能理解感应到连接异常，双方都不知道网络已经不通，会一直保持 ESTABLISHDED 状态</p>
-<p>如果程序是阻塞在 <code>read</code> 调用上，那么程序无法从异常中恢复，需要通过给 <code>read</code> 操作设置超时来解决</p>
-<h3 id="网络断开但仍需发送数据"><a href="#网络断开但仍需发送数据" class="headerlink" title="网络断开但仍需发送数据"></a>网络断开但仍需发送数据</h3><p>接收一方不知道网络出问题，会一直等待数据到来</p>
-<p>对于发送方发送数据，TCP 协议栈会不断尝试将发送缓冲区的数据发送出去，大概在重传 12 次、合计时间约为 9 分钟之后，协议栈会标识该连接异常</p>
-<p>如果应用层 <code>write</code> 完数据后阻塞的 <code>read</code>，则 <code>read</code> 调用会返回一条 TIMEOUT 的错误信息，如果此时程序还执着地往这条连接写数据，写操作会立即失败，返回一个 SIGPIPE 信号给应用程序</p>
-<p>需要引入心跳机制</p>
-<h3 id="网络断开后重启"><a href="#网络断开后重启" class="headerlink" title="网络断开后重启"></a>网络断开后重启</h3><p>当重传的 TCP 分组到达重启后的系统，由于系统中没有该 TCP 分组对应的连接数据，系统会返回一个 RST，TCP 程序通过 <code>read()</code> 或 <code>write()</code> 调用可以分别对 RST 进行错误处理</p>
-<p><code>read()</code> 会立即返回一个错误，错误信息为连接重置</p>
-<p><code>write()</code> 会立即失败，应用程序会被返回一个 SIGPIPE 信号</p>
-<h3 id="对端进程奔溃但仍接受数据"><a href="#对端进程奔溃但仍接受数据" class="headerlink" title="对端进程奔溃但仍接受数据"></a>对端进程奔溃但仍接受数据</h3><p>linux 下，按 ctrl+c 结束程序，会调用 <code>close()</code>，发送 FIN</p>
-<p>接收方调用 <code>recv()</code> 返回 0</p>
-<h3 id="对端进程奔溃但仍发送数据"><a href="#对端进程奔溃但仍发送数据" class="headerlink" title="对端进程奔溃但仍发送数据"></a>对端进程奔溃但仍发送数据</h3><p>对端奔溃后内核会做一些清理的事情，为这个套接字发送一个 FIN 包；根据 TCP 协议，收到对方的 FIN 包只意味着对方不会再发送任何消息， 在一个双方正常关闭的流程中，收到 FIN 包的一端将剩余数据发送给对面（通过一次或多次 <code>write</code>），然后关闭套接字；当数据到达服务器端时，内核发现这是一个指向关闭的套接字，会再次向客户端发送一个 RST 包，对于发送端而言如果此时再执行 <code>write</code> 操作，立即会返回一个 RST 错误信息</p>
-<p>第一次调用 <code>send()</code> 返回成功，数据会被发送到奔溃的对端，奔溃端会回一个 RST</p>
-<p>再次调用 <code>send()</code> 返回 -1，errno 设置为 32 Broken pipe，会向应用程序发送 <code>SIGPIPE</code> 信号</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-fcntl/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/LinuxApi-fcntl/" class="post-title-link" itemprop="url">fcntl</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 21:16:53" itemprop="dateCreated datePublished" datetime="2023-04-26T21:16:53+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><code>fcntl</code> 函数可以改变或者查看已打开文件的性质</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">fcntl</span><span class="params">(<span class="type">int</span> fd, <span class="type">int</span> cmd)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">fcntl</span><span class="params">(<span class="type">int</span> fd, <span class="type">int</span> cmd, <span class="type">long</span> arg)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">fcntl</span><span class="params">(<span class="type">int</span> fd, <span class="type">int</span> cmd, <span class="keyword">struct</span> flock *lock)</span></span>; </span><br><span class="line"><span class="comment">//返回值：如果成功则依赖于 cmd，出错则返回 -1</span></span><br></pre></td></tr></table></figure>
-
-<p><code>fcntl</code> 有 5 中功能</p>
-<ul>
-<li><p>复制一个现有文件描述符 <code>cmd = F_DUPFD</code></p>
-</li>
-<li><p>获取&#x2F;设置文件描述符标记 <code>cmd = F_SETFD / F_GETFD</code></p>
-</li>
-<li><p>获取&#x2F;设置文件状态标记 <code>cmd = F_SETFL / F_GETFL</code></p>
-</li>
-<li><p>获取&#x2F;设置异步I&#x2F;O所有权 <code>cmd = F_SETOWN / F_GETOWN</code></p>
-</li>
-<li><p>获取&#x2F;设置记录锁 <code>cmd = F_SETLK / F_GETLK / F_SETLKW</code></p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将 socket 设置为非阻塞</span></span><br><span class="line"><span class="type">int</span> flag = <span class="built_in">fcntl</span>(socket_fd, F_GETFL, <span class="number">0</span>);</span><br><span class="line"><span class="built_in">fcntl</span>(socket_fd, F_SETFL, flag | O_NONBLOCK);</span><br><span class="line"><span class="comment">// 将 socket 设置为阻塞</span></span><br><span class="line"><span class="type">int</span> flag = <span class="built_in">fcntl</span>(socket_fd, F_GETFL, <span class="number">0</span>);</span><br><span class="line"><span class="built_in">fcntl</span>(socket_fd, F_SETFL, flag &amp; ~O_NONBLOCK);</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-getaddrinfo/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/LinuxApi-getaddrinfo/" class="post-title-link" itemprop="url">getaddrinfo</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 21:15:36" itemprop="dateCreated datePublished" datetime="2023-04-26T21:15:36+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-23 22:02:56" itemprop="dateModified" datetime="2023-12-23T22:02:56+08:00">2023-12-23</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">getaddrinfo</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* node, <span class="type">const</span> <span class="type">char</span>* service,</span></span></span><br><span class="line"><span class="params"><span class="function">                <span class="type">const</span> <span class="keyword">struct</span> addrinfo* hints,</span></span></span><br><span class="line"><span class="params"><span class="function">                <span class="keyword">struct</span> addrinfo** res)</span></span>;</span><br><span class="line"><span class="comment">// 成功返回 0。否则返回非 0</span></span><br><span class="line"><span class="comment">// 结果存储在 res 中</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">addrinfo</span> &#123;</span><br><span class="line">    <span class="type">int</span> ai_flags;</span><br><span class="line">    <span class="type">int</span> ai_family;</span><br><span class="line">    <span class="type">int</span> ai_socktype;</span><br><span class="line">    <span class="type">int</span> ai_protocol;</span><br><span class="line">    <span class="type">socklen_t</span> ai_addrlen;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">sockaddr</span>* ai_addr;</span><br><span class="line">    <span class="type">char</span>* ai_canonname;</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">addrinfo</span>* ai_next;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 释放 res</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">freeaddrinfo</span><span class="params">(<span class="keyword">struct</span> addrinfo* res)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">addrinfo</span> hints = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">hints.ai_flags = AI_CANONNAME;</span><br><span class="line">hints.ai_family = family;</span><br><span class="line">hints.ai_socktype = socktype;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">addrinfo</span>* res;</span><br><span class="line"><span class="type">int</span> n = <span class="built_in">getaddrinfo</span>(host, service, &amp;hints, &amp;res);</span><br><span class="line"><span class="keyword">if</span> (n == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">freeaddr</span>(res);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
 
