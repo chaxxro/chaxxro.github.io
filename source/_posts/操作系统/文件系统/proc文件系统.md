@@ -50,6 +50,12 @@ Linux 系统上的 /proc 目录是一种虚拟文件系统，存储的是当前�
 ```sh
 # CPU 核数
 grep 'model name' /proc/cpuinfo | wc -l
+
+# 中断信息
+watch -d cat /proc/interrupts
+
+# 系统的 CPU 和任务统计信息
+cat /proc/stat | grep ^cpu
 ```
 
 ## 以数字命名的目录

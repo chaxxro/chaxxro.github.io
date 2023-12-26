@@ -19,6 +19,5 @@ pidstat [options] [interval] [times]
 -d 显示各个进程的 IO 使用
 -w 显示各个进程的上下文切换，一个 cswch 自愿上下文切换，一个 nvcswch 非自愿上下文切换
 -p PID 指定 PID
--t 查看线程相关的信息
--w 时显示 cswch 每秒自愿上下文切换次数，nvswch 每秒非自愿上下文切换次数
+-t 查看线程相关的信息，默认只显示进程数据
 ```

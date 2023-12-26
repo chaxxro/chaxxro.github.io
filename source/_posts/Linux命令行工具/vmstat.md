@@ -38,4 +38,5 @@ vmstat [options] [delay [count]]
 # sy 系统 CPU 时间
 # id 空闲 CPU 时间
 # wt 等待 IO 时间
+sy 大于 us 表示 CPU 主要被内核占用
 ```
