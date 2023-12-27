@@ -76,11 +76,14 @@ dp[0][0] = true
 /*
 dp[i][j] : word1[0 ~ i - 1] to word2[0 ~ j - 1]
 
-dp[i][j] = 
-            i if j == 0
+dp[i][j] =  i if j == 0
             j if i == 0
             dp[i - 1][j - 1] if word1[i - 1] == word2[j - 1]
-            min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]) + 1 // 删 改 插入
+            min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]) + 1 // 删 插入 改
+
+[abb, ac] 执行删操作后变成 [ab, ac]，对应 dp[i - 1][j]
+[abb, ac] 执行改操作后变成 [abc, ac]，对应 dp[i - 1][j - 1]
+[abb, ac] 执行插入操作后变成 [abbc, ac]，对应 dp[i][j - 1]
 */
 ```
 
