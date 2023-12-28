@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">407</span>
+          <span class="site-state-item-count">410</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,540 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-mvcc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/09/MySql-mvcc/" class="post-title-link" itemprop="url">mvcc</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-09 15:14:20" itemprop="dateCreated datePublished" datetime="2023-04-09T15:14:20+08:00">2023-04-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>MVCC 是一种多版本读写并发控制机制，是 InnoDB 存储引擎实现隔离级别的一种具体方式，用于实现 READ COMMIITTED 和 REPEATABLE READ 这两种隔离级别</p>
+<p>MVCC 通过保存数据在某个时间点的快照来实现的；每行数据都存在一个版本，对数据库的任何修改的提交都不会直接覆盖之前的数据，而是产生一个新的版本与老版本共存，使得读取时可以不加锁（除非使用 <code>SELECT ... FOR UPDATE</code> 强行加锁）</p>
+<ul>
+<li><p>通过 MVCC 可以让读写互相不阻塞，读不相互阻塞，写不阻塞读，这样可以提升数据并发处理能力</p>
+</li>
+<li><p>降低了死锁的概率，因为 MVCC 采用了乐观锁的方式，读取数据时，不需要加锁，写操作，只需要锁定必要的行</p>
+</li>
+<li><p>解决了一致性读的问题，MVCC 都是快照读，只能看到这个时间点之前事务提交更新的结果，不能看到时间点之后事务提交的更新结果</p>
+</li>
+</ul>
+<h2 id="事务版本号"><a href="#事务版本号" class="headerlink" title="事务版本号"></a>事务版本号</h2><p>每次事务开启前都会从数据库获得一个自增长的事务 ID，可以从事务 ID 判断事务的执行先后顺序</p>
+<h2 id="Undo-log"><a href="#Undo-log" class="headerlink" title="Undo log"></a>Undo log</h2><p>Undo log 主要用于记录数据被修改之前的日志，在表信息修改之前先会把数据拷贝到 Undo log 里，当事务进行回滚时可以通过 Undo log 里的日志进行数据还原</p>
+<ul>
+<li><p>保证事务进行 rollback 时的原子性和一致性，当事务进行回滚的时候可以用 Undo log 的数据进行恢复</p>
+</li>
+<li><p>通过读取 Undo log 的历史版本数据可以实现不同事务版本号都拥有自己独立的快照数据版本</p>
+</li>
+</ul>
+<p>存储数据表的 B+ 树节点总是只保留最新的数据，而老版本的数据被放在 Undo log 里，并且以指针的形式关联起来，形成一个链表；查询时会在 B+ 树查找后多引入一个链表查询，但是清理废弃数据时会比较简单，只要把 Undo log 找到一个合适的位置一刀切了即可</p>
+<h2 id="隐藏字段"><a href="#隐藏字段" class="headerlink" title="隐藏字段"></a>隐藏字段</h2><p>MySQL 会为每一行真实数据记录添加两三个隐藏的字段，分别为 row_id、transaction_id 和 roll_pointer</p>
+<ul>
+<li><p>row_id：非必需隐藏字段；如果表中有自定义的主键或者有 Unique 键，就不会添加 row_id 字段，如果两者都没有，MySQL 会自动添加 row_id 字段</p>
+</li>
+<li><p>transaction_id：必需隐藏字段；代表这一行数据由哪个事务 id 创建</p>
+</li>
+<li><p>roll_pointer：必需隐藏字段；回滚指针，指向这行数据上一个版本在 Undo log 的地址</p>
+</li>
+</ul>
+<img src="/2023/04/09/MySql-mvcc/01.png" class="">
+
+<p>对于事务 id，只有执行 insert&#x2F;update&#x2F;delete 才会产生事务 id，只执行 select 则没有事务 id</p>
+<img src="/2023/04/09/MySql-mvcc/02.png" class="">
+
+<h2 id="ReadView"><a href="#ReadView" class="headerlink" title="ReadView"></a>ReadView</h2><p>READ COMMITTED 和 REPEATABLE READ 这两个事务隔离级别都要保证读到的数据是其他事务已经提交的，但是还是有一定的区别，最核心的问题就在于到底可以读取这个数据的哪个版本</p>
+<p>ReadView 机制只在 Read Committed 和 Repeatable Read 隔离级别下生效，所以只有这两种隔离级别才有 MVCC</p>
+<h3 id="ReadView-组成"><a href="#ReadView-组成" class="headerlink" title="ReadView 组成"></a>ReadView 组成</h3><p>ReadView 包含四个比较重要的内容：</p>
+<ul>
+<li><p>m_ids：表示在生成 ReadView 时，系统中活跃的事务 id 集合</p>
+</li>
+<li><p>min_trx_id：表示在生成 ReadView 时，系统中活跃的最小事务 id，也就是 m_ids 中的最小值</p>
+</li>
+<li><p>max_trx_id：表示在生成 ReadView 时，系统应该分配给下一个事务的 id</p>
+</li>
+<li><p>creator_trx_id：表示生成该 ReadView 的事务 id</p>
+</li>
+</ul>
+<h3 id="ReadView-用法"><a href="#ReadView-用法" class="headerlink" title="ReadView 用法"></a>ReadView 用法</h3><p>有了 ReadView，根据相关信息则可以判断版本信息：</p>
+<ul>
+<li><p>如果被访问的版本的 trx_id 和 ReadView 中的 creator_trx_id 相同，就意味着当前版本就是由当前事务创建的，可以读出来</p>
+</li>
+<li><p>如果被访问的版本的 trx_id 小于 ReadView 中的 min_trx_id，表示生成该版本的事务在创建 ReadView 的时候已经提交了，所以该版本可以读出来</p>
+</li>
+<li><p>如果被访问版本的 trx_id 大于或等于 ReadView 中的 max_trx_id 值，说明生成该版本的事务在当前事务生成 ReadView 后才开启，所以该版本不可以被读出来</p>
+</li>
+<li><p>如果生成被访问版本的 trx_id 在 min_trx_id 和 max_trx_id 之间，那就需要判断下 trx_id 在不在 m_ids 中；如果在，说明创建 ReadView 的时候，生成该版本的事务还是活跃的（没有被提交），该版本不可以被读出来；如果不在，说明创建 ReadView 的时候，生成该版本的事务已经被提交了，该版本可以被读出来</p>
+</li>
+<li><p>如果某个数据的最新版本不可以被读出来，就顺着 roll_pointer 找到该数据的上一个版本，继续做如上的判断</p>
+</li>
+</ul>
+<h3 id="更新逻辑"><a href="#更新逻辑" class="headerlink" title="更新逻辑"></a>更新逻辑</h3><p>更新数据都是先读后写的，且只能读当前的值，称为当前读</p>
+<p>除了 <code>update</code> 语句外，<code>select</code> 语句如果加锁，也是当前读</p>
+<h3 id="READ-COMMITTED"><a href="#READ-COMMITTED" class="headerlink" title="READ COMMITTED"></a>READ COMMITTED</h3><p>每次读取数据都会创建 ReadView</p>
+<h3 id="REPEATABLE-READ"><a href="#REPEATABLE-READ" class="headerlink" title="REPEATABLE READ"></a>REPEATABLE READ</h3><p>事务启动时创建 ReadView，整个事务期间都使用同一个 ReadView</p>
+<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> `t` ( </span><br><span class="line">    `id` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span>, </span><br><span class="line">    `k` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span>, </span><br><span class="line">    <span class="keyword">PRIMARY</span> KEY (`id`)</span><br><span class="line">    ) ENGINE<span class="operator">=</span>InnoDB;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t(id, k) <span class="keyword">values</span>(<span class="number">1</span>,<span class="number">1</span>),(<span class="number">2</span>,<span class="number">2</span>);</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/04/09/MySql-mvcc/03.png" class="">
+
+<h3 id="事务启动时机"><a href="#事务启动时机" class="headerlink" title="事务启动时机"></a>事务启动时机</h3><p><code>begin/start transaction</code> 命令并不是一个事务的起点，在执行到它们之后的第一个操作 InnoDB 表的语句，事务才真正启动</p>
+<p>如果想要马上启动一个事务，可以使用 <code>start transaction with consistent snapshot</code> 这个命令</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>事务 C 没有显式地使用 <code>begin/commit</code>，表示这个 <code>update</code> 语句本身就是一个事务，语句完成的时候会自动提交</p>
+<p>事务 B 在更新了行之后查询</p>
+<p>事务 A 在一个只读事务中查询，并且时间顺序上是在事务 B 的查询之后</p>
+<p>事务 B 查到的 k 的值是 3，而事务 A 查到的 k 的值是 1</p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>做如下假设：</p>
+<ul>
+<li><p>事务 A 开始前，系统里面只有一个活跃事务 ID 是 99</p>
+</li>
+<li><p>事务 A、B、C 的版本号分别是 100、101、102，且当前系统里只有这四个事务</p>
+</li>
+<li><p>三个事务开始前，(1,1）这一行数据的 transaction_id 是 90</p>
+</li>
+</ul>
+<p>事务 A 的 m_ids 是[99,100]，事务 B 的 m_ids 是[99,100,101], 事务 C 的 m_ids 是[99,100,101,102]</p>
+<img src="/2023/04/09/MySql-mvcc/04.png" class="">
+
+<p>第一个有效更新是事务 C，把数据从 (1,1) 改成了 (1,2)。这时候这个数据的最新版本的 transaction_id 是 102，而 90 这个版本已经成为了历史版本</p>
+<p>第二个有效更新是事务 B，把数据从 (1,2) 改成了 (1,3)。这时候这个数据的最新版本 transaction_id 是 101，而 102 又成为了历史版本</p>
+<p>事务 A 读数据时，它的 m_ids 是 [99,100]，它的读数据流程：</p>
+<ol>
+<li><p>找到 (1,3) 的时候，判断出 transaction_id &#x3D; 101，比 100 大，不可见</p>
+</li>
+<li><p>接着，找到上一个历史版本，transaction_id &#x3D; 102，比 100 大，不可见</p>
+</li>
+<li><p>接着，找到上一个历史版本，一看 transaction_id &#x3D; 90，比99小，可见</p>
+</li>
+</ol>
+<p>当事务 B 要去更新数据的时候，就不能再在历史版本上更新了，否则事务 C 的更新就丢失了，因此，事务 B 此时的 <code>set k=k+1</code> 是在（1,2）的基础上进行的操作</p>
+<p>在更新的时候，当前读拿到的数据是 (1,2)，更新后生成了新版本的数据 (1,3)，这个新版本的 transaction_id 是 101；在执行事务 B 查询语句的时候，一看自己的版本号是 101 和最新数据的版本号相同，可以直接使用，所以查询得到的 k 的值是 3</p>
+<p>如果把事务 A 的查询语句 select * from t where id&#x3D;1 修改一下，加上 lock in share mode 或 for update，也都可以读到版本号是 101 的数据，返回的 k 的值是 3</p>
+<h3 id="拓展"><a href="#拓展" class="headerlink" title="拓展"></a>拓展</h3><p>假设事务 C 不是马上提交的，而是变成了下面的事务 C’</p>
+<img src="/2023/04/09/MySql-mvcc/05.png" class="">
+
+<p>事务 C’ 的不同是，更新后并没有马上提交，在它提交前，事务 B 的更新语句先发起了</p>
+<p>虽然事务 C’ 还没提交，但是 (1,2) 这个版本也已经生成了，并且是当前的最新版本</p>
+<p>事务 C’ 没提交，也就是说 (1,2) 这个版本上的写锁还没释放。而事务 B 是当前读，必须要读最新版本，而且必须加锁，因此就被锁住了，必须等到事务 C’ 释放这个锁，才能继续它的当前读</p>
+<img src="/2023/04/09/MySql-mvcc/06.png" class="">
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/09/MySql-%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/" class="post-title-link" itemprop="url">日志系统</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-09 15:12:20" itemprop="dateCreated datePublished" datetime="2023-04-09T15:12:20+08:00">2023-04-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>更新流程涉及两个重要的日志模块：redo log（重做日志）和 binlog（归档日志）</p>
+<p>redo log 是 InnoDB 引擎特有的日志，Server 层的日志称为 binlog</p>
+<h2 id="redo-log"><a href="#redo-log" class="headerlink" title="redo log"></a>redo log</h2><p>当有一条记录需要更新的时候，InnoDB 引擎就会先把记录写到 redo log，并更新内存，这个时候更新就算完成了</p>
+<p>InnoDB 引擎会在适当的时候，将这个操作记录更新到磁盘里面，而这个更新往往是在系统比较空闲的时候做</p>
+<p>InnoDB 的 redo log 是固定大小的，比如可以配置为一组 4 个文件，每个文件的大小是 1GB，那么redo log 总共就可以记录 4GB 的操作，从头开始写，写到末尾就又回到开头循环写</p>
+<img src="/2023/04/09/MySql-%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/01.png" class="">
+
+<p>write pos 是当前记录的位置，一边写一边后移；checkpoint 是当前要擦除的位置，也是往后推移并且循环的，擦除记录前要把记录更新到数据文件</p>
+<p>write pos 和 checkpoint 之间的部分是可以用来记录新的操作；如果 write pos 追上 checkpoint，这时候不能再执行新的更新，需要把 checkpoint 推进一下</p>
+<p>有了 redo log，InnoDB 就可以保证即使数据库发生异常重启，之前提交的记录都不会丢失</p>
+<p>redo log 的写入拆成了两个步骤：prepare 和 commit，这就是两阶段提交，是为了让 redo log 和 binlog 之间的逻辑一致</p>
+<p>由于 redo log 和 binlog 是两个独立的逻辑，如果不用两阶段提交，会出现一定问题</p>
+<h2 id="binlog"><a href="#binlog" class="headerlink" title="binlog"></a>binlog</h2><p>与 redo log 区别：</p>
+<ol>
+<li><p>redo log 是 InnoDB 引擎特有的；binlog 是 MySQL 的 Server 层实现的，所有引擎都可以使用</p>
+</li>
+<li><p>redo log 是物理日志，记录的是在某个数据页上做了什么修改；binlog 是逻辑日志，记录的是这个语句的原始逻辑</p>
+</li>
+<li><p>redo log 是循环写的，空间固定会用完；binlog 是可以追加写入的</p>
+</li>
+</ol>
+<p>对于 SQL 语句 <code>update T set c=c+1 where ID=2</code>：</p>
+<ol>
+<li><p>执行器先找引擎取 <code>ID=2</code> 这一行</p>
+</li>
+<li><p>如果 <code>ID=2</code> 这一行所在的数据页本来就在内存中，就直接返回给执行器；否则，需要先从磁盘读入内存，然后再返回</p>
+</li>
+<li><p>执行器拿到引擎给的行数据，把这个值加上 1，再调用引擎接口写入这行新数据</p>
+</li>
+<li><p>引擎将这行新数据更新到内存中，同时将这个更新操作记录到 redo log 里面，然后告知执行器执行完成，此时 redo log 处于 prepare 状态</p>
+</li>
+<li><p>执行器生成这个操作的 binlog，并把 binlog 写入磁盘</p>
+</li>
+<li><p>执行器调用引擎的提交事务接口，引擎把刚刚写入的 redo log 改成提交（commit）状态，更新完成</p>
+</li>
+</ol>
+<img src="/2023/04/09/MySql-%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/01.jpg" class="">
+
+<p>MySQL 以 binlog 的写入与否作为事务是否成功的标记</p>
+<h2 id="奔溃恢复规则"><a href="#奔溃恢复规则" class="headerlink" title="奔溃恢复规则"></a>奔溃恢复规则</h2><p>redo log 和 binlog 有一个共同的数据字段，叫 XID</p>
+<p>崩溃恢复的时候，会按顺序扫描 redo log：</p>
+<ol>
+<li><p>如果碰到既有 prepare、又有 commit 的 redo log，就直接提交</p>
+</li>
+<li><p>如果碰到只有 parepare、而没有 commit 的 redo log，就拿着 XID 去 binlog 找对应的事务；binlog 无记录，回滚事务；binlog 有记录，提交事务</p>
+</li>
+</ol>
+<p>先写 redo log 后写 binlog：假设在 redo log 写完，binlog 还没有写完的时候，MySQL 进程异常重启；由于 bin log 日志没有修改记录，使用 redo log + bin log 恢复的数据就是数据库旧的数据</p>
+<p>先写 bin log 后写 redo log：假设在 bin log 写完，redo log 还没有完成的时候，MySQL 进程异常重启</p>
+<p>binlog 写入后会被从库（或者用这个 binlog 恢复出来的库）使用，保证主库和备库的数据就一致性</p>
+<h2 id="binlog-完整性"><a href="#binlog-完整性" class="headerlink" title="binlog 完整性"></a>binlog 完整性</h2><p>MySQL 引入 binlog-checksum 参数，用来验证 binlog 内容的正确性</p>
+<h2 id="binlog-相比-redo-log-优越性"><a href="#binlog-相比-redo-log-优越性" class="headerlink" title="binlog 相比 redo log 优越性"></a>binlog 相比 redo log 优越性</h2><ol>
+<li><p>redo log 是循环写，写到末尾是要回到开头继续写的，这样历史日志没法保留，redo log 也就起不到归档的作用</p>
+</li>
+<li><p>MySQL 系统依赖于 binlog，系统高可用的基础，就是 binlog 复制</p>
+</li>
+</ol>
+<h2 id="redo-log-buffer"><a href="#redo-log-buffer" class="headerlink" title="redo log buffer"></a>redo log buffer</h2><p>redo log buffer 就是一块内存，用来先存 redo 日志的</p>
+<p>真正把日志写到 redo log 文件，是在执行 commit 语句的时候做的</p>
+<p>事务执行过程中不会主动去刷盘，以减少不必要的 IO 消耗，但是可能会出现被动写入磁盘，比如内存不够、其他事务提交等情况</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/09/MySql-%E9%94%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/09/MySql-%E9%94%81/" class="post-title-link" itemprop="url">锁</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-09 15:10:29" itemprop="dateCreated datePublished" datetime="2023-04-09T15:10:29+08:00">2023-04-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/MySql/" itemprop="url" rel="index"><span itemprop="name">MySql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>根据加锁的范围，MySQL 里面的锁大致可以分成全局锁、表级锁和行锁三类</p>
+<h2 id="全局锁"><a href="#全局锁" class="headerlink" title="全局锁"></a>全局锁</h2><p>全局锁就是对整个数据库实例加锁，MySQL 提供了一个加全局读锁的方法，命令是 Flush tables with read lock，让整个库处于只读状态，修改表的线程全部阻塞</p>
+<p>全局锁的典型使用场景是，做全库逻辑备份，也就是把整库每个表都 select 出来存成文本</p>
+<p>让整个库只可读，有一些隐患：</p>
+<ul>
+<li><p>如果在主库上备份，那么在备份期间都不能执行更新，业务基本上就得停摆</p>
+</li>
+<li><p>如果在从库上备份，那么备份期间从库不能执行主库同步过来的 binlog，会导致主从延迟</p>
+</li>
+</ul>
+<h2 id="表级锁"><a href="#表级锁" class="headerlink" title="表级锁"></a>表级锁</h2><p>MySQL 里面表级别的锁有两种：一种是表锁，一种是元数据锁 MDL</p>
+<h3 id="表锁"><a href="#表锁" class="headerlink" title="表锁"></a>表锁</h3><p>表锁的语法是 lock tables … read&#x2F;write，可以用 unlock tables 主动释放锁，也可以在客户端断开的时候自动释放</p>
+<p>lock tables 语法除了会限制别的线程的读写外，也限定了本线程接下来的操作对象</p>
+<h3 id="MDL"><a href="#MDL" class="headerlink" title="MDL"></a>MDL</h3><p>MDL(meta data lock) 不需要显式使用，在访问一个表的时候会被自动加上</p>
+<p>MDL 的作用是，保证读写的正确性；如果一个查询正在遍历一个表中的数据，而执行期间另一个线程对这个表结构做变更，删了一列，那么查询线程拿到的结果跟表结构对不上，肯定是不行的</p>
+<p>当对一个表做增删改查操作的时候，加 MDL 读锁；当要对表做结构变更操作的时候，加 MDL 写锁</p>
+<ul>
+<li><p>读锁之间不互斥，因此你可以有多个线程同时对一张表增删改查</p>
+</li>
+<li><p>读写锁之间、写锁之间是互斥的，用来保证变更表结构操作的安全性</p>
+</li>
+</ul>
+<p>申请 MDL 锁的操作会形成一个队列，队列中写锁获取优先级高于读锁；一旦出现写锁等待，不但当前操作会被阻塞，同时还会阻塞后续该表的所有操作</p>
+<p>事务中的 MDL 锁，在语句执行开始时申请，但是语句结束后并不会马上释放，而会等到整个事务提交后再释放</p>
+<h2 id="行锁"><a href="#行锁" class="headerlink" title="行锁"></a>行锁</h2><p>行锁就是针对数据表中行记录的锁</p>
+<p>两阶段锁协议：InnoDB 事务中，行锁是在需要的时候才加上的，但并不是不需要了就立刻释放，而是要等到事务结束时才释放</p>
+<p>尽量将并发度高的行，放在事务的最后进行执行</p>
+<h2 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h2><p>当并发系统中不同线程出现循环资源依赖，涉及的线程都在等待别的线程释放资源时，就会导致这几个线程都进入无限等待的状态</p>
+<p>InnoDB 能检测到死锁的循环依赖并立即返回一个错误，主动死锁检测在发生死锁的时候，是能够快速发现并进行处理的，但是它也是有额外负担的；每当一个事务被锁的时候，就要看看它所依赖的线程有没有被别人锁住，如此循环，最后判断是否出现了循环等待，也就是死锁；每个新来的被堵住的线程，都要判断会不会由于自己的加入导致了死锁，这是一个时间复杂度是 O(n) 的操作</p>
+<p>解决方法：</p>
+<ul>
+<li><p>尽量使用较低的隔离级别</p>
+</li>
+<li><p>设计索引，并尽量使用索引访问数据，使加锁更精确，从而减少锁冲突的机会</p>
+</li>
+<li><p>显示加锁时，一次性请求足够级别的锁</p>
+</li>
+<li><p>如果不同程序会并发存取多个表，尽量约定以相同的顺序访问表</p>
+</li>
+<li><p>尽量用相等条件访问数据</p>
+</li>
+<li><p>在同一个事务中，尽可能做到一次锁定所需要的所有资源，减少死锁产生概率</p>
+</li>
+<li><p>对于非常容易产生死锁的业务部分，可以尝试使用升级锁定颗粒度，通过表级锁定来减少死锁产生的概率</p>
+</li>
+<li><p>用分布式事务锁或者使用乐观锁</p>
+</li>
+</ul>
+<h2 id="InnoDB-的行锁与表锁"><a href="#InnoDB-的行锁与表锁" class="headerlink" title="InnoDB 的行锁与表锁"></a>InnoDB 的行锁与表锁</h2><p>InnoDB 行锁是通过给索引上的索引项加锁来实现的；只有通过索引条件检索数据，InnoDB 才使用行级锁，否则将使用表锁</p>
+<p>由于 MySQL 的行锁是针对索引加的锁，不是针对记录加的锁，因此虽然是访问不同行的记录，但是如果是使用相同的索引键，是会出现锁冲突的(查询非唯一索引时，非唯一索引可能对应多条聚簇索引，因此会锁住多行)；当表有多个索引的时候，不同的事务可以使用不同的索引锁定不同的行</p>
+<p>即便在条件中使用了索引字段，但是否使用索引来检索数据是由 MySQL 通过判断不同的执行计划的代价来决定的。如果 MySQL 认为全表扫描效率更高，比如对一些很小的表，它就不会使用索引，这种情况下 InnoDB 将使用表锁，而不是行锁</p>
+<h2 id="InnoDB-锁算法"><a href="#InnoDB-锁算法" class="headerlink" title="InnoDB 锁算法"></a>InnoDB 锁算法</h2><h3 id="Record-lock"><a href="#Record-lock" class="headerlink" title="Record lock"></a>Record lock</h3><p>单个行记录上的锁；当查询的索引含有唯一属性时，使用 record lock；RC 级别使用该方式加锁</p>
+<ul>
+<li>使用聚簇索引等值查询</li>
+</ul>
+<img src="/2023/04/09/MySql-%E9%94%81/01.png" class="">
+
+<ul>
+<li>使用唯一索引等值查询</li>
+</ul>
+<img src="/2023/04/09/MySql-%E9%94%81/02.png" class="">
+
+<h3 id="Gap-lock"><a href="#Gap-lock" class="headerlink" title="Gap lock"></a>Gap lock</h3><p>间隙锁，锁定一个索引范围（左开右开），不包括记录本身；设计的目的是为了阻止多个事务将记录插入到同一范围内，防止幻读的产生</p>
+<ul>
+<li>使用一般索引等值查询：不仅给相应索引和聚簇索引加 record lock，还要给索引间隙加 gap lock</li>
+</ul>
+<img src="/2023/04/09/MySql-%E9%94%81/03.png" class="">
+
+<img src="/2023/04/09/MySql-%E9%94%81/04.png" class="">
+
+<ul>
+<li>无索引查询：将聚簇索引中的所有行以及间隙都锁起来，等于锁表了</li>
+</ul>
+<img src="/2023/04/09/MySql-%E9%94%81/05.png" class="">
+
+<h3 id="Next-key-lock"><a href="#Next-key-lock" class="headerlink" title="Next-key lock"></a>Next-key lock</h3><p>record+gap 锁定一个范围，并包含记录本身；对于行的查询使用 next-key lock，解决幻读问题；把查询出来的记录锁住，同时也会把该范围查询内的所有间隙空间也会锁住，再之它会把相邻的下一个区间也会锁住；当使用唯一索引且得到的结果只有 1 条则降级为 Record lock；RR 级别使用该方式加锁</p>
+<img src="/2023/04/09/MySql-%E9%94%81/06.png" class="">
+
+<h2 id="锁机制划分"><a href="#锁机制划分" class="headerlink" title="锁机制划分"></a>锁机制划分</h2><p>三种锁都分为共享读锁和排他写锁</p>
+<h3 id="共享读锁"><a href="#共享读锁" class="headerlink" title="共享读锁"></a>共享读锁</h3><ul>
+<li><p>持有读锁的会话可以读表，但不能写表</p>
+</li>
+<li><p>允许多个会话同时持有读锁</p>
+</li>
+<li><p>其他会话就算没有给表加读锁，也是可以读表的，但是不能写表</p>
+</li>
+<li><p>其他会话申请该表写锁时会阻塞，直到锁释放</p>
+</li>
+</ul>
+<h3 id="排他写锁"><a href="#排他写锁" class="headerlink" title="排他写锁"></a>排他写锁</h3><ul>
+<li><p>持有写锁的会话既可以读表，也可以写表</p>
+</li>
+<li><p>只有持有写锁的会话才可以访问该表，其他会话访问该表会被阻塞，直到锁释放</p>
+</li>
+<li><p>其他会话无论申请该表的读锁或写锁，都会阻塞，直到锁释放</p>
+</li>
+</ul>
+<h2 id="隔离级别与锁"><a href="#隔离级别与锁" class="headerlink" title="隔离级别与锁"></a>隔离级别与锁</h2><ul>
+<li><p>未提交读 READ UNCOMMITTED：读取数据不加共享锁</p>
+</li>
+<li><p>提交读 READ COMMITTED：读取数据加共享锁，操作结束后释放共享锁</p>
+</li>
+<li><p>可重复读 REPEATABLE READ：读取数据加共享锁，事务提交前不释放锁</p>
+</li>
+<li><p>可串行化 SERIALIZABLE：锁定整个范围的键并一直有锁，直到事务完成</p>
+</li>
+</ul>
+<h2 id="乐观锁、悲观锁"><a href="#乐观锁、悲观锁" class="headerlink" title="乐观锁、悲观锁"></a>乐观锁、悲观锁</h2><ul>
+<li><p>乐观锁：假设不会发生并发冲突不会上锁，只在提交操作时检查是否违反数据完整性；适用于多读的应用类型，这样可以提高吞吐量</p>
+</li>
+<li><p>悲观锁：假定会发生并发冲突，每次在拿数据的时候都会上锁，屏蔽一切可能违反数据完整性的操作；</p>
+</li>
+</ul>
+<h2 id="死锁-1"><a href="#死锁-1" class="headerlink" title="死锁"></a>死锁</h2><p>当多个进程访问同一数据库时，其中每个进程拥有的锁都是其他进程所需的，由此造成每个进程都无法继续下去；进程 A 等待进程 B 释放他的资源，B 又等待 A 释放他的资源，这样就互相等待就形成死锁</p>
+<h2 id="表锁行锁与死锁"><a href="#表锁行锁与死锁" class="headerlink" title="表锁行锁与死锁"></a>表锁行锁与死锁</h2><p>MyISAM 中是不会产生死锁的，因为 MyISAM 总是一次性获得所需的全部锁，要么全部满足，要么全部等待。而在 InnoDB 中，锁是逐步获得的，就造成了死锁的可能</p>
+<p>InnoDB 行锁并不是直接锁数据而是锁索引；索引分为主键索引和非主键索引两种，如果一条 SQL 语句操作了主键索引，MySQL 就会锁定这条主键索引；如果一条 SQL 语句操作了非主键索引，MySQL 就会先锁定该非主键索引，再锁定相关的主键索引</p>
+<p>当两个事务同时执行，一个锁住了主键索引，在等待其他相关索引；另一个锁定了非主键索引，在等待主键索引，这样就会发生死锁</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +729,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:48" itemprop="dateModified" datetime="2023-12-27T09:20:48+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
 
   
@@ -308,7 +842,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:48" itemprop="dateModified" datetime="2023-12-27T09:20:48+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -487,7 +1021,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:48" itemprop="dateModified" datetime="2023-12-27T09:20:48+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -835,7 +1369,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:48" itemprop="dateModified" datetime="2023-12-27T09:20:48+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -946,7 +1480,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:48" itemprop="dateModified" datetime="2023-12-27T09:20:48+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1056,7 +1590,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1157,7 +1691,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1200,429 +1734,6 @@
 
 <h2 id="buitin-expect"><a href="#buitin-expect" class="headerlink" title="__buitin_expect"></a>__buitin_expect</h2><p>GCC 在编译过程中，会将可能性更大的代码紧跟着前面的代码，从而减少指令跳转带来的性能上的下降, 达到优化程序的目的</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> __builtin_expect(<span class="type">long</span> exp, <span class="type">long</span> c);</span><br><span class="line"><span class="comment">// exp 为一个整型表达式</span></span><br><span class="line"><span class="comment">// c 必须是一个编译期常量, 不能使用变量，表示期望 exp 表达式的值等于常量 c</span></span><br><span class="line"><span class="comment">// 返回值就是 exp 的值</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用 __builtin_expect 构建两个宏</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> likely(x)      __builtin_expect(!!(x), 1)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> unlikely(x)    __builtin_expect(!!(x), 0)</span></span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/gcc-%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/gcc-%E7%BC%96%E8%AF%91%E6%8C%87%E4%BB%A4/" class="post-title-link" itemprop="url">编译指令</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 23:13:55" itemprop="dateCreated datePublished" datetime="2023-04-02T23:13:55+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/gcc/" itemprop="url" rel="index"><span itemprop="name">gcc</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h2><p><code>-o &lt;file&gt;</code>：输出编译后的结果到指定的文件 file 中</p>
-<p><code>-E</code>：对源文件进行预处理，预处理后生成 .i 或者是 .ii 文件，生成的是文本文件</p>
-<p><code>-S</code>：只进行预处理和编译</p>
-<p><code>-c</code>：只进行预处理，编译，汇编操作，生成 .o(.obj) 文件，不进行链接</p>
-<p><code>-g</code>：产生调试信息</p>
-<p><code>-gn</code>：生成调试信息,同时用 n 指出需要多少信息，默认值是 2</p>
-<p><code>-Dmacro</code>：添加宏 <code>macro</code></p>
-<p><code>-Dmacro=defn</code>：定义宏 <code>macro</code> 的内容为 <code>defn</code></p>
-<p><code>-Umacro</code>：取消宏</p>
-<p><code>-u</code>：移除所有预定义宏</p>
-<p><code>-std=</code>：选择语言标准，<code>-std=c++11</code></p>
-<p><code>-IDIRECTORY</code>：指定额外的头文件搜索路径</p>
-<p><code>-LDIRECTORY</code>：指定额外的函数库搜索路径</p>
-<p><code>-lLIBRARY</code>：连接时搜索指定的函数库</p>
-<p><code>-v</code>：打印所有执行的命令</p>
-<p><code>-w</code>：编译时，不显示任何警告消息</p>
-<p><code>-Wall</code>：编译时，显示所有出现的警告消息</p>
-<p><code>-Werror</code>：不放过任何语法错误</p>
-<p><code>-Werror=return-type</code>：防止函数声明了返回值但函数内却漏了 <code>return</code></p>
-<p><code>-Werror=maybe-uninitialized</code>：防止未初始化变量</p>
-<p><code>-Werror=type-limits</code>：防止超出类型范围</p>
-<p><code>-Werror=shadow</code>：防止变量缩窄</p>
-<p><code>-Wextra</code>：打印额外告警消息</p>
-<p><code>-Wconversion</code>：隐式转换可能会改变值时告警</p>
-<p><code>-Wold-style-cast</code>：使用 c 风格类型转换时报警</p>
-<p><code>-Wno-unused-parameter</code>：未使用变量报警</p>
-<p><code>-Woverloaded-virtual</code>：重写虚函数时应使用 <code>virtual</code></p>
-<p><code>-Woverflow</code>：算术计算溢出时报警</p>
-<p><code>-Wpointer-arith</code>：算术表达式中使用指针时报警</p>
-<p><code>-Wshadow</code>：当一个局部变量覆盖另一个局部变量时报警</p>
-<p><code>-Wwrite_strings</code>：将字面字符串转换为 <code>char*</code> 报警</p>
-<p><code>-pedantic</code>：允许发出ANSI&#x2F;ISO C标准所列出的所有警告</p>
-<p><code>-fpic</code>、<code>-fPIC</code>：生成与位置无关的代码，用于动态链接库</p>
-<p><code>-funsigned-char</code>、<code>-fno-signed-char</code>、<code>-fsigned-char</code>、<code>-fno-unsigned-char</code>：这四个参数是对 <code>char</code> 类型进行设置,决定将 <code>char</code> 类型设置成 <code>unsigned char</code> 或者 <code>signed char</code></p>
-<p><code>-fsanitize=address</code>：开启内存地址检查</p>
-<p><code>-fno-elide-constructors</code>：关闭 RVO 优化</p>
-<p><code>-fdump-lang-class</code>：打印内存布局</p>
-<p><code>-O0</code> 关闭所有优化选项，默认等级</p>
-<p><code>-O1/O2/03</code> 优化</p>
-<p><code>-Og</code> 在 <code>-O1</code> 的基础上，取消了影响调试的优化，但这个参数只是告诉编译器不要影响调试，但调试信息的生成还是依赖 <code>-g</code></p>
-<p><code>-Os</code> 以 <code>-O2</code> 为基础，取消了可能导致程序变大的优化</p>
-<p><code>-Ofast</code> 以 <code>-O3</code> 为基础，添加非常规优化</p>
-<h2 id="pic-x2F-PIC"><a href="#pic-x2F-PIC" class="headerlink" title="pic&#x2F;PIC"></a>pic&#x2F;PIC</h2><p>共享库被加载时，在内存的位置是不固定的</p>
-<p><code>-fpic</code> 和 <code>-fPIC</code> 作用于编译阶段，告诉编译器生成与位置无关的代码，Position-Independent Code</p>
-<p>使用 <code>-fpic</code> 和 <code>-fPIC</code> 产生的代码中，没有绝对地址，全部使用相对地址，故而代码被加载器加载到内存的任意位置都可以正确的执行</p>
-<p>如果不加 <code>-fpic</code> 和 <code>-fPIC</code>，则加载动态库的代码段时，代码段引用的数据对象需要重定位，重定位会修改代码段的内容，这就造成每个使用这个动态库代码段的进程在内核里都会拷贝一份动态库的代码段，如果动态库被多个应用程序共同使用，那么它们必须每个程序维护一份代码段</p>
-<p><code>-fpic</code> 和 <code>-fPIC</code> 的区别是 <code>-fpic</code> 会限制链接它进程的 GOT 大小，该大小限制跟平台有关，而 <code>-fPIC</code> 则没有该限制</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/" class="post-title-link" itemprop="url">字符串匹配</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 17:06:16" itemprop="dateCreated datePublished" datetime="2023-04-02T17:06:16+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/algorithm/" itemprop="url" rel="index"><span itemprop="name">algorithm</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>在字符串 A 中查找字符串 B，那 A 为主串，长度记为 n，B 为模式串，长度记为 m，n &gt; m</p>
-<h2 id="BF-算法"><a href="#BF-算法" class="headerlink" title="BF 算法"></a>BF 算法</h2><p>暴力匹配算法（Brute Force）</p>
-<p>BF 算法即在主串中，检查起始位置分别是 0、1、2…n-m 且长度为 m 的 n-m+1 个子串，看有没有跟模式串匹配的</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/01.jpg" class="">
-
-<p>BF 的最坏情况时间复杂度是 O(n*m)，但却是实际中运用比较常见的字符串匹配算法，原因：</p>
-<ul>
-<li>实际开发中，模式串和主串的长度都不会太长，而且每次模式串与主串匹配的时候，当中途遇到不能匹配的字符时就停止了</li>
-<li>代码实现简单，不容易出错</li>
-</ul>
-<h2 id="RK-算法"><a href="#RK-算法" class="headerlink" title="RK 算法"></a>RK 算法</h2><p>对 BF 稍加改进，引入哈希算法，时间复杂度就会降低</p>
-<p>RK 算法的思路：通过哈希算法对主串中的 n-m+1 个子串分别求哈希值，然后逐个与模式串的哈希值比较大小。如果某个子串的哈希值与模式串相等，那就说明对应的子串和模式串匹配了（先不考虑哈希冲突的问题）。因为哈希值是一个数字，数字之间比较是否相等是非常快速的，所以模式串和子串比较的效率就提高了</p>
-<p>通过设计哈希算法来提高计算子串哈希值的效率，比如假设要处理的字符串只包含 26 个小写字母，那就可以只用 26 进制表示一个字符串。为了保证将哈希值落在整形数据范围内，可以牺牲一下允许哈希冲突</p>
-<p>当发生哈希冲突，有可能子串和模式串的哈希值相同但本身并不匹配，所以在哈希值相同时再去对比一下子串和模式串本身即可</p>
-<p>RK 算法整体的时间复杂度就是 O(n)，但如果存在大量哈希冲突，将导致时间复杂度退化成 O(n*m)</p>
-<h2 id="BM-算法"><a href="#BM-算法" class="headerlink" title="BM 算法"></a>BM 算法</h2><p>BM 算法包含两部分，分别是坏字符规则和好后缀规则</p>
-<h3 id="坏字符串规则"><a href="#坏字符串规则" class="headerlink" title="坏字符串规则"></a>坏字符串规则</h3><p>BM 算法中的匹配顺序是按照模式串下标从大到小的顺序倒着匹配的，即从模式串的末尾往前倒着匹配</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/02.jpg" class="">
-
-<p>当发现某个字符没法匹配的时候，把这个没有匹配的字符叫作坏字符（主串中的字符）</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/03.jpg" class="">
-
-<p>拿坏字符 c 在模式串中查找，发现模式串中并不存在这个字符，也就是说，字符 c 与模式串中的任何字符都不可能匹配</p>
-<p>这个时候，可以将模式串直接往后滑动三位，将模式串滑动到 c 后面的位置，再从模式串的末尾字符开始比较</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/04.jpg" class="">
-
-<p>模式串中最后一个字符 d，还是无法跟主串中的 a 匹配，坏字符 a 在模式串中是存在的，模式串中下标是 0 的位置也是字符 a，可以将模式串往后滑动两位，让两个 a 上下对齐，然后再从模式串的末尾字符开始，重新匹配</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/05.jpg" class="">
-
-<p>当发生不匹配的时候，把坏字符对应的模式串中的字符下标记作 si。如果坏字符在模式串中存在，把这个坏字符在模式串中的下标记作 xi。如果不存在，把 xi 记作 -1。那模式串往后移动的位数就等于 si-xi（下标都是字符在模式串的下标）</p>
-<p>如果坏字符在模式串里多处出现，那在计算 xi 的时候，选择最靠后的那个，因为这样不会让模式串滑动过多，导致本来可能匹配的情况被滑动略过</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/06.jpg" class="">
-
-<h3 id="好后缀规则"><a href="#好后缀规则" class="headerlink" title="好后缀规则"></a>好后缀规则</h3><p>当模式串滑动到图中的位置的时候，模式串和主串有 2 个字符是匹配的，倒数第 3 个字符发生了不匹配的情况</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/07.jpg" class="">
-
-<p>把已经匹配的 bc 叫作好后缀，记作 {u}，并拿它在模式串中查找，如果找到了另一个跟 {u} 相匹配的子串 {u*}，那就将模式串滑动到子串 {u*} 与主串中 {u} 对齐的位置</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/08.jpg" class="">
-
-<p>如果在模式串中找不到另一个等于 {u} 的子串，就直接将模式串，滑动到主串中 {u} 的后面，因为之前的任何一次往后滑动，都没有匹配主串中 {u} 的情况</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/09.jpg" class="">
-
-<p>但这种滑动太过上头，所以不仅要看好后缀在模式串中，是否有另一个匹配的子串，还要考察好后缀的后缀子串，是否存在跟模式串的前缀子串匹配的</p>
-<p>某个字符串 s 的后缀子串，就是最后一个字符跟 s 对齐的子串，比如 abc 的后缀子串就包括 c, bc</p>
-<p>前缀子串，就是起始字符跟 s 对齐的子串，比如 abc 的前缀子串有 a，ab</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/10.jpg" class="">
-
-<p>从好后缀的后缀子串中，找一个最长的并且能跟模式串的前缀子串匹配的</p>
-<h3 id="规则选择"><a href="#规则选择" class="headerlink" title="规则选择"></a>规则选择</h3><p>分别计算好后缀和坏字符往后滑动的位数，然后取两个数中最大的，作为模式串往后滑动的位数</p>
-<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><h4 id="坏字符规则"><a href="#坏字符规则" class="headerlink" title="坏字符规则"></a>坏字符规则</h4><p>如果拿坏字符在模式串中顺序遍历查找，效率比较低</p>
-<p>引入哈希表，将模式串中的每个字符及其下标存进哈希表，这样可以快速找到坏字符在模式串的位置下标</p>
-<p>如果字符串的字符集不是很大，每个字符长度是 1 字节，则可以用大小为 256 的数组来记录每个字符在模式串中出现的位置，数组下标对应字符的 ASCII</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/11.jpg" class="">
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> SIZE = <span class="number">256</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">GenerateHashTable</span><span class="params">(<span class="type">const</span> string &amp; str, <span class="type">int</span> * bc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 初始化</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; SIZE; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        bc[i] = <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 建立</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; str.<span class="built_in">size</span>(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        bc[(<span class="type">int</span>)str[i]] = str[i];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">bm</span><span class="params">(string haystack, string needle)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> * bc = <span class="keyword">new</span> <span class="type">int</span> [SIZE];</span><br><span class="line">    <span class="built_in">GenerateHashTable</span>(needle, bc);</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (i &lt;= n - m)</span><br><span class="line">    &#123;    </span><br><span class="line">        <span class="type">int</span> j; </span><br><span class="line">        <span class="keyword">for</span> (j = m - <span class="number">1</span>; j &gt;= <span class="number">0</span>; --j)  <span class="comment">// 模式串从后往前匹配</span></span><br><span class="line">        &#123;       </span><br><span class="line">            <span class="keyword">if</span> (a[i+j] != b[j])</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">break</span>;  <span class="comment">// 坏字符对应模式串中的下标是j</span></span><br><span class="line">            &#125;    </span><br><span class="line">        &#125;    </span><br><span class="line">        <span class="keyword">if</span> (j &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> i; <span class="comment">// 匹配成功，返回主串与模式串第一个匹配的字符的位置    </span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 这里等同于将模式串往后滑动j-bc[(int)a[i+j]]位    </span></span><br><span class="line">        i = i + (j - bc[(<span class="type">int</span>)a[i+j]]);   <span class="comment">// 没有考虑到为负的情况</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="好后缀规则-1"><a href="#好后缀规则-1" class="headerlink" title="好后缀规则"></a>好后缀规则</h4><ul>
-<li>在模式串中，查找跟好后缀匹配的另一个子串</li>
-</ul>
-<p>因为好后缀也是模式串本身的后缀子串，所以可以在模式串和主串正式匹配之前，通过预处理模式串，预先计算好模式串的每个后缀子串，对应的另一个可匹配子串的位置</p>
-<p>通过长度可以确定一个唯一的后缀子串</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/12.jpg" class="">
-
-<p>引入关键的变量 suffix 数组，suffix 数组的下表 k 表示后缀子串的长度，下标对应的数组值存储的是，在模式串中跟好后缀 {u} 相匹配的子串 {u*} 的起始下标值</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/13.jpg" class="">
-
-<ul>
-<li>在好后缀的后缀子串中，查找最长的、能跟模式串前缀子串匹配的后缀子串</li>
-</ul>
-<p>suffix 只能处理在模式串中查找跟好后缀匹配的另一个子串，所以需要布尔类型数组 prefix，来记录模式串的后缀子串是否能匹配模式串中的前缀子串</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/14.jpg" class="">
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">GenerateGS</span><span class="params">(<span class="type">const</span> string &amp; str, <span class="type">int</span> * suffix, <span class="type">bool</span> * prefix)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 初始化</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; str.<span class="built_in">size</span>(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        suffix[i] = <span class="number">-1</span>;</span><br><span class="line">        prefix[i] = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 建立</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; str.<span class="built_in">size</span>() - <span class="number">1</span>; ++i)  <span class="comment">// str[0, i]</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">int</span> j = i;</span><br><span class="line">        <span class="type">int</span> k = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(j &gt;= <span class="number">0</span> &amp;&amp; str[j] == str[m- <span class="number">1</span> - k])</span><br><span class="line">        &#123;</span><br><span class="line">            suffix[k] == j;</span><br><span class="line">            --j;</span><br><span class="line">            ++k;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(j == <span class="number">-1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            prefix[k] = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>假设好后缀的长度是 k，<code>suffix[k] != -1</code>，则后移 j - suffix[k] + 1 位（j 为坏字符在模式串中的下标）</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/15.jpg" class="">
-
-<p>如果 <code>suffix[k] == -1</code>，表示模式串中不存在另一个跟好后缀匹配的子串片段，好后缀的后缀子串 b[r, m-1]（其中，r 取值从 j+2 到 m-1）的长度 k&#x3D;m-r，如果 prefix[k] 等于 true，表示长度为 k 的后缀子串，有可匹配的前缀子串，这样可以把模式串后移 r 位</p>
-<p>如果两条规则都没有找到可以匹配好后缀及其后缀子串的子串，就将整个模式串后移 m 位</p>
-<h2 id="KMP"><a href="#KMP" class="headerlink" title="KMP"></a>KMP</h2><p>KMP 核心思想跟 BM 思想非常接近，在模式串与主串匹配的过程中，当遇到不可匹配的字符的时候，希望找到一些规律，可以将模式串往后多滑动几位，跳过那些肯定不会匹配的情况</p>
-<p>在模式串和主串匹配的过程中，把不能匹配的那个字符仍然叫作坏字符，把已经匹配的那段字符串叫作好前缀</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/16.jpg" class="">
-
-<p>当遇到坏字符的时候，就要把模式串往后滑动，在滑动的过程中，只要模式串和好前缀有上下重合，前面几个字符的比较，就相当于拿好前缀的后缀子串，跟模式串的前缀子串在比较</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/17.jpg" class="">
-
-<p>只需要拿好前缀本身，在它的后缀子串中，查找最长的那个可以跟好前缀的前缀子串匹配的。假设最长的可匹配的那部分前缀子串是{v}，长度是 k。把模式串一次性往后滑动 j-k 位，相当于，每次遇到坏字符的时候，就把 j 更新为 k，i 不变，然后继续比较</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/18.jpg" class="">
-
-<p>把好前缀的所有后缀子串中，最长的可匹配前缀子串的那个后缀子串，叫作最长可匹配后缀子串；对应的前缀子串，叫作最长可匹配前缀子串</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/19.jpg" class="">
-
-<p>求好前缀的最长可匹配前缀和后缀子串，不涉及主串，只需要通过模式串本身就能求解，先预处理计算好，在模式串和主串匹配的过程中，直接拿过来就用</p>
-<p>KMP 算法可以提前构建一个数组，用来存储模式串中每个前缀（这些前缀都有可能是好前缀）的最长可匹配前缀子串的结尾字符下标，把这个数组定义为 next 数组叫失效函数</p>
-<p>数组的下标是每个前缀结尾字符下标，数组的值是这个前缀的最长可以匹配前缀子串的结尾字符下标</p>
-<img src="/2023/04/02/%E7%AE%97%E6%B3%95-%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8C%B9%E9%85%8D/20.jpg" class="">
-
-<p>按照下标从小到大，依次计算 next 数组的值；当要计算 next[i] 的时候，前面的 next[0]，next[1]，……，next[i-1] 应该已经计算出来了，利用已经计算出来的 next 值，可以快速推导出 next[i] 的值</p>
-<p>假设 b[0, i] 的最长可匹配后缀子串是 b[r, i]，如果把最后一个字符去掉，那 b[r, i-1] 肯定是 b[0, i-1] 的可匹配后缀子串，但不一定是最长可匹配后缀子串</p>
-<p>既然 b[0, i-1] 最长可匹配后缀子串对应的模式串的前缀子串的下一个字符并不等于 b[i]，那么就可以考察 b[0, i-1] 的次长可匹配后缀子串 b[x, i-1] 对应的可匹配前缀子串 b[0, i-1-x] 的下一个字符 b[i-x] 是否等于 b[i]，如果等于，那 b[x, i] 就是 b[0, i] 的最长可匹配后缀子串</p>
-<p>次长可匹配后缀子串肯定被包含在最长可匹配后缀子串中，而最长可匹配后缀子串又对应最长可匹配前缀子串 b[0, y]；查找 b[0, i-1] 的次长可匹配后缀子串就是查找 b[0, y] 的最长匹配后缀子串的问题</p>
-<p>按照这个思路，可以考察完所有的 b[0, i-1] 的可匹配后缀子串 b[y, i-1]，直到找到一个可匹配的后缀子串，它对应的前缀子串的下一个字符等于 b[i]，那这个 b[y, i] 就是 b[0, i] 的最长可匹配后缀子串</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">GenerteNext</span><span class="params">(string &amp; needle, <span class="type">int</span> * next)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    next[<span class="number">0</span>] = <span class="number">-1</span>;</span><br><span class="line">    <span class="type">int</span> k = <span class="number">-1</span>;  <span class="comment">// 记录上一个的 next</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>; i &lt; needle.<span class="built_in">size</span>(); ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">while</span> (k != <span class="number">-1</span> &amp;&amp; needle[k + <span class="number">1</span>] != b[i]) </span><br><span class="line">        &#123;</span><br><span class="line">            k = next[k]; </span><br><span class="line">        &#125; </span><br><span class="line">        <span class="keyword">if</span> (needle[k + <span class="number">1</span>] == needle[i])</span><br><span class="line">        &#123; </span><br><span class="line">            ++k;</span><br><span class="line">        &#125; </span><br><span class="line">        next[i] = k;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">KMP</span><span class="params">(string &amp; haystack, string &amp; needle)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span> * next = <span class="keyword">new</span> <span class="type">int</span>[needle.<span class="built_in">size</span>()];</span><br><span class="line">    <span class="built_in">GenerteNext</span>(needle, next);</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> j = <span class="number">0</span>;  <span class="comment">// needle 字符串的下标</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; haystack.<span class="built_in">size</span>() - needle.<span class="built_in">size</span>() + <span class="number">1</span>; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// 滑动</span></span><br><span class="line">        <span class="keyword">while</span> (j &gt; <span class="number">0</span> &amp;&amp; haystack[i] != needle[j])</span><br><span class="line">        &#123;</span><br><span class="line">             <span class="comment">// 一直找到a[i]和b[j] </span></span><br><span class="line">             j = next[j - <span class="number">1</span>] + <span class="number">1</span>; </span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(haystack[i] == needle[j])</span><br><span class="line">        &#123;</span><br><span class="line">            ++j;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(j == needle.<span class="built_in">size</span>())</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> i - j + <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>空间复杂度是 O(m)，m 表示模式串的长度</p>
-<p>计算 next 数组的时间复杂度是 O(m)，查询部分时间复杂度是 O(n)，n 表示主串长度</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/" class="post-title-link" itemprop="url">并查集</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-02 16:43:13" itemprop="dateCreated datePublished" datetime="2023-04-02T16:43:13+08:00">2023-04-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">数据结构</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>并查集既是一种数据结构，也是一种算法，支持查找和合并两种操作，不支持分割一个集合</p>
-<p>用集合的某个元素来来代表这个集合，这个元素称为集合的代表元，集合内的所有元素组织成以代表元为根的树状结构</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/01.png" class="">
-
-<p>对于每个元素都有指针指向其父节点，代表元的父节点是自己</p>
-<h2 id="查找操作"><a href="#查找操作" class="headerlink" title="查找操作"></a>查找操作</h2><p>查找元素所在集合的代表元，在树状结构中向上移动，直到到达根节点</p>
-<h3 id="路径压缩"><a href="#路径压缩" class="headerlink" title="路径压缩"></a>路径压缩</h3><p>每次查找的时候，将查找 x 到代表元路径上的所有点父节点设为根节点，使得查找操作平均时间复杂度为 O(1)</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/02.png" class="">
-
-<h2 id="合并操作"><a href="#合并操作" class="headerlink" title="合并操作"></a>合并操作</h2><p>把 x 和 y 所在集合合并，其中将秩低的集合合并至秩高的集合，即总是将较矮的树合并至较高的树</p>
-<img src="/2023/04/02/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%B9%B6%E6%9F%A5%E9%9B%86/03.png" class="">
-
-<h2 id="用途"><a href="#用途" class="headerlink" title="用途"></a>用途</h2><ul>
-<li><p>维护无向图的连通性，判断两个点是否在同一连通块内，和判断增加一条边是否产生环</p>
-</li>
-<li><p>计算有多少个不相交的集合</p>
-</li>
-</ul>
-<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">UnionFind</span> &#123;</span><br><span class="line"><span class="keyword">private</span> :</span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; parent;  <span class="comment">// 父节点</span></span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; rank;  <span class="comment">// 秩</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">UnionFind</span>(<span class="type">int</span> n) &#123;</span><br><span class="line">        parent = <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n + <span class="number">1</span>);</span><br><span class="line">        rank = <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n + <span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>; i &lt; parent.<span class="built_in">size</span>(); ++i) &#123;</span><br><span class="line">            parent[i] = i;  <span class="comment">// 初始化时每个结点的父节点都是自己</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">Find</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(x != parent[x]) &#123;</span><br><span class="line">            parent[x] = <span class="built_in">Find</span>(parent[x]);  <span class="comment">// 压缩路径</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> parent[x]; </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">Union</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> px = <span class="built_in">Find</span>(x), py = <span class="built_in">Find</span>(y);</span><br><span class="line">        <span class="keyword">if</span>(px == py) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">if</span>(rank[px] &gt; rank[py]) parent[py] = px;</span><br><span class="line">        <span class="keyword">if</span>(rank[px] &lt; rank[py]) parent[px] = py;</span><br><span class="line">        <span class="keyword">if</span>(rank[px] == rank[py]) &#123;</span><br><span class="line">            parent[py] = px;</span><br><span class="line">            rank[px]++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
 

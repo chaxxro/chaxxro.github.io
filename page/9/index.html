@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">407</span>
+          <span class="site-state-item-count">410</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,362 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/" class="post-title-link" itemprop="url">JWT</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-05 14:53:21" itemprop="dateCreated datePublished" datetime="2023-06-05T14:53:21+08:00">2023-06-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5/" itemprop="url" rel="index"><span itemprop="name">常见概念</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>JWT 即 Json Web Token，是一种跨域认证解决方案</p>
+<h2 id="跨域认证"><a href="#跨域认证" class="headerlink" title="跨域认证"></a>跨域认证</h2><p>用户认证一般流程</p>
+<ol>
+<li><p>用户向服务器发送用户名和密码</p>
+</li>
+<li><p>服务器验证通过后，在当前 session 里面保存相关数据，比如用户角色、登录时间等等</p>
+</li>
+<li><p>服务器向用户返回一个 session_id，写入用户的 Cookie</p>
+</li>
+<li><p>用户随后的每一次请求，都会通过 Cookie 将 session_id 传回服务器</p>
+</li>
+<li><p>服务器收到 session_id，找到前期保存的数据，由此得知用户的身份</p>
+</li>
+</ol>
+<p>该方案存在扩展性不好的问题，当遇到服务器集群或者是跨域的服务架构，就需要做到 session 数据共享才能使每台服务器都能读到 session</p>
+<p>为了解决 session 共享问题，有两种方案</p>
+<ol>
+<li><p>将 session 持久化，这样服务收到请求向持久层请求数据</p>
+</li>
+<li><p>服务端不保存 session，将 session 保存在客户端，这样客户端每次请求到将 session 发回服务端</p>
+</li>
+</ol>
+<p>JWT 就是改良方案二的一个代表</p>
+<h2 id="JWT-原理"><a href="#JWT-原理" class="headerlink" title="JWT 原理"></a>JWT 原理</h2><p>JWT 是一个很长的字符串，由 Header 头部、Payload 负载和 Signature 签名组成，中间用点 . 分隔成三个部分</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Header.Payload.Signature</span><br></pre></td></tr></table></figure>
+
+<h3 id="Header"><a href="#Header" class="headerlink" title="Header"></a>Header</h3><p>Header 是一个 JSON 对象，描述 JWT 的元数据，包括以下字段</p>
+<ul>
+<li><p>alg：签名算法，默认 HS256</p>
+</li>
+<li><p>typ：token 类型，JWT 统一为 JWT</p>
+</li>
+</ul>
+<p>最后需要将 Header 的 JSON 对象使用 Base64URL 算法转成字符串</p>
+<h3 id="Payload"><a href="#Payload" class="headerlink" title="Payload"></a>Payload</h3><p>Payload 是一个 JSON 对象，描述需要传递的信息，包括以下字段</p>
+<ul>
+<li><p>iss：issuer 签发人</p>
+</li>
+<li><p>exp：expiration time 过期时间</p>
+</li>
+<li><p>sub：subject 主题</p>
+</li>
+<li><p>aud：audience 受众</p>
+</li>
+<li><p>nbf：not before 生效时间</p>
+</li>
+<li><p>iat：issued at 签发时间</p>
+</li>
+<li><p>jti：JWT id 编号</p>
+</li>
+</ul>
+<p>除了官方字段，还可以在这个部分定义私有字段</p>
+<p>最后需要将 Payload 的 JSON 对象使用 Base64URL 算法转成字符串</p>
+<h3 id="Signature"><a href="#Signature" class="headerlink" title="Signature"></a>Signature</h3><p>Signature 是对前两部分利用私钥的签名，防止数据篡改</p>
+<p>服务端根据 Header 中的算法，利用私钥、 Header 和 Payload 计算签名，再使用 Base64URL 转成字符串</p>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><ul>
+<li><p>客户端每次与服务器通信都要带上这个 JWT，可以把它放在 Cookie 里面自动发送，但是这样不能跨域</p>
+</li>
+<li><p>将 JWT 放在 HTTP 请求的头信息 Authorization 字段里面，这样就解决了跨域的问题</p>
+</li>
+<li><p>JWT 放在 POST 请求的数据体里面，这样也能解决了跨域的问题</p>
+</li>
+</ul>
+<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
+<li><p>JWT 默认是不加密，但也可以生成原始 Token 以后用密钥再加密一次</p>
+</li>
+<li><p>JWT 不加密的情况下，不能将秘密数据写入 JWT</p>
+</li>
+<li><p>JWT 不仅可以用于认证，也可以用于交换信息</p>
+</li>
+<li><p>由于服务器不保存 session 状态，因此无法在使用过程中废止某个 token，或者更改 token 的权限，除非服务器部署额外的逻辑</p>
+</li>
+<li><p>JWT 本身包含了认证信息，一旦泄露任何人都可以获得该令牌的所有权限，所以 JWT 的有效期应该设置得比较短</p>
+</li>
+<li><p>为了减少盗用，JWT 不应该使用 HTTP 协议明码传输，要使用 HTTPS 协议传输</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-Base64/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-Base64/" class="post-title-link" itemprop="url">Base64</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-05 11:39:32" itemprop="dateCreated datePublished" datetime="2023-06-05T11:39:32+08:00">2023-06-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">编码格式</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Base64 是一种用 64 个可打印字符来表示二进制数据的表示方法，其中的可打印字符包括 A-Z、a-z、0-9、+、\</p>
+<p>它将 6 个 bit （2^6&#x3D;64）映射到一个可打印字符，这样 3 个字节的二进制数据就变成了 4 个可打印字符</p>
+<p>Base64 编码并不是为了减小内容体积，相反它反而增大了内容的大小，因为用 4 个字符替代 3 个字节，整体大小增加了三分之一</p>
+<p>如果要编码的字节数不能被 3 整除，则会多出 1 个或 2 个字节，那么可以先使用 0 字节值在末尾补足，使其能够被 3 整除，然后再进行 Base64 的编码，在编码后的 Base64 文本后加上一个或两个 &#x3D; 号，代表补足的字节数</p>
+<h2 id="为什么需要-Base64"><a href="#为什么需要-Base64" class="headerlink" title="为什么需要 Base64"></a>为什么需要 Base64</h2><ol>
+<li><p>一个传输协议如果是基于 ASCII 文本的，那么它就不能传输二进制流，如果要传输二进制流就得编码。常见的诸如 http 协议的 url 就是纯文本的，不能直接放二进制流</p>
+</li>
+<li><p>在一些硬件或软件上，某些二进制值表示的意义不一样，做的处理也不一样，这就导致那些不兼容的二进制值被错误处理，所以就先把传输数据做一个 Base64 编码，统统变成可见字符，这样出错的可能性就大大降低了</p>
+</li>
+</ol>
+<h2 id="Base64URL"><a href="#Base64URL" class="headerlink" title="Base64URL"></a>Base64URL</h2><p>Base64 有三个字符 +、&#x2F; 和 &#x3D; 在 URL 里面有特殊含义，所以在 Base64URL 中被替换掉，其中 &#x3D; 被省略、+ 替换成 -，&#x2F; 替换成 _</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-volatile%E7%BB%86%E8%8A%82/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-volatile%E7%BB%86%E8%8A%82/" class="post-title-link" itemprop="url">volatile 细节</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-02 21:05:30" itemprop="dateCreated datePublished" datetime="2023-06-02T21:05:30+08:00">2023-06-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>遇到 <code>volatile</code> 修饰的变量，编译器对访问该变量的代码就不进行优化，从而可以提供对特殊地址的稳定访问</p>
+<p>当要求使用 <code>volatile</code> 声明的变量的值的时候，系统总是重新从它所在的内存读取数据，即使它前面的指令刚刚从该处读取过数据，并且读取的数据立刻被保存</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">p 就只是一个指向 int 类型的指针</span></span><br><span class="line"><span class="comment">a = *p 和 b = *p 两句就只需要从内存中读取一次就够了，因为从内存中读取一次之后，CPU 的寄存器中就已经有了这个值，把这个值直接复用就可以了</span></span><br><span class="line"><span class="comment">因此编译器就会做优化，把两次访存的操作优化成一次</span></span><br><span class="line"><span class="comment">但这样的前提是代码里没有改变 p 指向内存地址的值，这个值没有发生改变</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">int</span> *p = <span class="comment">/* ... */</span>;</span><br><span class="line"><span class="type">int</span> a, b;</span><br><span class="line">a = *p;</span><br><span class="line">b = *p;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 每次都从地址取值，保证 a、b 数据的正确性</span></span><br><span class="line"><span class="keyword">volatile</span> <span class="type">int</span> *p = <span class="comment">/* ... */</span>;</span><br><span class="line"><span class="type">int</span> a, b;</span><br><span class="line">a = *p;</span><br><span class="line">b = *p;</span><br></pre></td></tr></table></figure>
+
+<p>一个参数既可以既是 <code>const</code> 同时是 <code>volatile</code></p>
+<p>指针也可以被 <code>volatile</code> 修饰，与 <code>const</code> 相同</p>
+<p>可以把一个非 <code>volatile int</code> 赋给 <code>volatile int</code>，但是不能把非 <code>volatile</code> 对象赋给一个 <code>volatile</code> 对象</p>
+<p>数据只在内存中读写，直接操作它既不能保证操作是原子的，也不能保证 Memory Order</p>
+<h2 id="volatile-类"><a href="#volatile-类" class="headerlink" title="volatile 类"></a>volatile 类</h2><p>类是 <code>volatile</code> 则里面的成员都是 <code>volatile</code> 的</p>
+<h2 id="volatile-成员函数"><a href="#volatile-成员函数" class="headerlink" title="volatile 成员函数"></a>volatile 成员函数</h2><p>成员函数声明为 <code>volatile</code> 则同 <code>const</code> 一样在函数最后声明即可，表示这个函数里访问的变量可能由于其他原因发生改变</p>
+<h2 id="多线程下的-volatile"><a href="#多线程下的-volatile" class="headerlink" title="多线程下的 volatile"></a>多线程下的 volatile</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SharedDataStructure</span> gSharedStructure; </span><br><span class="line"><span class="type">int</span> gFlag;</span><br><span class="line"></span><br><span class="line"><span class="comment">//线程 A </span></span><br><span class="line">gSharedStructure.foo = ...; </span><br><span class="line">gSharedStructure.bar = ...; </span><br><span class="line">gSharedStructure.baz = ...; </span><br><span class="line">gFlag = <span class="number">1</span>; </span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">//线程 B</span></span><br><span class="line"> <span class="keyword">if</span>(gFlag) </span><br><span class="line">        <span class="built_in">UseSharedStructure</span>(&amp;gSharedStructure;); </span><br><span class="line">...</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">结构体和 flag 之间因为不存在依赖关系，执行的顺序可能会被编译器修改(compiler reorder，指令重排)，线程 A 的代码可能是 flag 先被置为 1，然后处理结构体，这样线程 B 的 if 语句内就是不安全的</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">可以将 gFlag 和 gSharedStructure 都加上 volatile 关键字，保证编译器按照代码顺序产生机器码</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>加了 <code>volatile</code> 关键字之后，上述代码在实际执行时仍不能保证安全，因为 CPU 会激进的 reorder 以加快执行速度， 因此内部执行机器码的顺序仍然是未知的，只保证最终结束时的结果与原顺序一致（as-if）</p>
+<p>在这种情况下，如果线程 A 和 B 被分配到两个 CPU 执行，B 的 CPU 实际并不知道 A 的 CPU 执行情况，因此仍然存在 gFlag 被先修改而 gSharedStructure 未处理的问题</p>
+<p>即使已经熟知 <code>volatile</code> 种种特性，实际仍不推荐使用，因为各种编译器的优化器也可能存在 bug</p>
+<p>不要预期在多线程中使用 <code>volatile</code> 来解决数据的同步问题，该加锁时就加锁</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +551,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -329,7 +685,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -422,7 +778,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -510,7 +866,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -621,7 +977,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -779,7 +1135,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -931,7 +1287,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
+      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1073,394 +1429,6 @@
 <li><p>如果参数个数不确定，<code>this</code> 指针在所有参数压栈后被压入堆栈，如果参数个数确定，<code>this</code> 指针通过 ecx 传递给被调用者</p>
 </li>
 <li><p>如果参数个数不确定，调用者清理堆栈，否则函数自己清理堆栈</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E6%9F%94%E6%80%A7%E6%95%B0%E7%BB%84/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E6%9F%94%E6%80%A7%E6%95%B0%E7%BB%84/" class="post-title-link" itemprop="url">柔性数组</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-02 20:29:09" itemprop="dateCreated datePublished" datetime="2023-06-02T20:29:09+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="数组形式"><a href="#数组形式" class="headerlink" title="数组形式"></a>数组形式</h2><ol>
-<li>定长数组：浪费空间</li>
-</ol>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">buf</span> &#123;</span><br><span class="line">    <span class="type">int</span> len;</span><br><span class="line">    <span class="type">char</span> data[<span class="number">1024</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>指针数组：需要手动申请和释放内存</li>
-</ol>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">buf</span> &#123;</span><br><span class="line">    <span class="type">int</span> len;</span><br><span class="line">    <span class="type">char</span>* data;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
-<li>柔性数组</li>
-</ol>
-<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">buf</span> &#123;</span><br><span class="line">    <span class="type">int</span> len;</span><br><span class="line">    <span class="type">char</span> buf[];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>柔性数组成员必须定义在结构体里面且为最后元素</p>
-</li>
-<li><p>结构体中不能单独只有柔性数组成员</p>
-</li>
-<li><p>柔性数组不占内存</p>
-</li>
-</ul>
-<p>在一个结构体的最后，申明一个长度为空的数组，就可以使得这个结构体是可变长的</p>
-<p>对于编译器来说，此时长度为 0 的数组并不占用空间，因为数组名本身不占空间，它只是一个偏移量，数组名这个符号本身代表了一个不可修改的地址常量</p>
-<p>结构体使用指针时地址不连续，需要两次 <code>malloc</code>，而柔性数组地址连续，只需要一次 <code>malloc</code>，同理释放前者需要两次，后者可以一起释放</p>
-<p><code>sizeof</code> 返回不包括柔性数组的内存</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> <span class="title class_">pen</span> &#123;</span><br><span class="line">    <span class="type">int</span> len;</span><br><span class="line">    <span class="type">char</span> data[];<span class="comment">//柔性数组</span></span><br><span class="line">&#125; pen;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span> **argv)</span> </span>&#123;</span><br><span class="line">    <span class="type">char</span> str[] = <span class="string">&quot;this is a new string&quot;</span>;<span class="comment">//需要填入的字符串</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">pen</span> *p = (<span class="keyword">struct</span> pen*)<span class="built_in">malloc</span>(<span class="built_in">sizeof</span>(pen) + <span class="built_in">strlen</span>(str) + <span class="number">1</span>);</span><br><span class="line">    p-&gt;data= <span class="literal">NULL</span>;</span><br><span class="line">    p-&gt;len = <span class="built_in">strlen</span>(str);</span><br><span class="line">    <span class="built_in">strcpy</span>((<span class="type">char</span> *)(p + <span class="number">1</span>), str);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;pen-&gt;data: %s\n&quot;</span>, p-&gt;data);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E5%BC%82%E5%B8%B8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E5%BC%82%E5%B8%B8/" class="post-title-link" itemprop="url">异常</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-02 20:24:14" itemprop="dateCreated datePublished" datetime="2023-06-02T20:24:14+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="throw"><a href="#throw" class="headerlink" title="throw"></a>throw</h2><p>异常事件发生时，程序使用 <code>throw</code> 关键字抛出异常表达式</p>
-<p>在包含了异常出现点的最内层的 <code>try</code> 块，依次按类型匹配 <code>catch</code> 语句中的异常对象</p>
-<p><code>throw</code> 语句必须包含在 <code>try</code> 块中，也可以是被包含在调用栈的外层函数的 <code>try</code> 块中</p>
-<p>执行 <code>throw</code> 语句时，<code>throw</code> 表达式将作为对象被复制构造为一个新的对象，称为异常对象</p>
-<p>异常对象放在内存的特殊位置，该位置既不是栈也不是堆</p>
-<p>当执行一个 <code>throw</code> 语句时，跟在 <code>throw</code> 语句之后的语句将不再被执行，<code>throw</code> 语句的语法有点类似于 <code>return</code>，因此导致在调用栈上的函数可能提早退出</p>
-<h2 id="异常对象"><a href="#异常对象" class="headerlink" title="异常对象"></a>异常对象</h2><p>异常对象是一种特殊的对象，编译器依据异常抛出表达式构造异常对象</p>
-<p>异常对象可以进行复制构造，要求异常抛出表达式的复制构造函数（或移动构造函数）、析构函数不能是私有的</p>
-<p>在 <code>throw</code> 语句中抛出局部变量的指针或引用也几乎是错误的行为</p>
-<p><code>throw</code> 表达式的静态编译类型将决定异常对象的类型，所以当 <code>throw</code> 出的是基类指针的解引用，而该指针所指向的实际对象是派生类对象，此时将发生派生类对象切割</p>
-<h2 id="catch"><a href="#catch" class="headerlink" title="catch"></a>catch</h2><p>如果 <code>catch</code> 语句的参数是引用类型，则该参数可直接作用于异常对象</p>
-<p>如果 <code>catch</code> 参数是传值的，则复制构函数将依据异常对象来构造 <code>catch</code> 参数对象，在该 <code>catch</code> 语句结束的时候，先析构 <code>catch</code> 参数对象，然后再析构异常对象</p>
-<p>在进行异常对象的匹配时，编译器不会做任何的隐式类型转换或类型提升</p>
-<h2 id="exception"><a href="#exception" class="headerlink" title="exception"></a>exception</h2><p>C++ <code>std::exception</code> 有一个 <code>what()</code> 虚函数，返回一个字符串</p>
-<h2 id="栈展开"><a href="#栈展开" class="headerlink" title="栈展开"></a>栈展开</h2><p>异常抛出时，将一路向外层寻找 <code>catch</code> 语句</p>
-<p>寻找结束于某个 <code>catch</code> 语句或标准库函数 <code>terminate</code>，在这个展开过程中局部变量的销毁问题很关键</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">test2</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="function">string <span class="title">s</span><span class="params">(<span class="string">&quot;123456&quot;</span>)</span></span>;</span><br><span class="line">    <span class="type">char</span> c = s.<span class="built_in">at</span>(<span class="number">100</span>);</span><br><span class="line">    cout&lt;&lt;c;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">test1</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">test2</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="type">int</span> * p = <span class="keyword">new</span> <span class="type">int</span> [<span class="number">100</span>];</span><br><span class="line">        <span class="built_in">test1</span>();</span><br><span class="line">        <span class="keyword">delete</span> [] p;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">catch</span>(exception e) &#123;</span><br><span class="line">        cerr&lt;&lt;<span class="string">&quot;error&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>可以使用 RAII 的思想管理资源，从而避免资源泄露</p>
-<h2 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h2><p>发生异常时：</p>
-<ol>
-<li><p>首先检查异常发生的位置是否在当前函数的某个 <code>try</code> 中，如果在则寻找 <code>catch</code>，不在则沿着函数调用栈重复第一步</p>
-</li>
-<li><p>找到对应的 <code>catch</code> 块，根据 RTTI 查看这个异常类型是否和 <code>catch</code> 块中捕获类型相同，不同则重复第一步，相同则继续</p>
-</li>
-<li><p>处理异常，执行栈回退，释放 <code>try</code> 块中的局部变量</p>
-</li>
-</ol>
-<h2 id="损耗"><a href="#损耗" class="headerlink" title="损耗"></a>损耗</h2><p>RTTI、不断的回溯会导致较多的 catch miss，从而导致性能损耗</p>
-<h2 id="异常机制与构造函数"><a href="#异常机制与构造函数" class="headerlink" title="异常机制与构造函数"></a>异常机制与构造函数</h2><p>构造函数没有返回值，所以应该使用异常机制来报告发生的问题</p>
-<h2 id="异常机制与析构函数"><a href="#异常机制与析构函数" class="headerlink" title="异常机制与析构函数"></a>异常机制与析构函数</h2><p>C++ 不禁止析构函数向外界抛出异常，但析构函数被期望不向外界函数抛出异常</p>
-<p>析构函数中向函数外抛出异常，将直接调用 <code>terminator()</code> 系统函数终止程序</p>
-<p>如果一个析构函数内部抛出了异常，就应该在析构函数的内部捕获并处理该异常，不能让异常被抛出析构函数之外</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E7%BB%A7%E6%89%BF/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E7%BB%A7%E6%89%BF/" class="post-title-link" itemprop="url">继承</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-02 20:05:55" itemprop="dateCreated datePublished" datetime="2023-06-02T20:05:55+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-27 09:20:49" itemprop="dateModified" datetime="2023-12-27T09:20:49+08:00">2023-12-27</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="派生类的构造析构"><a href="#派生类的构造析构" class="headerlink" title="派生类的构造析构"></a>派生类的构造析构</h2><p>派生类构造函数必须使用基类的构造函数</p>
-<p>创建派生类对象时，程序先创建基类对象，意味着基类对象应当在程序进入派生类构造函数之前被创建，可以使用初始化列表完成这一工作</p>
-<p>如果不调用基类构造函数，程序将使用默认的基类构造函数，所以除非要使用默认构造函数，否则应显示调用正确的基类构造函数</p>
-<p>释放对象顺序与创建顺序相反，即先释放派生类析构函数，再自动调用基类的析构函数</p>
-<h2 id="类成员的访问权限"><a href="#类成员的访问权限" class="headerlink" title="类成员的访问权限"></a>类成员的访问权限</h2><ul>
-<li><p><code>public</code> 成员：派生类和外部都可以直接访问</p>
-</li>
-<li><p><code>protected</code> 成员：派生类中可以直接访问，外部不能直接访问</p>
-</li>
-<li><p><code>private</code> 成员：派生类和对象都不能直接访问</p>
-</li>
-</ul>
-<h2 id="公有派生"><a href="#公有派生" class="headerlink" title="公有派生"></a>公有派生</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">derivedClass</span> : <span class="keyword">public</span> baseClass &#123;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>基类 <code>public</code> 成员继承后还是 <code>public</code></p>
-</li>
-<li><p>基类 <code>protected</code> 成员继承后还是 <code>protected</code></p>
-</li>
-<li><p>基类 <code>private</code> 成员继承后还是 &#96;private&#96;&#96;</p>
-</li>
-</ul>
-<h2 id="保护继承"><a href="#保护继承" class="headerlink" title="保护继承"></a>保护继承</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">derivedClass</span> : <span class="keyword">protected</span> baseClass &#123;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>基类 <code>public</code> 成员继承后是 <code>protected</code></p>
-</li>
-<li><p>基类 <code>protected</code> 成员继承后还是 <code>protected</code></p>
-</li>
-<li><p>基类 <code>private</code> 成员继承后还是 &#96;private&#96;&#96;</p>
-</li>
-</ul>
-<h2 id="私有继承"><a href="#私有继承" class="headerlink" title="私有继承"></a>私有继承</h2><p>使用私有继承，基类的公有成员和保护成员都将成为派生类的私有成员，意味着基类方法不会成为派生类对象公有接口的一部分，但可以在派生类的成员函数中使用</p>
-<ul>
-<li><p>基类 <code>public</code> 成员继承后是 <code>private</code></p>
-</li>
-<li><p>基类 <code>protected</code> 成员继承后是 <code>private</code></p>
-</li>
-<li><p>基类 <code>private</code> 成员继承后还是 &#96;private&#96;&#96;</p>
-</li>
-</ul>
-<h2 id="抽象基类"><a href="#抽象基类" class="headerlink" title="抽象基类"></a>抽象基类</h2><p>使用纯虚函数提供未实现的函数，<code>virtual type Func(int , double b) const = 0</code></p>
-<p>当类声明中包含纯虚函数时，则不能创建类的对象，只能用作基类，即抽象基类</p>
-<p>派生类必须覆写纯虚函数</p>
-<h2 id="多态公有继承"><a href="#多态公有继承" class="headerlink" title="多态公有继承"></a>多态公有继承</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">baseClass</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">baseClass</span>()&#123;&#125;;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">func</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">derivedClass</span> : <span class="keyword">public</span> baseClass</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">derivedClass</span>()&#123;&#125;;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">func</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>同一个方法在派生类和基类中的行为不同，成为多态</p>
-<p>实现多态的两种机制：</p>
-<ul>
-<li><p>在派生类中重新定义基类的方法</p>
-</li>
-<li><p>使用 <code>virtual</code> 虚方法</p>
-</li>
-</ul>
-<p>使用指针或引用调用成员函数：</p>
-<ul>
-<li><p>如果没有 <code>virtual</code> 关键字，程序将根据引用类型或指针类型选择方法</p>
-</li>
-<li><p>如果有 <code>virtual</code> 关键字，程序将根据引用或指针指向的对象的类型来选择方法（基类指针或引用可以指向派生类）</p>
-</li>
-</ul>
-<h2 id="虚继承"><a href="#虚继承" class="headerlink" title="虚继承"></a>虚继承</h2><p>菱形继承即多个类继承了同一个公共基类，而这些派生类又同时被一个类继承</p>
-<img src="/2023/06/02/cpp%E7%BB%86%E8%8A%82-%E7%BB%A7%E6%89%BF/01.png" class="">
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="type">int</span> _base;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">()</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;Base::fun&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">A</span>:<span class="keyword">public</span> Base</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="type">int</span> _a;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> : <span class="keyword">public</span> Base</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="type">int</span> _b;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">D</span> :<span class="keyword">public</span> A, <span class="keyword">public</span> B</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	<span class="type">int</span> _d;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	D d;</span><br><span class="line">	d.<span class="built_in">fun</span>();<span class="comment">//编译器报错：调用不明确</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用域限定所需访问函数</span></span><br><span class="line">    d.A::<span class="built_in">fun</span>();</span><br><span class="line">	d.B::<span class="built_in">fun</span>();</span><br><span class="line">	<span class="built_in">getchar</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在继承时，A 和 B 使用 <code>virtual</code> 虚继承，使派生类中只保留一份节间基类成员</p>
-<p>虚继承的目的是让某个类做出声明，承诺愿意共享它的基类</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Base</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="type">int</span> _base;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">fun</span><span class="params">()</span></span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		cout &lt;&lt; <span class="string">&quot;Base::fun&quot;</span> &lt;&lt; endl;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">A</span>:<span class="keyword">virtual</span> <span class="keyword">public</span> Base</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="type">int</span> _a;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">B</span> :<span class="keyword">virtual</span> <span class="keyword">public</span> Base</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">	<span class="type">int</span> _b;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">D</span> :<span class="keyword">public</span> A, <span class="keyword">public</span> B</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">	<span class="type">int</span> _d;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	D d;</span><br><span class="line">	d.<span class="built_in">fun</span>();</span><br><span class="line">	<span class="built_in">getchar</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>基类在虚继承中需要显示地直接调用公共基类构造函数，不能通过中间类进行传递，否者编译器将使用公共基类默认构造函数；这种方法对于虚基类是合法的，对于非虚基类是非法的</p>
-</li>
-<li><p>虚继承底层实现原理一般通过虚基类指针和虚基类表实现，每个虚继承的子类都有一个虚基类指针和虚基类表（不占用类对象的存储空间）；虚基类依旧会在子类里面存在拷贝，只是仅仅最多存在一份而已，并不是不在子类里面了；当虚继承的子类被当做父类继承时，虚基类指针也会被继承；虚基类表中记录了虚基类与本类的偏移地址，通过偏移地址，这样就找到了虚基类成员</p>
 </li>
 </ul>
 

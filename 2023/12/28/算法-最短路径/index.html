@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="图结构中一个显而易见的定理：最短路径的子路径仍然是最短路径 对于有权图，如果权边有负数，则分两种情况：  如果从某点出发，可以到达一个权值和为负数的环，那么这个点到其他点的最短距离就是负无穷了  如果说不存在一个这样的负环，那么就和没有负权边一样了   Floyd 算法Floyd 算法一种基于动态规划的多源最短路算法，只能在不存在负权环的情况下使用，因为其并不能判断负权环 定义状态：f[k][i]">
+<meta property="og:type" content="article">
+<meta property="og:title" content="有权图最短路径算法">
+<meta property="og:url" content="https://chaxxro.github.io/2023/12/28/%E7%AE%97%E6%B3%95-%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="图结构中一个显而易见的定理：最短路径的子路径仍然是最短路径 对于有权图，如果权边有负数，则分两种情况：  如果从某点出发，可以到达一个权值和为负数的环，那么这个点到其他点的最短距离就是负无穷了  如果说不存在一个这样的负环，那么就和没有负权边一样了   Floyd 算法Floyd 算法一种基于动态规划的多源最短路算法，只能在不存在负权环的情况下使用，因为其并不能判断负权环 定义状态：f[k][i]">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-12-28T03:44:12.000Z">
+<meta property="article:modified_time" content="2023-12-28T03:47:33.483Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="algorithm">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2023/12/28/%E7%AE%97%E6%B3%95-%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2023/12/28/%E7%AE%97%E6%B3%95-%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/","path":"2023/12/28/算法-最短路径/","title":"有权图最短路径算法"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>有权图最短路径算法 | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Floyd-%E7%AE%97%E6%B3%95"><span class="nav-text">Floyd 算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dijkstra-%E7%AE%97%E6%B3%95"><span class="nav-text">Dijkstra 算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bellman-Ford-%E7%AE%97%E6%B3%95"><span class="nav-text">Bellman-Ford 算法</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">410</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/12/28/%E7%AE%97%E6%B3%95-%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="有权图最短路径算法 | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          有权图最短路径算法
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-12-28 11:44:12 / 修改时间：11:47:33" itemprop="dateCreated datePublished" datetime="2023-12-28T11:44:12+08:00">2023-12-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/algorithm/" itemprop="url" rel="index"><span itemprop="name">algorithm</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>图结构中一个显而易见的定理：最短路径的子路径仍然是最短路径</p>
+<p>对于有权图，如果权边有负数，则分两种情况：</p>
+<ol>
+<li><p>如果从某点出发，可以到达一个权值和为负数的环，那么这个点到其他点的最短距离就是负无穷了</p>
+</li>
+<li><p>如果说不存在一个这样的负环，那么就和没有负权边一样了</p>
+</li>
+</ol>
+<h2 id="Floyd-算法"><a href="#Floyd-算法" class="headerlink" title="Floyd 算法"></a>Floyd 算法</h2><p>Floyd 算法一种基于动态规划的多源最短路算法，只能在不存在负权环的情况下使用，因为其并不能判断负权环</p>
+<p>定义状态：<code>f[k][i][j]</code> 为经过前 k 个节点，从 i 到 j 所能得到的最短路径，可以从 <code>f[k - 1][i][j]</code> 转移过来（即不经过第 k 个节点）；也可以从 <code>f[k - 1][i][k] + f[k - 1][k][j]</code> 转移过来，即经过第 k 个节点；</p>
+<p>状态转移方程：<code>f[k][i][j] = min(f[k-1][i][j], f[k-1][i][k] + f[k-1][k][j]) </code>，降维后为：<code>f[i][j] = min(f[i][j], f[i][k] + f[k][j]) </code></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 初始化为一个比较大的值</span></span><br><span class="line">vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">graph</span>(n, <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n, INT_MAX / <span class="number">2</span>));  </span><br><span class="line"><span class="built_in">initGraph</span>(graph);  <span class="comment">// 给图中的边赋值</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">0</span>; k &lt; n; ++k) &#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">		<span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>; j &lt; n; ++j) &#123;</span><br><span class="line">			graph[i][j] = <span class="built_in">min</span>(graph[i][j], graph[i][k] + graph[k][j]);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">// 记录路径</span></span><br><span class="line"><span class="comment">vector&lt;vector&lt;int&gt;&gt; path(n, vector&lt;int&gt;(n, -1));</span></span><br><span class="line"><span class="comment">for(int k = 0; k &lt; n; ++k) &#123;</span></span><br><span class="line"><span class="comment">	for(int i = 0; i &lt; n; ++i) &#123;</span></span><br><span class="line"><span class="comment">		for(int j = 0; j &lt; n; ++j) &#123;</span></span><br><span class="line"><span class="comment">			if(graph[i][j] &gt; graph[i][k] + graph[k][j]) &#123;</span></span><br><span class="line"><span class="comment">				graph[i][j] = graph[i][k] + graph[k][j];</span></span><br><span class="line"><span class="comment">				path[i][j] = k;</span></span><br><span class="line"><span class="comment">			&#125;</span></span><br><span class="line"><span class="comment">		&#125;</span></span><br><span class="line"><span class="comment">	&#125;</span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">function&lt;string(int, int)&gt; helper = [&amp;](int i, int j)-&gt;string &#123;</span></span><br><span class="line"><span class="comment">	if(path[i][j] == -1) &#123;</span></span><br><span class="line"><span class="comment">		return to_string(i) + &quot; -&gt; &quot; + to_string(j);</span></span><br><span class="line"><span class="comment">	&#125;</span></span><br><span class="line"><span class="comment">	else &#123;</span></span><br><span class="line"><span class="comment">		int k = path[i][j];</span></span><br><span class="line"><span class="comment">		return helper(i, k) + &quot; -&gt; &quot; + helper(k, j);</span></span><br><span class="line"><span class="comment">	&#125;</span></span><br><span class="line"><span class="comment">&#125;;</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>维护路径矩阵使得空间复杂度达到了 O(n^2)，时间复杂度达到了 O(n^3)</p>
+<h2 id="Dijkstra-算法"><a href="#Dijkstra-算法" class="headerlink" title="Dijkstra 算法"></a>Dijkstra 算法</h2><p>Dijkstra 算法适用于求单源最短路径，主要特点是以起始点为中心向外层层拓展（广度优先搜索思想），直到拓展到终点为止，要求图中的边全部非负</p>
+<p>维护两个点集 A，B，A 点集代表已经求出源点到该点的最短路的点的集合，B 代表未求出源点到该点的最短路径的点的集合。维护一个向量 d，d[i] 代表源点到点 i 的最短路径长度；不断进行以下操作：找出点集 B 中 d[i] i∈B 最小的点，这个点为进入点集A的候选节点，然后通过该点松弛点集 B 中其他的点，更新向量 d，然后将该候选点放入点集 A，直到点集 B 为空</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">graph</span>(n, <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n, INT_MAX));</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">dijkstra</span><span class="params">(<span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">dist</span><span class="params">(n, INT_MAX / <span class="number">2</span>)</span></span>;</span><br><span class="line">	unordered_set&lt;<span class="type">int</span>&gt; A, B;</span><br><span class="line">	A.<span class="built_in">insert</span>(start);</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">		dist[i] = (i == start ? <span class="number">0</span> : graph[start][i]);</span><br><span class="line">		<span class="keyword">if</span> (i != start) B.<span class="built_in">insert</span>(i);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 在 B 中找 dist 里最小的值加入 A</span></span><br><span class="line">	<span class="keyword">while</span> (B.<span class="built_in">size</span>()) &#123;</span><br><span class="line">		<span class="type">int</span> pos = <span class="number">0</span>;</span><br><span class="line">		<span class="type">int</span> INF = INT_MAX;</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">			<span class="keyword">if</span> (B.<span class="built_in">count</span>(i) &amp;&amp; dist[i] &lt; INF) &#123;</span><br><span class="line">				pos = i;</span><br><span class="line">				INF = dist[i];</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		B.<span class="built_in">erase</span>(pos);</span><br><span class="line">		A.<span class="built_in">insert</span>(pos);</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">			<span class="keyword">if</span> (B.<span class="built_in">count</span>(i)) &#123;</span><br><span class="line">				dist[i] = <span class="built_in">min</span>(dist[i], dist[pos] + graph[pos][i]);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> dist[end];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>算法的时间复杂度为 O(n^2)，若通过这个算法求所有的点的最短路，即调用 n 次，那么算法复杂度为 O(n^3)；对于集合 B 可使用优先队列进行优化，时间复杂度为 O(nlogn)</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">dijkstra</span><span class="params">(<span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">dist</span><span class="params">(n, INT_MAX / <span class="number">2</span>)</span></span>;</span><br><span class="line">	vector&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt; B;</span><br><span class="line">	<span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">path</span><span class="params">(n, start)</span></span>;  <span class="comment">// 存储前驱节点</span></span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">		dist[i] = (i == start ? <span class="number">0</span> : roads[start][i]);</span><br><span class="line">		<span class="keyword">if</span> (i != start) B.<span class="built_in">emplace_back</span>(<span class="built_in">make_pair</span>(dist[i], i));</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">make_heap</span>(B.<span class="built_in">begin</span>(), B.<span class="built_in">end</span>(), greater&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt;());</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 在 B 中找 dist 里最小的值加入 A</span></span><br><span class="line">	<span class="keyword">while</span> (B.<span class="built_in">size</span>()) &#123;</span><br><span class="line">		<span class="comment">// 取出最小值</span></span><br><span class="line">		<span class="built_in">pop_heap</span>(B.<span class="built_in">begin</span>(), B.<span class="built_in">end</span>());</span><br><span class="line">		<span class="keyword">auto</span> pos = B.<span class="built_in">back</span>();</span><br><span class="line">		B.<span class="built_in">pop_back</span>();</span><br><span class="line">		</span><br><span class="line">		<span class="comment">// 更新</span></span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; B.<span class="built_in">size</span>(); ++i) &#123;			</span><br><span class="line">			<span class="keyword">if</span> (dist[B[i].second] &gt; dist[pos.second] + roads[pos.second][B[i].second]) &#123;</span><br><span class="line">				dist[B[i].second] = dist[pos.second] + roads[pos.second][B[i].second];</span><br><span class="line">				path[B[i].second] = pos.second;</span><br><span class="line">			&#125;</span><br><span class="line">			B[i].first = dist[B[i].second];</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">make_heap</span>(B.<span class="built_in">begin</span>(), B.<span class="built_in">end</span>(), greater&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt;());</span><br><span class="line">	&#125;</span><br><span class="line">	function&lt;<span class="type">void</span>(<span class="type">int</span>, <span class="type">int</span>)&gt; print = [&amp;](<span class="type">int</span> s, <span class="type">int</span> e) &#123;</span><br><span class="line">		<span class="keyword">if</span>(s == e) <span class="keyword">return</span>;</span><br><span class="line">		<span class="built_in">print</span>(s, path[e]);</span><br><span class="line">		cout &lt;&lt; s &lt;&lt; <span class="string">&quot; -&gt; &quot;</span> &lt;&lt; path[e];</span><br><span class="line">	&#125;;</span><br><span class="line">	<span class="built_in">print</span>(start, end);</span><br><span class="line">	<span class="keyword">return</span> dist[end];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Bellman-Ford-算法"><a href="#Bellman-Ford-算法" class="headerlink" title="Bellman-Ford 算法"></a>Bellman-Ford 算法</h2><p>用于计算出起点到各个节点的最短距离，支持存在负权重的情况</p>
+<p>与 Dijkstra 最大的不同是每次都是从源点 s 重新出发进行松弛更新操作，而 Dijkstra 则是从源点出发向外扩逐个处理相邻的节点，不会去重复处理节点</p>
+<p>流程：</p>
+<ol>
+<li><p>初始化时将起点 s 到各个顶点 v 的距离 dist(s-&gt;v) 赋值为无穷大，dist(s-&gt;s) 赋值为 0</p>
+</li>
+<li><p>后续进行最多 n-1 次遍历操作，对所有的边进行松弛操作，因为在一个含有 n 个顶点的图中，任意两点之间的最短路径最多包含 n-1 边；第 i 轮在对所有边进行松弛后，得到的是源点最多经过 i 条边到达其他顶点的最短距离</p>
+</li>
+<li><p>遍历都结束后，若再进行一次遍历，还能得到s到某些节点更短的路径的话，则说明存在负环路</p>
+</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">g</span>(n, <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n, INT_MAX));</span><br><span class="line"><span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">dist</span><span class="params">(n, INT_MAX / <span class="number">2</span>)</span></span>;</span><br><span class="line"><span class="built_in">InitGraph</span>(g);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>; i &lt; n; ++i) &#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>; j &lt; n ; ++j) &#123;</span><br><span class="line">		<span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">0</span>; k &lt; n; ++k) &#123;</span><br><span class="line">			<span class="comment">// 因为只是求最短路径，所以可以使用本次最外层循环更新过的数据</span></span><br><span class="line">			dist[k] = <span class="built_in">min</span>(dist[k], dist[j] + g[j][k]);</span><br><span class="line">			<span class="comment">// 如果有要求最多经过几条边，则不能使用本次最外层循环更新过的数据</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">bool</span> loop = <span class="literal">false</span>;</span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>; j &lt; n ; ++j) &#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">0</span>; k &lt; n; ++k) &#123;</span><br><span class="line">		<span class="keyword">if</span>(dist[k] &lt; dist[j] + g[j][k]) &#123;</span><br><span class="line">			loop = <span class="literal">true</span>;  <span class="comment">// 有负环</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/algorithm/" rel="tag"># algorithm</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/12/28/LeetCode-%E5%9B%BE/" rel="prev" title="图">
+                  <i class="fa fa-chevron-left"></i> 图
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/12/28/%E7%AE%97%E6%B3%95-%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" rel="next" title="拓扑排序">
+                  拓扑排序 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
