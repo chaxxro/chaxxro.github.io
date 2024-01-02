@@ -187,9 +187,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2023-12-28 11:44:18 / 修改时间：11:47:33" itemprop="dateCreated datePublished" datetime="2023-12-28T11:44:18+08:00">2023-12-28</time>
+      <time title="创建时间：2023-12-28 11:44:18" itemprop="dateCreated datePublished" datetime="2023-12-28T11:44:18+08:00">2023-12-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-01-02 11:26:41" itemprop="dateModified" datetime="2024-01-02T11:26:41+08:00">2024-01-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -273,9 +279,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2023-12-28 11:44:12 / 修改时间：11:47:33" itemprop="dateCreated datePublished" datetime="2023-12-28T11:44:12+08:00">2023-12-28</time>
+      <time title="创建时间：2023-12-28 11:44:12" itemprop="dateCreated datePublished" datetime="2023-12-28T11:44:12+08:00">2023-12-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-01-02 11:26:41" itemprop="dateModified" datetime="2024-01-02T11:26:41+08:00">2024-01-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -300,22 +312,33 @@
           <p>图结构中一个显而易见的定理：最短路径的子路径仍然是最短路径</p>
 <p>对于有权图，如果权边有负数，则分两种情况：</p>
 <ol>
-<li><p>如果从某点出发，可以到达一个权值和为负数的环，那么这个点到其他点的最短距离就是负无穷了</p>
+<li><p>如果存在一个负数环，那么负环上的点到其他点的最短距离就是负无穷</p>
 </li>
-<li><p>如果说不存在一个这样的负环，那么就和没有负权边一样了</p>
+<li><p>如果说不存在一个这样的负环，那么就和没有负权边一样</p>
 </li>
 </ol>
-<h2 id="Floyd-算法"><a href="#Floyd-算法" class="headerlink" title="Floyd 算法"></a>Floyd 算法</h2><p>Floyd 算法一种基于动态规划的多源最短路算法，只能在不存在负权环的情况下使用，因为其并不能判断负权环</p>
-<p>定义状态：<code>f[k][i][j]</code> 为经过前 k 个节点，从 i 到 j 所能得到的最短路径，可以从 <code>f[k - 1][i][j]</code> 转移过来（即不经过第 k 个节点）；也可以从 <code>f[k - 1][i][k] + f[k - 1][k][j]</code> 转移过来，即经过第 k 个节点；</p>
-<p>状态转移方程：<code>f[k][i][j] = min(f[k-1][i][j], f[k-1][i][k] + f[k-1][k][j]) </code>，降维后为：<code>f[i][j] = min(f[i][j], f[i][k] + f[k][j]) </code></p>
+<h2 id="Floyd-算法"><a href="#Floyd-算法" class="headerlink" title="Floyd 算法"></a>Floyd 算法</h2><p>Floyd 算法一种基于动态规划的多源最短路算法，只能在不存在负权环的情况下使用</p>
+<p>定义状态：<code>dp[k][i][j]</code> 为经过前 k 个节点，从 i 到 j 所能得到的最短路径</p>
+<p><code>dp[k][i][j]</code> 可以不经过第 k 个节点从 <code>dp[k - 1][i][j]</code> 转移过来，也可以经过第 k 个节点从 <code>dp[k - 1][i][k] + dp[k - 1][k][j]</code> 转移过来</p>
+<p>状态转移方程：<code>dp[k][i][j] = min(dp[k-1][i][j], dp[k-1][i][k] + dp[k-1][k][j]) </code></p>
+<p>在更新 <code>dp[k]</code> 层状态的时候，用到 <code>dp[k-1]</code> 层的值，<code>dp[k-2]</code>、<code>dp[k-3]</code> 层的值就直接废弃了，可以考虑删除第一层数组</p>
+<p>降维后的转移方程：<code>dp[i][j] = min(dp[i][j], dp[i][k] + dp[k][j])</code>，现在要考虑更新 <code>dp[i][j]</code> 后是否会影响同一层后面的 <code>dp[m][n]</code>，而只有当 i&#x3D;k 或者 j&#x3D;k 才会可能影响同一层的 <code>dp[m][n]</code></p>
+<p>当 i&#x3D;k 时，状态转移方程为 <code>dp[k][j] = min(dp[k][j], dp[k][k] + dp[k][j])</code>，因此不会修改 <code>dp[i][j]</code></p>
+<p>当 j&#x3D;k 时，状态转移方程为 <code>dp[i][k] = min(dp[i][k], dp[i][k] + dp[k][k])</code>，因此不会修改 <code>dp[i][j]</code></p>
+<p>综上，降维后的转移方程：<code>dp[i][j] = min(dp[i][j], dp[i][k] + dp[k][j])</code> 成立</p>
+<p>换个思路，将所有点依次加入松弛计算，每个点加入时进行试探，枚举是否有路径长度被更改。顺序加入的 k 节点需要遍历图中每一个点对 i、j，判断每一个点对的距离是否因为加入的点 k 而发生最小距离变化，从而直接推出 <code>dp[i][j] = min(dp[i][j], dp[i][k] + dp[k][j])</code></p>
+<p>同理，只有当 i 或者 j 等于 k 时才会影响其他点对，但新引入 k 点不会影响原先从 k 出发的边和到达 k 的边，所以状态转移方程成立</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 初始化为一个比较大的值</span></span><br><span class="line">vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">graph</span>(n, <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n, INT_MAX / <span class="number">2</span>));  </span><br><span class="line"><span class="built_in">initGraph</span>(graph);  <span class="comment">// 给图中的边赋值</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">0</span>; k &lt; n; ++k) &#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">		<span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>; j &lt; n; ++j) &#123;</span><br><span class="line">			graph[i][j] = <span class="built_in">min</span>(graph[i][j], graph[i][k] + graph[k][j]);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">// 记录路径</span></span><br><span class="line"><span class="comment">vector&lt;vector&lt;int&gt;&gt; path(n, vector&lt;int&gt;(n, -1));</span></span><br><span class="line"><span class="comment">for(int k = 0; k &lt; n; ++k) &#123;</span></span><br><span class="line"><span class="comment">	for(int i = 0; i &lt; n; ++i) &#123;</span></span><br><span class="line"><span class="comment">		for(int j = 0; j &lt; n; ++j) &#123;</span></span><br><span class="line"><span class="comment">			if(graph[i][j] &gt; graph[i][k] + graph[k][j]) &#123;</span></span><br><span class="line"><span class="comment">				graph[i][j] = graph[i][k] + graph[k][j];</span></span><br><span class="line"><span class="comment">				path[i][j] = k;</span></span><br><span class="line"><span class="comment">			&#125;</span></span><br><span class="line"><span class="comment">		&#125;</span></span><br><span class="line"><span class="comment">	&#125;</span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">function&lt;string(int, int)&gt; helper = [&amp;](int i, int j)-&gt;string &#123;</span></span><br><span class="line"><span class="comment">	if(path[i][j] == -1) &#123;</span></span><br><span class="line"><span class="comment">		return to_string(i) + &quot; -&gt; &quot; + to_string(j);</span></span><br><span class="line"><span class="comment">	&#125;</span></span><br><span class="line"><span class="comment">	else &#123;</span></span><br><span class="line"><span class="comment">		int k = path[i][j];</span></span><br><span class="line"><span class="comment">		return helper(i, k) + &quot; -&gt; &quot; + helper(k, j);</span></span><br><span class="line"><span class="comment">	&#125;</span></span><br><span class="line"><span class="comment">&#125;;</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
 
 <p>维护路径矩阵使得空间复杂度达到了 O(n^2)，时间复杂度达到了 O(n^3)</p>
 <h2 id="Dijkstra-算法"><a href="#Dijkstra-算法" class="headerlink" title="Dijkstra 算法"></a>Dijkstra 算法</h2><p>Dijkstra 算法适用于求单源最短路径，主要特点是以起始点为中心向外层层拓展（广度优先搜索思想），直到拓展到终点为止，要求图中的边全部非负</p>
-<p>维护两个点集 A，B，A 点集代表已经求出源点到该点的最短路的点的集合，B 代表未求出源点到该点的最短路径的点的集合。维护一个向量 d，d[i] 代表源点到点 i 的最短路径长度；不断进行以下操作：找出点集 B 中 d[i] i∈B 最小的点，这个点为进入点集A的候选节点，然后通过该点松弛点集 B 中其他的点，更新向量 d，然后将该候选点放入点集 A，直到点集 B 为空</p>
+<p>维护两个点集 A，B，A 点集代表已经求出源点到该点的最短路的点的集合，B 代表未求出源点到该点的最短路径的点的集合</p>
+<p>维护一个向量 d，d[i] 代表源点到点 i 的最短路径长度</p>
+<p>不断进行以下操作：找出点集 B 中 d[i] 最小的点，这个点为进入点集 A 的候选节点，然后通过该点松弛点集 B 中其他的点，更新向量 d，然后将该候选点放入点集 A，直到点集 B 为空</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">graph</span>(n, <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n, INT_MAX));</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">dijkstra</span><span class="params">(<span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">dist</span><span class="params">(n, INT_MAX / <span class="number">2</span>)</span></span>;</span><br><span class="line">	unordered_set&lt;<span class="type">int</span>&gt; A, B;</span><br><span class="line">	A.<span class="built_in">insert</span>(start);</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">		dist[i] = (i == start ? <span class="number">0</span> : graph[start][i]);</span><br><span class="line">		<span class="keyword">if</span> (i != start) B.<span class="built_in">insert</span>(i);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 在 B 中找 dist 里最小的值加入 A</span></span><br><span class="line">	<span class="keyword">while</span> (B.<span class="built_in">size</span>()) &#123;</span><br><span class="line">		<span class="type">int</span> pos = <span class="number">0</span>;</span><br><span class="line">		<span class="type">int</span> INF = INT_MAX;</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">			<span class="keyword">if</span> (B.<span class="built_in">count</span>(i) &amp;&amp; dist[i] &lt; INF) &#123;</span><br><span class="line">				pos = i;</span><br><span class="line">				INF = dist[i];</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		B.<span class="built_in">erase</span>(pos);</span><br><span class="line">		A.<span class="built_in">insert</span>(pos);</span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">			<span class="keyword">if</span> (B.<span class="built_in">count</span>(i)) &#123;</span><br><span class="line">				dist[i] = <span class="built_in">min</span>(dist[i], dist[pos] + graph[pos][i]);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> dist[end];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>算法的时间复杂度为 O(n^2)，若通过这个算法求所有的点的最短路，即调用 n 次，那么算法复杂度为 O(n^3)；对于集合 B 可使用优先队列进行优化，时间复杂度为 O(nlogn)</p>
+<p>算法的时间复杂度为 O(n^2)，若通过这个算法求所有的点的最短路，即调用 n 次，那么算法复杂度为 O(n^3)</p>
+<p>对于集合 B 可使用优先队列进行优化，时间复杂度为 O(nlogn)</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">dijkstra</span><span class="params">(<span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">	<span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">dist</span><span class="params">(n, INT_MAX / <span class="number">2</span>)</span></span>;</span><br><span class="line">	vector&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt; B;</span><br><span class="line">	<span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">path</span><span class="params">(n, start)</span></span>;  <span class="comment">// 存储前驱节点</span></span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">		dist[i] = (i == start ? <span class="number">0</span> : roads[start][i]);</span><br><span class="line">		<span class="keyword">if</span> (i != start) B.<span class="built_in">emplace_back</span>(<span class="built_in">make_pair</span>(dist[i], i));</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">make_heap</span>(B.<span class="built_in">begin</span>(), B.<span class="built_in">end</span>(), greater&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt;());</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 在 B 中找 dist 里最小的值加入 A</span></span><br><span class="line">	<span class="keyword">while</span> (B.<span class="built_in">size</span>()) &#123;</span><br><span class="line">		<span class="comment">// 取出最小值</span></span><br><span class="line">		<span class="built_in">pop_heap</span>(B.<span class="built_in">begin</span>(), B.<span class="built_in">end</span>());</span><br><span class="line">		<span class="keyword">auto</span> pos = B.<span class="built_in">back</span>();</span><br><span class="line">		B.<span class="built_in">pop_back</span>();</span><br><span class="line">		</span><br><span class="line">		<span class="comment">// 更新</span></span><br><span class="line">		<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; B.<span class="built_in">size</span>(); ++i) &#123;			</span><br><span class="line">			<span class="keyword">if</span> (dist[B[i].second] &gt; dist[pos.second] + roads[pos.second][B[i].second]) &#123;</span><br><span class="line">				dist[B[i].second] = dist[pos.second] + roads[pos.second][B[i].second];</span><br><span class="line">				path[B[i].second] = pos.second;</span><br><span class="line">			&#125;</span><br><span class="line">			B[i].first = dist[B[i].second];</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="built_in">make_heap</span>(B.<span class="built_in">begin</span>(), B.<span class="built_in">end</span>(), greater&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt;());</span><br><span class="line">	&#125;</span><br><span class="line">	function&lt;<span class="type">void</span>(<span class="type">int</span>, <span class="type">int</span>)&gt; print = [&amp;](<span class="type">int</span> s, <span class="type">int</span> e) &#123;</span><br><span class="line">		<span class="keyword">if</span>(s == e) <span class="keyword">return</span>;</span><br><span class="line">		<span class="built_in">print</span>(s, path[e]);</span><br><span class="line">		cout &lt;&lt; s &lt;&lt; <span class="string">&quot; -&gt; &quot;</span> &lt;&lt; path[e];</span><br><span class="line">	&#125;;</span><br><span class="line">	<span class="built_in">print</span>(start, end);</span><br><span class="line">	<span class="keyword">return</span> dist[end];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h2 id="Bellman-Ford-算法"><a href="#Bellman-Ford-算法" class="headerlink" title="Bellman-Ford 算法"></a>Bellman-Ford 算法</h2><p>用于计算出起点到各个节点的最短距离，支持存在负权重的情况</p>
@@ -324,9 +347,9 @@
 <ol>
 <li><p>初始化时将起点 s 到各个顶点 v 的距离 dist(s-&gt;v) 赋值为无穷大，dist(s-&gt;s) 赋值为 0</p>
 </li>
-<li><p>后续进行最多 n-1 次遍历操作，对所有的边进行松弛操作，因为在一个含有 n 个顶点的图中，任意两点之间的最短路径最多包含 n-1 边；第 i 轮在对所有边进行松弛后，得到的是源点最多经过 i 条边到达其他顶点的最短距离</p>
+<li><p>后续进行最多 n-1 次遍历操作，对所有的边进行松弛操作，因为在一个含有 n 个顶点的图中，任意两点之间的最短路径最多包含 n-1 边。第 i 轮在对所有边进行松弛后，得到的是源点最多经过 i 条边到达其他顶点的最短距离</p>
 </li>
-<li><p>遍历都结束后，若再进行一次遍历，还能得到s到某些节点更短的路径的话，则说明存在负环路</p>
+<li><p>遍历都结束后，若再进行一次遍历，还能得到 s 到某些节点更短的路径的话，则说明存在负环路</p>
 </li>
 </ol>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">g</span>(n, <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(n, INT_MAX));</span><br><span class="line"><span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">dist</span><span class="params">(n, INT_MAX / <span class="number">2</span>)</span></span>;</span><br><span class="line"><span class="built_in">InitGraph</span>(g);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>; i &lt; n; ++i) &#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>; j &lt; n ; ++j) &#123;</span><br><span class="line">		<span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">0</span>; k &lt; n; ++k) &#123;</span><br><span class="line">			<span class="comment">// 因为只是求最短路径，所以可以使用本次最外层循环更新过的数据</span></span><br><span class="line">			dist[k] = <span class="built_in">min</span>(dist[k], dist[j] + g[j][k]);</span><br><span class="line">			<span class="comment">// 如果有要求最多经过几条边，则不能使用本次最外层循环更新过的数据</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">bool</span> loop = <span class="literal">false</span>;</span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>; j &lt; n ; ++j) &#123;</span><br><span class="line">	<span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">0</span>; k &lt; n; ++k) &#123;</span><br><span class="line">		<span class="keyword">if</span>(dist[k] &lt; dist[j] + g[j][k]) &#123;</span><br><span class="line">			loop = <span class="literal">true</span>;  <span class="comment">// 有负环</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -355,7 +378,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/12/28/LeetCode-%E5%9B%BE/">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/12/28/LeetCode-%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -373,7 +396,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/12/28/LeetCode-%E5%9B%BE/" class="post-title-link" itemprop="url">图</a>
+          <a href="/2023/12/28/LeetCode-%E6%9C%80%E7%9F%AD%E8%B7%AF%E5%BE%84/" class="post-title-link" itemprop="url">最短路径</a>
         </h2>
 
         <div class="post-meta-container">
@@ -383,9 +406,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2023-12-28 11:38:52 / 修改时间：11:47:33" itemprop="dateCreated datePublished" datetime="2023-12-28T11:38:52+08:00">2023-12-28</time>
+      <time title="创建时间：2023-12-28 11:38:52" itemprop="dateCreated datePublished" datetime="2023-12-28T11:38:52+08:00">2023-12-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-01-02 11:26:41" itemprop="dateModified" datetime="2024-01-02T11:26:41+08:00">2024-01-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -408,6 +437,7 @@
     
     <div class="post-body" itemprop="articleBody">
           <h2 id="lc743"><a href="#lc743" class="headerlink" title="lc743"></a>lc743</h2><p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/network-delay-time/description/">题目</a></p>
+<h2 id="lc1334"><a href="#lc1334" class="headerlink" title="lc1334"></a>lc1334</h2><p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/find-the-city-with-the-smallest-number-of-neighbors-at-a-threshold-distance/">题目</a></p>
 
       
     </div>
@@ -470,7 +500,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+      <time title="修改时间：2024-01-02 11:26:41" itemprop="dateModified" datetime="2024-01-02T11:26:41+08:00">2024-01-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -558,7 +588,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+      <time title="修改时间：2024-01-02 11:26:41" itemprop="dateModified" datetime="2024-01-02T11:26:41+08:00">2024-01-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -645,7 +675,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+      <time title="修改时间：2024-01-02 11:26:41" itemprop="dateModified" datetime="2024-01-02T11:26:41+08:00">2024-01-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -730,7 +760,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+      <time title="修改时间：2024-01-02 11:26:41" itemprop="dateModified" datetime="2024-01-02T11:26:41+08:00">2024-01-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -815,7 +845,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+      <time title="修改时间：2024-01-02 11:26:41" itemprop="dateModified" datetime="2024-01-02T11:26:41+08:00">2024-01-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -900,7 +930,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+      <time title="修改时间：2024-01-02 11:26:41" itemprop="dateModified" datetime="2024-01-02T11:26:41+08:00">2024-01-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1056,7 +1086,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2023-12-28 11:47:33" itemprop="dateModified" datetime="2023-12-28T11:47:33+08:00">2023-12-28</time>
+      <time title="修改时间：2024-01-02 11:26:41" itemprop="dateModified" datetime="2024-01-02T11:26:41+08:00">2024-01-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1110,7 +1140,7 @@
 
 <div class="copyright">
   &copy; 
-  <span itemprop="copyrightYear">2023</span>
+  <span itemprop="copyrightYear">2024</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
