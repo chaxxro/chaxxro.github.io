@@ -126,3 +126,23 @@ struct UnionFind {
     }
   }
 };
+
+template <typename T> void print_data(T &&ret) {
+  if constexpr (is_same_v<decay_t<T>, TreeNode *>) {
+    print_tree(forward<T>(ret));
+  } else if constexpr (is_same_v<decay_t<T>, vector<int>>) {
+    for_each(begin(forward<T>(ret)), end(forward<T>(ret)),
+             [](const auto &r) { cout << r << ","; });
+    cout << endl;
+  } else if constexpr (is_same_v<decay_t<T>, vector<vector<int>>>) {
+    for_each(begin(ret), end(ret), [](const auto &r) {
+      for_each(begin(r), end(r), [](const auto &w) { cout << w << ","; });
+      cout << "\n";
+    });
+  } else if constexpr (is_same_v<decay_t<T>, ListNode *>) {
+    print_list(forward<T>(ret));
+  } else {
+    cout << ret << endl;
+  }
+  cout << "================" << endl;
+}

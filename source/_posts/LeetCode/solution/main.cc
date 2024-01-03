@@ -6,20 +6,10 @@ public:
 
 int main() {
   std::cout << std::boolalpha;
-  auto helper = [](string s) {
+  auto helper = [](vector<char> ch, char t) {
     Solution ss;
-
-    // for_each(begin(ret), end(ret), [](const auto &r) { cout << r << ","; });
-    // cout << endl;
-
-    // for_each(begin(ret), end(ret), [](const auto &r) {
-    //   for_each(begin(r), end(r), [](const auto &w) { cout << w << ","; });
-    //   cout << "\n";
-    // });
-
-    cout << ret << endl;
-    // print_tree(node);
+    print_data(ss.nextGreatestLetter(ch, t));
   };
-  helper("aaa");
+  helper({'e','e','e','e','e','e','n','n','n','n'}, 'a');
   return 0;
 }
