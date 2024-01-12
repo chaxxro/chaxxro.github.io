@@ -197,7 +197,7 @@ namespace Test {
   class RealObject: public Object {
   public:
     RealObject(const std::string& str) {
-	  str_ = str;
+	    str_ = str;
       std::cout << "construct " << str_ << std::endl;
     }
     ~RealObject() {

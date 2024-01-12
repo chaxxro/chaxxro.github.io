@@ -33,3 +33,9 @@ categories: LeetCode
 [题目](https://leetcode.com/problems/reconstruct-itinerary/)
 
 [分析](https://www.youtube.com/watch?v=4udFSOWQpdg)
+
+## lc865、lc1123
+
+[题目](https://leetcode.com/problems/smallest-subtree-with-all-the-deepest-nodes/description/)
+
+[题目](https://leetcode.com/problems/lowest-common-ancestor-of-deepest-leaves/)

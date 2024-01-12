@@ -238,3 +238,35 @@ dp[i] : sum(subset(...)) == i
 [题目](https://leetcode.com/problems/partition-equal-subset-sum/)
 
 [分析](https://www.youtube.com/watch?v=r6I-ikllNDM&t=382s)
+
+## lc894
+
+[题目](https://leetcode.com/problems/all-possible-full-binary-trees/description/)
+
+## lc926
+
+```cpp
+/*
+1.
+prefix + suffix
+l[i] : filps of s[0] ~ s[i] all 0
+r[i] : filps of s[i] ~ s[n - 1] all 1
+l[i] = l[i - 1] + s[i] == 1
+r[i] = r[i + 1] + s[i] == 0
+ans = min(l[i - 1] + r[i], l[n - 1], r[0])
+
+2.
+dp0[i]：表示反转 s[0]~s[i] 使其满足条件且最后一个是 0 
+dp1[i]：表示反转 s[0]~s[i] 使其满足条件且最后一个是 1
+
+dp0[i] = dp0[i - 1] if s[i] == 0
+dp0[i] = dp0[i - 1] + 1 if s[i] == 1
+
+dp1[i] = min(dp0[i - 1], dp1[i - 1]) + 1 if s[i] == 0
+dp[i] = min(dp0[i - 1], dp1[i - 1]) if s[i] == 1
+*/
+```
+
+[题目](https://leetcode.com/problems/flip-string-to-monotone-increasing/)
+
+[分析](https://www.youtube.com/watch?v=D8xa8ZMV7AI)
