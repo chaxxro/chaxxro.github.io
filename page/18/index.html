@@ -159,6 +159,282 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/" class="post-title-link" itemprop="url">进程通信</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 20:42:15" itemprop="dateCreated datePublished" datetime="2023-04-28T20:42:15+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>每个进程的用户地址空间都是独立的，一般而言是不能互相访问的，但内核空间是每个进程都共享的，<br>所以进程之间要通信必须通过内核</p>
+<p>进程间通信主要包括管道、消息队列、信号量、信号、共享内存、以及套接字 socket 等</p>
+<h2 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h2><p>主要包括匿名管道和命名管道，匿名管道用于具有亲缘关系的父子进程通信，命名管道还可允许无亲缘关系进程通信</p>
+<p>管道的实质是一个内核缓冲区，进程以先进先出的方式从缓冲区存取数据，管道一端的进程顺序的将数据写入缓冲区，另一端的进程则顺序的读出数据</p>
+<ul>
+<li><p>匿名管道：半双工的，数据只能在一个方向上流动，具有固定的读端和写端；只能用于具有亲缘关系的进程之间的通信（父子进程或者兄弟进程之间）；可以看成是一种特殊的文件，对于它的读写也可以使用普通的 <code>read</code>、<code>write</code> 等函数，但不是普通的文件，并不属于其他任何文件系统，并且只存在于内存中；缓冲区是有限，所传送的是无格式字节流，这就要求管道的读出方和写入方必须事先约定好数据的格式</p>
+</li>
+<li><p>命名管道：可以在无关的进程之间交换数据；有路径名与之相关联，它以一种特殊设备文件形式存在于文件系统中；</p>
+</li>
+</ul>
+<p>命名管道严格遵循先进先出</p>
+<p>管道的效率低，不适合进程间频繁地交换数据</p>
+<h3 id="匿名管道创建"><a href="#匿名管道创建" class="headerlink" title="匿名管道创建"></a>匿名管道创建</h3><p>通过系统调用 <code>int pipe(int fd[2])</code> 创建匿名管道， 并返回了两个描述符，一个是管道的读取端描述符 fd[0]，另一个是管道的写入端描述符 fd[1]</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/01.png" class="">
+
+<p>使用 <code>fork</code> 创建子进程，创建的子进程会复制父进程的文件描述符，这样就做到了两个进程各有两个 <code>fd[0]</code> 与 <code>fd[1]</code>，两个进程就可以通过各自的 <code>fd</code> 写入和读取同一个管道文件实现跨<br>进程通信了</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/02.png" class="">
+
+<p>如果需要双向通信，则应该创建两个管道</p>
+<h3 id="命名管道创建"><a href="#命名管道创建" class="headerlink" title="命名管道创建"></a>命名管道创建</h3><p>通过系统调用 <code>int mkfifo(const char * filename, mode_t mode)</code>，创建成功则返回 0，否则返回 -1，使用 <code>open()</code> 打开命名管道</p>
+<p>当前进程以写方式（且设置了阻塞标识）打开命名管道时，如果已有别的进程以读打开该命名管道时，则当前的打开操作成功返回，否则一直阻塞直到有进程为读打开该命名管道</p>
+<p>当前进程以读方式（且设置了阻塞标识）打开命名管道时，如果已有别的进程为写打开该命名管道时，则当前的打开操作成功返回，否则一直阻塞直到有进程为写打开该管道</p>
+<h2 id="共享内存"><a href="#共享内存" class="headerlink" title="共享内存"></a>共享内存</h2><p>系统加载一个进程的时候，分配给进程的内存并不是实际物理内存，而是虚拟内存空间；让两个进程各自拿出一块虚拟地址空间来，然后映射到相同的物理内存中，两个进程虽然有着独立的虚拟内存空间，但有一部分却是映射到相同的物理内存，解决了由用户态向内核态拷贝所消耗的时间；需要依靠某种进程同步操作，如互斥锁和信号量等</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/03.png" class="">
+
+<h2 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h2><p>消息队列存放在内核中，具有写权限的进程可以按照一定得规则向消息队列中添加新信息，有读权限的进程则可以从消息队列中读取信息；消息队列是面向记录的，其中的消息具有特定的格式以及特定的优先级；消息队列独立于发送与接收进程，进程终止时，消息队列及其内容并不会被删除；消息队列可以实现消息的随机查询，消息不一定要以先进先出的次序读取，也可以按消息的类型读取；消息队列存放在内核中，只有在内核重启或者显示地删除一个消息队列时，该消息队列才会被真正的删除；消息队列克服了信号承载信息量少，管道只能承载无格式字节流以及缓冲区大小受限等缺点</p>
+<p>消息队列不适合比较大数据的传输，因为在内核中每个消息体都有一个最大长度的限制，同时所有队列所包含的全部消息体的总长度也是有上限</p>
+<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-ipc/04.png" class="">
+
+<h2 id="socket"><a href="#socket" class="headerlink" title="socket"></a>socket</h2><p>特性由 3 个属性确定，它们分别是：域、端口号、协议类型；域指定套接字通信中使用的网络介质（网络或 UNIX 文件系统）</p>
+<p>同一主机不同进程使用 socket 通信时，可以使用 UNIX Domain Socket，其优势：</p>
+<ul>
+<li><p>传输不需要经过网络协议栈，不需要打包拆包等操作，只是数据的拷贝过程</p>
+</li>
+<li><p>分为 SOCK_STREAM 和 SOCK_DGRAM，由于是在本机通过内核通信，不会丢包也不会出现发送包的次序和接收包的次序不一致的问题</p>
+</li>
+</ul>
+<h2 id="信号"><a href="#信号" class="headerlink" title="信号"></a>信号</h2><p>信号是进程间通信机制中唯一的异步通信机制，因为可以在任何时候发送信号给某一进程</p>
+<h2 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h2><p>信号量是是一个计数器，可以用来控制多个进程对共享资源的访问，用于实现进程间的互斥与同步，<br>而不是用于存储进程间通信数据</p>
+<p>若要在进程间传递数据需要结合共享内存</p>
+<p>程序对信号量的操作都是原子操作</p>
+<p>通过对信号量进行 PV 操作，获取共享资源；P 操作将信号量减一，若减一后大于等于 0，则继续执行，否者进入等待队列；S 操作将信号量加一，若加一后大于 0，则继续执行，否则释放等待队列中第一个进程</p>
+<p>互斥信号量的初值一般为 1，P、V 操作必须成对出现，先做 P 操作，进临界区，后做 V 操作，出临界区</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%8D%8F%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E5%8D%8F%E7%A8%8B/" class="post-title-link" itemprop="url">协程</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-28 20:41:25" itemprop="dateCreated datePublished" datetime="2023-04-28T20:41:25+08:00">2023-04-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%BF%9B%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">进程</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="为什么需要协程"><a href="#为什么需要协程" class="headerlink" title="为什么需要协程"></a>为什么需要协程</h2><p>移动互联网时代的到来，服务端对高并发的要求越来越高，也就是需要高性能的网络服务器</p>
+<p>C10K 需要单机同时支持 1 万个并发连接，C10M 单机要支持 1 千万并发连接</p>
+<p>如果要满足单机 1 千万的并发连接，有几种方案选择：</p>
+<ol>
+<li><p>多线程同步模型：预先创建出很多个处理线程，每个线程采用同步阻塞 IO 的方式串行处理请求，由操作系统通过线程切换来实现并发处理。这种方式编码简单，但由于线程堆栈占用空间大，内存消耗太快，同时线程切换代价高，导致系统整体性能较差</p>
+</li>
+<li><p>基于事件驱动的异步网络模型：由应用框架来实现事件驱动和状态切换，该方案可以充分利用 CPU，性能较高，但因为逻辑处理都是基于回调，逻辑代码过于分散，导致代码开发效率不高，代码逻辑不易懂也容易出错</p>
+</li>
+</ol>
+<p>协程能够让开发人员很便捷地去开发业务逻辑代码，同时能够达到异步回调模型的性能</p>
+<h2 id="什么是协程"><a href="#什么是协程" class="headerlink" title="什么是协程"></a>什么是协程</h2><p>协程是一类程序组件，它是对子过程概念的泛化，并且是属于非抢占的多任务处理</p>
+<ul>
+<li><p>泛化的子过程是说协程是泛化的函数，可以暂停和恢复执行</p>
+</li>
+<li><p>非抢占的多任务处理说明协程是协作式多任务处理，需主动让出 CPU</p>
+</li>
+</ul>
+<p>协程就是一个函数，只是它支持多次的暂停和恢复执行，需要自己手动维护调用栈和其他的一些信息</p>
+<p>协作式多任务处理，协程主动让出 CPU，天然就支持协作式多任务</p>
+<p>线程的切换由操作系统负责调度，协程由用户自己进行调度，因此减少了上下文切换，提高了效率</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">A</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="number">1</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="number">2</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="number">3</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">B</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;x&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;y&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;z&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">  <span class="built_in">A</span>();</span><br><span class="line">  <span class="built_in">B</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 1 2 3 x y z</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">A</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="number">1</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="number">2</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   <span class="built_in">co_yield_ct</span>();  <span class="comment">// 切出到主协程</span></span><br><span class="line">   cout &lt;&lt; <span class="number">3</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">B</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;x&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   <span class="built_in">co_yield_ct</span>();  <span class="comment">// 切出到主协程</span></span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;y&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">   cout &lt;&lt; <span class="string">&quot;z&quot;</span> &lt;&lt; <span class="string">&quot; &quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 切出操作是由 co_yield_ct() 函数实现</span></span><br><span class="line"><span class="comment">// 启动和恢复是由 co_resume() 实现</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">  ...  <span class="comment">// 主协程</span></span><br><span class="line">  <span class="built_in">co_resume</span>(A);  <span class="comment">// 启动协程 A</span></span><br><span class="line">  <span class="built_in">co_resume</span>(B);  <span class="comment">// 启动协程 B</span></span><br><span class="line">  <span class="built_in">co_resume</span>(A);  <span class="comment">// 从协程 A 切出处继续执行</span></span><br><span class="line">  <span class="built_in">co_resume</span>(B);  <span class="comment">// 从协程 B 切出处继续执行</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 1 2 x 3 y z</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="协程特点"><a href="#协程特点" class="headerlink" title="协程特点"></a>协程特点</h2><ul>
+<li><p>协程可以主动让出 CPU 时间片，不是当前线程让出 CPU 时间片，而是线程内的某个协程让出时间片供同线程内其他协程运行</p>
+</li>
+<li><p>协程可以恢复 CPU 上下文，当另一个协程继续执行时，需要恢复 CPU 上下文环境</p>
+</li>
+<li><p>协程有个管理者，管理者可以选择一个协程来运行，其他协程要么阻塞，要么 ready，或者 died</p>
+</li>
+<li><p>运行中的协程将占有当前线程的所有计算资源</p>
+</li>
+<li><p>协程天生有栈属性，而且是 lock free</p>
+</li>
+</ul>
+<h2 id="保存上下文"><a href="#保存上下文" class="headerlink" title="保存上下文"></a>保存上下文</h2><p>上下文其实本质上就是寄存器，所以保存上下文实际上就是把寄存器的值保存下来</p>
+<ul>
+<li><p><code>setjmp</code> 和 <code>longjmp</code></p>
+</li>
+<li><p>汇编</p>
+</li>
+<li><p>第三方库，如 ucontext、Boost.Context</p>
+</li>
+</ul>
+<h2 id="协程类别"><a href="#协程类别" class="headerlink" title="协程类别"></a>协程类别</h2><h3 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h3><p>这里的栈指的是是否存在调用栈 callback stack</p>
+<ul>
+<li><p>stackful 有栈协程：实现类似于内核态线程的实现，不同协程间切换还是要切换对应的栈上下文，只是不用陷入内核，例如 goroutine、libco</p>
+</li>
+<li><p>stackless 无栈协程：上下文都会放到公共内存中，在协程切换时使用状态机来切换，而不用切换对应的上下文，因此相比有栈协程要轻量许多，例如：C++20、Rust、JavaScript</p>
+</li>
+</ul>
+<h3 id="调度方式"><a href="#调度方式" class="headerlink" title="调度方式"></a>调度方式</h3><p>根据调度方式的不同，协程可以分为对称协程和非对称协程</p>
+<ul>
+<li><p>非对称协程：协程之间有明显的调用关系。协程让出执行权的目标只能是它的调用者，即协程之间存在调用和被调用关系，比如 A 协程调用了 B 协程后，B 协程当需要让出执行权时一定是将执行权给了 A 协程</p>
+</li>
+<li><p>对称协程：协程之间无明显的调用关系。任何一个协程都是相互独立且平等的，执行权可以在任意协程之间转移，比如 A 协程调用了 B 协程后，A 协程与 B 协程之后就没有任何关系了，B 协程让出执行权时，该执行权最终花落谁家都有可能</p>
+</li>
+</ul>
+<p>协程 A 调用了协程 B：如果只有 B 完成之后才能切回 A，那么此时 AB 是非对称协程；如果 AB 被调用的概率相同，那么此时 AB 是对称协程</p>
+<h3 id="线程关系"><a href="#线程关系" class="headerlink" title="线程关系"></a>线程关系</h3><p>和线程绑定的协程只有在对应线程运行的时候才有被执行的可能，如果对应线程中的某一个协程完全占有了当前线程，那么当前线程中的其他所有协程都不会被执行</p>
+<ul>
+<li><p>N:1：所有的协程运行于一个系统线程中。由于不跨线程，协程之间的切换不需要系统调用，从而切换可以非常快，受 cache 一致性的影响也小。但代价是协程无法高效地利用多核，代码必须非阻塞，否则所有的协程都被卡住</p>
+</li>
+<li><p>N:M：N 个协程会映射至 M 个线程</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E8%BF%9B%E7%A8%8B-%E4%B8%8A%E4%B8%8B%E6%96%87/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -195,7 +471,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-08 14:52:09" itemprop="dateModified" datetime="2024-01-08T14:52:09+08:00">2024-01-08</time>
+      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -315,7 +591,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-08 14:52:09" itemprop="dateModified" datetime="2024-01-08T14:52:09+08:00">2024-01-08</time>
+      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -413,7 +689,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-08 14:52:09" itemprop="dateModified" datetime="2024-01-08T14:52:09+08:00">2024-01-08</time>
+      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -587,7 +863,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-08 14:52:09" itemprop="dateModified" datetime="2024-01-08T14:52:09+08:00">2024-01-08</time>
+      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -690,7 +966,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-08 14:52:09" itemprop="dateModified" datetime="2024-01-08T14:52:09+08:00">2024-01-08</time>
+      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -814,7 +1090,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-08 14:52:09" itemprop="dateModified" datetime="2024-01-08T14:52:09+08:00">2024-01-08</time>
+      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -914,7 +1190,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-08 14:52:09" itemprop="dateModified" datetime="2024-01-08T14:52:09+08:00">2024-01-08</time>
+      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -998,7 +1274,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-08 14:52:09" itemprop="dateModified" datetime="2024-01-08T14:52:09+08:00">2024-01-08</time>
+      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1024,260 +1300,6 @@
 
 <p><code>shutdown()</code> 的效果是累计的，不可逆转的。既如果关闭了一个方向数据传输，那么这个方向将会被关闭直至完全被关闭或删除，而不能重新被打开</p>
 <p><code>shutdown</code> 函数并不会要求操作系统底层回收套接字等资源，真正会回收资源是 <code>close</code> 函数</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-socketpair/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/LinuxApi-socketpair/" class="post-title-link" itemprop="url">socketpair</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 20:53:19" itemprop="dateCreated datePublished" datetime="2023-04-26T20:53:19+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-08 14:52:09" itemprop="dateModified" datetime="2024-01-08T14:52:09+08:00">2024-01-08</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><code>socketpair</code> 是一对互相连接的 socket，相当于服务端和客户端的两个端点，每个端点都可以读写数据</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">socketpair</span><span class="params">(<span class="type">int</span> domain, <span class="type">int</span> type, <span class="type">int</span> protocol, <span class="type">int</span> sv[<span class="number">2</span>])</span></span>;</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-socket/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/LinuxApi-socket/" class="post-title-link" itemprop="url">socket</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 20:53:10" itemprop="dateCreated datePublished" datetime="2023-04-26T20:53:10+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-08 14:52:09" itemprop="dateModified" datetime="2024-01-08T14:52:09+08:00">2024-01-08</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><code>socket()</code> 用于创建一个 socket 描述符，它唯一标识一个 socket</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">socket</span><span class="params">(<span class="type">int</span> domain, <span class="type">int</span> type, <span class="type">int</span> protocol)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">domain: 协议域，其决定了 socket 的地址类型</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">type: 指定socket类型</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">protocol: 指定协议，为 0 时会自动选择 type 类型对应的默认协议</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">type 和 protocol 不可以随意组合的</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p><code>AF_</code> 表示的含义是 Address Family</p>
-<table>
-<thead>
-<tr>
-<th>domain</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>AF_INET</td>
-<td>IPv4</td>
-</tr>
-<tr>
-<td>AF_INET6</td>
-<td>IPv6</td>
-</tr>
-<tr>
-<td>AF_LOCAL</td>
-<td>Unix 域协议，用于本地通信，也可以写成 AF_FILE、AF_UNIX</td>
-</tr>
-<tr>
-<td>AF_ROUTE</td>
-<td>路由套接字</td>
-</tr>
-<tr>
-<td>AF_KEY</td>
-<td>秘钥套接字</td>
-</tr>
-</tbody></table>
-<table>
-<thead>
-<tr>
-<th>type</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>SOCK_STREAM</td>
-<td>字节流套接字</td>
-</tr>
-<tr>
-<td>SOCK_DGRAM</td>
-<td>数据包套接字</td>
-</tr>
-<tr>
-<td>SOCK_SEQPACKET</td>
-<td>有序分组套接字</td>
-</tr>
-<tr>
-<td>SOCK_RAW</td>
-<td>原始套接字</td>
-</tr>
-<tr>
-<td>SOCK_NONBLOCK</td>
-<td>非阻塞</td>
-</tr>
-</tbody></table>
-<table>
-<thead>
-<tr>
-<th>protocol</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>IPPROTO_TCP</td>
-<td>TCP</td>
-</tr>
-<tr>
-<td>IPPROTO_UDP</td>
-<td>UDP</td>
-</tr>
-<tr>
-<td>IPPROTO_SCTP</td>
-<td>SCIP</td>
-</tr>
-<tr>
-<td>IPPROTO_TIPC</td>
-<td>TIPC</td>
-</tr>
-</tbody></table>
-<h2 id="细节"><a href="#细节" class="headerlink" title="细节"></a>细节</h2><p>调用 <code>socket()</code> 系统调用时，内核会创建 socket 内核对象，主要是等待队列和接受队列</p>
 
       
     </div>
