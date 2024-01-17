@@ -189,7 +189,7 @@ dp[i]：长度为 i 的最长递增子序列最大元素
 ```cpp
 /*
 dp[i][j] = maxCoins(nums[i] ~ nums[j])
-// 在 i ~ j 中，最后打 k 处的气球
+在 i ~ j 中，最后打 k 处的气球
 dp[i][j] = max(dp[i][k - 1] + nums[i - 1] * nums[k] * nums[j + 1] + dp[k + 1][j]), i <= k <= j 
 */
 ```
@@ -239,6 +239,14 @@ dp[i] : sum(subset(...)) == i
 
 [分析](https://www.youtube.com/watch?v=r6I-ikllNDM&t=382s)
 
+## lc818
+
+[题目](https://leetcode.com/problems/race-car/description/)
+
+[分析](https://www.youtube.com/watch?v=HzlEkUt2TYs)
+
+[分析](https://www.youtube.com/watch?v=Z39RHxb2Lew)
+
 ## lc894
 
 [题目](https://leetcode.com/problems/all-possible-full-binary-trees/description/)
@@ -270,3 +278,13 @@ dp[i] = min(dp0[i - 1], dp1[i - 1]) if s[i] == 1
 [题目](https://leetcode.com/problems/flip-string-to-monotone-increasing/)
 
 [分析](https://www.youtube.com/watch?v=D8xa8ZMV7AI)
+
+## lc1000
+
+[题目](https://leetcode.com/problems/minimum-cost-to-merge-stones/description/)
+
+[分析](https://www.youtube.com/watch?v=FabkoUzs64o)
+
+## lc1043
+
+[题目](https://leetcode.com/problems/partition-array-for-maximum-sum/description/)

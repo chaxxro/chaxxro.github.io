@@ -3,59 +3,11 @@ toc:
   enable: true
   number: false
   max_depth: 3
-title: Linux性能分析
+title: Linux性能
 date: 2023-12-13 13:36:19
 tags: 操作系统
-categories: Linux性能分析
+categories: Linux性能
 ---
-
-Linux 性能工具图谱
-
-{% asset_img 01.png %}
-
-{% asset_img 02.png %}
-
-## 工具
-
-### 负载
-
-- top
-
-- uptime
-
-### CPU
-
-- top 无法区分用户态和内核态
-
-- pidstat 区分用户态和内核态
-
-- mpstat
-
-### IO
-
-- iostat
-
-- iotop
-
-- blktrace
-
-### 内存
-
-- vmstat
-
-### 上下文切换
-
-- vmstat
-
-- pidstat
-
-### 进程关系
-
-- pstree 树状形式显示所有进程之间的关系
-
-### 系统调用
-
-- strace
 
 ## 平均负载
 
