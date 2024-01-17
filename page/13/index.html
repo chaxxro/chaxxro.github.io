@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">410</span>
+          <span class="site-state-item-count">411</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -133,7 +133,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -150,6 +150,94 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-unique-lock/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-unique-lock/" class="post-title-link" itemprop="url">unique_lock</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-29 21:22:13" itemprop="dateCreated datePublished" datetime="2023-05-29T21:22:13+08:00">2023-05-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><code>lock_guard</code> 提供了简单上锁、解锁操作，但当需要更灵活的操作时便无能为力了</p>
+<p><code>unique_lock</code> 拥有对 <code>mutex</code> 的所有权，一但初始化了 <code>unique_lock</code>，其就接管了该 <code>mutex</code>，在 <code>unique_lock</code> 结束生命周期前（析构前），其它地方就不要再直接使用该 <code>mutex</code> 了</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Mutex</span>&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">unique_lock</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="keyword">typedef</span> Mutex mutex_type;</span><br><span class="line">    <span class="comment">// 空unique_lock对象</span></span><br><span class="line">    <span class="built_in">unique_lock</span>() <span class="keyword">noexcept</span>;</span><br><span class="line">    <span class="comment">// 管理m, 并调用m.lock进行上锁，如果m已被其它线程锁定，由该构造了函数会阻塞。</span></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">unique_lock</span><span class="params">(mutex_type&amp; m)</span></span>;</span><br><span class="line">    <span class="comment">// 仅管理m，构造函数中不对m上锁。可以在初始化后调用lock, try_lock, try_lock_xxx系列进行上锁。</span></span><br><span class="line">    <span class="built_in">unique_lock</span>(mutex_type&amp; m, <span class="type">defer_lock_t</span>) <span class="keyword">noexcept</span>;</span><br><span class="line">    <span class="comment">// 管理m, 并调用m.try_lock，上锁不成功不会阻塞当前线程</span></span><br><span class="line">    <span class="built_in">unique_lock</span>(mutex_type&amp; m, <span class="type">try_to_lock_t</span>);</span><br><span class="line">    <span class="comment">// 管理m, 该函数假设m已经被当前线程锁定，不再尝试上锁。</span></span><br><span class="line">    <span class="built_in">unique_lock</span>(mutex_type&amp; m, <span class="type">adopt_lock_t</span>);</span><br><span class="line">    <span class="comment">// 管理m, 并调用m.try_lock_unitil函数进行加锁</span></span><br><span class="line">    <span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Clock</span>, <span class="keyword">class</span> <span class="title class_">Duration</span>&gt;</span><br><span class="line">        <span class="built_in">unique_lock</span>(mutex_type&amp; m, <span class="type">const</span> chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time);</span><br><span class="line">    <span class="comment">// 管理m，并调用m.try_lock_for函数进行加锁</span></span><br><span class="line">    <span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Rep</span>, <span class="keyword">class</span> <span class="title class_">Period</span>&gt;</span><br><span class="line">        <span class="built_in">unique_lock</span>(mutex_type&amp; m, <span class="type">const</span> chrono::duration&lt;Rep, Period&gt;&amp; rel_time);</span><br><span class="line">    <span class="comment">// 析构，如果此前成功加锁(或通过adopt_lock_t进行构造)，并且对mutex拥有所有权，则解锁mutex</span></span><br><span class="line">    ~<span class="built_in">unique_lock</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 禁止拷贝操作</span></span><br><span class="line">    <span class="built_in">unique_lock</span>(unique_lock <span class="type">const</span>&amp;) = <span class="keyword">delete</span>;</span><br><span class="line">    unique_lock&amp; <span class="keyword">operator</span>=(unique_lock <span class="type">const</span>&amp;) = <span class="keyword">delete</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 支持move语义</span></span><br><span class="line">    <span class="built_in">unique_lock</span>(unique_lock&amp;&amp; u) <span class="keyword">noexcept</span>;</span><br><span class="line">    unique_lock&amp; <span class="keyword">operator</span>=(unique_lock&amp;&amp; u) <span class="keyword">noexcept</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">try_lock</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Rep</span>, <span class="keyword">class</span> <span class="title class_">Period</span>&gt;</span><br><span class="line">        <span class="function"><span class="type">bool</span> <span class="title">try_lock_for</span><span class="params">(<span class="type">const</span> chrono::duration&lt;Rep, Period&gt;&amp; rel_time)</span></span>;</span><br><span class="line">    <span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">Clock</span>, <span class="keyword">class</span> <span class="title class_">Duration</span>&gt;</span><br><span class="line">        <span class="function"><span class="type">bool</span> <span class="title">try_lock_until</span><span class="params">(<span class="type">const</span> chrono::time_point&lt;Clock, Duration&gt;&amp; abs_time)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 显示式解锁，该函数调用后，除非再次调用lock系列函数进行上锁，否则析构中不再进行解锁</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">unlock</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 与另一个unique_lock交换所有权</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">swap</span><span class="params">(unique_lock&amp; u)</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">    <span class="comment">// 返回当前管理的mutex对象的指针，并释放所有权</span></span><br><span class="line">    <span class="function">mutex_type* <span class="title">release</span><span class="params">()</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 当前实例是否获得了锁</span></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">owns_lock</span><span class="params">()</span> <span class="type">const</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">    <span class="comment">// 同owns_lock</span></span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="keyword">operator</span> <span class="title">bool</span> <span class="params">()</span> <span class="type">const</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">    <span class="comment">// 返回mutex指针，便于开发人员进行更灵活的操作</span></span><br><span class="line">    <span class="comment">// 注意：此时mutex的所有权仍归unique_lock所有，因此不要对mutex进行加锁、解锁操作</span></span><br><span class="line">    <span class="function">mutex_type* <span class="title">mutex</span><span class="params">()</span> <span class="type">const</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">std::mutex mtx;           <span class="comment">// mutex for critical section</span></span><br><span class="line">std::once_flag flag;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">print_block</span> <span class="params">(<span class="type">int</span> n, <span class="type">char</span> c)</span></span></span><br><span class="line"><span class="function"> </span>&#123;</span><br><span class="line">    <span class="comment">//unique_lock有多组构造函数, 这里std::defer_lock不设置锁状态</span></span><br><span class="line">    <span class="function">std::unique_lock&lt;std::mutex&gt; <span class="title">my_lock</span> <span class="params">(mtx, std::defer_lock)</span></span>;</span><br><span class="line">    <span class="comment">//尝试加锁, 如果加锁成功则执行</span></span><br><span class="line">    <span class="comment">//(适合定时执行一个job的场景, 一个线程执行就可以, 可以用更新时间戳辅助)</span></span><br><span class="line">    <span class="keyword">if</span>(my_lock.<span class="built_in">try_lock</span>())</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i=<span class="number">0</span>; i&lt;n; ++i)</span><br><span class="line">            std::cout &lt;&lt; c;</span><br><span class="line">        std::cout &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">run_one</span><span class="params">(<span class="type">int</span> &amp;n)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::<span class="built_in">call_once</span>(flag, [&amp;n]&#123;n=n+<span class="number">1</span>;&#125;); <span class="comment">//只执行一次, 适合延迟加载; 多线程static变量情况</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span> <span class="params">()</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    std::vector&lt;std::thread&gt; ver;</span><br><span class="line">    <span class="type">int</span> num = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; ++i)</span><br><span class="line">    &#123;</span><br><span class="line">        ver.<span class="built_in">emplace_back</span>(print_block,<span class="number">50</span>,<span class="string">&#x27;*&#x27;</span>);</span><br><span class="line">        ver.<span class="built_in">emplace_back</span>(run_one, std::<span class="built_in">ref</span>(num));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> &amp;t : ver)</span><br><span class="line">    &#123;</span><br><span class="line">        t.<span class="built_in">join</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    std::cout &lt;&lt; num &lt;&lt; std::endl;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +283,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -310,7 +398,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -420,7 +508,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -522,7 +610,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -623,7 +711,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -713,7 +801,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -861,7 +949,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1050,7 +1138,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1141,7 +1229,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1207,154 +1295,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-future%E7%9B%B8%E5%85%B3%E5%BC%82%E6%AD%A5%E6%93%8D%E4%BD%9C/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-future%E7%9B%B8%E5%85%B3%E5%BC%82%E6%AD%A5%E6%93%8D%E4%BD%9C/" class="post-title-link" itemprop="url">future 相关异步操作</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-29 21:19:53" itemprop="dateCreated datePublished" datetime="2023-05-29T21:19:53+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p><code>std::future</code> 作为异步结果的传输通道，通过 <code>get()</code> 可以很方便的获取线程函数的返回值</p>
-<p><code>std::promise</code> 用来包装一个值，将数据和 <code>std::future</code> 绑定起来</p>
-<p><code>std::packaged_task</code> 则用来包装一个调用对象，将函数和 <code>std::future</code> 绑定起来，方便异步调用</p>
-<h2 id="std-future"><a href="#std-future" class="headerlink" title="std::future"></a>std::future</h2><p><code>std::future</code> 主要是作为消费方用来获取异步任务的结果</p>
-<p><code>std::future</code> 允许移动操作，但是不允许拷贝操作</p>
-<h3 id="get"><a href="#get" class="headerlink" title="get"></a>get</h3><p><code>get()</code> 会一直阻塞直到获取到结果或异步任务抛出异常</p>
-<h3 id="valid"><a href="#valid" class="headerlink" title="valid"></a>valid</h3><p><code>std::future</code> 表示一个共享状态，可以通过 <code>valid()</code> 函数查询其共享状态是否有效</p>
-<p>一般来说，只有当 <code>valid()</code> 返回 <code>true</code> 的时候才调用 <code>get()</code> 去获取结果，获取完结果后 <code>valid()</code> 将返回 <code>false</code></p>
-<p>一个有效的 <code>std::future</code> 对象只能通过 <code>std::async()</code>, <code>std::promise::get_future</code> 或者 <code>std::packaged_task::get_future</code> 来初始化，由 <code>std::future</code> 默认构造函数创建的 <code>std::future</code> 对象是无效的</p>
-<h3 id="share"><a href="#share" class="headerlink" title="share"></a>share</h3><p><code>get()</code> 会改变其共享状态，也就是说 <code>get()</code> 只能被调用一次，多次调用会触发异常。如果想要在多个线程中多次获取产出值需要使用 <code>std::shared_future</code></p>
-<p><code>std::share()</code> 返回 <code>std::shared_future</code>,<code>std::shared_future</code> 允许 <code>move</code>，允许拷贝，并且具有和 <code>std::future</code> 同样的成员函数</p>
-<p>当调用 <code>share</code> 后，<code>std::future</code> 对象就不再和共享状态关联，其 <code>valid</code> 函数也会变为 <code>false</code></p>
-<h3 id="wait"><a href="#wait" class="headerlink" title="wait"></a>wait</h3><p>等待直到数据就绪。数据就绪时，通过 <code>get</code> 函数，无等待即可获得数据</p>
-<p><code>wait_for</code> 、<code>wait_until</code> 主要是用来进行超时等待的，返回值有 3 种状态：</p>
-<ol>
-<li><p><code>std::future_status::ready</code> 数据已就绪，可以通过 <code>get</code> 获取</p>
-</li>
-<li><p><code>std::future_status::timeout</code> 超时，数据还未准备好</p>
-</li>
-<li><p><code>std::future_status::deferred</code> 和 <code>std::async</code> 相关，表明无需 <code>wait</code>，异步函数将在 <code>get</code> 时执行</p>
-</li>
-</ol>
-<h2 id="std-promise"><a href="#std-promise" class="headerlink" title="std::promise"></a>std::promise</h2><p><code>std::promise</code> 是一个模板类 <code>template&lt;typename R&gt; class promise</code>，其泛型参数 R 为 <code>std::promise</code> 对象保存的值的类型，R 可以是 <code>void</code> 类型</p>
-<p>作用是在一个线程 t1 中保存一个类型 <code>typename R</code> 的值，可供相绑定的<code>std::future</code> 对象在另一线程 t2 中获取</p>
-<p><code>std::promise</code> 允许移动，但不允许拷贝</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">accumulate</span><span class="params">(std::vector&lt;<span class="type">int</span>&gt;::iterator first,</span></span></span><br><span class="line"><span class="params"><span class="function">                std::vector&lt;<span class="type">int</span>&gt;::iterator last,</span></span></span><br><span class="line"><span class="params"><span class="function">                std::promise&lt;<span class="type">int</span>&gt; accumulate_promise)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> sum = std::<span class="built_in">accumulate</span>(first, last, <span class="number">0</span>);</span><br><span class="line">  accumulate_promise.<span class="built_in">set_value</span>(sum); <span class="comment">// Notify future</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">do_work</span><span class="params">(std::promise&lt;<span class="type">void</span>&gt; barrier)</span> </span>&#123;</span><br><span class="line">  std::this_thread::<span class="built_in">sleep_for</span>(std::chrono::<span class="built_in">seconds</span>(<span class="number">1</span>));</span><br><span class="line">  barrier.<span class="built_in">set_value</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  std::vector&lt;<span class="type">int</span>&gt; numbers = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>&#125;;</span><br><span class="line">  std::promise&lt;<span class="type">int</span>&gt; accumulate_promise;</span><br><span class="line">  std::future&lt;<span class="type">int</span>&gt; accumulate_future = accumulate_promise.<span class="built_in">get_future</span>();</span><br><span class="line">  <span class="function">std::thread <span class="title">work_thread</span><span class="params">(accumulate, numbers.begin(), numbers.end(),</span></span></span><br><span class="line"><span class="params"><span class="function">                          std::move(accumulate_promise))</span></span>;</span><br><span class="line"></span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;result=&quot;</span> &lt;&lt; accumulate_future.<span class="built_in">get</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">  work_thread.<span class="built_in">join</span>();</span><br><span class="line"></span><br><span class="line">  std::promise&lt;<span class="type">void</span>&gt; barrier;</span><br><span class="line">  std::future&lt;<span class="type">void</span>&gt; barrier_future = barrier.<span class="built_in">get_future</span>();</span><br><span class="line">  <span class="function">std::thread <span class="title">new_work_thread</span><span class="params">(do_work, std::move(barrier))</span></span>;</span><br><span class="line">  barrier_future.<span class="built_in">wait</span>();</span><br><span class="line">  new_work_thread.<span class="built_in">join</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="get-future"><a href="#get-future" class="headerlink" title="get_future"></a>get_future</h3><p>通过 <code>get_future</code> 获取与 <code>std::promise</code> 关联的 <code>std::future</code></p>
-<p>一个 <code>std::promise</code> 实例只能与一个 <code>std::future</code> 关联共享状态，当在同一个 <code>std::promise</code> 上反复调用 <code>get_future</code> 会抛出 <code>future_error</code> 异常</p>
-<h3 id="set-value"><a href="#set-value" class="headerlink" title="set_value"></a>set_value</h3><p><code>set_value</code> 可以设置 <code>std::promise</code> 中保存的值，该值通过 <code>std::future</code> 读取</p>
-<p><code>set_value</code> 只能被调用一次，多次调用会抛出 <code>std::future_error</code> 异常</p>
-<p>事实上 <code>std::promise::set_xxx</code> 函数会改变 <code>std::promise</code> 的状态为 ready，再次调用时发现状态已要是 ready 了，则抛出异常</p>
-<p>如果 <code>std::promise</code> 直到销毁时都未设置过任何值，则 <code>std::promise</code> 会在析构时自动设置为 <code>std::future_error</code>，这会造成 <code>std::future.get</code> 抛出 <code>std::future_error</code> 异常</p>
-<p><code>set_value_at_thread_exit</code> 会在当前线程销毁时设置 <code>std::promise</code> 的值</p>
-<h3 id="set-exception"><a href="#set-exception" class="headerlink" title="set_exception"></a>set_exception</h3><p><code>std::promise::set_exception</code> 可以设置自定义异常，该异常最终会被传递到 <code>std::future</code>，并在其 <code>get</code> 函数中被抛出</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">catch_error</span><span class="params">(std::future&lt;<span class="type">void</span>&gt; &amp;future)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    future.<span class="built_in">get</span>();</span><br><span class="line">  &#125; <span class="built_in">catch</span> (std::logic_error &amp;e) &#123;</span><br><span class="line">    std::cerr &lt;&lt; <span class="string">&quot;logic_error: &quot;</span> &lt;&lt; e.<span class="built_in">what</span>() &lt;&lt; std::endl;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  std::promise&lt;<span class="type">void</span>&gt; promise;</span><br><span class="line">  std::future&lt;<span class="type">void</span>&gt; future = promise.<span class="built_in">get_future</span>();</span><br><span class="line"></span><br><span class="line">  <span class="function">std::thread <span class="title">thread</span><span class="params">(catch_error, std::ref(future))</span></span>;</span><br><span class="line">  <span class="comment">// 自定义异常需要使用make_exception_ptr转换一下</span></span><br><span class="line">  promise.<span class="built_in">set_exception</span>(std::<span class="built_in">make_exception_ptr</span>(std::<span class="built_in">logic_error</span>(<span class="string">&quot;caught&quot;</span>)));</span><br><span class="line"></span><br><span class="line">  thread.<span class="built_in">join</span>();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 输出：logic_error: caught</span></span><br></pre></td></tr></table></figure>
-
-<p><code>std::promise</code> 虽然支持自定义异常，但它并不直接接受异常对象，自定义异常可以通过 <code>std::make_exception_ptr</code> 函数转化为 <code>std::exception_ptr</code></p>
-<p><code>set_exception_at_thread_exit</code> 等同于 <code>set_value_at_thread_exit</code></p>
-<h3 id="std-promise-1"><a href="#std-promise-1" class="headerlink" title="std::promise"></a>std::promise<void></h3><p><code>std::promise&lt;void&gt;</code> 是合法的，此时 <code>std::promise.set_value</code> 不接受任何参数，仅用于通知关联的 <code>std::future.get()</code> 解除阻塞</p>
-<h2 id="std-packaged-task"><a href="#std-packaged-task" class="headerlink" title="std::packaged_task"></a>std::packaged_task</h2><p><code>std::packaged_task</code> 允许传入一个函数，并将函数计算的结果传递给与之关联的 <code>std::future</code>，包括函数运行时产生的异常</p>
-<p><code>std::packaged_task</code> 支持移动操作，但不支持拷贝操作</p>
-<p><code>std::package_task</code> 除了可以通过可调用对象构造外，还支持缺省构造(无参构造)</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">R</span>, <span class="keyword">class</span>... ArgTypes&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">packaged_task</span>&lt;<span class="built_in">R</span>(ArgTypes...)&gt;</span><br><span class="line"><span class="comment">// R 是一个函数或可调用对象</span></span><br><span class="line"><span class="comment">// ArgTypes 是 R 的形参</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span> </span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;future&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">sum</span><span class="params">(<span class="type">int</span> a, <span class="type">int</span> b)</span> </span>&#123; <span class="keyword">return</span> a + b; &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="function">std::packaged_task&lt;<span class="title">int</span><span class="params">(<span class="type">int</span>, <span class="type">int</span>)</span>&gt; <span class="title">task</span><span class="params">(sum)</span></span>;</span><br><span class="line">  std::future&lt;<span class="type">int</span>&gt; future = task.<span class="built_in">get_future</span>();</span><br><span class="line"></span><br><span class="line">  <span class="function">std::thread <span class="title">t</span><span class="params">(std::move(task), <span class="number">1</span>, <span class="number">2</span>)</span></span>;</span><br><span class="line">  <span class="comment">// 等待异步计算结果</span></span><br><span class="line">  std::cout &lt;&lt; <span class="string">&quot;1 + 2 =&gt; &quot;</span> &lt;&lt; future.<span class="built_in">get</span>() &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">  t.<span class="built_in">join</span>();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/// 输出: 1 + 2 =&gt; 3</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="get-future-1"><a href="#get-future-1" class="headerlink" title="get_future"></a>get_future</h3><p>通过 <code>get_future</code> 获取与 <code>std::packaged_task</code> 关联的 <code>std::future</code></p>
-<p>一个 <code>std::packaged_task</code> 实例只能与一个 <code>std::future</code> 关联共享状态，当在同一个 <code>std::packaged_task</code> 上反复调用 <code>get_future</code> 会抛出 <code>future_error</code> 异常</p>
-<h3 id="valid-1"><a href="#valid-1" class="headerlink" title="valid"></a>valid</h3><p>通过其成员函数 <code>valid</code> 来判断 <code>std::packaged_task</code> 是否可用</p>
-<p>当通过缺省构造初始化时，由于其未设置任何可调用对象或函数，<code>valid</code> 会返回 <code>false</code></p>
-<p>只有当 <code>std::packaged_task</code> 设置了有效的函数或可调用对象，<code>valid</code> 才返回 <code>true</code></p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  std::packaged_task&lt;<span class="built_in">void</span>()&gt; task;</span><br><span class="line">  std::cout &lt;&lt; std::boolalpha &lt;&lt; task.<span class="built_in">valid</span>() &lt;&lt; std::endl;  <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line">  <span class="function">std::packaged_task&lt;<span class="title">void</span><span class="params">()</span>&gt; <span class="title">task2</span><span class="params">(std::move(task))</span></span>;</span><br><span class="line">  std::cout &lt;&lt; std::boolalpha &lt;&lt; task.<span class="built_in">valid</span>() &lt;&lt; std::endl;  <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line">  task = std::<span class="built_in">packaged_task</span>&lt;<span class="built_in">void</span>()&gt;([]() &#123;&#125;);</span><br><span class="line">  std::cout &lt;&lt; std::boolalpha &lt;&lt; task.<span class="built_in">valid</span>() &lt;&lt; std::endl; <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="operator"><a href="#operator" class="headerlink" title="operator()"></a>operator()</h3><p>调用 <code>std::packaged_task</code> 对象所封装可调用对象 R，但其函数原型与 R 稍有不同</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">operator</span><span class="params">()</span><span class="params">(ArgTypes... )</span></span></span><br></pre></td></tr></table></figure>
-
-<p><code>operator()</code> 的返回值是 <code>void</code> 无返回值，因为 <code>std::packaged_task</code> 的设计主要是用来进行异步调用，因此 <code>R(ArgTypes...)</code> 的计算结果是通过 <code>std::future::get</code> 来获取的</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="function">std::packaged_task&lt;<span class="title">void</span><span class="params">()</span>&gt; <span class="title">convert</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">      []() &#123; <span class="keyword">throw</span> std::logic_error(<span class="string">&quot;will catch in future&quot;</span>); &#125;)</span></span>;</span><br><span class="line">  std::future&lt;<span class="type">void</span>&gt; future = convert.<span class="built_in">get_future</span>();</span><br><span class="line"></span><br><span class="line">  <span class="built_in">convert</span>(); <span class="comment">// 异常不会在此处抛出</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    future.<span class="built_in">get</span>();</span><br><span class="line">  &#125; <span class="built_in">catch</span> (std::logic_error &amp;e) &#123;</span><br><span class="line">    std::cerr &lt;&lt; <span class="built_in">typeid</span>(e).<span class="built_in">name</span>() &lt;&lt; <span class="string">&quot;: &quot;</span> &lt;&lt; e.<span class="built_in">what</span>() &lt;&lt; std::endl;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// St11logic_error: will catch in future</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="make-ready-at-thread-exit"><a href="#make-ready-at-thread-exit" class="headerlink" title="make_ready_at_thread_exit"></a>make_ready_at_thread_exit</h3><p><code>std::packaged_task::make_ready_at_thread_exit</code> 和 <code>operator()</code> 行为一样，但不会将计算结果立刻反馈给 <code>std::future</code>，而是在其执行时所在的线程结束后</p>
-<h3 id="reset"><a href="#reset" class="headerlink" title="reset"></a>reset</h3><p><code>std::promise</code> 仅可以执行一次 <code>set_value</code> 或 <code>set_exception</code> 函数，但 <code>std::packagged_task</code> 可以执行多次，其奥秘就是 <code>reset</code> 函数</p>
-<p>调用 <code>reset</code> 后，需要重新 <code>get_future</code> ，以便获取下次 <code>operator()</code> 执行的结果</p>
-<p>由于是重新构造了 <code>promise</code> ，因此 <code>reset</code> 操作并不会影响之前调用的 <code>make_ready_at_thread_exit</code> 结果，也即之前的定制的行为在线程退出时仍会发生</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/12/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><span class="page-number current">13</span><a class="page-number" href="/page/14/">14</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/14/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/12/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><span class="page-number current">13</span><a class="page-number" href="/page/14/">14</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/14/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>

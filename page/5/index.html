@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">410</span>
+          <span class="site-state-item-count">411</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -133,7 +133,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -150,6 +150,146 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/08/17/%E7%AE%97%E6%B3%95%E5%BA%94%E7%94%A8-%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/08/17/%E7%AE%97%E6%B3%95%E5%BA%94%E7%94%A8-%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95/" class="post-title-link" itemprop="url">调度算法</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-08-17 14:43:24" itemprop="dateCreated datePublished" datetime="2023-08-17T14:43:24+08:00">2023-08-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%AE%97%E6%B3%95%E5%BA%94%E7%94%A8/" itemprop="url" rel="index"><span itemprop="name">算法应用</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="轮询"><a href="#轮询" class="headerlink" title="轮询"></a>轮询</h2><p>轮询即将请求依次分配到各个服务节点，从第一个节点开始，依次将请求分配到最后一个节点，而后重新开始下一轮循环，最终所有的请求会均摊分配在每个节点上</p>
+<p>假设每个请求的消耗是一样的，那么轮询调度是最平衡的调度算法</p>
+<h2 id="加权轮询"><a href="#加权轮询" class="headerlink" title="加权轮询"></a>加权轮询</h2><p>有些时候服务节点的性能配置各不相同，处理能力不一样。针对这种的情况，可以采用加权轮询的方式进行调度，根据节点处理能力的强弱配置不同的的权重值</p>
+<ol>
+<li><p>当有请求需要调度时，每次分配选择当前权重最高的节点，同时被选择的节点权重值减一</p>
+</li>
+<li><p>若所有节点权重值都为零，则重置为初始化时配置的权重值</p>
+</li>
+</ol>
+<p>加权轮询算法比较容易造成某个服务节点短时间内被集中调用，导致瞬时压力过大</p>
+<h2 id="平滑权重轮询"><a href="#平滑权重轮询" class="headerlink" title="平滑权重轮询"></a>平滑权重轮询</h2><p>针对加权轮询存在的瞬时压力大的情况，平滑权重轮询实现了基于权重的平滑轮询算法</p>
+<p>在一段时间内，不仅服务节点被选择次数的分布和它们的权重一致，而且调度算法还能比较均匀的选择节点，不会在一段时间之内集中只选择某一个权重较高的服务节点</p>
+<ol>
+<li><p>初始状态时初始化配置权重 weight，然后给每个服务器加 1 个动态的当前权重 curWeight，默认为 0</p>
+</li>
+<li><p>请求进来时 curWeight +&#x3D; weight，然后从 curWeight 中挑选最大的</p>
+</li>
+<li><p>curWeight -&#x3D; sum(weight)</p>
+</li>
+</ol>
+<h2 id="随机"><a href="#随机" class="headerlink" title="随机"></a>随机</h2><p>每次将请求随机地分配到服务节点上，优点是完全无状态的调度，调度节点不需要记录过往请求分配情况的数据</p>
+<p>理论上在请求量足够大的情况下，随机算法会趋近于完全平衡的负载均衡调度算法</p>
+<h2 id="加权随机"><a href="#加权随机" class="headerlink" title="加权随机"></a>加权随机</h2><p>服务节点权重越大，随机到的概率就越大。最终所有请求分配到各服务节点的数量与节点配置的权重值成正比关系</p>
+<h2 id="最小负载"><a href="#最小负载" class="headerlink" title="最小负载"></a>最小负载</h2><p>实际应用中，不同的请求对服务器的消耗各不相同，无论是使用轮询还是随机的方式，都可能无法准确的做到完全的负载均衡</p>
+<p>最小负载算法是根据各服务节点当前的真实负载能力进行请求分配的，当前负载最小的节点会被优先选择</p>
+<ol>
+<li><p>服务节点定时向调度节点上报各自的负载情况，调度节点更新并记录所有服务节点的当前负载值</p>
+</li>
+<li><p>当有请求需要调度时，每次分配选择当前负载最小的服务节点</p>
+</li>
+</ol>
+<h2 id="两次随机选择"><a href="#两次随机选择" class="headerlink" title="两次随机选择"></a>两次随机选择</h2><p>最小负载算法可以在请求对服务消耗相同时做到更好的均衡性，但一般情况下服务节点的负载数据都是定时同步到调度节点，存在一定的滞后性，而使用滞后的负载数据进行调度会导致产生群居行为。请求将批量地发送到当前某个低负载的节点，而当下一次同步更新负载数据时，该节点又有可能处于较高位置，然后不会被分配任何请求。再下一次又变成低负载节点被分配了更多的请求，一直处于这种很忙和很闲的循环状态，不利于服务器的稳定</p>
+<ol>
+<li><p>服务节点定时向调度节点上报各自的负载情况，调度节点更新并记录所有服务节点的当前负载值</p>
+</li>
+<li><p>从所有可用节点列表中做两次随机选择操作，得到两个节点</p>
+</li>
+<li><p>比较这两个节点负载情况，选择负载更低的节点作为被调度的节点</p>
+</li>
+</ol>
+<h2 id="一致性哈希"><a href="#一致性哈希" class="headerlink" title="一致性哈希"></a>一致性哈希</h2><p>为了保序和充分利用缓存，会希望相同请求 key 的请求总是会被分配到同一个服务节点上，以保持请求的一致性，从而有了一致性哈希的调度方式</p>
+<h3 id="划段法"><a href="#划段法" class="headerlink" title="划段法"></a>划段法</h3><p>事先规划好资源段，然后根据请求的 key 映射找到所属段，但这种方式存在很大的应用局限性，对于平衡性和稳定性也都不太理想</p>
+<h3 id="割环法"><a href="#割环法" class="headerlink" title="割环法"></a>割环法</h3><p>割环法本质上是一种取模算法，不过不是按数量取模，而是对固定值 2^32 取模</p>
+<p>IPv4 的地址是 4 组 8 位 2 进制数组成，所以用 2^32 可以保证每个 IP 地址会有唯一的映射</p>
+<ol>
+<li><p>将 2^32 看成一个圆环，由 2^32 个点组成</p>
+</li>
+<li><p>对服务器 IP 进行哈希运算后对 2^32 取模，将服务器映射到环上的一个点</p>
+</li>
+<li><p>对 key 进行哈希运算后对 2^32 取模得到环上对应的点位，如果该点位没有相应的服务器则顺时针在环上找服务器</p>
+</li>
+</ol>
+<p>在实际场景中很难选取到一个哈希函数能够完美地将各个服务器散列到环上，从而在服务器节点数量太少的情况下，很容易因为节点分布不均匀而造成数据倾斜问题</p>
+<p>针对数据倾斜问题，可以将每台物理服务器虚拟为一组虚拟服务器，将虚拟服务器放置到哈希环上。如果要确定对象的服务器，需先确定对象的虚拟服务器，再由虚拟服务器确定物理服务器</p>
+<p>虚拟节点的哈希计算通常可以采用对应节点的 IP 地址加数字编号后缀的方式，如 10.24.23.227#1 的方式</p>
+<p>引入虚拟节点的同时也增加了新的问题，要做虚拟节点和真实节点间的映射</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +335,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -282,7 +422,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -375,7 +515,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -510,7 +650,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -624,7 +764,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -732,7 +872,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -825,7 +965,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -925,7 +1065,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1044,7 +1184,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1113,95 +1253,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/07/25/LinuxApi-mmap/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/07/25/LinuxApi-mmap/" class="post-title-link" itemprop="url">mmap</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-07-25 21:44:48" itemprop="dateCreated datePublished" datetime="2023-07-25T21:44:48+08:00">2023-07-25</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/mman.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">void</span> *<span class="title">mmap</span><span class="params">(<span class="type">void</span> *addr, <span class="type">size_t</span> length, <span class="type">int</span> prot, <span class="type">int</span> flags,</span></span></span><br><span class="line"><span class="params"><span class="function">           <span class="type">int</span> fd, <span class="type">off_t</span> offset)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">addr 指定内核映射文件的最佳位置，一般情况下传 0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">length fd 指向的字节数</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">prot 指定访问权限，访问权限不可与 fd 打开的访问模式冲突</span></span><br><span class="line"><span class="comment">PROT_READ 页可读</span></span><br><span class="line"><span class="comment">PROT_WRITE 页可写</span></span><br><span class="line"><span class="comment">PROT_EXEC 页可执行</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">flags 指定其他操作行为</span></span><br><span class="line"><span class="comment">MAP_PRIVATE 表示映射区不共享，文件映射采用了写时复制，进程对内存的任何改变不影响真正文件或其他进程的映射</span></span><br><span class="line"><span class="comment">MAP_SHARED 表示和所有其他映射该文件的进程共享映射内存，对内存的写操作等效于写文件</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">offset 映射起点与文件头的偏移</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 取消映射</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">munmap</span><span class="params">(<span class="type">void</span> *addr, <span class="type">size_t</span> length)</span></span>;</span><br><span class="line"><span class="comment">// 将修改写入文件，mumap 不保证一定写入</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">msync</span><span class="params">(<span class="type">void</span> *addr, <span class="type">size_t</span> length, <span class="type">int</span> flags)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">MS_ASYNC 异步刷新</span></span><br><span class="line"><span class="comment">MS_SYNC 同步刷新</span></span><br><span class="line"><span class="comment">MS_INVALIDATE 使同一文件的其他映射无效，以便可以用刚刚写入的新值更新它们</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 扩展、缩小、移动现有的内存映射</span></span><br><span class="line"><span class="function"><span class="type">void</span> *<span class="title">mremap</span><span class="params">(<span class="type">void</span> *old_address, <span class="type">size_t</span> old_size,</span></span></span><br><span class="line"><span class="params"><span class="function">             <span class="type">size_t</span> new_size, <span class="type">int</span> flags, ... <span class="comment">/* void *new_address */</span>)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">默认情况下，如果当前位置没有足够的空间来扩展映射，则 mremap() 会失败</span></span><br><span class="line"><span class="comment">MREMAP_MAYMOVE 允许将映射重新定位到一个新的虚拟地址。如果映射被重新定位，则绝对指针指向旧的映射位置无效</span></span><br><span class="line"><span class="comment">MREMAP_FIXED </span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p>大部分的硬件设计都不支持在没有读取权限的情况下执行写操作，所以在 <code>open</code> 中应该使用 <code>O_RDWR</code> 代替 <code>O_WRONLY</code></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/6/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/6/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>

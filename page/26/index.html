@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">410</span>
+          <span class="site-state-item-count">411</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -133,7 +133,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-count">33</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -150,6 +150,136 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/" class="post-title-link" itemprop="url">缓冲区</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-19 21:28:59" itemprop="dateCreated datePublished" datetime="2023-04-19T21:28:59+08:00">2023-04-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>缓冲区就是用一块内存空间来暂时存放命令数据，以免出现因为数据和命令的处理速度慢于发送速度而导致的数据丢失和性能问题。但因为缓冲区的内存空间有限，如果往里面写入数据的速度持续地大于从里面读取数据的速度，就会导致缓冲区需要越来越多的内存来暂存数据。当缓冲区占用的内存超出了设定的上限阈值时，就会出现缓冲区溢出</p>
+<p>缓冲区不设上限，随着累积的数据越来越多，缓冲区占用内存空间越来越大，一旦耗尽了 Redis 实例所在机器的可用内存，就会导致 Redis 实例崩溃</p>
+<p>主要场景：</p>
+<ul>
+<li><p>在客户端和服务器端之间进行通信时，用来暂存客户端发送的命令数据，或者是服务器端返回给客户端的数据结果</p>
+</li>
+<li><p>主从节点间进行数据同步时，用来暂存主节点接收的写命令和数据</p>
+</li>
+</ul>
+<h2 id="客户端输入输出缓冲区"><a href="#客户端输入输出缓冲区" class="headerlink" title="客户端输入输出缓冲区"></a>客户端输入输出缓冲区</h2><p>为了避免客户端和服务器端的请求发送和处理速度不匹配，服务器端给每个连接的客户端都设置了一个输入缓冲区和输出缓冲区</p>
+<p>输入缓冲区会先把客户端发送过来的命令暂存起来，Redis 主线程再从输入缓冲区中读取命令，进行处理。当 Redis 主线程处理完数据后，会把结果写入到输出缓冲区，再通过输出缓冲区返回给客户端</p>
+<h3 id="输入缓冲区溢出"><a href="#输入缓冲区溢出" class="headerlink" title="输入缓冲区溢出"></a>输入缓冲区溢出</h3><p>输入缓冲区就是用来暂存客户端发送的请求命令的，所以可能导致溢出的情况主要是下面两种：</p>
+<ul>
+<li><p>写入了 bigkey，比如一下子写入了多个百万级别的集合类型数据</p>
+</li>
+<li><p>服务器端处理请求的速度过慢，导致客户端发送的请求在缓冲区越积越多</p>
+</li>
+</ul>
+<p>Redis 服务器端不止服务一个客户端，当多个客户端连接占用的内存总量，超过了 Redis 的 maxmemory 配置项时（例如 4GB），就会触发 Redis 进行数据淘汰。一旦数据被淘汰出 Redis，再要访问这部分数据，就需要去后端数据库读取，这就降低了业务应用的访问性能</p>
+<p>Redis 没有提供参数调节客户端输入缓冲区的大小，只能从数据命令的发送和处理速度入手，也就是前面提到的避免客户端写入 bigkey，以及避免 Redis 主线程阻塞</p>
+<h3 id="输出缓冲区溢出"><a href="#输出缓冲区溢出" class="headerlink" title="输出缓冲区溢出"></a>输出缓冲区溢出</h3><p>输出缓冲区暂存的是 Redis 主线程要返回给客户端的数据</p>
+<p>Redis 为每个客户端设置的输出缓冲区也包括两部分：一部分，是一个大小为 16KB 的固定缓冲空间，用来暂存 OK 响应和出错信息；另一部分，是一个可以动态增加的缓冲空间，用来暂存大小可变的响应结果</p>
+<p>输出去缓冲溢出主要情况：</p>
+<ul>
+<li><p>服务器端返回 bigkey 的大量结果</p>
+</li>
+<li><p>执行了 MONITOR 命令</p>
+</li>
+<li><p>缓冲区大小设置得不合理</p>
+</li>
+</ul>
+<p>可以通过 client-output-buffer-limit 配置项，来设置缓冲区的大小；主要包括设置缓冲区大小的上限阈值，设置输出缓冲区持续写入数据的数量上限阈值，和持续写入数据的时间的上限阈值</p>
+<h2 id="主从集群输入输出缓冲区"><a href="#主从集群输入输出缓冲区" class="headerlink" title="主从集群输入输出缓冲区"></a>主从集群输入输出缓冲区</h2><p>主从集群间的数据复制包括全量复制和增量复制两种。全量复制是同步所有数据，而增量复制只会把主从库网络断连期间主库收到的命令，同步给从库</p>
+<h3 id="复制缓冲区溢出"><a href="#复制缓冲区溢出" class="headerlink" title="复制缓冲区溢出"></a>复制缓冲区溢出</h3><p>在全量复制过程中，主节点在向从节点传输 RDB 文件的同时，会继续接收客户端发送的写命令请求。这些写命令就会先保存在复制缓冲区中，等 RDB 文件传输完成后，再发送给从节点去执行</p>
+<p>主节点上会为每个从节点都维护一个复制缓冲区，来保证主从节点间的数据同步</p>
+<img src="/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/01.png" class="">
+
+<p>如果在全量复制时，从节点接收和加载 RDB 较慢，同时主节点接收到了大量的写命令，写命令在复制缓冲区中就会越积越多，最终导致溢出</p>
+<p>主节点上的复制缓冲区，本质上也是一个用于和从节点连接的客户端使用的输出缓冲区，复制缓冲区一旦发生溢出，主节点也会直接关闭和从节点进行复制操作的连接，导致全量复制失败</p>
+<p>控制主节点保存的数据量大小，把主节点的数据量控制在 2~4GB，这样可以让全量同步执行得更快些，避免复制缓冲区累积过多命令</p>
+<p>使用 client-output-buffer-limit 配置项，来设置合理的复制缓冲区大小</p>
+<p>主节点上复制缓冲区的内存开销，会是每个从节点客户端输出缓冲区占用内存的总和，控制和主节点连接的从节点个数，不要使用大规模的主从集群</p>
+<h3 id="复制积压缓冲区溢出"><a href="#复制积压缓冲区溢出" class="headerlink" title="复制积压缓冲区溢出"></a>复制积压缓冲区溢出</h3><p>主节点在把接收到的写命令同步给从节点时，同时会把这些写命令写入复制积压缓冲区。一旦从节点发生网络闪断，再次和主节点恢复连接后，从节点就会从复制积压缓冲区中，读取断连期间主节点接收到的写命令，进而进行增量同步</p>
+<img src="/2023/04/19/Redis-%E7%BC%93%E5%86%B2%E5%8C%BA/02.png" class="">
+
+<p>复制积压缓冲区 repl_backlog_buffer 是一个大小有限的环形缓冲区，当主节点把复制积压缓冲区写满后，会覆盖缓冲区中的旧命令数据。如果从节点还没有同步这些旧命令数据，就会造成主从节点间重新开始执行全量复制</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +325,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -305,7 +435,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -437,7 +567,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
 
   
@@ -549,7 +679,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -661,7 +791,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -765,7 +895,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -877,7 +1007,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -985,7 +1115,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1101,7 +1231,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
+      <time title="修改时间：2024-01-17 20:51:32" itemprop="dateModified" datetime="2024-01-17T20:51:32+08:00">2024-01-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1201,105 +1331,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/19/CMake-%E5%86%85%E7%BD%AE%E7%BC%96%E8%AF%91%E7%B1%BB%E5%9E%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/19/CMake-%E5%86%85%E7%BD%AE%E7%BC%96%E8%AF%91%E7%B1%BB%E5%9E%8B/" class="post-title-link" itemprop="url">内置编译类型</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-19 19:47:31" itemprop="dateCreated datePublished" datetime="2023-04-19T19:47:31+08:00">2023-04-19</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-12 11:18:42" itemprop="dateModified" datetime="2024-01-12T11:18:42+08:00">2024-01-12</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>CMake 有多种预置的编译类型</p>
-<ul>
-<li><p><code>Release</code> 对应 <code>-O3 -DNDEBUG</code></p>
-</li>
-<li><p><code>Debug</code> 对应 <code>-g</code></p>
-</li>
-<li><p><code>MinSizeRel</code> 对应 <code>-Os -DNDEBUG</code></p>
-</li>
-<li><p><code>RelWithDebInfo</code> 对应 <code>-O2 -g -DNDEBUG</code></p>
-</li>
-</ul>
-<p>可以通过 <code>cmake .. -DCMAKE_BUILD_TYPE=Release</code> 来设置编译类型</p>
-<p>CMake 默认不使用任何的编译参数，但可以设置默认的编译类型</p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(<span class="keyword">NOT</span> CMAKE_BUILD_TYPE <span class="keyword">AND</span> <span class="keyword">NOT</span> CMAKE_CONFIGURATION_TYPES)</span><br><span class="line">  <span class="keyword">message</span>(<span class="string">&quot;Setting build type to &#x27;RelWithDebInfo&#x27; as none was specified.&quot;</span>)</span><br><span class="line">  <span class="keyword">set</span>(CMAKE_BUILD_TYPE RelWithDebInfo CACHE <span class="keyword">STRING</span> <span class="string">&quot;Choose the type of build.&quot;</span> FORCE)</span><br><span class="line">  <span class="comment"># Set the possible values of build type for cmake-gui</span></span><br><span class="line">  <span class="keyword">set_property</span>(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS <span class="string">&quot;Debug&quot;</span> <span class="string">&quot;Release&quot;</span> <span class="string">&quot;MinSizeRel&quot;</span> <span class="string">&quot;RelWithDebInfo&quot;</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/25/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/25/">25</a><span class="page-number current">26</span><a class="page-number" href="/page/27/">27</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/27/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/25/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/25/">25</a><span class="page-number current">26</span><a class="page-number" href="/page/27/">27</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/27/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
