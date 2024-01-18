@@ -49,7 +49,7 @@ S_ISSOCK(m) /* socket? (Not in POSIX.1-1996.) -套接口? */
 ```cpp
 int stat(const char *path, struct stat *buf);
 
-// 通过文件名 filename 获取文件信息，并保存在 buf 所指的结构体 stat 中
+// 通过文件名 path 获取文件信息，并保存在 buf 所指的结构体 stat 中
 // 执行成功则返回 0，失败返回 -1，错误代码存于 errno
 ```
 
