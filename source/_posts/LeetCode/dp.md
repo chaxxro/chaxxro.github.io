@@ -288,3 +288,16 @@ dp[i] = min(dp0[i - 1], dp1[i - 1]) if s[i] == 1
 ## lc1043
 
 [题目](https://leetcode.com/problems/partition-array-for-maximum-sum/description/)
+
+## lc1143
+
+```cpp
+/*
+dp[i][j] : text[0 ~ i] text[0 ~j] LCS
+
+if text[i] == text[j] then dp[i][j] = dp[i - 1][j - 1] + 1
+else dp[i][j] = max(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1])
+*/
+```
+
+[题目](https://leetcode.com/problems/longest-common-subsequence/)

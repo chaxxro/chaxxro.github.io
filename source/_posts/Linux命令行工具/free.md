@@ -9,7 +9,7 @@ tags: 命令行工具
 categories: Linux 命令行
 ---
 
-查看系统内存使用情况
+查看系统内存使用情况，数据来源于 `/proc/meminfo`
 
 ```sh
 free [options]

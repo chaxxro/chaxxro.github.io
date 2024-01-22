@@ -3,7 +3,7 @@ toc:
   enable: true
   number: false
   max_depth: 3
-title: Linux性能
+title: Linux CPU 性能
 date: 2023-12-13 13:36:19
 tags: 操作系统
 categories: Linux性能
