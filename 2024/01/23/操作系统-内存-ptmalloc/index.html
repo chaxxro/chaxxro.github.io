@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"chaxxro.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":true,"version":"8.14.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="glibc 中的 ptmalloc 分配区 arena在 ptmalloc 中，使用分配区 arena 管理从操作系统中批量申请来的内存 在 ptmalloc 中存在一个全局的主分配区，是用静态变量的方式定义的 1234567891011121314151617181920212223242526static struct malloc_state main_arena;struct malloc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ptmalloc">
+<meta property="og:url" content="https://chaxxro.github.io/2024/01/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-ptmalloc/index.html">
+<meta property="og:site_name" content="也无风雨也无晴">
+<meta property="og:description" content="glibc 中的 ptmalloc 分配区 arena在 ptmalloc 中，使用分配区 arena 管理从操作系统中批量申请来的内存 在 ptmalloc 中存在一个全局的主分配区，是用静态变量的方式定义的 1234567891011121314151617181920212223242526static struct malloc_state main_arena;struct malloc">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-01-23T12:23:26.000Z">
+<meta property="article:modified_time" content="2024-01-23T13:45:57.473Z">
+<meta property="article:author" content="chaxxro">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://chaxxro.github.io/2024/01/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-ptmalloc/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://chaxxro.github.io/2024/01/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-ptmalloc/","path":"2024/01/23/操作系统-内存-ptmalloc/","title":"ptmalloc"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>ptmalloc | 也无风雨也无晴</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">也无风雨也无晴</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E9%85%8D%E5%8C%BA-arena"><span class="nav-text">分配区 arena</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%9D%97-chunk"><span class="nav-text">内存块 chunk</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A9%BA%E9%97%B2%E5%86%85%E5%AD%98%E5%9D%97%E9%93%BE%E8%A1%A8-bins"><span class="nav-text">空闲内存块链表 bins</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#fastbins"><span class="nav-text">fastbins</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#smallbins"><span class="nav-text">smallbins</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#largebins"><span class="nav-text">largebins</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#unsortedbins"><span class="nav-text">unsortedbins</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#malloc-%E7%9A%84%E5%B7%A5%E4%BD%9C%E8%BF%87%E7%A8%8B"><span class="nav-text">malloc 的工作过程</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">chaxxro</p>
+  <div class="site-description" itemprop="description">好记性不如烂键盘</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">411</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2024/01/23/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E5%86%85%E5%AD%98-ptmalloc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="ptmalloc | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ptmalloc
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2024-01-23 20:23:26 / 修改时间：21:45:57" itemprop="dateCreated datePublished" datetime="2024-01-23T20:23:26+08:00">2024-01-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">内存管理</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>glibc 中的 ptmalloc</p>
+<h2 id="分配区-arena"><a href="#分配区-arena" class="headerlink" title="分配区 arena"></a>分配区 arena</h2><p>在 ptmalloc 中，使用分配区 arena 管理从操作系统中批量申请来的内存</p>
+<p>在 ptmalloc 中存在一个全局的主分配区，是用静态变量的方式定义的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">struct</span> <span class="title class_">malloc_state</span> main_arena;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">malloc_state</span> &#123;</span><br><span class="line"> <span class="comment">// 锁，用来解决在多线程分配时的竞争问题</span></span><br><span class="line"> <span class="type">mutex_t</span> mutex;</span><br><span class="line"></span><br><span class="line"> <span class="comment">// 分配区下管理内存的各种数据结构</span></span><br><span class="line"> <span class="comment">/* Fastbins */</span></span><br><span class="line"> mfastbinptr      fastbins[NFASTBINS];</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Base of the topmost chunk -- not otherwise kept in a bin */</span></span><br><span class="line"> mchunkptr        top;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* The remainder from the most recent split of a small request */</span></span><br><span class="line"> mchunkptr        last_remainder;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* smallbins、largetbins、unsortedbins */</span></span><br><span class="line"> mchunkptr        bins[NBINS * <span class="number">2</span>];  <span class="comment">// 128 * 2</span></span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Bitmap of bins */</span></span><br><span class="line"> <span class="type">unsigned</span> <span class="type">int</span>     binmap[BINMAPSIZE];</span><br><span class="line"> ...</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Linked list */</span></span><br><span class="line"> <span class="keyword">struct</span> <span class="title class_">malloc_state</span> *next;  <span class="comment">// 把所有的分配区都以一个链表组织了起来，方便后面的遍历</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>多线程在操作一个分配区的时候需要加锁，在线程比较多的时候在锁上浪费的开销会比较多。为了降低锁开销，ptmalloc 支持多个分配区。这样在单个分配区上锁的竞争开销就会小很多</p>
+<h2 id="内存块-chunk"><a href="#内存块-chunk" class="headerlink" title="内存块 chunk"></a>内存块 chunk</h2><p>在每个 arena 中，最基本的内存分配的单位是 malloc_chunk，简称 chunk，包含 header 和 body 两部分</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">malloc_chunk</span> &#123;</span><br><span class="line"> INTERNAL_SIZE_T      prev_size;  <span class="comment">/* Size of previous chunk (if free).  */</span></span><br><span class="line"> INTERNAL_SIZE_T      size;       <span class="comment">/* Size in bytes, including overhead. */</span></span><br><span class="line"></span><br><span class="line"> <span class="keyword">struct</span> <span class="title class_">malloc_chunk</span>* fd;         <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line"> <span class="keyword">struct</span> <span class="title class_">malloc_chunk</span>* bk;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Only used for large blocks: pointer to next larger size.  */</span></span><br><span class="line"> <span class="keyword">struct</span> <span class="title class_">malloc_chunk</span>* fd_nextsize; <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line"> <span class="keyword">struct</span> <span class="title class_">malloc_chunk</span>* bk_nextsize;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>调用 <code>malloc</code> 申请内存时，分配器都会分配一个大小合适的 chunk，并把 body 部分的 user data 的地址返回</p>
+<p>调用 <code>free</code> 释放内存时，其对应的 chunk 对象其实并不会归还给内核，而是由 glibc 又组织管理起来。body 部分的 fd、bk 字段分别是指向上一个和下一个空闲的 chunk，用来当双向链表指针来使用。chunk 在使用的时候是没有这两个字段的，这块内存在不同场景下的用途不同</p>
+<h2 id="空闲内存块链表-bins"><a href="#空闲内存块链表-bins" class="headerlink" title="空闲内存块链表 bins"></a>空闲内存块链表 bins</h2><p>glibc 会将相似大小的空闲内存块 chunk 都串起来，这样等下次用户再来分配的时候，先找到链表，然后就可以从链表中取出一个元素快速分配。这样的一个链表被称为一个 bin</p>
+<p>ptmalloc 中根据管理的内存块的大小，总共有 fastbins、smallbins、largebins 和 unsortedbins 四类</p>
+<h3 id="fastbins"><a href="#fastbins" class="headerlink" title="fastbins"></a>fastbins</h3><p>fastbins 用来管理尺寸最小空闲内存块的链表，它有多个链表，每个 bin 链表管理的都是固定大小的 chunk 内存块。在 64 位系统下，每个链表管理的 chunk 元素大小分别是 32 字节、48 字节、…、128 字节等不同的大小</p>
+<p>用户的应用程序中绝大多数的内存分配是小内存，所以这组 bin 是用于提高小内存的分配效率的</p>
+<h3 id="smallbins"><a href="#smallbins" class="headerlink" title="smallbins"></a>smallbins</h3><p>smallbins 数组总共有 64 个链表指针，同一个 small bin 中的 chunk 具有相同的大小</p>
+<p>在 64 位系统上，两个相邻的 small bin 中的 chunk 大小相差 16 字节</p>
+<h3 id="largebins"><a href="#largebins" class="headerlink" title="largebins"></a>largebins</h3><p>largebins 管理的内存是 1024 起，且每两个相邻的 largebin 之间管理的内存块大小不再是固定的等差数列</p>
+<h3 id="unsortedbins"><a href="#unsortedbins" class="headerlink" title="unsortedbins"></a>unsortedbins</h3><p>unsortedbins 管理的内存块是被当做缓存区来用的</p>
+<p>当用户释放一个堆块之后，会先进入 unsortedbin。再次分配堆块时，ptmalloc 会优先检查这个链表中是否存在合适的堆块，如果找到了，就直接返回给用户(这个过程可能会对 unsortedbin 中的堆块进行切割)。若没有找到合适的，系统也会顺带清空这个链表上的元素，把它放到合适的 smallbin 或者 large bin 中</p>
+<h2 id="malloc-的工作过程"><a href="#malloc-的工作过程" class="headerlink" title="malloc 的工作过程"></a>malloc 的工作过程</h2><p>当用户要分配内存的时候，malloc 函数就可以根据其大小，从合适的 bins 中查找合适的 chunk</p>
+<p>当用户用完需要释放的时候，glibc 再根据其内存块大小，放到合适的 bin 下管理起来。下次再给用户申请时备用</p>
+<p>当需要申请小内存块，但是没有大小合适的时候，会将大的 chunk 拆成多个小 chunk。如果申请大内存块的时候，而系统中又存在大量的小 chunk 的时候，又会发生合并，以降低碎片率</p>
+<ol>
+<li><p>如果申请字节数小于 fast bins 管理的内存块最大字节数，则尝试从 fastbins 中申请内存，申请成功就返回</p>
+</li>
+<li><p>如果申请字节数小于 small bins 管理的内存，则尝试从 smallbins 中申请内存，申请成功就返回</p>
+</li>
+<li><p>尝试从 unsorted bins 中申请内存，申请成功就返回</p>
+</li>
+<li><p>尝试从 large bins 中申请内存，申请成功就返回</p>
+</li>
+<li><p>尝试从 top chunk 中申请内存并返回</p>
+</li>
+<li><p>向操作系统申请内存</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"># 操作系统</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/01/19/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-Linux%E5%86%85%E5%AD%98%E6%80%A7%E8%83%BD/" rel="prev" title="Linux 内存性能">
+                  <i class="fa fa-chevron-left"></i> Linux 内存性能
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">chaxxro</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

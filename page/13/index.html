@@ -159,6 +159,106 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/31/LinuxApi-pthread-cond-xx/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/31/LinuxApi-pthread-cond-xx/" class="post-title-link" itemprop="url">pthread_cond_xx</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-31 21:15:17" itemprop="dateCreated datePublished" datetime="2023-05-31T21:15:17+08:00">2023-05-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方式一</span></span><br><span class="line"><span class="type">pthread_cond_t</span> cond = PTHREAD_COND_INITIALIZER;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式二</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_init</span><span class="params">(<span class="type">pthread_cond_t</span>* cond, </span></span></span><br><span class="line"><span class="params"><span class="function">                      <span class="type">const</span> <span class="type">pthread_condattr_t</span>* attr)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="销毁"><a href="#销毁" class="headerlink" title="销毁"></a>销毁</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_destroy</span><span class="params">(<span class="type">pthread_cond_t</span>* cond)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="等待"><a href="#等待" class="headerlink" title="等待"></a>等待</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_wait</span><span class="params">(<span class="type">pthread_cond_t</span>* cond,</span></span></span><br><span class="line"><span class="params"><span class="function">                      <span class="type">pthread_mutex_t</span> mutex)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_timewait</span><span class="params">(<span class="type">pthread_cond_t</span>* cond,</span></span></span><br><span class="line"><span class="params"><span class="function">                          <span class="type">pthread_mutex_t</span>* mutex,</span></span></span><br><span class="line"><span class="params"><span class="function">                          <span class="type">const</span> <span class="keyword">struct</span> timespec* abs_time)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>pthread_cond_wait</code> 阻塞时，会释放绑定的互斥体并阻塞线程</p>
+<p><code>pthread_cond_wait</code> 返回时会对绑定的互斥体加锁</p>
+<h2 id="唤醒"><a href="#唤醒" class="headerlink" title="唤醒"></a>唤醒</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_signal</span><span class="params">(<span class="type">pthread_cond_t</span>* cond)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">pthread_cond_broadcast</span><span class="params">(<span class="type">pthread_cond_t</span>* cond)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>pthread_cond_signal</code> 唤醒一个线程，但具体哪个线程不确定</p>
+<p><code>pthread_cond_broadcast</code> 唤醒所有线程</p>
+<h2 id="虚假唤醒"><a href="#虚假唤醒" class="headerlink" title="虚假唤醒"></a>虚假唤醒</h2><p>操作系统可能在某些情况下唤醒条件变量，即存在没有其他线程向条件变量发送信号，但等待的线程被唤醒的情况，因此需要在被唤醒后再次检测条件</p>
+<p>这是因为 <code>pthread_cond_wait</code> 是阻塞型系统调用，当被信号中断时会返回 -1，并把 <code>errno</code> 置为 <code>EINTR</code></p>
+<p>因此在被中断唤醒后到再次调用 <code>pthread_cond_wait</code> 前会丢失信号，则有可能无限等待</p>
+<p>解决方法：在条件变量唤醒后，使用 <code>while</code> 检查条件是否满</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E6%A0%87%E5%87%86%E5%BA%93-bind/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -195,7 +295,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -284,7 +384,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -385,7 +485,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -473,7 +573,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -588,7 +688,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -698,7 +798,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -800,7 +900,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -901,7 +1001,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -991,7 +1091,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1077,195 +1177,6 @@
 <h2 id="std-lock"><a href="#std-lock" class="headerlink" title="std::lock"></a>std::lock</h2><p>批量上锁方式，采用死锁算法来锁定给定的 <code>mutex</code> 列表，避免死锁，上锁顺序是不确定的</p>
 <p>该函数保证如果成功则所有 <code>mutex</code> 全部上锁，如果失败则全部解锁</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">class</span> <span class="title class_">L1</span>, <span class="keyword">class</span> <span class="title class_">L2</span>, <span class="keyword">class</span>... L3&gt;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">lock</span><span class="params">(L1&amp;, L2&amp;, L3&amp;...)</span></span>;</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/29/cpp%E7%BB%86%E8%8A%82-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%92%8C%E5%86%85%E5%AD%98%E5%BA%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/05/29/cpp%E7%BB%86%E8%8A%82-%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%92%8C%E5%86%85%E5%AD%98%E5%BA%8F/" class="post-title-link" itemprop="url">内存模型和内存序</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-05-29 21:20:41" itemprop="dateCreated datePublished" datetime="2023-05-29T21:20:41+08:00">2023-05-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>内存序是用来约束同一个线程内的内存访问排序方式的，虽然同一个线程内的代码顺序重排不会影响本线程的执行结果，但是在多线程环境下，重排造成的数据访问顺序变化会影响其它线程的访问结果</p>
-<p>因为代码重排会对其他线程造成影响，所以引入了内存模型来解决如何合理地限制单一线程中的代码执行顺序，使得在不使用锁的情况下，既能最大化利用 CPU 的计算能力，又能保证多线程环境下不会出现逻辑错误</p>
-<h2 id="原子性"><a href="#原子性" class="headerlink" title="原子性"></a>原子性</h2><p>一个代码操作可能会被拆解成多个机器指令，原子性指的是代码指令的完整性</p>
-<p>在单核情况下，代码指令要么被执行要么不被执行，不存在中间状态</p>
-<p>在多核情况下，因为一个代码可能会被拆解成多个机器指令，意味着在某些特定时间点，一部分指令被执行了而一部分没被执行，从而其他线程可能会看到中间值</p>
-<h2 id="可见性问题"><a href="#可见性问题" class="headerlink" title="可见性问题"></a>可见性问题</h2><p>所谓可见性，是当一个线程对某个共享变量的操作，另外一个线程立即可见这个共享变量的变更</p>
-<p>由于处理器和内存的速度差距太大，为了提高处理速度，处理器不直接和内存进行通信，而是先将系统内存的数据读到内部缓存（L1，L2或其他）后再进行操作</p>
-<p>基于局部性原理，处理器在读取内存数据时是一块块地读取，每一小块数据也叫缓存行。当处理器操作完数据，也不直接写回内存，而且先写入缓存中，并将当前缓存标记为脏。等到当前缓存被替换时，才将数据写回内存</p>
-<p>为了提高效率，处理器使用写缓存区临时保存向内存写入的数据。写缓冲区可以保证指令流水线的持续运行，同时合并写缓冲区中对同一内存地址的多次写，减少内存总线的占用。但是由于缓冲区的数据并非及时写回内存，且写缓冲区仅对自己的处理器可见，其他处理器无法感知当前共享变量已经变更</p>
-<h2 id="有序性问题"><a href="#有序性问题" class="headerlink" title="有序性问题"></a>有序性问题</h2><p>编译器只保证在单线程环境下，执行结果的最终一致，所以指令重排在单线程环境下完全是允许的</p>
-<p>对于编译器来说，它只知道在当前线程中数据的读写以及数据之间的依赖关系，并不知道哪些数据是在线程间共享，而且是有可能会被修改的，这些是需要开发人员去保证的</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> A, B;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  A = B + <span class="number">1</span>;</span><br><span class="line">  B = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="built_in">foo</span>();</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">在不使用优化的情况下编译：</span></span><br><span class="line"><span class="comment">1. 先把变量 B 的值赋给寄存器 eax</span></span><br><span class="line"><span class="comment">2. 将寄存器 eax 加 1 的结果赋值给变量 A</span></span><br><span class="line"><span class="comment">3. 将变量 B 置为 0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">使用 O2 优化编译：</span></span><br><span class="line"><span class="comment">1. 先把变量 B 的值赋给寄存器 eax</span></span><br><span class="line"><span class="comment">2. 变量 B 置零</span></span><br><span class="line"><span class="comment">3. 将寄存器 eax 加 1 的结果赋值给变量 A</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="为什么需要内存模型"><a href="#为什么需要内存模型" class="headerlink" title="为什么需要内存模型"></a>为什么需要内存模型</h2><p>因为指令乱序以及多线程环境数据竞争的不确定性，导致在开发的时候经常会使用信号量或者锁来实现同步需求，进而解决数据竞争导致的不确定性问题。但是加锁或者信号量是相对接近操作系统的底层原语，每一次加锁或者解锁都有可能导致用户态和内核态的互相切换，这就导致了数据访问开销。如果锁使用不当，还可能会造成严重的性能问题，所以就需要一种语言层面的机制，既没有锁那样的大开销，又可以满足数据访问一致性的需求</p>
-<p>引入内存模型的原因，有以下几个原因：</p>
-<ul>
-<li><p>编译器优化：在某些情况下，即使是简单的语句，也不能保证是原子操作</p>
-</li>
-<li><p>CPU out-of-order：CPU 为了提升计算性能，可能会调整指令的执行顺序</p>
-</li>
-<li><p>CPU Cache 不一致：在 CPU Cache 的影响下，在某个 CPU 执行了指令，不会立即被其它 CPU 所看到</p>
-</li>
-</ul>
-<h2 id="sequenced-before"><a href="#sequenced-before" class="headerlink" title="sequenced-before"></a>sequenced-before</h2><p>sequenced-before 用于表示单线程之间，两个操作上的先后顺序，这个顺序是非对称、可以进行传递的关系</p>
-<p>它不仅仅表示两个操作之间的先后顺序，还表示了操作结果之间的可见性关系</p>
-<ul>
-<li><p>如果 A sequenced-before B，代表 A 的求值会先完成，才进行对 B 的求值，并且 A 的结果 B 可见</p>
-</li>
-<li><p>如果 A not sequenced-before B，而 B sequenced-before A，则代表先对 B 进行求值，然后对 A 进行求值</p>
-</li>
-<li><p>如果 A not sequenced-before B，而 B not sequenced-before A，则 A 和 B 都有可能先执行，甚至可以同时执行</p>
-</li>
-</ul>
-<h2 id="happens-before"><a href="#happens-before" class="headerlink" title="happens-before"></a>happens-before</h2><p>happens-before 是 sequenced-before 的扩展，因为它还包含了不同线程之间的关系</p>
-<p>happens-before 关系表示的不同线程之间的操作先后顺序，同样的也是非对称、可传递的关系</p>
-<p>happens-before 包含两种情况，一种是同一线程内的 happens-before，等同于 sequenced-before，另一种是不同线程的 happens-before 关系</p>
-<p>假设有一个变量 x 初始化为 0，此时有两个线程同时运行，线程 A 进行 <code>++x</code> 操作，线程 B 打印 x 的值。因为这两个线程不具备 happens-before 关系，也就是说没有保证 <code>++x</code> 操作对于打印 x 的操作是可见的，因此打印的值有可能是 0，也有可能是 1</p>
-<p>如果 A happens-before B，则 A 的内存状态将在 B 操作执行之前就可见，这就为线程间的数据访问提供了保证</p>
-<h2 id="synchronizes-with"><a href="#synchronizes-with" class="headerlink" title="synchronizes-with"></a>synchronizes-with</h2><p>synchronized-with 描述的是不同线程间的同步关系，当线程 A synchronized-with 线程 B 时，代表线程 A 对某个变量或者内存的操作，对于线程 B 是可见的。换句话说 synchronized-with 就是跨线程版本的 happens-before</p>
-<h2 id="C-11-支持内存模型"><a href="#C-11-支持内存模型" class="headerlink" title="C++11 支持内存模型"></a>C++11 支持内存模型</h2><p>C++11 原子操作的很多函数都有个 <code>std::memory_order</code> 参数，这个参数就是这里所说的内存模型，其并不是类似 POD 的内存布局，而是一种数据同步模型，准确说法应该是储存一致性模型，其作用是对同一时间的读写操作进行排序</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">enum</span> <span class="title class_">memory_order</span> &#123;</span><br><span class="line">    memory_order_relaxed,  <span class="comment">// 不对执行顺序做任何保证</span></span><br><span class="line">    memory_order_consume,  <span class="comment">// 所有后续本原子类型操作必须在本原子操作完成后执行</span></span><br><span class="line">    memory_order_acquire,  <span class="comment">// 本线程中，所有后续的读操作均在本原子操作完成后执行</span></span><br><span class="line">    memory_order_release,  <span class="comment">// 本线程中，所有之前的写操作完成后才能执行本原子操作</span></span><br><span class="line">    memory_order_acq_rel,  <span class="comment">// memory_order_acquire + memory_order_release</span></span><br><span class="line">    memory_order_seq_cst,  <span class="comment">// 全部顺序执行</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-<p>从读写的角度进行划分的话，可以分为三种：</p>
-<ul>
-<li><p>读操作 <code>memory_order_relaxed</code>、<code>memory_order_acquire</code>、<code>memory_order_consume</code>、<code>memory_order_seq_cst</code></p>
-</li>
-<li><p>写操作 <code>memory_order_release</code>、<code>memory_order_relaxed</code>、<code>memory_order_seq_cst</code></p>
-</li>
-<li><p>读-修改-写操作 <code>memory_order_acq_rel</code>、<code>memory_order_seq_cst</code>、<code>memory_order_relaxed</code></p>
-</li>
-</ul>
-<p>当执行读操作时只能指定读操作内存序，写操作只能指定写操作内存序</p>
-<p>从访问控制的角度可以分为三种：</p>
-<ul>
-<li><p>Sequential consistency 顺序一致性模型</p>
-</li>
-<li><p>Relax 松散模型</p>
-</li>
-<li><p>Acquire-Release 获取释放模型</p>
-</li>
-</ul>
-<h2 id="Relaxed-ordering-模型"><a href="#Relaxed-ordering-模型" class="headerlink" title="Relaxed ordering 模型"></a>Relaxed ordering 模型</h2><p>对应 <code>memory_order_relaxed</code>，其对于内存序的限制最小，这种方式只能保证当前的数据访问是原子操作，但是对内存访问顺序没有任何约束，也就是说对不同的原子变量的读写可能会被重新排序，不同的线程可能会看到不同的执行顺序</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">write_x_then_y</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  x.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_relaxed);  <span class="comment">// 1</span></span><br><span class="line">  y.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_relaxed);  <span class="comment">// 2</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">read_y_then_x</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (!y.<span class="built_in">load</span>(std::memory_order_relaxed)) &#123; <span class="comment">// 3</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;y load false&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (x.<span class="built_in">load</span>(std::memory_order_relaxed)) &#123; <span class="comment">//4</span></span><br><span class="line">    ++z;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">当线程 t1 运行至 1 处将 x 设置为 true，t1 运行至 2 处将 y 设置为 true</span></span><br><span class="line"><span class="comment">这些操作仅在 CPU1 的 store buffer 中，还未放入 cache 和 memory 中，CPU2 自然不知道。</span></span><br><span class="line"><span class="comment">如果 CPU1 先将 y 放入 memory，那么 CPU2 就会读取 y 的值为 true。那么 t2 就会运行至 3 处从 while 循环退出，进而运行至 4 处，此时 CPU1 还未将 x 的值写入 memory，t2 读取的 x 值为 false，进而线程 t2 运行结束，然后 CPU1 将 x 写入 true, t1 结束运行</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 1 </span></span><br><span class="line">r1 = y.<span class="built_in">load</span>(std::memory_order_relaxed); <span class="comment">// A</span></span><br><span class="line">x.<span class="built_in">store</span>(r1, std::memory_order_relaxed); <span class="comment">// B</span></span><br><span class="line"><span class="comment">// thread 2</span></span><br><span class="line">r2 = x.<span class="built_in">load</span>(std::memory_order_relaxed); <span class="comment">// C </span></span><br><span class="line">y.<span class="built_in">store</span>(<span class="number">42</span>, std::memory_order_relaxed); <span class="comment">// D</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">允许产生结果 r1 == 42 &amp;&amp; r2 == 42 </span></span><br><span class="line"><span class="comment">因为 C 和 D 之间没有依赖关系，因此编译器允许调整 C 和 D 的执行顺序</span></span><br><span class="line"><span class="comment">D 在 y 上的副效应，可能可见于线程 1 中的加载 A ，同时 B 在 x 上的副效应，可能可见于线程 2 中的加载 C</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// thread 1</span></span><br><span class="line">y.<span class="built_in">store</span>(<span class="number">20</span>, std::memory_order_relaxed);</span><br><span class="line">x.<span class="built_in">store</span>(<span class="number">10</span>, std::memory_order_relaxed);</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 2</span></span><br><span class="line"><span class="keyword">if</span> (x.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>) &#123;</span><br><span class="line">  <span class="built_in">assert</span>(y.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">20</span>);</span><br><span class="line">  y.<span class="built_in">store</span>(<span class="number">10</span>, std::memory_order_relaxed);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 3</span></span><br><span class="line"><span class="keyword">if</span> (y.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>) &#123;</span><br><span class="line">  <span class="built_in">assert</span>(x.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>relaxed 的可见性不是全局的。当线程 3 可见 <code>y == 10</code> 时，不代表线程 1 中的 <code>x = 10</code> 是可见的，因为线程 1 的写入结果从 cache 同步到线程 2 的 cache 不代表同步到了线程 3 的 cache</p>
-<p>与其它内存序相比，relaxed 内存序具有最少的同步开销，一般用于多线程计数器，<code>std::shared_ptr</code> 的引用计数递增就是利用这个实现的，但引用计数的递减使用 acq-rel 模型</p>
-<h2 id="Acquire-Release-模型"><a href="#Acquire-Release-模型" class="headerlink" title="Acquire-Release 模型"></a>Acquire-Release 模型</h2><p>Acquire-Release 模型的控制力度介于 Relax 模型和 Sequential consistency 模型之间，对应 <code>memory_order_consume</code>、<code>memory_order_acquire</code>、<code>memory_order_release</code> 和 <code>memory_order_acq_rel</code></p>
-<ul>
-<li><p>只能用于读操作 <code>memory_order_consume</code>、<code>memory_order_acquire</code></p>
-</li>
-<li><p>只能用于写操作 <code>memory_order_release</code></p>
-</li>
-<li><p>既能用于读操作也能用于写操作 <code>memory_order_acq_rel</code></p>
-</li>
-</ul>
-<p>这些约束符互相配合，可以实现相对严格一点的内存访问顺序控制</p>
-<h3 id="acquire-release"><a href="#acquire-release" class="headerlink" title="acquire-release"></a>acquire-release</h3><p>A 线程对原子变量使用 <code>memory_order_release</code> 写，B 线程对原子变量使用 <code>memory_order_acquire</code> 读</p>
-<ul>
-<li><p>A 线程中 <code>store()</code> 之前的写指令（包括非原子变量和 relaxed 模型）不允许重排至 <code>store()</code> 之后，所有之前的写内存操作完成后才能执行本条原子操作，但之前的写操作是允许乱序的，并且这些写入操作对线程 B 可见。之后的读写操作不允许重排值 <code>store()</code> 之前</p>
-</li>
-<li><p>B 线程中 <code>load()</code> 之后的读指令不允许重排至 <code>load()</code> 之前，所有后续的读内存操作都必须在本条原子操作完成后执行，但之后的读操作是允许乱序的</p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">std::atomic&lt;<span class="type">bool</span>&gt; has_release;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">release</span><span class="params">(<span class="type">int</span> *data)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!data) &#123;</span><br><span class="line">        data = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">100</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    has_release.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_release);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">acquire</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (!has_release.<span class="built_in">load</span>(std::memory_order_acquire));</span><br><span class="line">    <span class="type">int</span> a = data[<span class="number">0</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="function">thread <span class="title">t1</span><span class="params">(release)</span></span>;</span><br><span class="line">    <span class="function">thread <span class="title">t2</span><span class="params">(acquire)</span></span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 副作用</span></span><br><span class="line">std::atomic&lt;<span class="type">int</span>&gt; net_con&#123;<span class="number">0</span>&#125;;</span><br><span class="line">std::atomic&lt;<span class="type">int</span>&gt; has_alloc&#123;<span class="number">0</span>&#125;;</span><br><span class="line"><span class="type">char</span> buffer[<span class="number">1024</span>];</span><br><span class="line"><span class="type">char</span> file_content[<span class="number">1024</span>];</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">release_thread</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">sprintf</span>(buffer, <span class="string">&quot;%s&quot;</span>, <span class="string">&quot;something_to_read_tobuffer&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 这两个是与 buffer 完全无关的代码</span></span><br><span class="line">    net_con.<span class="built_in">store</span>(<span class="number">1</span>, std::memory_order_release);</span><br><span class="line">    has_alloc.<span class="built_in">store</span>(<span class="number">1</span>, std::memory_order_release);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">acquire_thread</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (!has_alloc.<span class="built_in">load</span>(std::memory_order_acquire));</span><br><span class="line">    <span class="type">bool</span> v = has_alloc.<span class="built_in">load</span>(std::memory_order_acquire);</span><br><span class="line">    <span class="keyword">if</span> (v) &#123;</span><br><span class="line">         net_con.<span class="built_in">load</span>(std::memory_order_relaxed);</span><br><span class="line">    <span class="comment">// 这个是与两个原子变量完全无关的操作。</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">strstr</span>(file_content, <span class="string">&quot;auth_key =&quot;</span>)) &#123;</span><br><span class="line">        <span class="comment">// fetch user and password</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">buffer 与 file_content 与两个原子变量没有任何联系，按理说这部分的代码是可以放到任何位置执行的</span></span><br><span class="line"><span class="comment">但是由于使用了 release-acquire，那么会导致 buffer 和 file_content 的访问都被波及</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="consume-release"><a href="#consume-release" class="headerlink" title="consume-release"></a>consume-release</h3><p>acquire-release 的副作用给性能带来一定的影响，<code>memory_order_consume</code> 把与真正变量无关的代码剥离出去，让它们能够任意排列，不要被 release-acquire 误伤</p>
-<p><code>std::memory_order_acquire</code> 是要求后面所有的读都不得提前，<code>std::memory_order_consume</code> 是要求后面依赖于本次读的操作不能乱序</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">std::atomic&lt;<span class="type">int</span>*&gt; global_addr&#123;<span class="literal">nullptr</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">func</span><span class="params">(<span class="type">int</span> *data)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> *addr = global_addr.<span class="built_in">load</span>(std::memory_order_consume);</span><br><span class="line">    <span class="type">int</span> d = *data;</span><br><span class="line">    <span class="type">int</span> f = *(data+<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (addr) &#123;</span><br><span class="line">        <span class="type">int</span> x = *addr;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">global_addr、addr、x 形成了读依赖，这几个变量是不能乱序的</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Sequential-consistency-模型"><a href="#Sequential-consistency-模型" class="headerlink" title="Sequential consistency 模型"></a>Sequential consistency 模型</h2><p>Sequential consistency 模型又称为顺序一致性模型，是控制粒度最严格的内存模型</p>
-<ul>
-<li><p>程序指令与源码顺序一致，所有关于原子操作的代码都不会被乱序</p>
-</li>
-<li><p>所有线程的所有操作存在一个全局的顺序</p>
-</li>
-<li><p>每个线程中所有操作的先后关系，其顺序对于所有线程都是可见的，它是所有线程的全局同步</p>
-</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">std::atomic&lt;<span class="type">bool</span>&gt; x, y;</span><br><span class="line">std::atomic&lt;<span class="type">int</span>&gt; z;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">write_x_then_y</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  x.<span class="built_in">store</span>(<span class="literal">true</span>); <span class="comment">// 1</span></span><br><span class="line">  y.<span class="built_in">store</span>(<span class="literal">true</span>); <span class="comment">// 2</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">read_y_then_x</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (!y.<span class="built_in">load</span>())</span><br><span class="line">    ;           <span class="comment">// 3</span></span><br><span class="line">  <span class="keyword">if</span> (x.<span class="built_in">load</span>()) <span class="comment">// 4</span></span><br><span class="line">    ++z;        <span class="comment">// 5</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  x = <span class="literal">false</span>;</span><br><span class="line">  y = <span class="literal">false</span>;</span><br><span class="line">  z = <span class="number">0</span>;</span><br><span class="line">  <span class="function">std::thread <span class="title">a</span><span class="params">(write_x_then_y)</span></span>;</span><br><span class="line">  <span class="function">std::thread <span class="title">b</span><span class="params">(read_y_then_x)</span></span>;</span><br><span class="line">  a.<span class="built_in">join</span>();</span><br><span class="line">  b.<span class="built_in">join</span>();</span><br><span class="line">  <span class="built_in">assert</span>(z.<span class="built_in">load</span>() != <span class="number">0</span>);  <span class="comment">// 永远不会触发</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">y 的 store 和 load 操作构成了 synchronized-with 关系</span></span><br><span class="line"><span class="comment">1 happens-before 2</span></span><br><span class="line"><span class="comment">2 happens-before 3</span></span><br><span class="line"><span class="comment">3 happens-before 4</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">write_x</span><span class="params">()</span> </span>&#123; x.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_seq_cst); &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">write_y</span><span class="params">()</span> </span>&#123; y.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_seq_cst); &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">read_x_then_y</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (!x.<span class="built_in">load</span>(std::memory_order_seq_cst))</span><br><span class="line">    ;</span><br><span class="line">  <span class="keyword">if</span> (y.<span class="built_in">load</span>(std::memory_order_seq_cst)) &#123;</span><br><span class="line">    ++z;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">read_y_then_x</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (!y.<span class="built_in">load</span>(std::memory_order_seq_cst))</span><br><span class="line">    ;</span><br><span class="line">  <span class="keyword">if</span> (x.<span class="built_in">load</span>(std::memory_order_seq_cst)) &#123;</span><br><span class="line">    ++z;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="function">std::thread <span class="title">a</span><span class="params">(write_x)</span></span>;</span><br><span class="line">  <span class="function">std::thread <span class="title">b</span><span class="params">(write_y)</span></span>;</span><br><span class="line">  <span class="function">std::thread <span class="title">c</span><span class="params">(read_x_then_y)</span></span>;</span><br><span class="line">  <span class="function">std::thread <span class="title">d</span><span class="params">(read_y_then_x)</span></span>;</span><br><span class="line">  a.<span class="built_in">join</span>();</span><br><span class="line">  b.<span class="built_in">join</span>();</span><br><span class="line">  c.<span class="built_in">join</span>();</span><br><span class="line">  d.<span class="built_in">join</span>();</span><br><span class="line">  <span class="built_in">assert</span>(z.<span class="built_in">load</span>() != <span class="number">0</span>); <span class="comment">// 永远不会出发</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>顺序一致性的所有操作都按照代码指定的顺序进行，符合开发人员的思维逻辑，但这种严格的排序也限制了现代 CPU 利用硬件进行并行处理的能力，会严重拖累系统的性能</p>
 
       
     </div>

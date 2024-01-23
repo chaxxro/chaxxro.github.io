@@ -159,6 +159,181 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-websocket/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-websocket/" class="post-title-link" itemprop="url">websocket</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 19:43:30" itemprop="dateCreated datePublished" datetime="2023-04-26T19:43:30+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>WebSocket 是基于 HTTP1.1 的协议</p>
+<p>Webscoket 是 Web 浏览器和服务器之间的一种全双工通信协议，一旦 Web 客户端与服务器建立起连接，之后的全部数据通信都通过这个连接进行</p>
+<p>与 HTTP 相同点：</p>
+<ul>
+<li><p>都是基于 TCP 的应用层协议</p>
+</li>
+<li><p>都使用 Request&#x2F;Response 模型进行连接的建立</p>
+</li>
+<li><p>在连接的建立过程中对错误的处理方式相同，在这个阶段 WS 可能返回和 HTTP 相同的返回码</p>
+</li>
+</ul>
+<p>与 HTTP 不同点：</p>
+<ul>
+<li><p>WS 使用 HTTP 来建立连接，但是定义了一系列新的 header 域，这些域在 HTTP 中并不会使用</p>
+</li>
+<li><p>WS 的连接不能通过中间人来转发，它必须是一个直接连接</p>
+</li>
+<li><p>WS 连接建立之后，通信双方都可以在任何时刻向另一方发送数据</p>
+</li>
+<li><p>WS 连接建立之后，数据的传输使用帧来传递，不再需要 Request 消息</p>
+</li>
+<li><p>WS 的数据帧有序</p>
+</li>
+</ul>
+<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-websocket/01.png" class="">
+
+<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
+<li><p>推送功能：服务器可以直接向客户端推送消息</p>
+</li>
+<li><p>减少通信量：只要第一次建立连接，就可以一直进行通信，Websocket 的头部数据也比较少</p>
+</li>
+</ul>
+<h2 id="握手协议"><a href="#握手协议" class="headerlink" title="握手协议"></a>握手协议</h2><p>通过 HTTP 协议建立 TCP 连接，之后客户端发送 websocket 的握手请求</p>
+<p>握手请求报文头部格式：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/chat</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>server.example.com</span><br><span class="line">**Upgrade: websocket**</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>Upgrade</span><br><span class="line"><span class="attribute">Sec-WebSocket-Key</span><span class="punctuation">: </span>dGhlIHNhbXBsZSBub25jZQ==</span><br><span class="line"><span class="attribute">Origin</span><span class="punctuation">: </span>https://example.com</span><br><span class="line"><span class="attribute">Sec-WebSocket-Protocol</span><span class="punctuation">: </span>chat, superchat</span><br><span class="line"><span class="attribute">Sec-WebSocket-Version</span><span class="punctuation">: </span>13</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>请求方法必须是 GET，版本号大于 1.1</p>
+</li>
+<li><p>必须有 Upgrade 字段，值为 websocket</p>
+</li>
+<li><p>必须有 Connection 字段，值为 Upgrade</p>
+</li>
+<li><p>必须有 Sec-WebSocket-Key 字段，记录着握手过程中必不可少的键值</p>
+</li>
+<li><p>必须有 Sec-WebSocket-Protocol 字段，记录着使用的子协议</p>
+</li>
+</ul>
+<p>服务器接收到请求后，返回状态码为 101 Switching Protocols 的响应</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">HTTP/1.1</span> <span class="number">101</span> Switching Protocols</span><br><span class="line"><span class="attribute">Upgrade</span><span class="punctuation">: </span>websocket</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>Upgrade</span><br><span class="line"><span class="attribute">Sec-WebSocket-Accept</span><span class="punctuation">: </span>s3pPLMBiTxaQ9kYGzzhZRbK+xOo=</span><br><span class="line"><span class="attribute">Sec-WebSocket-Protocol</span><span class="punctuation">: </span>chat</span><br></pre></td></tr></table></figure>
+
+<p>握手成功后，通信不再使用 HTTP 协议，而采用 WebSocket 独立的数据帧</p>
+<h2 id="与-HTTP2-0-的关系"><a href="#与-HTTP2-0-的关系" class="headerlink" title="与 HTTP2.0 的关系"></a>与 HTTP2.0 的关系</h2><p>HTTP2 虽然支持服务器推送资源到客户端缓存，不是客户端应用程序本身，不是应用程序可以感知的，主要是让浏览器（用户代理）提前缓存静态资源，所以不能指望 HTTP2 可以像 WebSocket 建立双向实时通信</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>HTTP2</th>
+<th>WebSocket</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>头部</td>
+<td>压缩</td>
+<td>没有</td>
+</tr>
+<tr>
+<td>二进制</td>
+<td>二进制协议</td>
+<td>二进制或文本</td>
+</tr>
+<tr>
+<td>多路复用</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>优先级</td>
+<td>有</td>
+<td>没有</td>
+</tr>
+<tr>
+<td>方向</td>
+<td>客户端&#x2F;服务器 + 服务器推送</td>
+<td>双向</td>
+</tr>
+<tr>
+<td>全双工</td>
+<td>是</td>
+<td>是</td>
+</tr>
+</tbody></table>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-udp/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -195,7 +370,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -297,7 +472,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -382,7 +557,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -734,7 +909,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -826,7 +1001,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -933,7 +1108,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1028,7 +1203,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1123,7 +1298,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1216,7 +1391,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
+      <time title="修改时间：2024-01-23 21:45:57" itemprop="dateModified" datetime="2024-01-23T21:45:57+08:00">2024-01-23</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1309,500 +1484,6 @@
 <li><p>填充：在有可选项且头部长度不是 32 的整数倍时，通过向字段填充 0，调整为 32 的整数倍</p>
 </li>
 </ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/" class="post-title-link" itemprop="url">http</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 19:42:12" itemprop="dateCreated datePublished" datetime="2023-04-26T19:42:12+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-22 22:18:02" itemprop="dateModified" datetime="2024-01-22T22:18:02+08:00">2024-01-22</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE/" itemprop="url" rel="index"><span itemprop="name">网络协议</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>HTTP（HyperTextTransferProtocol) 为超文本传输协议，其中超文本指文字、图片、视频、音频等的混合体，比如最熟悉的 html</p>
-<h2 id="URI"><a href="#URI" class="headerlink" title="URI"></a>URI</h2><p>URI (Unifrom Resource Identifier) 统一资源标识符，包含 URL (Uniform Resource Locator) 统一资源定位符和 URN (Uniform Resource Name) 统一资源名称</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/01.png" class="">
-
-<p>URI 本质上是一个字符串，这个字符串的作用是唯一地标记资源的位置或者名字</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/13.jpeg" class="">
-
-<ul>
-<li><p>scheme：资源使用哪种协议来访问，最常见的是 http、ftp 等</p>
-</li>
-<li><p>user:passwd@：身份信息，表示登录主机时的用户名和密码，但现在已经不推荐使用这种形式了，因为它把敏感信息以明文形式暴露出来，存在严重的安全隐患</p>
-</li>
-<li><p>host:port：主机名，表示资源所在的主机名</p>
-</li>
-<li><p>path：表示资源所在位置，采用了类似文件系统目录的表示方式，通常以 <code>/</code> 开始</p>
-</li>
-<li><p>query：查询参数，用一个 <code>?</code> 开始，后接多个 kv 形式的字符串，这些字符串用字符 <code>&amp;</code> 连接，表示对资源附加的额外要求</p>
-</li>
-<li><p>#fragment：片段标识符，它是 URI 所定位的资源内部的一个锚点，浏览器可以在获取资源后直接跳转到它指示的位置</p>
-</li>
-</ul>
-<h2 id="URL-构成"><a href="#URL-构成" class="headerlink" title="URL 构成"></a>URL 构成</h2><img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/02.png" class="">
-
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">http://www.aspxfans.com:8080/news/index.asp?boardID=5&amp;ID=24618&amp;page=1#name</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">该 URL 的域名部分为 www.aspxfans.com</span></span><br><span class="line"><span class="comment">一个 URL 中，也可以使用 IP 地址作为域名使用</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">跟在域名后面的是端口，域名和端口之间使用 : 作为分隔符</span></span><br><span class="line"><span class="comment">端口不是一个 URL 必须的部分，如果省略端口部分，将采用默认端口</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">从域名后的 / 开始到 ? 为止，为路径，如果没有 ? 则是到 #，如果没有 # 则是到文件末</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="URL-编码"><a href="#URL-编码" class="headerlink" title="URL 编码"></a>URL 编码</h2><p>在 URI 里只能使用 ASCII 码，若使用非 ASCII 字符和不安全字符（<code> </code>、<code>&lt;</code>、<code>&gt;</code>、<code>#</code>、<code>%</code>、<code>|</code> 等），则需要在这些重新编码</p>
-<p>URL 编码是百分号编码，将需要转码的字符按指定编码方式（默认使用 UTF-8 编码）转化为字节流，每个字节用 16 进制表示，并添加 <code>%</code> 组成一个编码</p>
-<ul>
-<li><p>Reserved 保留字符是那些具有特殊含义的字符，例如：<code>/</code> 字符用于 URL 不同部分的分界符</p>
-</li>
-<li><p>Unreserved 非保留字符没有特殊含义，包含希腊字母、数字、<code>-</code>、<code>.</code>、<code>_</code>、<code>~</code></p>
-</li>
-</ul>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/14.webp" class="">
-
-<p>除了保留字符和非保留字符之外的所有字符均需要编码，并且保留字符不代表某种特性的含义时也需要进行编码</p>
-<p>特殊的是，空格 <code> </code> 在 <code>Content-Type：application/x-www-form-urlencoded</code> 的情况下，URL 请求查询字符串中出现空格时，需替换为 <code>+</code>，其他情况空格编码为 <code>%20</code></p>
-<h2 id="报文"><a href="#报文" class="headerlink" title="报文"></a>报文</h2><p>HTTP 请求报文和响应报文结构基本相同，都是由起始行、头部字段集合和消息正文组成</p>
-<ul>
-<li><p>起始行：描述请求或响应的基本信息</p>
-</li>
-<li><p>头部字段集合：使用 kv 详细说明报文</p>
-</li>
-<li><p>消息正文：实际传输的数据，不一定是文本，可以是图片、视频等二进制数据</p>
-</li>
-</ul>
-<h3 id="请求报文"><a href="#请求报文" class="headerlink" title="请求报文"></a>请求报文</h3><p>请求报文主要由四大部分组成：请求行、请求头、空行、请求数据</p>
-<p>请求头与请求数据间的空行，用来区分请求头和请求数据</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/03.png" class="">
-
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/04.png" class="">
-
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/05.png" class="">
-
-<h3 id="响应报文"><a href="#响应报文" class="headerlink" title="响应报文"></a>响应报文</h3><p>响应报文主要由四个部分组成：状态行、消息报头、空行和响应正文</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/06.png" class="">
-
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/07.png" class="">
-
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/08.png" class="">
-
-<h3 id="头部字段"><a href="#头部字段" class="headerlink" title="头部字段"></a>头部字段</h3><p>HTTP 头字段非常灵活，不仅可以使用标准里的 Host、Connection 等已有头，也可以任意添加自定义头</p>
-<ul>
-<li><p>字段名不区分大小写</p>
-</li>
-<li><p>字段名里不允许出现空格，可以使用连字符 <code>-</code>，但不能使用下划线 <code>_</code></p>
-</li>
-<li><p>字段名后面必须紧接着 <code>:</code>，不能有空格，而 <code>:</code> 后的字段值前可以有多个空格</p>
-</li>
-<li><p>字段的顺序是没有意义的</p>
-</li>
-<li><p>字段原则上不能重复，除非这个字段本身的语义允许，例如 Set-Cookie</p>
-</li>
-</ul>
-<p>常见字段有：</p>
-<ul>
-<li><p>Host：指定服务器的域名</p>
-</li>
-<li><p>Content-Length：本次请求体长度</p>
-</li>
-<li><p>Connection：客户端要求服务器使用 TCP 持久连接，以便其他请求复用；HTTP&#x2F;1.1 默认持久连接</p>
-</li>
-<li><p>Content-Type：服务器告诉客户端本次数据格式</p>
-</li>
-<li><p>Accept：客户端声明能接受的数据格式</p>
-</li>
-<li><p>Content-Encoding：数据的压缩方法</p>
-</li>
-<li><p>Accept-Encoding：客户端能接受的压缩方法</p>
-</li>
-</ul>
-<h2 id="HTTP-方法"><a href="#HTTP-方法" class="headerlink" title="HTTP 方法"></a>HTTP 方法</h2><p>客户端发送的请求报文第一行为请求行，包含了方法字段</p>
-<ul>
-<li><p>Get: 获取资源</p>
-</li>
-<li><p>Head: 获取资源元信息，主要用于确认 URL 的有效性以及资源更新的日期时间等</p>
-</li>
-<li><p>Post: 向资源提交数据，数据包含在请求体中</p>
-</li>
-<li><p>Put: 上传文件，从客户端向服务器传送的数据取代指定的文档的内容</p>
-</li>
-<li><p>Patch: 对资源进行部分修改，Put 用于完全替代原始资源，Patch 允许部分修改</p>
-</li>
-<li><p>Delete: 删除文件，不带验证机制</p>
-</li>
-<li><p>Options: 查询 URL 能够支持的方法</p>
-</li>
-<li><p>Connect：HTTP&#x2F;1.1 协议中预留给能够将连接改为管道方式的代理服务器</p>
-</li>
-<li><p>Trace：追踪请求</p>
-</li>
-</ul>
-<h3 id="Get-和-Head-区别"><a href="#Get-和-Head-区别" class="headerlink" title="Get 和 Head 区别"></a>Get 和 Head 区别</h3><p>Get 适用于向服务器请求资源，一般将数据存于 url</p>
-<p>Head 类似于简化版的 Get 请求，服务端收到 Head 请求时只返回响应头并且响应头与 Get 完全一致</p>
-<h3 id="Post-和-Put-区别"><a href="#Post-和-Put-区别" class="headerlink" title="Post 和 Put 区别"></a>Post 和 Put 区别</h3><p>Post 适用于向服务端发送数据，将数据存在 body 当中，通常表示的是 create 的含义</p>
-<p>Put 类似于 Post 方法，也可以向服务器提交数据，是 update 的含义</p>
-<h2 id="Get-和-Post-区别"><a href="#Get-和-Post-区别" class="headerlink" title="Get 和 Post 区别"></a>Get 和 Post 区别</h2><ul>
-<li><p>Get 通常将数据存于 url 中，Post 将数据存在 body 中，但语法上 Get 也可以将数据存在 body 中，Post 也可以将数据存在 url。但浏览器对 url 长度有限制，Get 能携带的数据一般不超过 2KB</p>
-</li>
-<li><p>Get 是只读的，Post 会对数据增删改</p>
-</li>
-<li><p>Get 因为只读所以是幂等的，Post 因为会修改服务器数据所以不是幂等的</p>
-</li>
-<li><p>不能因为 Post 参数存储在实体主体中就认为它的安全性更高，因为照样可以通过一些抓包工具查看</p>
-</li>
-<li><p>URL 只支持 ASCII 码，因此 Get 的参数中如果存在中文等字符就需要先进行编码，Post 参数支持标准字符集</p>
-</li>
-</ul>
-<h2 id="状态码"><a href="#状态码" class="headerlink" title="状态码"></a>状态码</h2><p>服务器返回的响应报文中第一行为状态行，包含了状态码以及原因短语，用来告知客户端请求的结果</p>
-<table>
-<thead>
-<tr>
-<th>状态码</th>
-<th>类别</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1XX</td>
-<td>Informational（信息性状态码）</td>
-<td>接收的请求正在处理</td>
-</tr>
-<tr>
-<td>2XX</td>
-<td>Success（成功状态码）</td>
-<td>请求正常处理完毕</td>
-</tr>
-<tr>
-<td>3XX</td>
-<td>Redirection（重定向状态码）</td>
-<td>请求的资源发生了变动，需要用新的 URL 重新发送请求</td>
-</tr>
-<tr>
-<td>4XX</td>
-<td>Client Error（客户端错误状态码）</td>
-<td>客户端发送的报文有误，服务器无法处理</td>
-</tr>
-<tr>
-<td>5XX</td>
-<td>Server Error（服务器错误状态码）</td>
-<td>服务器处理请求出错</td>
-</tr>
-</tbody></table>
-<ul>
-<li><p>100 Continue：表明到目前为止都很正常，客户端可以继续发送请求或者忽略这个响应</p>
-</li>
-<li><p>200 OK：一切正常</p>
-</li>
-<li><p>204 No Content：请求已经成功处理，但是返回的响应报文不包含实体的主体部分。一般在只需要从客户端往服务器发送信息，而不需要返回数据时使用</p>
-</li>
-<li><p>206 Partial Content：响应返回的 body 数据并不是资源的全部，而是其中的一部分，也是服务器处理成功的状态</p>
-</li>
-<li><p>301 Moved Permanently：永久性重定向，请求的资源已经不存在了，需改用新的 URL 再次访问</p>
-</li>
-<li><p>302 Found：临时性重定向，请求的资源还在，但暂时需要用另一个 URL 来访问</p>
-</li>
-<li><p>303 See Other：和 302 有着相同的功能，但是 303 明确要求客户端应该采用 GET 方法获取资源</p>
-</li>
-<li><p>304 Not Modified：请求报文首部包含一些条件，不满足条件，则服务器会返回 304 </p>
-</li>
-<li><p>307 Temporary Redirect：临时重定向，与 302 的含义类似，但是 307 要求浏览器不会把重定向请求的 POST 方法改成 GET 方法</p>
-</li>
-<li><p>400 Bad Request：请求报文错误</p>
-</li>
-<li><p>401 Unauthorized：该状态码表示发送的请求需要有认证信息</p>
-</li>
-<li><p>403 Forbidden：服务器禁止访问资源</p>
-</li>
-<li><p>404 Not Found：请求的资源在服务器上不存在或未找到</p>
-</li>
-<li><p>500 Internal Server Error：服务器正在执行请求时发生错误</p>
-</li>
-<li><p>501 Not Implemented：请求的功能不支持</p>
-</li>
-<li><p>503 Service Unavailable：服务器暂时处于超负载或正在进行停机维护，现在无法处理请求</p>
-</li>
-</ul>
-<h2 id="HTTP-请求响应过程及特征"><a href="#HTTP-请求响应过程及特征" class="headerlink" title="HTTP 请求响应过程及特征"></a>HTTP 请求响应过程及特征</h2><h3 id="过程"><a href="#过程" class="headerlink" title="过程"></a>过程</h3><p>输入网址并点击回车时，浏览器内部会进行如下操作</p>
-<ol>
-<li><p>输入 url，浏览器先解析 url 地址是否合法，同时获取 url 中的域名和文件名，根据这些信息生成 HTTP 请求消息</p>
-</li>
-<li><p>游览器检查是否有缓存（游览器缓存-系统缓存-路由器缓存），如果有直接显示</p>
-</li>
-<li><p>在发送 http 请求前，需要域名解析（DNS 解析），解析获取对应过的 ip 地址</p>
-</li>
-<li><p>浏览器向服务器发起 TCP 连接请求</p>
-</li>
-<li><p>连接成功后，浏览器发送 HTTP 请求</p>
-</li>
-<li><p>服务器收到处理的请求，先发送应答给浏览器</p>
-</li>
-<li><p>游览器收到 HTTP 响应</p>
-</li>
-<li><p>游览器解析响应，如果响应可以缓存，则存入缓存</p>
-</li>
-<li><p>浏览器解析 HTML 代码，并请求 HTML 代码中的资源</p>
-</li>
-<li><p>浏览器接受完响应报文后，TCP 连接会关闭</p>
-</li>
-<li><p>浏览器渲完成后呈现给用户</p>
-</li>
-</ol>
-<h3 id="特征"><a href="#特征" class="headerlink" title="特征"></a>特征</h3><ul>
-<li><p>客户（浏览器）-服务器模式</p>
-</li>
-<li><p>客户向服务器请求服务时，只需传送请求方法和路径</p>
-</li>
-<li><p>HTTP 允许传输任意类型的数据对象，正在传输的类型由 Content-Type 加以标记</p>
-</li>
-<li><p>无连接，限制每次连接只处理一个请求</p>
-</li>
-<li><p>无状态，对于事务处理没有记忆能</p>
-</li>
-</ul>
-<h2 id="连接管理"><a href="#连接管理" class="headerlink" title="连接管理"></a>连接管理</h2><img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/09.png" class="">
-
-<h3 id="短连接和长连接"><a href="#短连接和长连接" class="headerlink" title="短连接和长连接"></a>短连接和长连接</h3><p>当浏览器访问一个包含多张图片的 HTML 页面时，除了请求访问的 HTML 页面资源，还会请求图片资源。如果每进行一次 HTTP 通信就要新建一个 TCP 连接，那么开销会很大</p>
-<p>长连接只需要建立一次 TCP 连接就能进行多次 HTTP 通信</p>
-<ul>
-<li><p>从 HTTP&#x2F;1.1 开始默认是长连接的，如果要断开连接，需要由客户端或者服务器端提出断开</p>
-</li>
-<li><p>在 HTTP&#x2F;1.1 之前默认是短连接，需要一个 keep-alive 参数告诉服务器建立一个长连接</p>
-</li>
-<li><p>户端请求头添加 <code>Connection: close</code> 字段主动关闭连接</p>
-</li>
-<li><p>服务端通常不会主动关闭连接，但可以通过设置时长、请求数等方式约定断开连接的条件</p>
-</li>
-</ul>
-<h3 id="流水线"><a href="#流水线" class="headerlink" title="流水线"></a>流水线</h3><p>默认情况下，HTTP 请求是按顺序发出的，下一个请求只有在当前请求收到响应之后才会被发出</p>
-<p>由于受到网络延迟和带宽的限制，在下一个请求被发送到服务器之前，可能需要等待很长时间</p>
-<p>流水线是在同一条长连接上连续发出请求，而不用等待响应返回，这样可以减少延迟</p>
-<p>服务器还是按顺序响应请求，不存在并行响应</p>
-<h2 id="HTTP-包体长度"><a href="#HTTP-包体长度" class="headerlink" title="HTTP 包体长度"></a>HTTP 包体长度</h2><p>HTTP 基于 TCP 协议，包头部分可以通过 <code>\r\n\r\n</code> 分界，但获取包体通常有两种方法：</p>
-<ol>
-<li><p>包头中设置 <code>Content-Length</code> 字段，标识包体长度</p>
-</li>
-<li><p>使用 HTTP Chunk：</p>
-</li>
-</ol>
-<ul>
-<li><p>将整个 HTTP 包体分为多个块，每个块都有自己的字段来说明自身的长，对端收到块后去掉说明部分，并将多个块合并在一起</p>
-</li>
-<li><p>传输方在包头中设置 <code>Transfer-Encoding:chunked</code> 替代 <code>Content-Length</code></p>
-</li>
-<li><p>块格式 <code>[chunkSize][\r\n][data]...[0][\r\n][\r][\n]</code>，最后一个块长度为 0</p>
-</li>
-<li><p><code>chunkSize</code> 以十六进制的 ASCII 码表示，如 <code>chunkSize = 86</code>，先将 86 转成十六进制 56，再将字符 5 和 6 转成 ASCII 码，因此 <code>chunkSize=0x350x36</code></p>
-</li>
-</ul>
-<h2 id="Cookie"><a href="#Cookie" class="headerlink" title="Cookie"></a>Cookie</h2><p>HTTP 是无状态的，这既是优点也是缺点。优点是服务器没有状态差异，可以很容易地组成集群，缺点就是无法支持需要记录状态的事务操作</p>
-<p>HTTP&#x2F;1.1 在头部字段中新增 Cookie 来保存状态信息，服务端使用 <code>set-cookie</code> 标识客户端身份，客户端将 Cookie 保存在本地并在客户端之后向同一服务器再次发起请求时携带上发送给服务端，用于告知服务端两个请求是否来自同一浏览器</p>
-<p>由于之后每次请求都会需要携带 Cookie 数据，因此会带来额外的性能开销（尤其是在移动环境下）</p>
-<p>随着现代浏览器开始支持各种各样的存储方式，Cookie 渐渐被淘汰。新的浏览器 API 已经允许开发者直接将数据存储到本地，如使用 Web storage API（本地存储和会话存储）或 IndexedDB</p>
-<h3 id="用途"><a href="#用途" class="headerlink" title="用途"></a>用途</h3><ul>
-<li><p>会话状态管理（如用户登录状态、购物车、游戏分数或其它需要记录的信息）</p>
-</li>
-<li><p>个性化设置（如用户自定义设置、主题等）</p>
-</li>
-<li><p>浏览器行为跟踪（如跟踪分析用户行为等）</p>
-</li>
-</ul>
-<h3 id="组成"><a href="#组成" class="headerlink" title="组成"></a>组成</h3><p>Cookie实际上是一小段的文本信息，以 kv 的格式保存，浏览器在一个 cookie 字段里可以存放多对数据，用 <code>;</code> 分割</p>
-<ul>
-<li><p>Name：一个唯一确定的 Cookie 名称</p>
-</li>
-<li><p>Expires：过期时间</p>
-</li>
-<li><p>Max-Age：过期的相对时间，单位是秒，浏览器用收到报文的时间点再加上 Max-Age，就可以得到失效的绝对时间</p>
-</li>
-<li><p>Domain：生成该 Cookie 的域名</p>
-</li>
-<li><p>Path：该 Cookie 是在当前的哪个路径下生成的</p>
-</li>
-</ul>
-<h3 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h3><ul>
-<li><p>会话期 Cookie：浏览器关闭之后它会被自动删除，也就是说它仅在会话期内有效</p>
-</li>
-<li><p>持久性 Cookie：指定过期时间（Expires）或有效期（max-age）之后就成为了持久性的 Cookie</p>
-</li>
-</ul>
-<h2 id="Session"><a href="#Session" class="headerlink" title="Session"></a>Session</h2><p>Cookie 将用户信息存储在用户浏览器中，Session 将用户信息存储在服务器端，而且存储在服务器端的信息更加安全</p>
-<p>Session 可以存储在服务器上的文件、数据库或者内存中</p>
-<h3 id="创建过程"><a href="#创建过程" class="headerlink" title="创建过程"></a>创建过程</h3><ol>
-<li><p>用户进行登录时，用户提交包含用户名和密码的表单，放入 HTTP 请求报文中</p>
-</li>
-<li><p>服务器验证该用户名和密码，如果正确则把用户信息存储到 Redis 中，它在 Redis 中的 Key 称为 Session ID</p>
-</li>
-<li><p>服务器返回的响应报文的 Set-Cookie 首部字段包含了这个 Session ID，客户端收到响应报文之后将该 Cookie 值存入浏览器中</p>
-</li>
-<li><p>客户端之后对同一个服务器进行请求时会包含该 Cookie 值，服务器收到之后提取出 Session ID，从 Redis 中取出用户信息，继续之前的业务操作</p>
-</li>
-</ol>
-<h3 id="安全问题"><a href="#安全问题" class="headerlink" title="安全问题"></a>安全问题</h3><p>Session ID 不能让它被恶意攻击者轻易获取，那么就不能产生一个容易被猜到的 Session ID 值，同时需要经常重新生成 Session ID</p>
-<h3 id="Cookie-和-Session-选择"><a href="#Cookie-和-Session-选择" class="headerlink" title="Cookie 和 Session 选择"></a>Cookie 和 Session 选择</h3><ul>
-<li><p>Cookie 只能存储 ASCII 码字符串，而 Session 则可以存储任何类型的数据，因此在考虑数据复杂性时首选 Session</p>
-</li>
-<li><p>Cookie 存储在浏览器中容易被恶意查看，如果非要将一些隐私数据存在 Cookie 中，可以将 Cookie 值进行加密，然后在服务器进行解密</p>
-</li>
-<li><p>对于大型网站，如果用户所有的信息都存储在 Session 中，那么开销是非常大的，因此不建议将所有的用户信息都存储到 Session 中</p>
-</li>
-</ul>
-<h2 id="缓存控制"><a href="#缓存控制" class="headerlink" title="缓存控制"></a>缓存控制</h2><h3 id="服务端控制缓存"><a href="#服务端控制缓存" class="headerlink" title="服务端控制缓存"></a>服务端控制缓存</h3><p>服务器响应请求返回资源的同时标记资源的有效期</p>
-<p>服务器标记资源有效期使用的头字段是 <code>Cache-Control</code>，<code>no-store</code> 不允许缓存，用于某些变化非常频繁的数据，<code>no-cache</code> 可以缓存但在使用之前必须要去服务器验证是否过期，<code>must-revalidat</code> 如果缓存不过期就可以继续使用，但过期了就必须去服务器验证</p>
-<h3 id="客户端控制缓存"><a href="#客户端控制缓存" class="headerlink" title="客户端控制缓存"></a>客户端控制缓存</h3><p>请求应答的双方都可以用 <code>Cache-Control</code> 这个字段进行缓存控制，互相协商缓存的使用策略</p>
-<h2 id="HTTP-传输大文件"><a href="#HTTP-传输大文件" class="headerlink" title="HTTP 传输大文件"></a>HTTP 传输大文件</h2><h3 id="数据压缩"><a href="#数据压缩" class="headerlink" title="数据压缩"></a>数据压缩</h3><p>通过 <code>accept-encoding</code> 请求头告诉服务器浏览器支持的压缩方式，服务器压缩后将压缩方式写入 <code>content-encoding</code></p>
-<p>这种方式只对文本有较好地压缩率，对图片音频等效果较差</p>
-<h3 id="分块传输"><a href="#分块传输" class="headerlink" title="分块传输"></a>分块传输</h3><p><code>Transfer-Encoding: chunked</code> 表示报文 body 不是一次性发送，而是分为多个 chunked 分块发送</p>
-<p><code>Tfansfer-Encoding: chunked</code> 和 <code>Content-Length</code> 互斥，不可同时出现</p>
-<h3 id="范围请求"><a href="#范围请求" class="headerlink" title="范围请求"></a>范围请求</h3><p>范围请求允许客户端只获取文件的某一部分</p>
-<ol>
-<li><p>客户端先发个 <code>HEAD</code> 请求看看服务器是否支持范围请求</p>
-</li>
-<li><p>服务器必须在 <code>Accept-Ranges</code> 响应头中告知客户端是否具有范围请求的能力</p>
-</li>
-<li><p>请求头 <code>Ranges</code> 是 HTTP 范围请求的专用字段，格式是 bytes&#x3D;x-y 表示 x ~ y 之间的范围</p>
-</li>
-<li><p>服务端在收到 Ranges 请求头时，首先验证 x-y 的范围是否合法，其次计算读取偏移量，返回 206 状态码和所读取的文件，最后在响应头加上 <code>Content-Range</code> 表示实际返回的偏移量和总数，格式为 bytes x-y&#x2F;length</p>
-</li>
-</ol>
-<h2 id="HTTPS"><a href="#HTTPS" class="headerlink" title="HTTPS"></a>HTTPS</h2><p>HTTP 有以下安全性问题：</p>
-<ul>
-<li><p>使用明文进行通信，内容可能会被窃听</p>
-</li>
-<li><p>不验证通信方的身份，通信方的身份有可能遭遇伪装</p>
-</li>
-<li><p>无法证明报文的完整性，报文有可能遭篡改</p>
-</li>
-</ul>
-<p>让 HTTP 先和 SSL 通信，再由 SSL 和 TCP 通信，也就是说 HTTPS 使用了隧道进行通信</p>
-<p>通过使用 SSL，HTTPS 具有了混合加密（防窃听）、认证（防伪装）和摘要算法（防篡改）</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/10.png" class="">
-
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/11.png" class="">
-
-<h3 id="HTTPS-加密方式"><a href="#HTTPS-加密方式" class="headerlink" title="HTTPS 加密方式"></a>HTTPS 加密方式</h3><p>HTTPS 采用混合的加密机制</p>
-<p>对称加密算法加密数据 + 非对称加密算法交换密钥 + 数字证书验证身份</p>
-<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><p>因为需要进行加密解密等过程，因此速度会更慢</p>
-<p>需要支付证书授权的高额费用</p>
-<h2 id="HTTP-与-HTTPS-区别"><a href="#HTTP-与-HTTPS-区别" class="headerlink" title="HTTP 与 HTTPS 区别"></a>HTTP 与 HTTPS 区别</h2><ul>
-<li><p>HTTP 的 URL 以 http:&#x2F;&#x2F; 开头，而 HTTPS 的 URL 以 https:&#x2F;&#x2F; 开头</p>
-</li>
-<li><p>HTTP 是不安全的，而 HTTPS 是安全的</p>
-</li>
-<li><p>HTTP 标准端口是 80 ，而 HTTPS 的标准端口是 443</p>
-</li>
-<li><p>在 OSI 网络模型中，HTTP 工作于应用层，而 HTTPS 的安全传输机制工作在会话层</p>
-</li>
-<li><p>HTTP 无法加密，而 HTTPS 对传输的数据进行加密</p>
-</li>
-<li><p>HTTP 无需证书，而 HTTPS 需要 CA 机构颁发的 SSL 证书</p>
-</li>
-</ul>
-<h2 id="HTTP-x2F-2-0"><a href="#HTTP-x2F-2-0" class="headerlink" title="HTTP&#x2F;2.0"></a>HTTP&#x2F;2.0</h2><p>HTTP&#x2F;1.1 优点：</p>
-<ul>
-<li><p>默认使用长连接</p>
-</li>
-<li><p>支持流水线</p>
-</li>
-<li><p>缓存、断点传输、Host 字段</p>
-</li>
-</ul>
-<p>HTTP&#x2F;1.x 缺陷：</p>
-<ul>
-<li><p>不会压缩请求和响应首部，从而导致不必要的网络流量</p>
-</li>
-<li><p>每次互相发送相同的首部造成的浪费较多</p>
-</li>
-<li><p>服务器是按请求的顺序响应的，如果服务器响应慢，会招致客户端一直请求不到数据，也就是队头阻塞</p>
-</li>
-<li><p>没有请求优先级控制</p>
-</li>
-<li><p>请求只能从客户端开始，服务器只能被动响应</p>
-</li>
-</ul>
-<p>HTTP&#x2F;2 协议是基于 HTTPS 的，所以 HTTP&#x2F;2 的安全性是有保障的</p>
-<h3 id="压缩首部"><a href="#压缩首部" class="headerlink" title="压缩首部"></a>压缩首部</h3><p>如果同时发出多个请求，请求的首部是一样的或是相似的，协议会消除重复部分</p>
-<h3 id="二进制分帧"><a href="#二进制分帧" class="headerlink" title="二进制分帧"></a>二进制分帧</h3><p>HTTP&#x2F;2 不再采用 HTTP&#x2F;1.1 里的纯文本形式的报文，而是全面采用了二进制格式</p>
-<p>HTTP&#x2F;2把原来的的消息分散为数个小片的二进制帧，用 HEADER 帧存放头数据、DATA 帧存放实体数据</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE-http/12.png" class="">
-
-<p>同一个消息的往返帧都会分配一个唯一的流 ID，在里面流动的是一串有先后顺序的数据帧，这些数据帧按照次序组装起来就是 HTTP&#x2F;1 里的请求报文和响应报文</p>
-<p>每个二进制帧会标识该帧属于哪个流，因此浏览器收到数据后可以按照流来对数据进行合并而不会出现合并后数据错乱的问题</p>
-<p>对同一域名下所有请求只有一个 TCP 连接，服务器可以在一个 TCP 连接上并行的传输多个请求数据</p>
-<p>客户端可以指定数据流的优先级</p>
-<p>二进制分帧移除串行请求，解决队头阻塞，降低了延迟，大幅度提高了连接的利用率</p>
-<h3 id="服务器推送"><a href="#服务器推送" class="headerlink" title="服务器推送"></a>服务器推送</h3><p>当请求一个页面时，浏览器会先发送一次请求 html，然后再去请求 css 等资源，这样浏览器需要发送多次请求才能渲染出页面</p>
-<p>如果服务器可以预判客户端请求，在浏览器第一次请求时就将资源一并推送则只需要一轮 HTTP 通信，从而提高性能</p>
-<h3 id="HTTP-x2F-2-缺陷"><a href="#HTTP-x2F-2-缺陷" class="headerlink" title="HTTP&#x2F;2 缺陷"></a>HTTP&#x2F;2 缺陷</h3><p>多个 HTTP 请求在复用一个 TCP 连接，下层的 TCP 协议是不知道有多少个 HTTP 请求的，一旦发生了丢包现象，就会触发 TCP 的重传机制，这样在一个 TCP 连接中的所有的 HTTP 请求都必须等待这个丢了的包被重传回来</p>
-<h3 id="HTTP-x2F-3"><a href="#HTTP-x2F-3" class="headerlink" title="HTTP&#x2F;3"></a>HTTP&#x2F;3</h3><p>HTTP&#x2F;2 虽然使用二进制分帧解决了队头阻塞问题，但在 TCP 协议里仍会有阻塞</p>
-<p>HTTP&#x2F;3 把 HTTP 下层的 TCP 协议改成了 UDP，真正完美解决了队头阻塞</p>
 
       
     </div>
