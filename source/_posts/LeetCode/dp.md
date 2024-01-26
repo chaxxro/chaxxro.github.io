@@ -301,3 +301,17 @@ else dp[i][j] = max(dp[i - 1][j - 1], dp[i - 1][j], dp[i][j - 1])
 ```
 
 [题目](https://leetcode.com/problems/longest-common-subsequence/)
+
+## lc1278
+
+```cpp
+/*
+dp[i][j] : s[0 ~ i - 1] splite j group
+
+dp[i][j] = min(dp[k][j - 1] + cast(k, i - 1)) j - 2 < k < i - 2
+*/
+```
+
+[题目](https://leetcode.com/problems/palindrome-partitioning-iii/)
+
+[分析](https://www.youtube.com/watch?v=kD6ShM6jr3g)

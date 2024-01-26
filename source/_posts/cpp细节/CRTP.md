@@ -33,7 +33,7 @@ int main() {
 }
 ```
 
-`Base` 类的 `interface`中使用 `static_cast` 进行类型转换，从而调用派生类的成员函数。如果使用 `dynamic_cast` 则转换会发生在运行时，而模板是在编译器就进行了实例化
+`Base` 类的 `interface` 中使用 `static_cast` 进行类型转换，从而调用派生类的成员函数。如果使用 `dynamic_cast` 则转换会发生在运行时，而模板是在编译器就进行了实例化
 
 CRTP 总结起来，其有以下两个特点：
 
