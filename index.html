@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">411</span>
+          <span class="site-state-item-count">410</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -195,7 +195,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 11:46:38" itemprop="dateModified" datetime="2024-01-30T11:46:38+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -302,7 +302,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 11:46:38" itemprop="dateModified" datetime="2024-01-30T11:46:38+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -329,7 +329,9 @@
 <p>在 ptmalloc 中存在一个全局的主分配区，是用静态变量的方式定义的</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">struct</span> <span class="title class_">malloc_state</span> main_arena;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">malloc_state</span> &#123;</span><br><span class="line"> <span class="comment">// 锁，用来解决在多线程分配时的竞争问题</span></span><br><span class="line"> <span class="type">mutex_t</span> mutex;</span><br><span class="line"></span><br><span class="line"> <span class="comment">// 分配区下管理内存的各种数据结构</span></span><br><span class="line"> <span class="comment">/* Fastbins */</span></span><br><span class="line"> mfastbinptr      fastbins[NFASTBINS];</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Base of the topmost chunk -- not otherwise kept in a bin */</span></span><br><span class="line"> mchunkptr        top;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* The remainder from the most recent split of a small request */</span></span><br><span class="line"> mchunkptr        last_remainder;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* smallbins、largetbins、unsortedbins */</span></span><br><span class="line"> mchunkptr        bins[NBINS * <span class="number">2</span>];  <span class="comment">// 128 * 2</span></span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Bitmap of bins */</span></span><br><span class="line"> <span class="type">unsigned</span> <span class="type">int</span>     binmap[BINMAPSIZE];</span><br><span class="line"> ...</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Linked list */</span></span><br><span class="line"> <span class="keyword">struct</span> <span class="title class_">malloc_state</span> *next;  <span class="comment">// 把所有的分配区都以一个链表组织了起来，方便后面的遍历</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>对于每一个进程而言，只有一个主分配区，可能存在多个非主分配区，ptmalloc 会根据系统对分配区的争用情况动态增加非主分配区的数量，主分配区与非主分配区用环形链表进行管理</p>
 <p>多线程在操作一个分配区的时候需要加锁，在线程比较多的时候在锁上浪费的开销会比较多。为了降低锁开销，ptmalloc 支持多个分配区。这样在单个分配区上锁的竞争开销就会小很多</p>
+<p>主分配区可以访问进程的 heap 区域和 mmap 映射区域，也就是说主分配区可以使用 <code>sbrk</code> 和 <code>mmap</code> 向操作系统申请内存，而非主分配区域只能访问进程的 <code>mmap</code> 映射区域</p>
 <h2 id="内存块-chunk"><a href="#内存块-chunk" class="headerlink" title="内存块 chunk"></a>内存块 chunk</h2><p>在每个 arena 中，最基本的内存分配的单位是 malloc_chunk，简称 chunk，包含 header 和 body 两部分</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">malloc_chunk</span> &#123;</span><br><span class="line"> INTERNAL_SIZE_T      prev_size;  <span class="comment">/* Size of previous chunk (if free).  */</span></span><br><span class="line"> INTERNAL_SIZE_T      size;       <span class="comment">/* Size in bytes, including overhead. */</span></span><br><span class="line"></span><br><span class="line"> <span class="keyword">struct</span> <span class="title class_">malloc_chunk</span>* fd;         <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line"> <span class="keyword">struct</span> <span class="title class_">malloc_chunk</span>* bk;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Only used for large blocks: pointer to next larger size.  */</span></span><br><span class="line"> <span class="keyword">struct</span> <span class="title class_">malloc_chunk</span>* fd_nextsize; <span class="comment">/* double links -- used only if free. */</span></span><br><span class="line"> <span class="keyword">struct</span> <span class="title class_">malloc_chunk</span>* bk_nextsize;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
@@ -361,6 +363,9 @@
 <li><p>向操作系统申请内存</p>
 </li>
 </ol>
+<h2 id="malloc-多线程工作过程"><a href="#malloc-多线程工作过程" class="headerlink" title="malloc 多线程工作过程"></a>malloc 多线程工作过程</h2><p>线程先查看私有变量中是否已经存在有一个分配区。如果存在则尝试对对应的分配区加锁。如果加锁成功则使用这个分配区分配内存。如果失败则搜索循环链表试图获得一个没有加锁的分配区来分配内存。如果所有的分配区都已经加锁了，那么 <code>malloc</code> 会开辟一个新的分配区，把该分配区添加到循环链表中并加锁，使用这个分配区进行分配内存操作</p>
+<p>在释放操作中，线程同样试图获得待释放内存块所在的分配区的锁，如果该分配区正在被别的线程使用，则需要等待直到其他线程释放该分配区的互斥锁之后才可以进行释放操作</p>
+<p>非主分配区的数量一旦增加，就不会再减少</p>
 
       
     </div>
@@ -423,7 +428,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 11:46:38" itemprop="dateModified" datetime="2024-01-30T11:46:38+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -512,7 +517,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 11:46:38" itemprop="dateModified" datetime="2024-01-30T11:46:38+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -597,7 +602,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 11:46:38" itemprop="dateModified" datetime="2024-01-30T11:46:38+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -704,7 +709,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 11:46:38" itemprop="dateModified" datetime="2024-01-30T11:46:38+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -789,7 +794,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 11:46:38" itemprop="dateModified" datetime="2024-01-30T11:46:38+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -888,7 +893,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 11:46:38" itemprop="dateModified" datetime="2024-01-30T11:46:38+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -980,7 +985,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 11:46:38" itemprop="dateModified" datetime="2024-01-30T11:46:38+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1107,7 +1112,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 11:46:38" itemprop="dateModified" datetime="2024-01-30T11:46:38+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1154,7 +1159,7 @@
 
 
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
