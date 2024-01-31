@@ -195,7 +195,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-31 20:26:35" itemprop="dateModified" datetime="2024-01-31T20:26:35+08:00">2024-01-31</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -343,7 +343,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-31 20:26:35" itemprop="dateModified" datetime="2024-01-31T20:26:35+08:00">2024-01-31</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -388,6 +388,13 @@
 <li><p>CPU Cache 不一致：在 CPU Cache 的影响下，在某个 CPU 执行了指令，不会立即被其它 CPU 所看到</p>
 </li>
 </ul>
+<h2 id="修改顺序"><a href="#修改顺序" class="headerlink" title="修改顺序"></a>修改顺序</h2><p>对一个原子变量的所有修改操作总是存在一定的先后顺序, 且所有线程都认可这个顺序, 即使这些修改操作是在不同的线程中执行的</p>
+<ul>
+<li><p>两个修改操作不可能同时进行, 一定存在一个先后顺序。这是原子操作必须保证的, 否则就有数据竞争的问题</p>
+</li>
+<li><p>即使每次运行的修改顺序可能都不同, 但所有线程看到的修改顺序总是一致的</p>
+</li>
+</ul>
 <h2 id="sequenced-before"><a href="#sequenced-before" class="headerlink" title="sequenced-before"></a>sequenced-before</h2><p>sequenced-before 用于表示单线程之间，两个操作上的先后顺序，这个顺序是非对称、可以进行传递的关系</p>
 <p>它不仅仅表示两个操作之间的先后顺序，还表示了操作结果之间的可见性关系</p>
 <ul>
@@ -426,13 +433,10 @@
 <li><p>Acquire-Release 获取释放模型</p>
 </li>
 </ul>
-<h2 id="Relaxed-ordering-模型"><a href="#Relaxed-ordering-模型" class="headerlink" title="Relaxed ordering 模型"></a>Relaxed ordering 模型</h2><p>对应 <code>memory_order_relaxed</code>，其对于内存序的限制最小，这种方式只能保证当前的数据访问是原子操作，但是对内存访问顺序没有任何约束，也就是说对不同的原子变量的读写可能会被重新排序，不同的线程可能会看到不同的执行顺序</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">write_x_then_y</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  x.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_relaxed);  <span class="comment">// 1</span></span><br><span class="line">  y.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_relaxed);  <span class="comment">// 2</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">read_y_then_x</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (!y.<span class="built_in">load</span>(std::memory_order_relaxed)) &#123; <span class="comment">// 3</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;y load false&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (x.<span class="built_in">load</span>(std::memory_order_relaxed)) &#123; <span class="comment">//4</span></span><br><span class="line">    ++z;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">当线程 t1 运行至 1 处将 x 设置为 true，t1 运行至 2 处将 y 设置为 true</span></span><br><span class="line"><span class="comment">这些操作仅在 CPU1 的 store buffer 中，还未放入 cache 和 memory 中，CPU2 自然不知道。</span></span><br><span class="line"><span class="comment">如果 CPU1 先将 y 放入 memory，那么 CPU2 就会读取 y 的值为 true。那么 t2 就会运行至 3 处从 while 循环退出，进而运行至 4 处，此时 CPU1 还未将 x 的值写入 memory，t2 读取的 x 值为 false，进而线程 t2 运行结束，然后 CPU1 将 x 写入 true, t1 结束运行</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 1 </span></span><br><span class="line">r1 = y.<span class="built_in">load</span>(std::memory_order_relaxed); <span class="comment">// A</span></span><br><span class="line">x.<span class="built_in">store</span>(r1, std::memory_order_relaxed); <span class="comment">// B</span></span><br><span class="line"><span class="comment">// thread 2</span></span><br><span class="line">r2 = x.<span class="built_in">load</span>(std::memory_order_relaxed); <span class="comment">// C </span></span><br><span class="line">y.<span class="built_in">store</span>(<span class="number">42</span>, std::memory_order_relaxed); <span class="comment">// D</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">允许产生结果 r1 == 42 &amp;&amp; r2 == 42 </span></span><br><span class="line"><span class="comment">因为 C 和 D 之间没有依赖关系，因此编译器允许调整 C 和 D 的执行顺序</span></span><br><span class="line"><span class="comment">D 在 y 上的副效应，可能可见于线程 1 中的加载 A ，同时 B 在 x 上的副效应，可能可见于线程 2 中的加载 C</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<h2 id="Relaxed-ordering-模型"><a href="#Relaxed-ordering-模型" class="headerlink" title="Relaxed ordering 模型"></a>Relaxed ordering 模型</h2><p>对应 <code>memory_order_relaxed</code>，其对于内存序的限制最小，这种方式只能保证当前的数据访问是原子操作和和修改顺序的一致性，但是对内存访问顺序没有任何约束，也就是说对不同的原子变量的读写可能会被重新排序，不同的线程可能会看到不同的执行顺序，并且可见性不是全局的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">write_x_then_y</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  x.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_relaxed);  <span class="comment">// 1</span></span><br><span class="line">  y.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_relaxed);  <span class="comment">// 2</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">read_y_then_x</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span> (!y.<span class="built_in">load</span>(std::memory_order_relaxed)) &#123; <span class="comment">// 3</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;y load false&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (x.<span class="built_in">load</span>(std::memory_order_relaxed)) &#123; <span class="comment">//4</span></span><br><span class="line">    ++z;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">当线程 t1 运行至 1 处将 x 设置为 true，t1 运行至 2 处将 y 设置为 true</span></span><br><span class="line"><span class="comment">这些操作仅在 CPU1 的 store buffer 中，还未放入 cache 和 memory 中，CPU2 自然不知道。</span></span><br><span class="line"><span class="comment">如果 CPU1 先将 y 放入 memory，那么 CPU2 就会读取 y 的值为 true。那么 t2 就会运行至 3 处从 while 循环退出，进而运行至 4 处，此时 CPU1 还未将 x 的值写入 memory，t2 读取的 x 值为 false，进而线程 t2 运行结束，然后 CPU1 将 x 写入 true, t1 结束运行</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 1 </span></span><br><span class="line">r1 = y.<span class="built_in">load</span>(std::memory_order_relaxed); <span class="comment">// A</span></span><br><span class="line">x.<span class="built_in">store</span>(r1, std::memory_order_relaxed); <span class="comment">// B</span></span><br><span class="line"><span class="comment">// thread 2</span></span><br><span class="line">r2 = x.<span class="built_in">load</span>(std::memory_order_relaxed); <span class="comment">// C </span></span><br><span class="line">y.<span class="built_in">store</span>(<span class="number">42</span>, std::memory_order_relaxed); <span class="comment">// D</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">允许产生结果 r1 == 42 &amp;&amp; r2 == 42 </span></span><br><span class="line"><span class="comment">因为 C 和 D 之间没有依赖关系，因此编译器允许调整 C 和 D 的执行顺序</span></span><br><span class="line"><span class="comment">D 在 y 上的副效应，可能可见于线程 1 中的加载 A ，同时 B 在 x 上的副效应，可能可见于线程 2 中的加载 C</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 1</span></span><br><span class="line">y.<span class="built_in">store</span>(<span class="number">20</span>, std::memory_order_relaxed);</span><br><span class="line">x.<span class="built_in">store</span>(<span class="number">10</span>, std::memory_order_relaxed);</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 2</span></span><br><span class="line"><span class="keyword">if</span> (x.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>) &#123;</span><br><span class="line">  <span class="built_in">assert</span>(y.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">20</span>);</span><br><span class="line">  y.<span class="built_in">store</span>(<span class="number">10</span>, std::memory_order_relaxed);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 3</span></span><br><span class="line"><span class="keyword">if</span> (y.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>) &#123;</span><br><span class="line">  <span class="built_in">assert</span>(x.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">当线程 3 y == 10 时，不代表线程 1 中的 x = 10 是可见的，因为线程 1 的写入结果从 cache 同步到线程 2 的 cache 不代表同步到了线程 3 的 cache</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
 
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// thread 1</span></span><br><span class="line">y.<span class="built_in">store</span>(<span class="number">20</span>, std::memory_order_relaxed);</span><br><span class="line">x.<span class="built_in">store</span>(<span class="number">10</span>, std::memory_order_relaxed);</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 2</span></span><br><span class="line"><span class="keyword">if</span> (x.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>) &#123;</span><br><span class="line">  <span class="built_in">assert</span>(y.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">20</span>);</span><br><span class="line">  y.<span class="built_in">store</span>(<span class="number">10</span>, std::memory_order_relaxed);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// thread 3</span></span><br><span class="line"><span class="keyword">if</span> (y.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>) &#123;</span><br><span class="line">  <span class="built_in">assert</span>(x.<span class="built_in">load</span>(std::memory_order_relaxed) == <span class="number">10</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>relaxed 的可见性不是全局的。当线程 3 可见 <code>y == 10</code> 时，不代表线程 1 中的 <code>x = 10</code> 是可见的，因为线程 1 的写入结果从 cache 同步到线程 2 的 cache 不代表同步到了线程 3 的 cache</p>
-<p>与其它内存序相比，relaxed 内存序具有最少的同步开销，一般用于多线程计数器，<code>std::shared_ptr</code> 的引用计数递增就是利用这个实现的，但引用计数的递减使用 acq-rel 模型</p>
+<p>与其它内存序相比，relaxed 内存序具有最少的同步开销，对于多线程递增计数是线程安全的，<code>std::shared_ptr</code> 的引用计数递增就是利用 relaxed 实现的，但引用计数的递减使用 acq-rel 模型</p>
 <h2 id="Acquire-Release-模型"><a href="#Acquire-Release-模型" class="headerlink" title="Acquire-Release 模型"></a>Acquire-Release 模型</h2><p>Acquire-Release 模型的控制力度介于 Relax 模型和 Sequential consistency 模型之间，对应 <code>memory_order_consume</code>、<code>memory_order_acquire</code>、<code>memory_order_release</code> 和 <code>memory_order_acq_rel</code></p>
 <ul>
 <li><p>只能用于读操作 <code>memory_order_consume</code>、<code>memory_order_acquire</code></p>
@@ -447,7 +451,7 @@
 <ul>
 <li><p>A 线程中 <code>store()</code> 之前的写指令（包括非原子变量和 relaxed 模型）不允许重排至 <code>store()</code> 之后，所有之前的写内存操作完成后才能执行本条原子操作，但之前的写操作是允许乱序的，并且这些写入操作对线程 B 可见。之后的读写操作不允许重排值 <code>store()</code> 之前</p>
 </li>
-<li><p>B 线程中 <code>load()</code> 之后的读指令不允许重排至 <code>load()</code> 之前，所有后续的读内存操作都必须在本条原子操作完成后执行，但之后的读操作是允许乱序的</p>
+<li><p>B 线程中 <code>load()</code> 之后的读写指令不允许重排至 <code>load()</code> 之前，所有后续的读内存操作都必须在本条原子操作完成后执行，但之后的读操作是允许乱序的</p>
 </li>
 </ul>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">std::atomic&lt;<span class="type">bool</span>&gt; has_release;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">release</span><span class="params">(<span class="type">int</span> *data)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!data) &#123;</span><br><span class="line">        data = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">100</span>];</span><br><span class="line">    &#125;</span><br><span class="line">    has_release.<span class="built_in">store</span>(<span class="literal">true</span>, std::memory_order_release);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">acquire</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (!has_release.<span class="built_in">load</span>(std::memory_order_acquire));</span><br><span class="line">    <span class="type">int</span> a = data[<span class="number">0</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="function">thread <span class="title">t1</span><span class="params">(release)</span></span>;</span><br><span class="line">    <span class="function">thread <span class="title">t2</span><span class="params">(acquire)</span></span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -532,7 +536,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-31 20:26:35" itemprop="dateModified" datetime="2024-01-31T20:26:35+08:00">2024-01-31</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -623,7 +627,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-31 20:26:35" itemprop="dateModified" datetime="2024-01-31T20:26:35+08:00">2024-01-31</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -733,7 +737,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-31 20:26:35" itemprop="dateModified" datetime="2024-01-31T20:26:35+08:00">2024-01-31</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -879,7 +883,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-31 20:26:35" itemprop="dateModified" datetime="2024-01-31T20:26:35+08:00">2024-01-31</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -965,7 +969,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-31 20:26:35" itemprop="dateModified" datetime="2024-01-31T20:26:35+08:00">2024-01-31</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1073,7 +1077,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-31 20:26:35" itemprop="dateModified" datetime="2024-01-31T20:26:35+08:00">2024-01-31</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1172,7 +1176,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-31 20:26:35" itemprop="dateModified" datetime="2024-01-31T20:26:35+08:00">2024-01-31</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1266,7 +1270,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-01-30 20:08:48" itemprop="dateModified" datetime="2024-01-30T20:08:48+08:00">2024-01-30</time>
+      <time title="修改时间：2024-01-31 20:26:35" itemprop="dateModified" datetime="2024-01-31T20:26:35+08:00">2024-01-31</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
