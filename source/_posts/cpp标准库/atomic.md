@@ -11,15 +11,12 @@ categories: cpp
 
 原子操作是不可打断的最低粒度操作，是线程安全的、更高效的线程同步手段
 
-使用原子变量就不需要使用互斥量来保护数据，用起来更简洁
-
 C++11 中所有的原子类都是不允许拷贝、不允许移动的
-
-## std::atomic<T>
 
 ```cpp
 template <class T>
 struct atomic;
+
 template <class T>
 struct atomic<T*>;
 
@@ -33,7 +30,7 @@ struct atomic<std::weak_ptr<U>>;
 
 C++11 定义了一些基础类型的原子变量，如 `std::atomic_bool`、`std::atomic_char`、`std::atomic_int`、`std::atomic_uint32_t`、`std::atomic_ptrdiff_t` 等
 
-自定义类型的原子变量，需要自定义类型满足连续内存、可以按位拷贝 `memcpy` 和没有虚函数，也就是以下判断都是 `true`
+对于自定义类型的原子变量，需要自定义类型满足连续内存、可以按位拷贝 `memcpy` 和没有虚函数，也就是以下判断都是 `true`
 
 - `std::is_trivially_copyable<T>::value`
 
@@ -45,10 +42,13 @@ C++11 定义了一些基础类型的原子变量，如 `std::atomic_bool`、`std
 
 - `std::is_move_assignable<T>::value`
 
+## 函数
+
 ### 构造函数
 
 ```cpp
-// 将原子对象放在未初始化的状态中，后续可用 std::atomic_init 初始化
+// 除了静态对象和线程局部对象使用零初始化，其他类型变量不进行任何初始化
+// 后续可用 std::atomic_init 初始化，但不是原子操作
 atomic() noexcept = default;
 // 用 desired 初始化对象，初始化不是原子性的
 constexpr atomic( T desired ) noexcept;
