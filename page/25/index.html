@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">410</span>
+          <span class="site-state-item-count">411</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,129 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/" class="post-title-link" itemprop="url">切片集群</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-20 21:07:04" itemprop="dateCreated datePublished" datetime="2023-04-20T21:07:04+08:00">2023-04-20</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-02-04 16:29:17" itemprop="dateModified" datetime="2024-02-04T16:29:17+08:00">2024-02-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>在使用 RDB 进行持久化时，Redis 会 fork 子进程来完成，fork 操作的用时和 Redis 的数据量是正相关的，而 fork 在执行时会阻塞主线程。数据量越大，fork 操作造成的主线程阻塞的时间越长，Redis 响应变慢</p>
+<p>切片集群，也叫分片集群，就是指启动多个 Redis 实例组成一个集群，然后按照一定的规则，把收到的数据划分成多份，每一份用一个实例来保存</p>
+<img src="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/01.png" class="">
+
+<h2 id="保存大量数据方式"><a href="#保存大量数据方式" class="headerlink" title="保存大量数据方式"></a>保存大量数据方式</h2><ul>
+<li><p>纵向扩展：升级单个 Redis 实例的资源配置，包括增加内存容量、增加磁盘容量、使用更高配置的 CPU；好处是实施起来简单、直接；坏处是数据持久化时阻塞服务，硬件成本较高</p>
+</li>
+<li><p>横向扩展：横向增加当前 Redis 实例的个数；好处是不用担心单个实例的硬件和成本限制；坏处是集群管理困难</p>
+</li>
+</ul>
+<h2 id="数据切片"><a href="#数据切片" class="headerlink" title="数据切片"></a>数据切片</h2><p>切片集群是一种保存大量数据的通用机制，这个机制可以有不同的实现方案</p>
+<p>Redis Cluster 方案中规定了数据和实例的对应规则：Redis Cluster 方案采用哈希槽（Hash Slot）来处理数据和实例之间的映射关系；在 Redis Cluster 方案中，一个切片集群共有 16384 个哈希槽，这些哈希槽类似于数据分区，每个键值对都会根据它的 key，被映射到一个哈希槽中</p>
+<p>具体的映射过程分为两大步：首先根据键值对的 key，按照哈希算法计算一个 16 bit 的值；然后，再用这个 16bit 值对 16384 取模，得到 0~16383 范围内的模数，每个模数代表一个相应编号的哈希槽</p>
+<p>可以使用 cluster create 命令创建集群，此时，Redis 会自动把这些槽平均分布在集群实例上</p>
+<p>使用 cluster addslots 命令手动分配哈希槽，手动分配时需要把 16384 个槽都分配完，否则 Redis 集群无法正常工作</p>
+<p>现代的分布式数据库实现分片基本都是 Range-based 的，能够实现分片的动态调度，但某个 range 内的记录数量很多，这就会导致相应的数据分片比较大，一般也叫做数据倾斜，导致负载不均衡；Redis 用 Hash-based 的设计方式，能把数据打得比较散，不太容易引起数据倾斜，提高访问性能</p>
+<p>Redis Cluster 方案通过哈希槽的方式把键值对分配到不同的实例上，这个过程需要对键值对的 key 做 CRC 计算，然后再和哈希槽做映射，而不是直接对 key 做哈希的理由是：</p>
+<ul>
+<li><p>整个集群存储key的数量是无法预估的，key的数量非常多时，直接记录每个key对应的实例映射关系，这个映射表会非常庞大，这个映射表无论是存储在服务端还是客户端都占用了非常大的内存空间</p>
+</li>
+<li><p>每个节点拥有整个集群完整的路由关系，需要节点之间互相交换路由表，节点之间交换信息也会变得非常庞大，消耗过多的网络资源</p>
+</li>
+<li><p>迁移时需要修改每个key的映射关系，维护成本高</p>
+</li>
+<li><p>中间增加一层哈希槽，可以把数据和节点解耦，让数据分布更均匀，还可以让这个映射表变得很小，利于客户端和服务端保存，节点之间交换信息时也变得轻量</p>
+</li>
+</ul>
+<h2 id="客户端定位槽"><a href="#客户端定位槽" class="headerlink" title="客户端定位槽"></a>客户端定位槽</h2><p>一般来说，客户端和集群实例建立连接后，实例就会把哈希槽的分配信息发给客户端。但是，在集群刚刚创建的时候，每个实例只知道自己被分配了哪些哈希槽，是不知道其他实例拥有的哈希槽信息的</p>
+<p>Redis 实例会把自己的哈希槽信息发给和它相连接的其它实例，来完成哈希槽分配信息的扩散。当实例之间相互连接后，每个实例就有所有哈希槽的映射关系了</p>
+<p>客户端收到哈希槽信息后，会把哈希槽信息缓存在本地。当客户端请求键值对时，会先计算键所对应的哈希槽，然后就可以给相应的实例发送请求了</p>
+<h2 id="重定向机制"><a href="#重定向机制" class="headerlink" title="重定向机制"></a>重定向机制</h2><p>当实例和哈希槽的对应关系发生变化，如实例有新增或删除，Redis 重新分配哈希槽，或为了负载均衡，Redis 把哈希槽在所有实例上重新分布一遍</p>
+<p>实例之间可以通过相互传递消息，获得最新的哈希槽分配信息，但客户端无法主动感知变化</p>
+<p>Redis Cluster 方案提供了一种重定向机制：客户端给一个实例发送数据读写操作时，这个实例上并没有相应的数据，客户端要再给一个新实例发送操作命令；当客户端把一个键值对的操作请求发给一个实例时，如果这个实例上并没有这个键值对映射的哈希槽，那么，这个实例就会给客户端返回下面的 MOVED 命令响应结果，这个结果中就包含了新实例的访问地址</p>
+<img src="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/02.png" class="">
+
+<p>当实例重新分配过程中，槽的一部分数据还未转移成功，此时客户端请求会收到一条 ASK 报错信息，表示客户端请求的键值对所在的哈希槽正在迁移，客户端需要先给新实例发送一个 ASKING 命令，让这个实例允许执行客户端接下来发送的命令。然后，客户端再向这个实例发送 GET 命令，以读取数据</p>
+<img src="/2023/04/20/Redis-%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/03.png" class="">
+
+<p>和 MOVED 命令不同，ASK 命令并不会更新客户端缓存的哈希槽分配信息</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +318,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-01 16:09:51" itemprop="dateModified" datetime="2024-02-01T16:09:51+08:00">2024-02-01</time>
+      <time title="修改时间：2024-02-04 16:29:17" itemprop="dateModified" datetime="2024-02-04T16:29:17+08:00">2024-02-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -324,7 +447,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-01 16:09:51" itemprop="dateModified" datetime="2024-02-01T16:09:51+08:00">2024-02-01</time>
+      <time title="修改时间：2024-02-04 16:29:17" itemprop="dateModified" datetime="2024-02-04T16:29:17+08:00">2024-02-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -451,7 +574,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-01 16:09:51" itemprop="dateModified" datetime="2024-02-01T16:09:51+08:00">2024-02-01</time>
+      <time title="修改时间：2024-02-04 16:29:17" itemprop="dateModified" datetime="2024-02-04T16:29:17+08:00">2024-02-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -590,7 +713,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-01 16:09:50" itemprop="dateModified" datetime="2024-02-01T16:09:50+08:00">2024-02-01</time>
+      <time title="修改时间：2024-02-04 16:29:17" itemprop="dateModified" datetime="2024-02-04T16:29:17+08:00">2024-02-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -691,7 +814,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-01 16:09:51" itemprop="dateModified" datetime="2024-02-01T16:09:51+08:00">2024-02-01</time>
+      <time title="修改时间：2024-02-04 16:29:17" itemprop="dateModified" datetime="2024-02-04T16:29:17+08:00">2024-02-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -850,7 +973,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-01 16:09:50" itemprop="dateModified" datetime="2024-02-01T16:09:50+08:00">2024-02-01</time>
+      <time title="修改时间：2024-02-04 16:29:17" itemprop="dateModified" datetime="2024-02-04T16:29:17+08:00">2024-02-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -955,7 +1078,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-01 16:09:50" itemprop="dateModified" datetime="2024-02-01T16:09:50+08:00">2024-02-01</time>
+      <time title="修改时间：2024-02-04 16:29:17" itemprop="dateModified" datetime="2024-02-04T16:29:17+08:00">2024-02-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1103,7 +1226,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-01 16:09:50" itemprop="dateModified" datetime="2024-02-01T16:09:50+08:00">2024-02-01</time>
+      <time title="修改时间：2024-02-04 16:29:17" itemprop="dateModified" datetime="2024-02-04T16:29:17+08:00">2024-02-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1216,7 +1339,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-01 16:09:50" itemprop="dateModified" datetime="2024-02-01T16:09:50+08:00">2024-02-01</time>
+      <time title="修改时间：2024-02-04 16:29:17" itemprop="dateModified" datetime="2024-02-04T16:29:17+08:00">2024-02-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1293,149 +1416,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/" class="post-title-link" itemprop="url">缓存异常</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-20 20:52:34" itemprop="dateCreated datePublished" datetime="2023-04-20T20:52:34+08:00">2023-04-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-02-01 16:09:51" itemprop="dateModified" datetime="2024-02-01T16:09:51+08:00">2024-02-01</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/01.png" class="">
-
-<h2 id="缓存雪崩"><a href="#缓存雪崩" class="headerlink" title="缓存雪崩"></a>缓存雪崩</h2><p>大量的请求无法在 Redis 缓存中进行处理，从而应用将大量请求发送到数据库层，导致数据库层的压力激增</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/02.png" class="">
-
-<h3 id="缓存中有大量数据同时过期"><a href="#缓存中有大量数据同时过期" class="headerlink" title="缓存中有大量数据同时过期"></a>缓存中有大量数据同时过期</h3><ul>
-<li><p>给数据的过期时间增加一个较小的随机数，不同数据的过期时间有所差别，但差别又不会太大，既避免了大量数据同时过期，同时也保证了这些数据基本在相近的时间失效，仍然能满足业务需求</p>
-</li>
-<li><p>服务降级，发生缓存雪崩时，针对不同的数据采取不同的处理方式；访问非核心数据时，暂时停止从缓存中查询这些数据，而是直接返回预定义信息、空值或是错误信息；访问核心数据时，允许查询缓存，如果缓存缺失，也可以继续通过数据库读取</p>
-</li>
-</ul>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/03.png" class="">
-
-<h3 id="Redis-缓存实例发生故障宕机"><a href="#Redis-缓存实例发生故障宕机" class="headerlink" title="Redis 缓存实例发生故障宕机"></a>Redis 缓存实例发生故障宕机</h3><p>在业务系统中实现服务熔断或请求限流机制：在发生缓存雪崩时，为了防止引发连锁的数据库雪崩，甚至是整个系统的崩溃，这时可以暂停业务应用对缓存系统的接口访问</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/04.png" class="">
-
-<p>服务熔断虽然可以保证数据库的正常运行，但是暂停了整个缓存系统的访问，对业务应用的影响范围大</p>
-<p>为了尽可能减少这种影响，可以进行请求限流，在业务系统的请求入口前端控制每秒进入系统的请求数，避免过多的请求被发送到数据库</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/05.png" class="">
-
-<p>通过主从节点的方式构建 Redis 缓存高可靠集群，主节点故障宕机，从节点还可以切换成为主节点，继续提供缓存服务，避免了由于缓存实例宕机而导致的缓存雪崩问题</p>
-<h2 id="缓存击穿"><a href="#缓存击穿" class="headerlink" title="缓存击穿"></a>缓存击穿</h2><p>缓存击穿是指针对某个访问非常频繁的热点数据因为失效，无法在缓存中进行处理从而大量请求都发送到了后端数据库，导致影响数据库处理其他请求</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/06.png" class="">
-
-<h3 id="合理设置热点数据过期时间"><a href="#合理设置热点数据过期时间" class="headerlink" title="合理设置热点数据过期时间"></a>合理设置热点数据过期时间</h3><ul>
-<li><p>热点数据不设置过期时间，由后台异步更新缓存</p>
-</li>
-<li><p>热点数据过期前通知后台线程更新过期时间</p>
-</li>
-<li><p>缓存失效后先获取分布式锁，这样只会一个请求读取数据库</p>
-</li>
-</ul>
-<h2 id="缓存穿透"><a href="#缓存穿透" class="headerlink" title="缓存穿透"></a>缓存穿透</h2><p>缓存穿透是指要访问的数据不在 Redis 缓存中，然后访问数据库时发现数据库中也没有要访问的数据</p>
-<p>应用无法从数据库中读取数据写入缓存来服务后续请求，缓存失去了保护数据库的意义，还会同时给缓存和数据库带来巨大压力</p>
-<img src="/2023/04/20/Redis-%E7%BC%93%E5%AD%98%E5%BC%82%E5%B8%B8/07.png" class="">
-
-<p>原因：</p>
-<ul>
-<li><p>业务层误操作：缓存中的数据和数据库中的数据被误删除了，所以缓存和数据库中都没有数据</p>
-</li>
-<li><p>恶意攻击：专门访问数据库中没有的数据</p>
-</li>
-</ul>
-<h3 id="缓存空值或缺省值"><a href="#缓存空值或缺省值" class="headerlink" title="缓存空值或缺省值"></a>缓存空值或缺省值</h3><p>一旦发生缓存穿透，可以针对查询的数据在 Redis 中缓存一个缺省值</p>
-<p>应用发送的后续请求再进行查询时，就可以直接从 Redis 中读取空值或缺省值，返回给业务应用了，避免了把大量请求发送给数据库处理，保持了数据库的正常运行</p>
-<p>但采用默认值的方式也有其弊端：</p>
-<ul>
-<li><p>缓存中存在很多数据库中没有的数据，导致存储空间增加，因此可以给这类数据设置一个过期时间</p>
-</li>
-<li><p>如果在默认值有效期间数据库写入了数据，会出现缓存与数据库数据不一致的情况，因此需要使用消息队列或其他异步的方式清理缓存</p>
-</li>
-</ul>
-<h3 id="业务逻辑前置判断"><a href="#业务逻辑前置判断" class="headerlink" title="业务逻辑前置判断"></a>业务逻辑前置判断</h3><p>针对业务逻辑特点，前置过滤判断，校验数据合法性</p>
-<h3 id="布隆过滤器"><a href="#布隆过滤器" class="headerlink" title="布隆过滤器"></a>布隆过滤器</h3><p>使用布隆过滤器快速判断数据是否存在，避免从数据库中查询数据是否存在，减轻数据库压力</p>
-<p>在把数据写入数据库时，使用布隆过滤器做个标记。当缓存缺失后需要查询数据库时，可以通过查询布隆过滤器快速判断数据是否存在</p>
-<p>这样即使发生缓存穿透了，大量请求只会查询 Redis 和布隆过滤器，而不会积压到数据库，也就不会影响数据库的正常运行</p>
-<p>布隆过滤器可以使用 Redis 实现，本身就能承担较大的并发访问压力</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/24/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><span class="page-number current">25</span><a class="page-number" href="/page/26/">26</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/26/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/24/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><span class="page-number current">25</span><a class="page-number" href="/page/26/">26</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/26/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
