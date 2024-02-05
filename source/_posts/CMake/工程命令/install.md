@@ -46,7 +46,6 @@ install(TARGETS myExe mySharedLib myStaticLib
         ARCHIVE DESTINATION lib/static    # 安装到${CMAKE_INSTALL_PREFIX}/lib/static
 )   
 
-
 # 安装普通文件
 install(<FILES|PROGRAMS> files...
         TYPE <type> | DESTINATION <dir>
@@ -69,7 +68,6 @@ install(DIRECTORY dirs...
         [FILES_MATCHING]
         [[PATTERN <pattern> | REGEX <regex>]
          [EXCLUDE] [PERMISSIONS permissions...]] [...])
-)
 # 如果 dir 不以 / 结尾，那么这个目录将被安装到目标路径下
 # 如果 dir 以 / 结尾，代表将这个目录中的内容安装到目标路径，但不包括这个目录本身
 install(DIRECTORY src/ DESTINATION include/myproj
