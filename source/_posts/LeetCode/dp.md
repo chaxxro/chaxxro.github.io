@@ -315,3 +315,34 @@ dp[i][j] = min(dp[k][j - 1] + cast(k, i - 1)) j - 2 < k < i - 2
 [题目](https://leetcode.com/problems/palindrome-partitioning-iii/)
 
 [分析](https://www.youtube.com/watch?v=kD6ShM6jr3g)
+
+## lc1411
+
+[题目](https://leetcode.com/problems/number-of-ways-to-paint-n-3-grid/description/)
+
+## lc1416
+
+```cpp
+/*
+递归形式：
+int helper(string s) {
+    if(s.empty() == 0) return 1;
+    if(s[0] == '0') return 0;
+    int ans = 0;
+    for(int i = 1; i < s.length(); ++i) {
+        int num = stoi(s.substr(0, i));
+        if(num > K) break;
+        ans += (ans + helper(s.substr(i))) % kmod;
+    }
+    return ans;
+}
+使用 hash 记忆化后仍超时
+
+dp[i] : s[i ~ n] cnt
+dp[i] = sum(dp[j]) j : i ~ n
+*/
+```
+
+[题目](https://leetcode.com/problems/restore-the-array//)
+
+[分析](https://www.youtube.com/watch?v=mdUTRI2FMtU)
