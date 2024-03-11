@@ -338,7 +338,18 @@ while x:
 
 ## lc1411
 
-[题目](https://leetcode.com/problems/number-of-ways-to-paint-n-3-grid/description/)
+```cpp
+/*
+利用行的状态做 DP
+一行格子涂装总共有 27 中方式
+dp[i][p] 表示第 i 行用 p 这种方式涂装的次数
+dp[i + 1][q] = sum(dp[i][p]) 其中 q 与 p 不冲突
+*/
+```
+
+[题目](https://leetcode.com/problems/number-of-ways-to-paint-n-3-grid/)
+
+[分析](https://www.youtube.com/watch?v=LwD9UIDIvHE)
 
 ## lc1416
 
@@ -366,3 +377,13 @@ dp[i] = sum(dp[j]) j : i ~ n
 [题目](https://leetcode.com/problems/restore-the-array//)
 
 [分析](https://www.youtube.com/watch?v=mdUTRI2FMtU)
+
+## lc1449
+
+[题目](https://leetcode.com/problems/form-largest-integer-with-digits-that-add-up-to-target/submissions/)
+
+[分析](https://www.youtube.com/watch?v=J43N1o1XhqE)
+
+## lc1458
+
+[题目](https://leetcode.com/problems/max-dot-product-of-two-subsequences/description/)
