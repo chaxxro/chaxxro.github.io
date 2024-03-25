@@ -159,6 +159,151 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/09/cpp%E7%BB%86%E8%8A%82-%E6%8C%87%E9%92%88%E5%92%8C%E6%95%B0%E7%BB%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/05/09/cpp%E7%BB%86%E8%8A%82-%E6%8C%87%E9%92%88%E5%92%8C%E6%95%B0%E7%BB%84/" class="post-title-link" itemprop="url">指针和数组</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-05-09 20:39:33" itemprop="dateCreated datePublished" datetime="2023-05-09T20:39:33+08:00">2023-05-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-03-25 18:11:10" itemprop="dateModified" datetime="2024-03-25T18:11:10+08:00">2024-03-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="指针"><a href="#指针" class="headerlink" title="指针"></a>指针</h2><ul>
+<li><p>指针变量存储的是内存地址，它的值仅仅表示地址</p>
+</li>
+<li><p>指针的解类型是指用什么方式来解释内存地址的数据</p>
+</li>
+<li><p>多级指针本质是解类型是指针类型的指针类型</p>
+</li>
+<li><p>指针类型转换的本质是解类型的转换</p>
+</li>
+<li><p>将含有解类型的指针转换为不含解类型的指针 <code>void*</code> 是安全的静态转换，可以使用 <code>static_cast</code> 替换 C 风格的转换，支持隐式转换</p>
+</li>
+<li><p>将不含解类型的指针转换为一个含有解类型指针也是安全的静态转换，可以使用 <code>static_cast</code>，但不支持隐式转换</p>
+</li>
+<li><p>将解类型 A 的指针转换为解类型 B 的指针是不安全的转换，需要使用 <code>reinterpret_cast</code></p>
+</li>
+<li><p>主要区分 <code>const</code> 修饰的是指针类型还是解类型</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span>* p;           <span class="comment">// p 可变，解类型 const int</span></span><br><span class="line"><span class="type">int</span>* <span class="type">const</span> p;           <span class="comment">// p 不可变，解类型 int</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span>* <span class="type">const</span> p;     <span class="comment">// p 不可变，解类型 const int</span></span><br><span class="line"><span class="type">int</span> * <span class="type">const</span> * p;        <span class="comment">// p 可变，解类型 int * const</span></span><br><span class="line"><span class="type">int</span> ** <span class="type">const</span> * p;       <span class="comment">// p 可变，解类型 int ** const</span></span><br><span class="line"><span class="type">const</span> <span class="type">int</span>** p;          <span class="comment">// p 可变，解类型 const int*</span></span><br><span class="line"><span class="type">int</span> * <span class="type">const</span> * <span class="type">const</span> p;  <span class="comment">// p 不可变，解类型 int * const</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><code>arr</code> 的类型是 <code>int[3]</code>，它是一个数组类型，不是指针类型</p>
+<p>数组类型本身含有元素类型信息和元素个数信息，它是独立存在的一种类型，而不是指针的语法糖</p>
+<p>数据是数组，指针是指针，只是数组类型可以隐式转换为首元素的指针类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">std::shared_ptr&lt;<span class="type">int</span>*&gt; p = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">5</span>];</span><br><span class="line"><span class="comment">// p 是 int* 类型的智能指针，那么在析构时只会调用 delete 而不是 delete[]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确写法</span></span><br><span class="line">std::shared_ptr&lt;<span class="type">int</span>[]&gt; p = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<p>对于模板的自动类型推导，传入数组时也会被识别为数组类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Test</span> &#123;</span><br><span class="line">  <span class="built_in">Test</span>(<span class="type">const</span> T&amp;) = <span class="keyword">default</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">auto</span> p = arr;</span><br><span class="line"></span><br><span class="line">Test t1&#123;arr&#125;; <span class="comment">// T 为 int[3]</span></span><br><span class="line">Test t2&#123;p&#125;;   <span class="comment">// T 为 int*</span></span><br></pre></td></tr></table></figure>
+
+<p><code>sizeof</code> 能够识别数据类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">auto</span> p = arr</span><br><span class="line"></span><br><span class="line"><span class="built_in">sizeof</span>(arr);  <span class="comment">// 12</span></span><br><span class="line"><span class="built_in">sizeof</span>(p);    <span class="comment">// 8</span></span><br></pre></td></tr></table></figure>
+
+<p><code>const int [10]</code> 和 <code>int const [10]</code> 是等价的，<code>const</code> 都是修饰 <code>int</code></p>
+<h2 id="数组指针"><a href="#数组指针" class="headerlink" title="数组指针"></a>数组指针</h2><p>数组指针是指解类型是数组类型的指针，数组类型不能转换成数组指针，需要通过取地址操作获得数组指针</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> arr[] &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">auto</span> p = &amp;arr;  <span class="comment">// p 的类型是 int (*)[3]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="指针数组"><a href="#指针数组" class="headerlink" title="指针数组"></a>指针数组</h2><p>数组元素是指针类型</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> *q[<span class="number">3</span>];</span><br></pre></td></tr></table></figure>
+
+<h2 id="更复杂的情况"><a href="#更复杂的情况" class="headerlink" title="更复杂的情况"></a>更复杂的情况</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// p0 是一个数组，其元素类型是指针，指向一个 int[3]</span></span><br><span class="line"><span class="built_in">int</span> (*p0[<span class="number">4</span>])[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// p1 是一个指针，其解类型是另一个解类型是 int[3] 的指针</span></span><br><span class="line"><span class="built_in">int</span> (**p1)[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// p2 是一个指针，其解类型是 int* [3]</span></span><br><span class="line"><span class="type">int</span> *(*p2)[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// p3 是一个数组，元素类型是 int**</span></span><br><span class="line"><span class="type">int</span> **p3[<span class="number">3</span>];</span><br></pre></td></tr></table></figure>
+
+<h2 id="typedef-和-using"><a href="#typedef-和-using" class="headerlink" title="typedef 和 using"></a>typedef 和 using</h2><p>当类型复杂时推荐使用 <code>typedef</code> 和 <code>using</code> 进行类型重命名</p>
+<p><code>typedef</code> 的新类型名处于变量名位置</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// type1 是 int[3]</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">int</span> type1[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// type2 是 int (*)[2];</span></span><br><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">int</span> <span class="params">(*type2)</span>[2]</span>;</span><br><span class="line"><span class="comment">// type3 是 int *(*[4])[5]</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">int</span> *(*type3[<span class="number">4</span>])[<span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<p><code>using</code> 更直观一点</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> type1 = <span class="type">int</span>[<span class="number">3</span>];</span><br><span class="line"><span class="keyword">using</span> type2 = <span class="built_in">int</span> (*)[<span class="number">2</span>];</span><br><span class="line"><span class="keyword">using</span> type3 = <span class="type">int</span> *(*[<span class="number">4</span>])[<span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<h2 id="函数指针"><a href="#函数指针" class="headerlink" title="函数指针"></a>函数指针</h2><p>在冯诺依曼体系中，存储上不区分数据和指令，函数在编译后会成为一段指令同样被加载到内存中，因此函数也有地址</p>
+<p>函数拥有内存地址，因此就会有函数指针</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// p 是一个指针，解类型是 void (int)</span></span><br><span class="line"><span class="built_in">void</span> (*p)(<span class="type">int</span>);</span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line"><span class="keyword">using</span> <span class="type">fnc_t</span> = <span class="built_in">void</span> (<span class="type">int</span>);</span><br><span class="line"><span class="type">fuc_t</span>* p;</span><br><span class="line"></span><br><span class="line"><span class="built_in">int</span> (*<span class="built_in">f</span>())[<span class="number">3</span>];</span><br><span class="line"><span class="comment">// f 是一个函数，没有形参，返回一个指针，解类型是 int[3]</span></span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line"><span class="keyword">using</span> <span class="type">ret_t</span> = <span class="built_in">int</span> (*)[<span class="number">3</span>];</span><br><span class="line"><span class="function"><span class="type">ret_t</span> <span class="title">f</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>函数可以隐式转换为函数指针，取地址也能得到函数指针</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">f</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// p1 p2 p3 p4 都是 void (*)()</span></span><br><span class="line"><span class="keyword">auto</span> p1 = f;</span><br><span class="line"><span class="keyword">auto</span> p2 = &amp;f;</span><br><span class="line"><span class="keyword">auto</span> p3 = *f;</span><br><span class="line"><span class="keyword">auto</span> p4 = *******f;</span><br><span class="line"></span><br><span class="line"><span class="comment">// p5 是 void (**)() 类型</span></span><br><span class="line"><span class="keyword">auto</span> p5 = &amp;p2;</span><br></pre></td></tr></table></figure>
+
+<p>对于非静态成员函数，需要指明函数所属的类</p>
+<p>对于静态函数，需要指明函数所属的类</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Test</span> &#123;</span><br><span class="line">  <span class="keyword">using</span> type1 = <span class="built_in">int</span> (*)[<span class="number">3</span>];</span><br><span class="line">  <span class="keyword">using</span> type2 = <span class="built_in">void</span> (*)(<span class="type">int</span>);</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f1</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f2</span><span class="params">(<span class="type">const</span> <span class="type">int</span> *)</span> &amp;&amp;</span>;</span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">f3</span><span class="params">()</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">f4</span><span class="params">(<span class="type">int</span>)</span> &amp; <span class="keyword">noexcept</span></span>;</span><br><span class="line">  <span class="function">type1 <span class="title">f5</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">  <span class="function">type2 <span class="title">f6</span><span class="params">(<span class="type">double</span>)</span> <span class="keyword">noexcept</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">void</span> (Test::)() <span class="type">const</span>;                  <span class="comment">// f1 类型</span></span><br><span class="line"><span class="built_in">void</span> (Test::)(<span class="type">const</span> <span class="type">int</span> *) &amp;&amp;;          <span class="comment">// f2 类型</span></span><br><span class="line"><span class="built_in">int</span> (Test::)() <span class="keyword">noexcept</span>;                <span class="comment">// f3 类型</span></span><br><span class="line"><span class="built_in">void</span> (Test::)(<span class="type">int</span>) &amp;<span class="keyword">noexcept</span>;           <span class="comment">// f4 类型</span></span><br><span class="line"><span class="built_in">int</span> (*(Test::)() <span class="type">const</span>)[<span class="number">3</span>];             <span class="comment">// f5 类型</span></span><br><span class="line"><span class="built_in">void</span>(*(Test::)(<span class="type">double</span>) <span class="keyword">noexcept</span>)(<span class="type">int</span>);  <span class="comment">// f6 类型</span></span><br></pre></td></tr></table></figure>
+
+<p>非静态成员函数的函数指针占 2 个指针大小，这是因为虚函数表的组织方式是基址加偏移</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/05/06/CMake-%E5%B7%A5%E5%85%B7%E6%A8%A1%E5%9D%97-GNUInstallDirs/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -195,7 +340,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-03-11 17:03:26" itemprop="dateModified" datetime="2024-03-11T17:03:26+08:00">2024-03-11</time>
+      <time title="修改时间：2024-03-25 18:11:10" itemprop="dateModified" datetime="2024-03-25T18:11:10+08:00">2024-03-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -323,7 +468,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-03-11 17:03:26" itemprop="dateModified" datetime="2024-03-11T17:03:26+08:00">2024-03-11</time>
+      <time title="修改时间：2024-03-25 18:11:10" itemprop="dateModified" datetime="2024-03-25T18:11:10+08:00">2024-03-25</time>
     </span>
 
   
@@ -441,7 +586,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-03-11 17:03:26" itemprop="dateModified" datetime="2024-03-11T17:03:26+08:00">2024-03-11</time>
+      <time title="修改时间：2024-03-25 18:11:10" itemprop="dateModified" datetime="2024-03-25T18:11:10+08:00">2024-03-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -670,7 +815,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-03-11 17:03:26" itemprop="dateModified" datetime="2024-03-11T17:03:26+08:00">2024-03-11</time>
+      <time title="修改时间：2024-03-25 18:11:10" itemprop="dateModified" datetime="2024-03-25T18:11:10+08:00">2024-03-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -756,7 +901,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-03-11 17:03:26" itemprop="dateModified" datetime="2024-03-11T17:03:26+08:00">2024-03-11</time>
+      <time title="修改时间：2024-03-25 18:11:10" itemprop="dateModified" datetime="2024-03-25T18:11:10+08:00">2024-03-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -860,7 +1005,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-03-11 17:03:26" itemprop="dateModified" datetime="2024-03-11T17:03:26+08:00">2024-03-11</time>
+      <time title="修改时间：2024-03-25 18:11:10" itemprop="dateModified" datetime="2024-03-25T18:11:10+08:00">2024-03-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -994,7 +1139,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-03-11 17:03:26" itemprop="dateModified" datetime="2024-03-11T17:03:26+08:00">2024-03-11</time>
+      <time title="修改时间：2024-03-25 18:11:10" itemprop="dateModified" datetime="2024-03-25T18:11:10+08:00">2024-03-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1078,7 +1223,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-03-11 17:03:26" itemprop="dateModified" datetime="2024-03-11T17:03:26+08:00">2024-03-11</time>
+      <time title="修改时间：2024-03-25 18:11:10" itemprop="dateModified" datetime="2024-03-25T18:11:10+08:00">2024-03-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1166,7 +1311,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-03-11 17:03:26" itemprop="dateModified" datetime="2024-03-11T17:03:26+08:00">2024-03-11</time>
+      <time title="修改时间：2024-03-25 18:11:10" itemprop="dateModified" datetime="2024-03-25T18:11:10+08:00">2024-03-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1207,104 +1352,6 @@
 <h2 id="intrev16"><a href="#intrev16" class="headerlink" title="intrev16"></a>intrev16</h2><p>直接调用 <code>memrev16</code></p>
 <h2 id="intrev32"><a href="#intrev32" class="headerlink" title="intrev32"></a>intrev32</h2><p>直接调用 <code>memrev32</code></p>
 <h2 id="intrev64"><a href="#intrev64" class="headerlink" title="intrev64"></a>intrev64</h2><p>直接调用 <code>memrev64</code></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6/" class="post-title-link" itemprop="url">文件描述符</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-28 21:07:09" itemprop="dateCreated datePublished" datetime="2023-04-28T21:07:09+08:00">2023-04-28</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-03-11 17:03:26" itemprop="dateModified" datetime="2024-03-11T17:03:26+08:00">2024-03-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">文件系统</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Linux 系统中把一切都看做是文件。当进程打开现有文件或创建新文件时，内核向进程返回一个文件描述符，文件描述符就是内核为了高效管理已被打开的文件所创建的索引，用来指向被打开的文件，所有执行 IO 操作的系统调用都会通过文件描述符</p>
-<p>每个文件描述符会与一个打开的文件相对应，不同的文件描述符也可能指向同一个文件，相同的文件可以被不同的进程打开，也可以在同一个进程被多次打开</p>
-<p>常见的文件描述符是 0、1、2，分别表示标准输入、标准输出和错误输出。一个进程创建时，这个三个文件就也被它打开了</p>
-<p>系统为维护文件描述符，建立了三个表：进程级的文件描述符表、系统级的文件描述符表和文件系统的 inode 表</p>
-<img src="/2023/04/28/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F-%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6/01.png" class="">
-
-<ul>
-<li><p>进程级文件描述表底层是一个数组，索引从 0 开始，索引即为文件描述符</p>
-</li>
-<li><p>系统级文件描述符表存储每个打开文件的信息，包括文件偏移量、状态标志以及 inode 指针</p>
-</li>
-<li><p>inode 表中的每个数据项都对应一个具体的磁盘文件</p>
-</li>
-</ul>
 
       
     </div>
