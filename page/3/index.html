@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">409</span>
+          <span class="site-state-item-count">411</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,176 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/12/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-strace/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/12/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-strace/" class="post-title-link" itemprop="url">post</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-12-25 21:44:04" itemprop="dateCreated datePublished" datetime="2023-12-25T21:44:04+08:00">2023-12-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-07-01 19:52:08" itemprop="dateModified" datetime="2024-07-01T19:52:08+08:00">2024-07-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>跟踪进程系统调用和解决库依赖问题</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">strace [-ACdffhikqqrtttTvVwxxyyzZ] [-I n] [-b execve] [-e <span class="built_in">expr</span>]... [-O overhead] [-S sortby] [-U columns] [-a column] [-o file] [-s strsize]</span><br><span class="line">              [-X format] [-P path]... [-p pid]... [--seccomp-bpf] &#123; -p pid | [-DDD] [-E var[=val]]... [-u username] <span class="built_in">command</span> [args] &#125;</span><br><span class="line"></span><br><span class="line">-c 统计每一系统调用的所执行的时间、次数和出错的次数等</span><br><span class="line">-d 输出 strace 本身的标准错误调试信息</span><br><span class="line">-f 跟踪由 fork 调用所产生的子进程</span><br><span class="line">--output-separately 多个进程的 strace 分开输出</span><br><span class="line">-ff 等同于 -f + --output-separately</span><br><span class="line">-i 输出系统调用的入口指针</span><br><span class="line">-t 在输出中的每一行前加上时间信息</span><br><span class="line">-tt 在输出中的每一行前加上微秒级时间信息</span><br><span class="line">-T 显示每一调用所耗的时间</span><br><span class="line">-v 输出所有的系统调用</span><br><span class="line">-x 以十六进制形式输出非标准字符串</span><br><span class="line">-xx 所有字符串以十六进制形式输出</span><br><span class="line"></span><br><span class="line">-e <span class="built_in">expr</span> 指定一个表达式，用来控制如何跟踪.格式如下 [qualifier=][!]value1[,value2]...</span><br><span class="line">qualifier 只能是 trace、abbrev、verboseraw、signal、<span class="built_in">read</span>、write，默认是 trace</span><br><span class="line">value 是用来限定的符号或数字，有两个特殊的符号 all 和 none</span><br><span class="line">感叹号是否定符号</span><br><span class="line">-eopen 等价于 -e trace=open，表示只跟踪 open 调用，-e trace!=open表示跟踪除了 open 以外的其他调用</span><br><span class="line">-e trace=open,close,rean,write 表示只跟踪这四个系统调用</span><br><span class="line">-e trace=file 只跟踪有关文件操作的系统调用</span><br><span class="line">-e trace=process 只跟踪有关进程控制的系统调用</span><br><span class="line">-e trace=network 跟踪与网络有关的所有系统调用</span><br><span class="line">-e strace=signal 跟踪所有与系统信号有关的系统调用</span><br><span class="line">-e trace=ipc 跟踪所有与进程通讯有关的系统调用</span><br><span class="line">-e abbrev=<span class="built_in">set</span> 设定 strace 输出的系统调用的结果集，-v 等于 abbrev=none，默认为abbrev=all</span><br><span class="line">-e raw=<span class="built_in">set</span> 将指定的系统调用的参数以十六进制显示</span><br><span class="line">-e signal=<span class="built_in">set</span> 指定跟踪的系统信号，默认为 all，如 signal=!SIGIO</span><br><span class="line">-e <span class="built_in">read</span>=<span class="built_in">set</span> 输入从指定文件中读取，如 -e <span class="built_in">read</span>=3,5</span><br><span class="line">-e write=<span class="built_in">set</span> 输出写入到指定文件中</span><br><span class="line"></span><br><span class="line">-o filename 将strace的输出写入文件</span><br><span class="line">-p pid 跟踪指定的进程pid</span><br><span class="line">-u username 以 username 的 UID 和 GID 执行被跟踪的命令</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/12/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-pstree/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/12/25/Linux%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%B7%A5%E5%85%B7-pstree/" class="post-title-link" itemprop="url">pstree</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-12-25 21:27:10" itemprop="dateCreated datePublished" datetime="2023-12-25T21:27:10+08:00">2023-12-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-07-01 19:52:08" itemprop="dateModified" datetime="2024-07-01T19:52:08+08:00">2024-07-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Linux-%E5%91%BD%E4%BB%A4%E8%A1%8C/" itemprop="url" rel="index"><span itemprop="name">Linux 命令行</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>用树状形式显示所有进程之间的关系</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> pstree [-a, --arguments] [-c, --compact] [-h, --highlight-all, -Hpid, --highlight-pid pid] [-g] --show-pgids] [-l, --long] [-n, --numeric-sort]</span><br><span class="line">       [-N, --ns-sortns [-p, --show-pids] [-s, --show-parents] [-S, --ns-changes] [-t, --thread-names] [-T, --hide-threads] [-u, --uid-changes] [-Z, --secu‐</span><br><span class="line">       rity-context] [-A, --ascii, -G, --vt100, -U, --unicode] [pid, user]</span><br><span class="line"></span><br><span class="line">-a：显示所有进程的命令行参数</span><br><span class="line">-c：显示进程的真实名称，而不是简短的命令名称</span><br><span class="line">-h：高亮当前进程和父进程</span><br><span class="line">-l：显示进程的完整命令行参数</span><br><span class="line">-n：按 pid 排序</span><br><span class="line">-s：显示进程的父进程</span><br><span class="line">-p：指定 pid</span><br></pre></td></tr></table></figure>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +365,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-06-13 10:53:14" itemprop="dateModified" datetime="2024-06-13T10:53:14+08:00">2024-06-13</time>
+      <time title="修改时间：2024-07-01 19:52:08" itemprop="dateModified" datetime="2024-07-01T19:52:08+08:00">2024-07-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -280,7 +450,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-06-13 10:53:14" itemprop="dateModified" datetime="2024-06-13T10:53:14+08:00">2024-06-13</time>
+      <time title="修改时间：2024-07-01 19:52:08" itemprop="dateModified" datetime="2024-07-01T19:52:08+08:00">2024-07-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -436,7 +606,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-06-13 10:53:14" itemprop="dateModified" datetime="2024-06-13T10:53:14+08:00">2024-06-13</time>
+      <time title="修改时间：2024-07-01 19:52:08" itemprop="dateModified" datetime="2024-07-01T19:52:08+08:00">2024-07-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -521,7 +691,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-06-13 10:53:14" itemprop="dateModified" datetime="2024-06-13T10:53:14+08:00">2024-06-13</time>
+      <time title="修改时间：2024-07-01 19:52:08" itemprop="dateModified" datetime="2024-07-01T19:52:08+08:00">2024-07-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -606,7 +776,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-06-13 10:53:14" itemprop="dateModified" datetime="2024-06-13T10:53:14+08:00">2024-06-13</time>
+      <time title="修改时间：2024-07-01 19:52:08" itemprop="dateModified" datetime="2024-07-01T19:52:08+08:00">2024-07-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -760,7 +930,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-06-13 10:53:14" itemprop="dateModified" datetime="2024-06-13T10:53:14+08:00">2024-06-13</time>
+      <time title="修改时间：2024-07-01 19:52:08" itemprop="dateModified" datetime="2024-07-01T19:52:08+08:00">2024-07-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -870,7 +1040,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-06-13 10:53:14" itemprop="dateModified" datetime="2024-06-13T10:53:14+08:00">2024-06-13</time>
+      <time title="修改时间：2024-07-01 19:52:08" itemprop="dateModified" datetime="2024-07-01T19:52:08+08:00">2024-07-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -963,7 +1133,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-06-13 10:53:14" itemprop="dateModified" datetime="2024-06-13T10:53:14+08:00">2024-06-13</time>
+      <time title="修改时间：2024-07-01 19:52:08" itemprop="dateModified" datetime="2024-07-01T19:52:08+08:00">2024-07-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1011,232 +1181,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/11/24/LeetCode-%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/11/24/LeetCode-%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" class="post-title-link" itemprop="url">拓扑排序</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-11-24 15:42:10" itemprop="dateCreated datePublished" datetime="2023-11-24T15:42:10+08:00">2023-11-24</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-06-13 10:53:14" itemprop="dateModified" datetime="2024-06-13T10:53:14+08:00">2024-06-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LeetCode/" itemprop="url" rel="index"><span itemprop="name">LeetCode</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="lc207"><a href="#lc207" class="headerlink" title="lc207"></a>lc207</h2><p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/course-schedule/">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://leetcode.com/problems/course-schedule-ii/description/">题目</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=M6SBePBMznU">分析</a></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/11/09/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-libcurl/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/11/09/%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7-libcurl/" class="post-title-link" itemprop="url">libcurl</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-11-09 11:59:59" itemprop="dateCreated datePublished" datetime="2023-11-09T11:59:59+08:00">2023-11-09</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-06-13 10:53:14" itemprop="dateModified" datetime="2024-06-13T10:53:14+08:00">2024-06-13</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%B7%A5%E5%85%B7%E8%87%AA%E6%9F%A5/" itemprop="url" rel="index"><span itemprop="name">工具自查</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>在基于 libcurl 的程序里，主要采用回调函数的形式完成传输任务，用户在启动传输前设置好各类参数和回调函数，当满足条件时 libcurl 将调用用户的回调函数实现特定功能</p>
-<h2 id="基本函数"><a href="#基本函数" class="headerlink" title="基本函数"></a>基本函数</h2><h3 id="CURLcode-curl-global-init-long-flags"><a href="#CURLcode-curl-global-init-long-flags" class="headerlink" title="CURLcode curl_global_init(long flags)"></a>CURLcode curl_global_init(long flags)</h3><p>函数只能用一次，但在调用 <code>curl_global_cleanup</code> 后仍然可再用</p>
-<p><code>curl_global_init</code> 是不保证线程安全的</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CURL_GLOBAL_ALL         <span class="comment">// 初始化所有的可能的调用。</span></span><br><span class="line">CURL_GLOBAL_SSL         <span class="comment">// 初始化支持安全套接字层。</span></span><br><span class="line">CURL_GLOBAL_WIN32       <span class="comment">// 初始化 win32 套接字库。</span></span><br><span class="line">CURL_GLOBAL_NOTHING     <span class="comment">// 没有额外的初始化</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="void-curl-global-cleanup-void"><a href="#void-curl-global-cleanup-void" class="headerlink" title="void curl_global_cleanup(void)"></a>void curl_global_cleanup(void)</h3><p>在结束libcurl使用的时候，用来对curl_global_init做的工作清理</p>
-<h3 id="CURL-curl-easy-init"><a href="#CURL-curl-easy-init" class="headerlink" title="CURL *curl_easy_init( )"></a>CURL *curl_easy_init( )</h3><p>用来初始化一个 <code>CURL</code> 指针，相应的在调用结束时要用 <code>curl_easy_cleanup</code> 清理</p>
-<p>一般 <code>curl_easy_init</code> 意味着一个会话的开始. 它会返回一个 <code>CURL*</code> 一般都用在 easy 系列的函数中</p>
-<h3 id="void-curl-easy-cleanup-CURL-handle"><a href="#void-curl-easy-cleanup-CURL-handle" class="headerlink" title="void curl_easy_cleanup(CURL *handle)"></a>void curl_easy_cleanup(CURL *handle)</h3><p>结束一个会话</p>
-<h3 id="CURLcode-curl-easy-setopt-CURL-handle-CURLoption-option-parameter"><a href="#CURLcode-curl-easy-setopt-CURL-handle-CURLoption-option-parameter" class="headerlink" title="CURLcode curl_easy_setopt(CURL *handle, CURLoption option, parameter)"></a>CURLcode curl_easy_setopt(CURL *handle, CURLoption option, parameter)</h3><p>告诉 libcurl 程序将有如何的行为</p>
-<p><code>parameter</code> 既可以是个函数的指针，也可以是某个对象的指针，也可以是个 <code>long</code> 变量，其它取决于 <code>option</code></p>
-<ul>
-<li><p><code>CURLOPT_URL</code>：访问的 URL</p>
-</li>
-<li><p><code>CURLOPT_WRITEFUNCTION</code>：回调函数原型为 <code>size_t function( void *ptr, size_t size, size_t nmemb, void *stream)</code>，函数将在接收到数据后被调用。libcurl 提供一个默认的回调函数，它只是简单的将接收到的数据打印到标准输出</p>
-</li>
-<li><p><code>CURLOPT_WRITEDATA</code>：用于表明 <code>CURLOPT_WRITEFUNCTION</code> 函数中的 <code>stream</code> 指针的来源</p>
-</li>
-<li><p><code>CURLOPT_HEADERFUNCTION</code>：回调函数原型为 <code>size_t function( void *ptr, size_t size,size_t nmemb, void *stream)</code>，一旦接收到 http 头部数据后将调用该函数</p>
-</li>
-<li><p><code>CURLOPT_HEADERDATA</code>：用于表明 <code>CURLOPT_HEADERFUNCTION</code> 函数中的 <code>stream</code> 指针的来源</p>
-</li>
-<li><p><code>CURLOPT_READFUNCTION</code>：读取数据传递给远程时的回调函数，函数原型是 <code>size_t function(void *ptr, size_t size, size_t nmemb,void *stream)</code></p>
-</li>
-<li><p><code>CURLOPT_READDATA</code>：表明 <code>CURLOPT_READFUNCTION</code> 的 <code>stream</code> 指针来源</p>
-</li>
-<li><p><code>CURLOPT_TIMEOUT</code>：传输时间</p>
-</li>
-<li><p><code>CURLOPT_CONNECTIONTIMEOUT</code>：连接等待时间</p>
-</li>
-<li><p><code>CURLOPT_FOLLOWLOCATION</code>：重定位URL</p>
-</li>
-<li><p><code>CURLOPT_RANGE</code>：指定 <code>char*</code> 参数用于指明 http 域的 RANGE 头域</p>
-</li>
-<li><p><code>CURLOPT_RESUME_FROM</code>：传递一个 <code>long</code> 参数指定希望开始传递的偏移量</p>
-</li>
-</ul>
-<h3 id="CURLcode-curl-easy-perform-CURL-handle"><a href="#CURLcode-curl-easy-perform-CURL-handle" class="headerlink" title="CURLcode curl_easy_perform(CURL *handle)"></a>CURLcode curl_easy_perform(CURL *handle)</h3><p>在 <code>curl_easy_setopt</code> 完成后调用，让设置的 <code>option</code> 运作起来</p>
-<ul>
-<li><p><code>CURLE_OK</code> 任务完成</p>
-</li>
-<li><p><code>CURLE_UNSUPPORTED_PROTOCOL</code> 不支持的协议</p>
-</li>
-<li><p><code>CURLE_COULDNT_CONNECT</code> 不能连接到远程主机或者代理</p>
-</li>
-<li><p><code>CURLE_REMOTE_ACCESS_DENIED</code> 访问被拒绝</p>
-</li>
-<li><p><code>CURLE_HTTP_RETURNED_ERROR</code> Http 返回错误</p>
-</li>
-<li><p><code>CURLE_READ_ERROR</code> 读本地文件错误</p>
-</li>
-</ul>
-<p>可以通过 <code>const char *curl_easy_strerror(CURLcode errornum)</code> 获取详细的错误描述字符串</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/4/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/4/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
