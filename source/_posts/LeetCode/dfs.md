@@ -39,3 +39,7 @@ categories: LeetCode
 [题目](https://leetcode.com/problems/smallest-subtree-with-all-the-deepest-nodes/description/)
 
 [题目](https://leetcode.com/problems/lowest-common-ancestor-of-deepest-leaves/)
+
+## lc1593
+
+[题目](https://leetcode.com/problems/split-a-string-into-the-max-number-of-unique-substrings/description/)
