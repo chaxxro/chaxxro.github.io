@@ -387,3 +387,33 @@ dp[i] = sum(dp[j]) j : i ~ n
 ## lc1458
 
 [题目](https://leetcode.com/problems/max-dot-product-of-two-subsequences/description/)
+
+## lc1653
+
+```cpp
+/*
+dp[i] 表示 s[0~i] 平衡的删除操作
+*/
+```
+
+[题目](https://leetcode.com/problems/minimum-deletions-to-make-string-balanced/)
+
+[分析](https://github.com/doocs/leetcode/blob/main/solution/1600-1699/1653.Minimum%20Deletions%20to%20Make%20String%20Balanced/README.md)
+
+## lc1655
+
+Bitmask + subsets + DP
+
+```cpp
+/*
+dp[mask][i]: 选择客户为 mask 时，能否用前 i 组数满足
+
+dp[mask][i] = any(
+    sums(subset) <= freq[i] and dp[mask^subset][i - 1]
+)
+*/
+```
+
+[题目](https://leetcode.com/problems/distribute-repeating-integers/)
+
+[分析](https://www.bilibili.com/video/BV1qt4y1a7Lm)
