@@ -195,7 +195,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-07-30 20:34:01" itemprop="dateModified" datetime="2024-07-30T20:34:01+08:00">2024-07-30</time>
+      <time title="修改时间：2024-08-01 20:50:49" itemprop="dateModified" datetime="2024-08-01T20:50:49+08:00">2024-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -346,7 +346,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-07-30 20:34:01" itemprop="dateModified" datetime="2024-07-30T20:34:01+08:00">2024-07-30</time>
+      <time title="修改时间：2024-08-01 20:50:49" itemprop="dateModified" datetime="2024-08-01T20:50:49+08:00">2024-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -435,7 +435,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-07-30 20:34:01" itemprop="dateModified" datetime="2024-07-30T20:34:01+08:00">2024-07-30</time>
+      <time title="修改时间：2024-08-01 20:50:49" itemprop="dateModified" datetime="2024-08-01T20:50:49+08:00">2024-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -532,7 +532,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-07-30 20:34:01" itemprop="dateModified" datetime="2024-07-30T20:34:01+08:00">2024-07-30</time>
+      <time title="修改时间：2024-08-01 20:50:49" itemprop="dateModified" datetime="2024-08-01T20:50:49+08:00">2024-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -554,7 +554,32 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h2 id="auto"><a href="#auto" class="headerlink" title="auto"></a>auto</h2><p>类型是一个编译期概念，运行时全变成了机器指令，所以类型推导是在编译期进行的</p>
+          <h2 id="模板类型推导"><a href="#模板类型推导" class="headerlink" title="模板类型推导"></a>模板类型推导</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;T&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">f</span><span class="params">(ParamType param)</span></span>; <span class="comment">// 其中 ParamType 为包含 T 的组合类型</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">f</span>(expr);</span><br></pre></td></tr></table></figure>
+
+<h3 id="ParamType-是个指针或引用，但不是万能引用"><a href="#ParamType-是个指针或引用，但不是万能引用" class="headerlink" title="ParamType 是个指针或引用，但不是万能引用"></a><code>ParamType</code> 是个指针或引用，但不是万能引用</h3><ul>
+<li><p>推导 T 时 <code>expr</code> 的引用会被忽略</p>
+</li>
+<li><p>推导 T 时 <code>expr</code> 的 <code>const</code> 会被保留</p>
+</li>
+<li><p>如果 <code>ParamType</code> 是 <code>const</code> 引用，那么推导 T 时就不会保留 <code>const</code></p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">f</span><span class="params">(T &amp;param)</span></span>;  <span class="comment">// ParamType 为 T&amp;</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> x = <span class="number">0x114</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> cx = x;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> &amp;rx = x;</span><br><span class="line"></span><br><span class="line"><span class="built_in">f</span>(x);   <span class="comment">// T -&gt; int,       ParamType -&gt; int&amp;</span></span><br><span class="line"><span class="built_in">f</span>(cx);  <span class="comment">// T -&gt; const int, ParamType -&gt; const int&amp;</span></span><br><span class="line"><span class="built_in">f</span>(rx);  <span class="comment">// T -&gt; const int, ParamType -&gt; const int&amp;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">f</span><span class="params">(<span class="type">const</span> T &amp;param)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> y = <span class="number">0x514</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> cy = y;</span><br><span class="line"></span><br><span class="line"><span class="built_in">f</span>(cy);  <span class="comment">// T -&gt; int,       ParamType -&gt; const int&amp;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="ParamType-是万能引用"><a href="#ParamType-是万能引用" class="headerlink" title="ParamType 是万能引用"></a><code>ParamType</code> 是万能引用</h3><p>类型推导过程遵循引用折叠</p>
+<ul>
+<li><p>如果 expr 为左值， T 和 ParamType 会被推导为左值引用</p>
+</li>
+<li><p>如果 expr 为右值，则 <code>ParamType</code> 与指针或引用时相同</p>
+</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">f</span><span class="params">(T &amp;&amp;param)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> x = <span class="number">0x114</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> cx = x;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> &amp;rx = x;</span><br><span class="line"></span><br><span class="line"><span class="built_in">f</span>(x);      <span class="comment">// x     -&gt; lvalue =&gt; T -&gt; int&amp;,       ParamType -&gt; int&amp;</span></span><br><span class="line"><span class="built_in">f</span>(cx);     <span class="comment">// cx    -&gt; lvalue =&gt; T -&gt; const int&amp;, ParamType -&gt; const int&amp; &amp;&amp; -&gt; const int &amp;</span></span><br><span class="line"><span class="built_in">f</span>(rx);     <span class="comment">// rx    -&gt; lvalue =&gt; T -&gt; const int&amp;, ParamType -&gt; const int&amp; &amp;&amp; -&gt; const int &amp;</span></span><br><span class="line"><span class="built_in">f</span>(<span class="number">0x514</span>);  <span class="comment">// 0x514 -&gt; rvalue =&gt; T -&gt; int,        ParamType -&gt; int&amp;&amp;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="ParamType-非指针和引用"><a href="#ParamType-非指针和引用" class="headerlink" title="ParamType 非指针和引用"></a><code>ParamType</code> 非指针和引用</h3><p>顶层 cv 限定符被忽略，但底层 <code>const</code> 会保留</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">f</span><span class="params">(T param)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="type">const</span> <span class="type">char</span> * <span class="type">const</span> ptr = <span class="string">&quot;Hello world&quot;</span>;</span><br><span class="line"><span class="built_in">f</span>(ptr); <span class="comment">// 修饰 ptr 本身的 const 被忽略，修饰 ptr 指向对象的 const 被保留</span></span><br><span class="line">        <span class="comment">// 因此 T, ParamType 均被推导为 const char *</span></span><br></pre></td></tr></table></figure>
+
+<p>数组和函数在 <code>ParamType</code> 为值类型时会分别退化成指针和函数指针</p>
+<h2 id="auto"><a href="#auto" class="headerlink" title="auto"></a>auto</h2><p>类型是一个编译期概念，运行时全变成了机器指令，所以类型推导是在编译期进行的</p>
 <p><code>auto</code> 只是一个占位符，用来充当变量类型，它根据出现的位置本着最简单的原则进行类型推导</p>
 <ul>
 <li>如果初始化表达式是引用，则去除引用语义</li>
@@ -662,7 +687,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-07-30 20:34:01" itemprop="dateModified" datetime="2024-07-30T20:34:01+08:00">2024-07-30</time>
+      <time title="修改时间：2024-08-01 20:50:49" itemprop="dateModified" datetime="2024-08-01T20:50:49+08:00">2024-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -758,7 +783,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-07-30 20:34:01" itemprop="dateModified" datetime="2024-07-30T20:34:01+08:00">2024-07-30</time>
+      <time title="修改时间：2024-08-01 20:50:49" itemprop="dateModified" datetime="2024-08-01T20:50:49+08:00">2024-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -903,7 +928,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-07-30 20:34:01" itemprop="dateModified" datetime="2024-07-30T20:34:01+08:00">2024-07-30</time>
+      <time title="修改时间：2024-08-01 20:50:49" itemprop="dateModified" datetime="2024-08-01T20:50:49+08:00">2024-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1031,7 +1056,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-07-30 20:34:01" itemprop="dateModified" datetime="2024-07-30T20:34:01+08:00">2024-07-30</time>
+      <time title="修改时间：2024-08-01 20:50:49" itemprop="dateModified" datetime="2024-08-01T20:50:49+08:00">2024-08-01</time>
     </span>
 
   
@@ -1149,7 +1174,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-07-30 20:34:01" itemprop="dateModified" datetime="2024-07-30T20:34:01+08:00">2024-07-30</time>
+      <time title="修改时间：2024-08-01 20:50:49" itemprop="dateModified" datetime="2024-08-01T20:50:49+08:00">2024-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1378,7 +1403,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-07-30 20:34:01" itemprop="dateModified" datetime="2024-07-30T20:34:01+08:00">2024-07-30</time>
+      <time title="修改时间：2024-08-01 20:50:49" itemprop="dateModified" datetime="2024-08-01T20:50:49+08:00">2024-08-01</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
