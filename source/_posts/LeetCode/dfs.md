@@ -34,6 +34,10 @@ categories: LeetCode
 
 [分析](https://www.youtube.com/watch?v=4udFSOWQpdg)
 
+## lc399
+
+[题目](https://leetcode.com/problems/evaluate-division/description/?envType=study-plan-v2&envId=top-interview-150)
+
 ## lc865、lc1123
 
 [题目](https://leetcode.com/problems/smallest-subtree-with-all-the-deepest-nodes/description/)
