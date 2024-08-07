@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">410</span>
+          <span class="site-state-item-count">413</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,325 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/14/Bazel-WorkspaceRule/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/14/Bazel-WorkspaceRule/" class="post-title-link" itemprop="url">WorkspaceRule</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-14 14:39:09" itemprop="dateCreated datePublished" datetime="2023-06-14T14:39:09+08:00">2023-06-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Bazel/" itemprop="url" rel="index"><span itemprop="name">Bazel</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>WORKSPACE 文件中的 rule 主要是为了引入外部依赖，其主要分为原生 rule 和 Starlark rule</p>
+<h2 id="bind"><a href="#bind" class="headerlink" title="bind"></a>bind</h2><p>原生 rule</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bind(name, actual, compatible_with, deprecation, distribs, features, licenses, restricted_to, tags, testonly, visibility)</span><br></pre></td></tr></table></figure>
+
+<p><code>bind</code> 用于给 target 在 <code>//external</code> 包中创建一个别名</p>
+<p><code>//external</code> 不是常规的包，可以把它看成一个包含所有绑定目标的虚拟包</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">bind(</span><br><span class="line">    name = &quot;javacc-latest&quot;,</span><br><span class="line">    actual = &quot;//third_party/javacc-v2&quot;,</span><br><span class="line">)</span><br><span class="line"># 使用 bind 后可以用 //external:javacc-latest 来替代 //third_party/javacc-v2</span><br><span class="line"></span><br><span class="line"># 引入外部包</span><br><span class="line">bind(</span><br><span class="line">    name = &quot;openssl&quot;,</span><br><span class="line">    actual = &quot;@my-ssl//src:openssl-lib&quot;,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><code>bind</code> 是不推荐使用的</p>
+<h2 id="local-repository"><a href="#local-repository" class="headerlink" title="local_repository"></a>local_repository</h2><p>原生 rule</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">local_repository(name, path, repo_mapping)</span><br></pre></td></tr></table></figure>
+
+<p>引入一个本地目录中的 Bazel 仓库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">local_repository(</span><br><span class="line">    name = &quot;my-ssl&quot;,</span><br><span class="line">    path = &quot;/home/user/ssl&quot;,</span><br><span class="line">)</span><br><span class="line"># 之后使用 /home/user/ssl 中的 target 时可以用 @my-ssl//src:openssl-lib 表示</span><br></pre></td></tr></table></figure>
+
+<h2 id="new-local-repository"><a href="#new-local-repository" class="headerlink" title="new_local_repository"></a>new_local_repository</h2><p>原生 rule</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new_local_repository(name, build_file, build_file_content, path, repo_mapping, workspace_file, workspace_file_content)</span><br></pre></td></tr></table></figure>
+
+<p>引入一个本地目录中的非 Bazel 仓库或文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"># WORKSPACE</span><br><span class="line">new_local_repository(</span><br><span class="line">    name = &quot;my-ssl&quot;,</span><br><span class="line">    path = &quot;/home/user/ssl&quot;,</span><br><span class="line">    build_file = &quot;BUILD.my-ssl&quot;,</span><br><span class="line">)</span><br><span class="line"># BUILD.my-ssl</span><br><span class="line">java_library(</span><br><span class="line">    name = &quot;openssl&quot;,</span><br><span class="line">    srcs = glob([&#x27;*.java&#x27;])</span><br><span class="line">    visibility = [&quot;//visibility:public&quot;],</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"># WORKSPACE</span><br><span class="line">new_local_repository(</span><br><span class="line">    name = &quot;piano&quot;,</span><br><span class="line">    path = &quot;/home/username/Downloads/piano.jar&quot;,</span><br><span class="line">    build_file = &quot;BUILD.piano&quot;,</span><br><span class="line">)</span><br><span class="line"># BUILD.plano</span><br><span class="line">java_import(</span><br><span class="line">    name = &quot;play-music&quot;,</span><br><span class="line">    jars = [&quot;piano.jar&quot;],</span><br><span class="line">    visibility = [&quot;//visibility:public&quot;],</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h2 id="git-repository"><a href="#git-repository" class="headerlink" title="git_repository"></a>git_repository</h2><p>Starlark rule，需要 <code>load(@bazel_tools//tools/build_defs/repo:git.bzl)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git_repository(name, branch, commit, init_submodules, patch_args, patch_cmds, patch_cmds_win,</span><br><span class="line">               patch_tool, patches, recursive_init_submodules, remote, shallow_since, strip_prefix,</span><br><span class="line">               tag, verbose)</span><br></pre></td></tr></table></figure>
+
+<p>克隆一个外部 Bazel 仓库</p>
+<h2 id="new-git-repository"><a href="#new-git-repository" class="headerlink" title="new_git_repository"></a>new_git_repository</h2><p>Starlark rule，需要 <code>load(@bazel_tools//tools/build_defs/repo:git.bzl)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">new_git_repository(name, branch, build_file, build_file_content, commit, init_submodules,</span><br><span class="line">                   patch_args, patch_cmds, patch_cmds_win, patch_tool, patches,</span><br><span class="line">                   recursive_init_submodules, remote, shallow_since, strip_prefix, tag, verbose,</span><br><span class="line">                   workspace_file, workspace_file_content)</span><br></pre></td></tr></table></figure>
+
+<p>克隆一个外部非 Bazel 仓库</p>
+<h2 id="http-archive"><a href="#http-archive" class="headerlink" title="http_archive"></a>http_archive</h2><p>Starlark rule，需要 <code>load(@bazel_tools//tools/build_defs/repo:http.bzl)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">http_archive(name, auth_patterns, build_file, build_file_content, canonical_id, netrc, patch_args,</span><br><span class="line">             patch_cmds, patch_cmds_win, patch_tool, patches, sha256, strip_prefix, type, url, urls,</span><br><span class="line">             workspace_file, workspace_file_content)</span><br></pre></td></tr></table></figure>
+
+<p>下载一个压缩的 Bazel 仓库，对其解压后引入该仓库</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/12/Bazel-%E5%87%A0%E4%B8%AA%E9%87%8D%E8%A6%81%E6%A6%82%E5%BF%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/12/Bazel-%E5%87%A0%E4%B8%AA%E9%87%8D%E8%A6%81%E6%A6%82%E5%BF%B5/" class="post-title-link" itemprop="url">几个重要概念</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-12 20:12:32" itemprop="dateCreated datePublished" datetime="2023-06-12T20:12:32+08:00">2023-06-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Bazel/" itemprop="url" rel="index"><span itemprop="name">Bazel</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="工作区"><a href="#工作区" class="headerlink" title="工作区"></a>工作区</h2><p>工作区包括项目源文件、Bazel 构建产物和 Bazel 需要的文件</p>
+<p>{ % asset_img 01.png % }</p>
+<p>Bazel 所需文件包括：</p>
+<ul>
+<li><p>WORKSPACE 文件，位于项目目录结构的根目录</p>
+</li>
+<li><p>一个或多个 BUILD 文件，工作区中包含 BUILD 文件的目录被视为是一个包，BUILD 文件表示如何构建这个包</p>
+</li>
+</ul>
+<p>当 Bazel 构建项目时，所有输入和依赖项必须在同一个工作区中</p>
+<p>位于不同工作区中的文件彼此独立，除非链接进本工作区</p>
+<h2 id="WORKSPACE-文件"><a href="#WORKSPACE-文件" class="headerlink" title="WORKSPACE 文件"></a>WORKSPACE 文件</h2><p>WORKSPACE 文件标明当前目录是项目的根目录，Bazel 会忽略子目录中的 WORKSPACE 文件，因为其他 WORKSPACE 文件会当视为其他项目的根目录</p>
+<p>WORKSPACE 主要用于声明构建所需的外部依赖</p>
+<p>Bazel 也支持将 WORKSPACE 文件命名为 WORKSPACE.bazel，如果两种命名同时存在时，Bazel 会使用 WORKSPACE.bazel，因为它优先级更高</p>
+<p>项目根目录可以使用 <code>@</code> 替代</p>
+<h2 id="包"><a href="#包" class="headerlink" title="包"></a>包</h2><p>包是 BUILD 文件或 BUILD.bazel 文件所在的目录，它包括目录中的所有文件</p>
+<h2 id="BUILD-文件"><a href="#BUILD-文件" class="headerlink" title="BUILD 文件"></a>BUILD 文件</h2><p>一个 BUILD 文件包含几种不同类型的 Bazel 指令，最重要的指令是构建规则，它告诉 Bazel 如何构建所需的输出</p>
+<p>BUILD 文件中构建规则作用于 target，该 target 对应一组特定的源文件和依赖项</p>
+<p>一个 target 还可以依赖其他 target</p>
+<p>一个 target 的默认可见性是当前 BUILD 文件，即当前目录包中，但可以显式地指定 target 的可见性</p>
+<p>BUILD 文件使用 Starlark 语言编写，不允许有函数的定义、<code>for</code> 语句、<code>if</code> 语句，可以有列表推导和 <code>if</code> 表达式，函数应该被定义在 .bzl 文件中，而且 <code>*args</code> 和 <code> **kwargs</code> 不允许使用，除非显示列出所有参数</p>
+<h2 id="target-名称"><a href="#target-名称" class="headerlink" title="target 名称"></a>target 名称</h2><p>在 BUILD 文件和命令行中，target 名称格式是 <code>@myrepo//path_to_package:target_name</code></p>
+<ul>
+<li><p>如果引用的 target 跟当前 target 在同一工作区，可以使用 <code>//path_to_package:target_name</code></p>
+</li>
+<li><p>如果引用的 target 在当前 BUILD 目录中，可以直接使用 <code>:target_name</code></p>
+</li>
+<li><p>如果引用的 target 在 WORKSPACE 目录中，可以直接使用 <code>//:target_name</code></p>
+</li>
+</ul>
+<h2 id="加载扩展"><a href="#加载扩展" class="headerlink" title="加载扩展"></a>加载扩展</h2><p>扩展需要写在 .bzl 文件中，通过 <code>load</code> 引入</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/08/CMake-%E5%B7%A5%E7%A8%8B%E5%91%BD%E4%BB%A4-link-directories/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/08/CMake-%E5%B7%A5%E7%A8%8B%E5%91%BD%E4%BB%A4-link-directories/" class="post-title-link" itemprop="url">link_directories</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-06-08 21:22:05" itemprop="dateCreated datePublished" datetime="2023-06-08T21:22:05+08:00">2023-06-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/cmake/" itemprop="url" rel="index"><span itemprop="name">cmake</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">link_directories</span>([AFTER|BEFORE] [SYSTEM] dir1 [dir2 ...])</span><br></pre></td></tr></table></figure>
+
+<p>将 dir 放入搜索库文件地址列表 <code>LINK_DIRECTORIES</code> 中，插入位置默认是末尾 <code>AFTER</code></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +514,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -282,7 +601,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -378,7 +697,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -532,7 +851,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -633,7 +952,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -875,7 +1194,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -971,7 +1290,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1071,364 +1390,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-JWT/" class="post-title-link" itemprop="url">JWT</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-05 14:53:21" itemprop="dateCreated datePublished" datetime="2023-06-05T14:53:21+08:00">2023-06-05</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5/" itemprop="url" rel="index"><span itemprop="name">常见概念</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>JWT 即 Json Web Token，是一种跨域认证解决方案</p>
-<h2 id="跨域认证"><a href="#跨域认证" class="headerlink" title="跨域认证"></a>跨域认证</h2><p>用户认证一般流程</p>
-<ol>
-<li><p>用户向服务器发送用户名和密码</p>
-</li>
-<li><p>服务器验证通过后，在当前 session 里面保存相关数据，比如用户角色、登录时间等等</p>
-</li>
-<li><p>服务器向用户返回一个 session_id，写入用户的 Cookie</p>
-</li>
-<li><p>用户随后的每一次请求，都会通过 Cookie 将 session_id 传回服务器</p>
-</li>
-<li><p>服务器收到 session_id，找到前期保存的数据，由此得知用户的身份</p>
-</li>
-</ol>
-<p>该方案存在扩展性不好的问题，当遇到服务器集群或者是跨域的服务架构，就需要做到 session 数据共享才能使每台服务器都能读到 session</p>
-<p>为了解决 session 共享问题，有两种方案</p>
-<ol>
-<li><p>将 session 持久化，这样服务收到请求向持久层请求数据</p>
-</li>
-<li><p>服务端不保存 session，将 session 保存在客户端，这样客户端每次请求到将 session 发回服务端</p>
-</li>
-</ol>
-<p>JWT 就是改良方案二的一个代表</p>
-<h2 id="JWT-原理"><a href="#JWT-原理" class="headerlink" title="JWT 原理"></a>JWT 原理</h2><p>JWT 是一个很长的字符串，由 Header 头部、Payload 负载和 Signature 签名组成，中间用点 . 分隔成三个部分</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Header.Payload.Signature</span><br></pre></td></tr></table></figure>
-
-<h3 id="Header"><a href="#Header" class="headerlink" title="Header"></a>Header</h3><p>Header 是一个 JSON 对象，描述 JWT 的元数据，包括以下字段</p>
-<ul>
-<li><p>alg：签名算法，默认 HS256</p>
-</li>
-<li><p>typ：token 类型，JWT 统一为 JWT</p>
-</li>
-</ul>
-<p>最后需要将 Header 的 JSON 对象使用 Base64URL 算法转成字符串</p>
-<h3 id="Payload"><a href="#Payload" class="headerlink" title="Payload"></a>Payload</h3><p>Payload 是一个 JSON 对象，描述需要传递的信息，包括以下字段</p>
-<ul>
-<li><p>iss：issuer 签发人</p>
-</li>
-<li><p>exp：expiration time 过期时间</p>
-</li>
-<li><p>sub：subject 主题</p>
-</li>
-<li><p>aud：audience 受众</p>
-</li>
-<li><p>nbf：not before 生效时间</p>
-</li>
-<li><p>iat：issued at 签发时间</p>
-</li>
-<li><p>jti：JWT id 编号</p>
-</li>
-</ul>
-<p>除了官方字段，还可以在这个部分定义私有字段</p>
-<p>最后需要将 Payload 的 JSON 对象使用 Base64URL 算法转成字符串</p>
-<h3 id="Signature"><a href="#Signature" class="headerlink" title="Signature"></a>Signature</h3><p>Signature 是对前两部分利用私钥的签名，防止数据篡改</p>
-<p>服务端根据 Header 中的算法，利用私钥、 Header 和 Payload 计算签名，再使用 Base64URL 转成字符串</p>
-<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><ul>
-<li><p>客户端每次与服务器通信都要带上这个 JWT，可以把它放在 Cookie 里面自动发送，但是这样不能跨域</p>
-</li>
-<li><p>将 JWT 放在 HTTP 请求的头信息 Authorization 字段里面，这样就解决了跨域的问题</p>
-</li>
-<li><p>JWT 放在 POST 请求的数据体里面，这样也能解决了跨域的问题</p>
-</li>
-</ul>
-<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
-<li><p>JWT 默认是不加密，但也可以生成原始 Token 以后用密钥再加密一次</p>
-</li>
-<li><p>JWT 不加密的情况下，不能将秘密数据写入 JWT</p>
-</li>
-<li><p>JWT 不仅可以用于认证，也可以用于交换信息</p>
-</li>
-<li><p>由于服务器不保存 session 状态，因此无法在使用过程中废止某个 token，或者更改 token 的权限，除非服务器部署额外的逻辑</p>
-</li>
-<li><p>JWT 本身包含了认证信息，一旦泄露任何人都可以获得该令牌的所有权限，所以 JWT 的有效期应该设置得比较短</p>
-</li>
-<li><p>为了减少盗用，JWT 不应该使用 HTTP 协议明码传输，要使用 HTTPS 协议传输</p>
-</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-Base64/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/05/%E5%B8%B8%E8%A7%81%E6%A6%82%E5%BF%B5-Base64/" class="post-title-link" itemprop="url">Base64</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-05 11:39:32" itemprop="dateCreated datePublished" datetime="2023-06-05T11:39:32+08:00">2023-06-05</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%BC%96%E7%A0%81%E6%A0%BC%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">编码格式</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>Base64 是一种用 64 个可打印字符来表示二进制数据的表示方法，其中的可打印字符包括 A-Z、a-z、0-9、+、\</p>
-<p>它将 6 个 bit （2^6&#x3D;64）映射到一个可打印字符，这样 3 个字节的二进制数据就变成了 4 个可打印字符</p>
-<p>Base64 编码并不是为了减小内容体积，相反它反而增大了内容的大小，因为用 4 个字符替代 3 个字节，整体大小增加了三分之一</p>
-<p>如果要编码的字节数不能被 3 整除，则会多出 1 个或 2 个字节，那么可以先使用 0 字节值在末尾补足，使其能够被 3 整除，然后再进行 Base64 的编码，在编码后的 Base64 文本后加上一个或两个 &#x3D; 号，代表补足的字节数</p>
-<h2 id="为什么需要-Base64"><a href="#为什么需要-Base64" class="headerlink" title="为什么需要 Base64"></a>为什么需要 Base64</h2><ol>
-<li><p>一个传输协议如果是基于 ASCII 文本的，那么它就不能传输二进制流，如果要传输二进制流就得编码。常见的诸如 http 协议的 url 就是纯文本的，不能直接放二进制流</p>
-</li>
-<li><p>在一些硬件或软件上，某些二进制值表示的意义不一样，做的处理也不一样，这就导致那些不兼容的二进制值被错误处理，所以就先把传输数据做一个 Base64 编码，统统变成可见字符，这样出错的可能性就大大降低了</p>
-</li>
-</ol>
-<h2 id="Base64URL"><a href="#Base64URL" class="headerlink" title="Base64URL"></a>Base64URL</h2><p>Base64 有三个字符 +、&#x2F; 和 &#x3D; 在 URL 里面有特殊含义，所以在 Base64URL 中被替换掉，其中 &#x3D; 被省略、+ 替换成 -，&#x2F; 替换成 _</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/06/02/cpp%E7%BB%86%E8%8A%82-volatile%E7%BB%86%E8%8A%82/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/06/02/cpp%E7%BB%86%E8%8A%82-volatile%E7%BB%86%E8%8A%82/" class="post-title-link" itemprop="url">volatile 细节</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-06-02 21:05:30" itemprop="dateCreated datePublished" datetime="2023-06-02T21:05:30+08:00">2023-06-02</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/cpp/" itemprop="url" rel="index"><span itemprop="name">cpp</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>遇到 <code>volatile</code> 修饰的变量，编译器对访问该变量的代码就不进行优化，从而可以提供对特殊地址的稳定访问</p>
-<p>当要求使用 <code>volatile</code> 声明的变量的值的时候，系统总是重新从它所在的内存读取数据，即使它前面的指令刚刚从该处读取过数据，并且读取的数据立刻被保存</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">p 就只是一个指向 int 类型的指针</span></span><br><span class="line"><span class="comment">a = *p 和 b = *p 两句就只需要从内存中读取一次就够了，因为从内存中读取一次之后，CPU 的寄存器中就已经有了这个值，把这个值直接复用就可以了</span></span><br><span class="line"><span class="comment">因此编译器就会做优化，把两次访存的操作优化成一次</span></span><br><span class="line"><span class="comment">但这样的前提是代码里没有改变 p 指向内存地址的值，这个值没有发生改变</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">int</span> *p = <span class="comment">/* ... */</span>;</span><br><span class="line"><span class="type">int</span> a, b;</span><br><span class="line">a = *p;</span><br><span class="line">b = *p;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 每次都从地址取值，保证 a、b 数据的正确性</span></span><br><span class="line"><span class="keyword">volatile</span> <span class="type">int</span> *p = <span class="comment">/* ... */</span>;</span><br><span class="line"><span class="type">int</span> a, b;</span><br><span class="line">a = *p;</span><br><span class="line">b = *p;</span><br></pre></td></tr></table></figure>
-
-<p>一个参数既可以既是 <code>const</code> 同时是 <code>volatile</code></p>
-<p>指针也可以被 <code>volatile</code> 修饰，与 <code>const</code> 相同</p>
-<p>可以把一个非 <code>volatile int</code> 赋给 <code>volatile int</code>，但是不能把非 <code>volatile</code> 对象赋给一个 <code>volatile</code> 对象</p>
-<p>数据只在内存中读写，直接操作它既不能保证操作是原子的，也不能保证 Memory Order</p>
-<h2 id="volatile-类"><a href="#volatile-类" class="headerlink" title="volatile 类"></a>volatile 类</h2><p>类是 <code>volatile</code> 则里面的成员都是 <code>volatile</code> 的</p>
-<h2 id="volatile-成员函数"><a href="#volatile-成员函数" class="headerlink" title="volatile 成员函数"></a>volatile 成员函数</h2><p>成员函数声明为 <code>volatile</code> 则同 <code>const</code> 一样在函数最后声明即可，表示这个函数里访问的变量可能由于其他原因发生改变</p>
-<h2 id="多线程下的-volatile"><a href="#多线程下的-volatile" class="headerlink" title="多线程下的 volatile"></a>多线程下的 volatile</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SharedDataStructure</span> gSharedStructure; </span><br><span class="line"><span class="type">int</span> gFlag;</span><br><span class="line"></span><br><span class="line"><span class="comment">//线程 A </span></span><br><span class="line">gSharedStructure.foo = ...; </span><br><span class="line">gSharedStructure.bar = ...; </span><br><span class="line">gSharedStructure.baz = ...; </span><br><span class="line">gFlag = <span class="number">1</span>; </span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">//线程 B</span></span><br><span class="line"> <span class="keyword">if</span>(gFlag) </span><br><span class="line">        <span class="built_in">UseSharedStructure</span>(&amp;gSharedStructure;); </span><br><span class="line">...</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">结构体和 flag 之间因为不存在依赖关系，执行的顺序可能会被编译器修改(compiler reorder，指令重排)，线程 A 的代码可能是 flag 先被置为 1，然后处理结构体，这样线程 B 的 if 语句内就是不安全的</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">可以将 gFlag 和 gSharedStructure 都加上 volatile 关键字，保证编译器按照代码顺序产生机器码</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p>加了 <code>volatile</code> 关键字之后，上述代码在实际执行时仍不能保证安全，因为 CPU 会激进的 reorder 以加快执行速度， 因此内部执行机器码的顺序仍然是未知的，只保证最终结束时的结果与原顺序一致（as-if）</p>
-<p>在这种情况下，如果线程 A 和 B 被分配到两个 CPU 执行，B 的 CPU 实际并不知道 A 的 CPU 执行情况，因此仍然存在 gFlag 被先修改而 gSharedStructure 未处理的问题</p>
-<p>即使已经熟知 <code>volatile</code> 种种特性，实际仍不推荐使用，因为各种编译器的优化器也可能存在 bug</p>
-<p>不要预期在多线程中使用 <code>volatile</code> 来解决数据的同步问题，该加锁时就加锁</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/9/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/page/11/">11</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/11/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/9/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><span class="page-number current">10</span><a class="page-number" href="/page/11/">11</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/11/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>

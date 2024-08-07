@@ -122,7 +122,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">410</span>
+          <span class="site-state-item-count">413</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -150,6 +150,336 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-sockaddr/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/26/LinuxApi-sockaddr/" class="post-title-link" itemprop="url">sockaddr</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 20:52:58" itemprop="dateCreated datePublished" datetime="2023-04-26T20:52:58+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"><span class="comment">// 通用地址结构</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">sockaddr</span> &#123;</span><br><span class="line">    <span class="comment">// 2 bytes address family, AF_xxx</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span>    sa_family;</span><br><span class="line">    <span class="comment">// 14 bytes of protocol address</span></span><br><span class="line">    <span class="type">char</span>              sa_data[<span class="number">14</span>];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// IPv4 地址结构</span></span><br><span class="line"><span class="comment">// sockaddr_in 把 port 和 addr 分开存储</span></span><br><span class="line"><span class="comment">// sin_port 和 sin_addr 必须是 NBO</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">sockaddr_in</span> &#123;</span><br><span class="line">    <span class="comment">// 2 bytes</span></span><br><span class="line">    <span class="type">short</span>            sin_family;</span><br><span class="line">    <span class="comment">// 2 bytes e.g. htons(3490)</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span>   sin_port;</span><br><span class="line">    <span class="comment">// 4 bytes see struct in_addr</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">in_addr</span>   sin_addr;</span><br><span class="line">    <span class="comment">// 8 bytes zero this if you want to</span></span><br><span class="line">    <span class="type">char</span>             sin_zero[<span class="number">8</span>];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">in_addr</span> &#123;</span><br><span class="line">    <span class="comment">// 4 bytes load with inet_aton()</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span> s_addr;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">sockaddr 和 sockaddr_in 两个结构体一样大，都是 16 个字节，而且都有 family 属性</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">sckaddr 和 sockaddr_in 包含的数据都是一样的，sockaddr 是给操作系统用的，程序应使用 sockaddr_in 来表示地址，因为 sockaddr_in 区分了地址和端口，使用更方便</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// IPv6 地址结构</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">sockaddr_in6</span> &#123;</span><br><span class="line">    <span class="type">sa_family_t</span> sin6_family; <span class="comment">/* 16-bit */</span></span><br><span class="line">    <span class="type">in_port_t</span> sin6_port; <span class="comment">/* 传输端口号 # 16-bit */</span></span><br><span class="line">    <span class="type">uint32_t</span> sin6_flowinfo; <span class="comment">/* IPv6流控信息 32-bit*/</span></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">in6_addr</span> sin6_addr; <span class="comment">/* IPv6地址128-bit */</span></span><br><span class="line">    <span class="type">uint32_t</span> sin6_scope_id; <span class="comment">/* IPv6域ID 32-bit */</span> </span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">in6_addr</span> &#123;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        <span class="type">uint8_t</span> u6_addr8[<span class="number">16</span>];</span><br><span class="line">        <span class="type">uint16_t</span> u6_addr16[<span class="number">8</span>];</span><br><span class="line">        <span class="type">uint32_t</span> u6_addr32[<span class="number">4</span>];</span><br><span class="line">    &#125; in6_u;</span><br><span class="line"></span><br><span class="line">    <span class="meta">#<span class="keyword">define</span> s6_addr                 in6_u.u6_addr8</span></span><br><span class="line">    <span class="meta">#<span class="keyword">define</span> s6_addr16               in6_u.u6_addr16</span></span><br><span class="line">    <span class="meta">#<span class="keyword">define</span> s6_addr32               in6_u.u6_addr32</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 本地套接字地址结构</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">sockaddr_un</span> &#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">short</span> sun_family; <span class="comment">/* 固定为 AF_LOCAL */</span></span><br><span class="line">    <span class="type">char</span> sun_path[<span class="number">108</span>]; <span class="comment">/* 文件绝对路径 */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<img src="/2023/04/26/LinuxApi-sockaddr/01.jpg" class="">
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将 ipv4 字符串格式地址转化成无符号长整型的十进制地址</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">inet_addr</span><span class="params">(<span class="type">const</span> <span class="type">char</span> * server_addr)</span></span>;</span><br><span class="line"><span class="comment">// 将 ipv4 字符串格式地址转化成网络地址</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">inet_aton</span><span class="params">(<span class="type">const</span> <span class="type">char</span> * server_addr, <span class="keyword">struct</span> in_addr * a)</span></span>;  </span><br><span class="line"><span class="comment">// 将 ipv4 网络地址转化成字符串格式</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">char</span> * <span class="title">inet_ntoa</span><span class="params">(sockaddr_in.sin_addr addr)</span></span>;  </span><br><span class="line"></span><br><span class="line"><span class="comment">// 将字符串格式地址转化成 IPv4 或 IPv6 网络地址</span></span><br><span class="line"><span class="comment">// ipv4 时 dst 是 in_addr</span></span><br><span class="line"><span class="comment">// ipv6 时 dst 是 in6_addr</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">inet_pton</span><span class="params">(<span class="type">int</span> af, <span class="type">const</span> <span class="type">char</span> *src, <span class="type">void</span> *dst)</span></span>;</span><br><span class="line"><span class="comment">// 将网络地址转化成 IPv4 或 IPv6 字符串格式</span></span><br><span class="line"><span class="comment">// ipv4 时 src 是 in_addr</span></span><br><span class="line"><span class="comment">// ipv6 时 src 是 in6_addr</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">char</span> * <span class="title">inet_ntop</span><span class="params">(<span class="type">int</span> af, <span class="type">const</span> <span class="type">void</span> * src, <span class="type">char</span> * dst,</span></span></span><br><span class="line"><span class="params"><span class="function">                 <span class="type">socklen_t</span> size)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>通常服务器在启动的时候都会绑定一个众所周知的地址（如 ip 地址+端口号），用于提供服务，客户就可以通过它来接连服务器</p>
+<p>客户端不一定需用指定，可以由系统自动分配一个端口号和自身的 ip 地址组合，这就是为什么通常服务器端在 <code>listen()</code> 之前会调用 <code>bind()</code>，而客户端可以在 <code>connect()</code> 时由系统随机生成一个</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-select/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/26/LinuxApi-select/" class="post-title-link" itemprop="url">select</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 20:52:43" itemprop="dateCreated datePublished" datetime="2023-04-26T20:52:43+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><code>select</code> 允许应用程序监视一组文件描述符，等待一个或者多个描述符成为就绪状态，从而完成 IO 操作</p>
+<p><code>select()</code> 将监听的文件描述符分为三组，每一组监听不同的需要进行的 IO 操作，<code>readfds</code> 是需要进行读操作的文件描述符，<code>writefds</code> 是需要进行写操作的文件描述符，<code>exceptfds</code> 是需要进行异常事件处理的文件描述符</p>
+<ul>
+<li>读事件：</li>
+</ul>
+<ol>
+<li><p>在 socket 内核中，接受缓冲区中的字节数大于或等于低水位标志 <code>SO_RCVLOWAT</code>，此时调用 <code>recv</code> 或 <code>read</code> 可以无阻塞读</p>
+</li>
+<li><p>TCP 对端关闭连接，此时调用 <code>recv</code> 或 <code>read</code> 返回 0</p>
+</li>
+<li><p>监听 socket 上有新的连接请求</p>
+</li>
+<li><p>socket 上有未处理的错误</p>
+</li>
+</ol>
+<ul>
+<li>写事件：</li>
+</ul>
+<ol>
+<li><p>在 socket 内核中，发送缓冲区中的可用字节数大于或等于低水位标记 <code>SO_SNDLOWAT</code>，此时可以无阻塞地写</p>
+</li>
+<li><p>socket 写操作被关闭，如调用了 <code>close</code> 或 <code>shutdown</code>，对一个写操作被关闭的 socket 进行写操作，会出发 <code>SIGPIPE</code></p>
+</li>
+<li><p>socket 使用非阻塞 <code>connect</code> 连接成功或失败，对于没有建立连接成功的 socket，也会得到可写的结果；对于非阻塞的 socket，不仅要调用 <code>select</code> 检测是否可写，还需要调用 <code>getsockopt</code> 检测 socket 是否出错，通过错误码来判断是否连接成功，错误码为 0 时连接成功</p>
+</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/select.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">select</span><span class="params">(<span class="type">int</span> nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, <span class="keyword">struct</span> timeval *timeout)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">timeval</span> &#123;</span><br><span class="line">    <span class="type">long</span> tv_sec;   <span class="comment">// second</span></span><br><span class="line">    <span class="type">long</span> tv_usec;  <span class="comment">// microsecond</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">nfds 表示需要使用 select 检测事件中的 fd 中的最大值加 1</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">fd_set 使用数组实现，数组大小使用 FD_SETSIZE 定义，所以只能监听少于 FD_SETSIZE 数量的描述符</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">readset、writeset、exceptset，分别对应读、写、异常条件的描述符集合</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">timeout 为超时参数，调用 select 会一直阻塞直到有描述符的事件到达或者等待的时间超过 timeout</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">timeout 为空时表示永不超时，超时之后 timeout 参数都会被置 0</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">select 函数也会修改 timeval 结构体的值</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">成功调用返回结果大于 0，出错返回结果为 -1，超时返回结果为 0</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">FD_ZERO</span><span class="params">(fd_set *fdset)</span></span>;  </span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">FD_SET</span><span class="params">(<span class="type">int</span> fd, fd_set *fdset)</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">FD_CLR</span><span class="params">(<span class="type">int</span> fd, fd_set *fdset)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">FD_ISSET</span><span class="params">(<span class="type">int</span> fd,fd_set *fdset)</span></span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">FD_ZERO：指定的文件描述符集清空，在对文件描述符集合进行设置前，必须对其进行初始化，如果不清空，由于在系统分配内存空间后，通常并不作清空处理，所以结果是不可知的</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">FD_SET：用于在文件描述符集合中增加一个新的文件描述符</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">FD_CLR：用于在文件描述符集合中删除一个文件描述符</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">FD_ISSET：用于测试指定的文件描述符是否在该集合中</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> svr_fd = <span class="built_in">get_svr_fd</span>(<span class="number">10000</span>);</span><br><span class="line"></span><br><span class="line">fd_set fd_reads;</span><br><span class="line">std::vector&lt;<span class="type">int</span>&gt; fds &#123;svr_fd&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">timeval</span> tv;</span><br><span class="line">tv.tv_sec = <span class="number">10</span>;</span><br><span class="line">tv.tv_usec = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">  <span class="built_in">FD_ZERO</span>(&amp;fd_reads);</span><br><span class="line">  <span class="type">int</span> ns = <span class="number">0</span>;</span><br><span class="line">  std::for_each(fds.<span class="built_in">begin</span>(), fds.<span class="built_in">end</span>(), [&amp;fd_reads, &amp;ns](<span class="type">const</span> <span class="type">int</span>&amp; fd) &#123;ns = std::<span class="built_in">max</span>(ns, fd); <span class="built_in">FD_SET</span>(fd, &amp;fd_reads);&#125;);</span><br><span class="line"></span><br><span class="line">  <span class="type">int</span> ret = <span class="built_in">select</span>(ns + <span class="number">1</span>, &amp;fd_reads, <span class="literal">nullptr</span>, <span class="literal">nullptr</span>, &amp;tv);</span><br><span class="line">  <span class="keyword">if</span> (ret == <span class="number">-1</span>) &#123;</span><br><span class="line">    <span class="comment">// 错误</span></span><br><span class="line">    OUTPUT_ERRNO_EXIT;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ret == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// 超时</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">const</span> <span class="type">int</span>&amp; fd : fds) &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="built_in">FD_ISSET</span>(fd, &amp;fd_reads)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (fd == svr_fd) &#123;</span><br><span class="line">          <span class="type">int</span> cli = <span class="built_in">accept_cli</span>(svr_fd);</span><br><span class="line">          <span class="built_in">send_msg</span>(cli);</span><br><span class="line">          fds.<span class="built_in">push_back</span>(cli);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="built_in">recv_msg</span>(fd);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>select</code> 底层使用 <code>poll</code></p>
+<h2 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h2><ol>
+<li>性能开销大</li>
+</ol>
+<ul>
+<li><p>调用 <code>select</code> 时需要将 <code>fd_set</code> 拷贝到内核空间，函数返回时又需要将 <code>fd_set</code> 拷回用户空间</p>
+</li>
+<li><p>函数只返回就绪连接数量，需要编译所有 <code>fd_set</code> 逐一检查是否就绪</p>
+</li>
+</ul>
+<ol start="2">
+<li>支持监听数量有限</li>
+</ol>
+<h2 id="支持的最大数量连接数"><a href="#支持的最大数量连接数" class="headerlink" title="支持的最大数量连接数"></a>支持的最大数量连接数</h2><p>32 位系统是 1024，64 位系统是 2048</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// fd_set 是一个 long 数组</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">long</span> <span class="type">int</span> __fd_mask;</span><br><span class="line"><span class="comment">// __fd_mask 所占位数，64</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __NFDBITS     (8 * (int) sizeof (__fd_mask))</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">struct</span> &#123;</span><br><span class="line">    <span class="comment">// __FD_SETSIZE = 1024</span></span><br><span class="line">    __fd_mask __fds_bits[__FD_SETSIZE / __NFDBITS];</span><br><span class="line">&#125; fd_set</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>__fds_bits</code> 占 <code>__FD_SETSIZE</code> 位，表示 <code>select</code> 支持最大的 fd 数量</p>
+</li>
+<li><p>每一位对应一个 fd 的事件状态，0 表示无事件，1 表示有事件</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-poll/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="chaxxro">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="也无风雨也无晴">
+      <meta itemprop="description" content="好记性不如烂键盘">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | 也无风雨也无晴">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/26/LinuxApi-poll/" class="post-title-link" itemprop="url">poll</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-26 20:52:10" itemprop="dateCreated datePublished" datetime="2023-04-26T20:52:10+08:00">2023-04-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p><code>poll</code> 的功能与 <code>select</code> 类似，也是等待一组描述符中的一个成为就绪状态，但通过底层使用链表解决了 <code>select</code> 连接数限制的问题</p>
+<p><code>poll</code> 中的描述符只有一个 <code>pollfd</code> 数组，数组中的每个元素都表示一个需要监听 IO 操作事件的文件描述符</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;poll.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">poll</span><span class="params">(<span class="keyword">struct</span> pollfd *fds, <span class="type">unsigned</span> <span class="type">int</span> nfds, <span class="type">int</span> timeout)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">pollfd</span> &#123;</span><br><span class="line">    <span class="type">int</span> fd;         <span class="comment">/* file descriptor */</span></span><br><span class="line">    <span class="type">short</span> events;     <span class="comment">/* requested events */</span></span><br><span class="line">    <span class="type">short</span> revents;    <span class="comment">/* returned events */</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">合法事件：</span></span><br><span class="line"><span class="comment">POLLIN              有数据可读</span></span><br><span class="line"><span class="comment">POLLRDNORM          有普通数据可读</span></span><br><span class="line"><span class="comment">POLLRDBAND          有优先数据可读</span></span><br><span class="line"><span class="comment">POLLPRI             有紧迫数据可读</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">POLLOUT             写数据不会导致阻塞</span></span><br><span class="line"><span class="comment">POLLWRNORM          写普通数据不会导致阻塞</span></span><br><span class="line"><span class="comment">POLLWRBAND          写优先数据不会导致阻塞</span></span><br><span class="line"><span class="comment">POLLRDHUB           TCP 连接被对端关闭，或关闭写操作</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">POLLER              指定的文件描述符发生错误</span></span><br><span class="line"><span class="comment">POLLHUP             指定的文件描述符挂起事件</span></span><br><span class="line"><span class="comment">POLLNVAL            指定的文件描述符非法</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">POLLIN | POLLPRI 等价于 select() 的读事件</span></span><br><span class="line"><span class="comment">POLLOUT |POLLWRBAND 等价于 select() 的写事件</span></span><br><span class="line"><span class="comment">POLLIN 等价于 POLLRDNORM |POLLRDBAND</span></span><br><span class="line"><span class="comment">POLLOUT 则等价于 POLLWRNORM</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> svr_fd = <span class="built_in">get_svr_fd</span>(<span class="number">10000</span>);</span><br><span class="line"></span><br><span class="line">std::vector&lt;pollfd&gt; fds&#123;<span class="built_in">pollfd</span>()&#125;;</span><br><span class="line">fds.<span class="built_in">back</span>().fd = svr_fd;</span><br><span class="line">fds.<span class="built_in">back</span>().events = POLLIN;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">  <span class="type">int</span> ret = <span class="built_in">poll</span>(fds.<span class="built_in">data</span>(), fds.<span class="built_in">size</span>(), <span class="number">10000</span>);</span><br><span class="line">  <span class="keyword">if</span> (ret == <span class="number">-1</span>) &#123;</span><br><span class="line">    <span class="comment">// 错误</span></span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ret == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// 超时</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> &amp;fd : fds) &#123;</span><br><span class="line">      <span class="keyword">if</span> (fd.revents &amp; POLLIN) &#123;</span><br><span class="line">        fd.revents = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">if</span> (fd.fd == svr_fd) &#123;</span><br><span class="line">          <span class="type">int</span> cli = <span class="built_in">accept_cli</span>(svr_fd);</span><br><span class="line">          <span class="built_in">send_msg</span>(cli);</span><br><span class="line">          fds.<span class="built_in">push_back</span>(<span class="built_in">pollfd</span>());</span><br><span class="line">          fds.<span class="built_in">back</span>().fd = cli;</span><br><span class="line">          fds.<span class="built_in">back</span>().events = POLLIN;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="built_in">recv_msg</span>(fd.fd);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="select-和-poll-比较"><a href="#select-和-poll-比较" class="headerlink" title="select 和 poll 比较"></a>select 和 poll 比较</h2><ul>
+<li><p><code>select()</code> 会修改描述符，而 <code>poll()</code> 不会，<code>select()</code> 之前需要使用 <code>FD_ZERO()</code>、<code>FD_SET()</code>、<code>FD_CLR()</code>、<code>FD_ISSET()</code>）</p>
+</li>
+<li><p><code>select()</code> 默认只能监听少于 1024 个描述符，如果要监听更多描述符的话，需要修改 <code>FD_SETSIZE</code> 之后重新编译，而 <code>poll()</code> 没有描述符数量的限制</p>
+</li>
+<li><p><code>poll()</code> 提供了更多的事件类型，并且对描述符的重复利用上比 <code>select()</code> 高</p>
+</li>
+<li><p>如果一个线程对某个描述符调用了 <code>select()</code> 或者 <code>poll()</code>，另一个线程关闭了该描述符，会导致调用结果不确定</p>
+</li>
+<li><p><code>select()</code> 和 <code>poll()</code> 速度都比较慢，每次调用都需要将全部描述符从应用进程缓冲区复制到内核缓冲区，且都需要遍历 fd 来获取就绪的 socket</p>
+</li>
+<li><p>几乎所有的系统都支持 <code>select()</code>，但是只有比较新的系统支持 <code>poll()</code></p>
+</li>
+<li><p><code>select</code> 的 <code>timeout</code> 参数精度为微秒，而 <code>poll</code> 和 <code>epoll</code> 为毫秒，因此 <code>select</code> 更加适用于实时性要求比较高的场景</p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -195,7 +525,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -281,7 +611,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -366,7 +696,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -477,7 +807,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -563,7 +893,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -654,7 +984,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -806,7 +1136,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
+      <time title="修改时间：2024-08-07 20:34:31" itemprop="dateModified" datetime="2024-08-07T20:34:31+08:00">2024-08-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -875,323 +1205,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-bind/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/LinuxApi-bind/" class="post-title-link" itemprop="url">bind</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 20:48:10" itemprop="dateCreated datePublished" datetime="2023-04-26T20:48:10+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>调用 <code>socket()</code> 创建一个 socket 时，返回的 socket 描述符没有一个具体的地址</p>
-<p>给 socket 赋值一个地址，就必须调用 <code>bind()</code> 函数，否则当调用 <code>connect()</code>、<code>listen()</code> 时系统会自动随机分配一个端口</p>
-<p><code>bind()</code> 通过传递进来的文件描述符找到对应的 socket 结构，把一个地址族中的特定地址赋给 socket，也可以说是绑定 ip 端口和 socket</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">bind</span><span class="params">(<span class="type">int</span> sockfd, <span class="type">const</span> <span class="keyword">struct</span> sockaddr *addr, <span class="type">socklen_t</span> addrlen)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">addr: 一个 const struct sockaddr * 指针，指向要绑定给 sockfd 的协议地址</span></span><br><span class="line"><span class="comment">ipv4: sockaddr_in</span></span><br><span class="line"><span class="comment">ipv6: sockaddr_in6</span></span><br><span class="line"><span class="comment">unix: sockaddr_un</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">addrlen：对应的是地址的长度</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">int</span> fd = <span class="built_in">socket</span>(AF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">sockaddr_in addr;</span><br><span class="line"><span class="keyword">auto</span> addr_len = <span class="keyword">sizeof</span> addr;</span><br><span class="line"><span class="built_in">bzero</span>(&amp;addr, addr_len);</span><br><span class="line">addr.sin_addr.s_addr = <span class="built_in">inet_addr</span>(<span class="string">&quot;0.0.0.0&quot;</span>);</span><br><span class="line">addr.sin_port = <span class="built_in">htons</span>(port);</span><br><span class="line"><span class="type">int</span> ret = <span class="built_in">bind</span>(fd, <span class="built_in">reinterpret_cast</span>&lt;sockaddr*&gt;(&amp;addr), addr_len);</span><br></pre></td></tr></table></figure>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/LinuxApi-accept/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/LinuxApi-accept/" class="post-title-link" itemprop="url">accept</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 20:47:26" itemprop="dateCreated datePublished" datetime="2023-04-26T20:47:26+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/LinuxApi/" itemprop="url" rel="index"><span itemprop="name">LinuxApi</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>如果 <code>accept()</code> 成功返回，则服务器与客户已经正确建立连接了，此时服务器通过返回的套接字来完成与客户的通信</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">accept</span><span class="params">(<span class="type">int</span> sockfd, <span class="keyword">struct</span> sockaddr *addr, <span class="type">socklen_t</span> *addrlen)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">第一个参数为 socket 创建的监听套接字，返回的是已连接套接字</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">addr 用来接受一个返回值，这返回值指定客户端的地址</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">addrlen 用来接受 addr 的结构的大小的，它指明 addr 结构所占有的字节个数</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">如果第二三个参数为空，代表了对客户的身份不感兴趣，因此置为 NULL</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
-
-<p><code>accept()</code> 默认会阻塞进程，直到有一个客户连接建立后返回，它返回的是一个新可用的套接字，这个套接字是连接套接字，该套接字是阻塞模式的</p>
-<h2 id="accept4"><a href="#accept4" class="headerlink" title="accept4"></a>accept4</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">accept4</span><span class="params">(<span class="type">int</span> sockfd, <span class="keyword">struct</span> sockaddr* addr, <span class="type">socklen_t</span> addrlen, <span class="type">int</span> flags)</span></span></span><br><span class="line"><span class="function"><span class="comment">/*</span></span></span><br><span class="line"><span class="comment"><span class="function">flags</span></span></span><br><span class="line"><span class="comment"><span class="function">0，就跟 accept() 一样</span></span></span><br><span class="line"><span class="comment"><span class="function">SOCK_NONBLOCK 为新打开的文件描述符设置 O_NONBLOCK 标志位，这跟用 fcntl() 设置的效果是一样的</span></span></span><br><span class="line"><span class="comment"><span class="function">SOCK_CLOEXEC 为新打开的文件描述符设置 FD_CLOEXEC 标志位，使用 fcntl() 设置 FD_CLOEXEC 标志位，open() 的时候设置的 O_CLOEXEC 也能达到同样的效果</span></span></span><br><span class="line"><span class="comment"><span class="function">*/</span></span></span><br></pre></td></tr></table></figure>
-
-<h2 id="非阻塞模式"><a href="#非阻塞模式" class="headerlink" title="非阻塞模式"></a>非阻塞模式</h2><p>当 socket 是非阻塞时，无论连接队列中是否有需要处理的连接，<code>accept</code> 都会立即返回，不会阻塞</p>
-<p>如果有连接，则 <code>accept</code> 返回一个大于 0 的值，这个返回值即是 clientfd</p>
-<p>如果没有连接，<code>accept</code> 返回值小于 0，错误码 errno 为 <code>EWOULDBLOCK</code> 或 <code>EAGAIN</code></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://chaxxro.github.io/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="chaxxro">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="也无风雨也无晴">
-      <meta itemprop="description" content="好记性不如烂键盘">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | 也无风雨也无晴">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/" class="post-title-link" itemprop="url">网络 IO 模型</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-26 20:44:08" itemprop="dateCreated datePublished" datetime="2023-04-26T20:44:08+08:00">2023-04-26</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2024-08-06 16:41:02" itemprop="dateModified" datetime="2024-08-06T16:41:02+08:00">2024-08-06</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/" itemprop="url" rel="index"><span itemprop="name">网络编程</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>一次完整的 IO 是指用户空间的进程数据与内核空间的内核报文数据的完整交换。由于用户空间和内核空间在系统中是严格隔离的，所以其数据交换过程中不能由用户空间的进程直接读写内核空间的数据，而是需要经历一次从内核空间拷贝到用户空间的行为</p>
-<h2 id="输入操作的两个阶段"><a href="#输入操作的两个阶段" class="headerlink" title="输入操作的两个阶段"></a>输入操作的两个阶段</h2><ol>
-<li><p>等待数据从网络中到达</p>
-</li>
-<li><p>当所等待数据到达时，它被存放在内核中的某个缓冲区，所以还需把数据从内核缓冲区复制到应用进程的缓冲区</p>
-</li>
-</ol>
-<p><code>read</code>、<code>readv</code>、<code>recv</code>、<code>recvfrom</code>、<code>recvmsg</code> 等作用于非阻塞 fd 时在第一阶段返回异常，第二阶段阻塞</p>
-<p><code>accept</code> 与输入操作类似</p>
-<h2 id="输出操作的两个阶段"><a href="#输出操作的两个阶段" class="headerlink" title="输出操作的两个阶段"></a>输出操作的两个阶段</h2><ol>
-<li><p>将应用进程缓冲区中的数据拷贝至内核缓冲区</p>
-</li>
-<li><p>内核将内核缓冲区中的数据发送出去</p>
-</li>
-</ol>
-<p><code>write</code>、<code>writev</code>、<code>send</code>、<code>sendto</code>、<code>sendmsg</code> 等作用于阻塞 fd 且当内核可用的发送缓冲区小于待发送数据时会阻塞</p>
-<p><code>write</code>、<code>writev</code>、<code>send</code>、<code>sendto</code>、<code>sendmsg</code> 等作用于非阻塞 fd 且当内核可用的发送缓冲区小于待发送数据时会返回异常</p>
-<p><code>connect</code> 与输出操作类似</p>
-<h2 id="同步阻塞-IO"><a href="#同步阻塞-IO" class="headerlink" title="同步阻塞 IO"></a>同步阻塞 IO</h2><p>应用进程被阻塞，直到数据从内核缓冲区复制到应用进程缓冲区中才返回</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/01.png" class="">
-
-<p>进程在 <code>recv</code> 时大概率会阻塞，所以会发生一次进程切换；当数据到达网卡并复制到内核空间时，进程被唤醒从而发生第二次进程切换</p>
-<p>同步阻塞 IO 的一次数据到达会发生两次进程切换，一次数据读取会发生两处阻塞</p>
-<h2 id="同步非阻塞-IO"><a href="#同步非阻塞-IO" class="headerlink" title="同步非阻塞 IO"></a>同步非阻塞 IO</h2><p>应用进程执行系统调用之后，内核返回一个错误码后应用进程可以继续执行，但是需要以轮询的方式不断的执行系统调用来获知 IO 是否完成</p>
-<p>因为应用进程在数据没有到达之前会不停查询，使 CPU 要处理更多的系统调用</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/02.png" class="">
-
-<p>非阻塞 IO 不被推荐，虽然该方式能够在等待数据的时间里干其他活，但轮询将推高 CPU 占用，同时任务完成的响应延迟也将增大，降低整体数据吞吐量</p>
-<p>同步非阻塞 IO 仍会有两次进程切换，但只有一次阻塞</p>
-<h2 id="IO-复用"><a href="#IO-复用" class="headerlink" title="IO 复用"></a>IO 复用</h2><p>在同步非阻塞 IO 中，<code>recv()</code> 更多的是起到检测的作用，而操作系统提供了更为高效的检测操作是否完成接口，同时接口可以一次检测多个连接是否可读、可写</p>
-<p>IO 复用让单个线程具有处理多个 IO 事件的能力</p>
-<p>如果一个 Web 服务器没有 IO 复用，那么每一个 socket 连接都需要创建一个线程去处理。如果同时有几万个连接，那么就需要创建相同数量的线程。相比于多进程和多线程技术，IO 复用不需要进程线程创建和切换的开销，系统开销更小</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/03.png" class="">
-
-<p>IO 复用的优势在于能处理更多的连接，如果处理的连接数不是很高的话，使用 IO 复用不一定比使用多线程阻塞 IO 性能更好，可能延迟更高，因为使用了两个系统调用</p>
-<h2 id="信号驱动-IO"><a href="#信号驱动-IO" class="headerlink" title="信号驱动 IO"></a>信号驱动 IO</h2><p>应用进程使用 <code>sigaction</code> 系统调用，内核立即返回，应用进程可以继续执行，也就是说等待数据阶段应用进程是非阻塞的</p>
-<p>内核在数据到达时向应用进程发送 SIGIO 信号，应用进程收到之后在信号处理程序中调用 <code>recvfrom</code> 将数据从内核复制到应用进程中</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/04.png" class="">
-
-<h2 id="异步-IO"><a href="#异步-IO" class="headerlink" title="异步 IO"></a>异步 IO</h2><p>进程执行 <code>aio_read</code> 系统调用会立即返回，进程可以继续执行不会被阻塞，内核会在所有操作完成之后向应用进程发送信号</p>
-<p>异步 IO 与信号驱动 IO 的区别在于，异步 IO 的信号是通知应用进程 IO 完成，而信号驱动 IO 的信号是通知应用进程可以开始 IO</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/05.png" class="">
-
-<h2 id="IO-模型比较"><a href="#IO-模型比较" class="headerlink" title="IO 模型比较"></a>IO 模型比较</h2><ul>
-<li><p>同步 IO：将数据从内核缓冲区复制到应用进程缓冲区的阶段（第二阶段），应用进程会阻塞</p>
-</li>
-<li><p>异步 IO：第二阶段应用进程不会阻塞</p>
-</li>
-</ul>
-<p>同步 IO 包括阻塞式 IO、非阻塞式 IO、IO 复用和信号驱动 IO ，它们的主要区别在第一个阶段</p>
-<p>非阻塞式 IO 、信号驱动 IO 和异步 IO 在第一阶段不会阻塞</p>
-<img src="/2023/04/26/%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B-%E7%BD%91%E7%BB%9CIO%E6%A8%A1%E5%9E%8B/06.png" class="">
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/20/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><span class="page-number current">21</span><a class="page-number" href="/page/22/">22</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/22/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" title="上一页" aria-label="上一页" href="/page/20/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><span class="page-number current">21</span><a class="page-number" href="/page/22/">22</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/22/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
